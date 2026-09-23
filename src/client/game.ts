@@ -16,13 +16,23 @@ import {
   type GameEvent,
   type GameState,
 } from '../sim';
+import { canExplore, MAX_SUPPLIES } from '../sim';
 import { createResident } from '../sim/residents';
 import { startIncident, startRaid } from '../sim/systems/incidents';
 import { grantItem } from '../sim/systems/items';
+import { addFragment, addSalvage, unlockRecipe } from '../sim/systems/inventory';
 import type { CrateTier, IncidentType } from '../sim';
 import { clearSave, readSave, writeSave } from './storage';
 
 type Listener = (events: GameEvent[]) => void;
+
+/** Catch-up summary plus what happened to explorers while the player was away. */
+export interface AwaySummary extends CatchUpSummary {
+  /** Resident ids of explorers who arrived home during the absence. */
+  explorersHome: number[];
+  /** Resident ids of explorers who fell during the absence. */
+  explorersFallen: number[];
+}
 
 const AUTOSAVE_MS = 20_000;
 /** Longest frame we simulate directly; longer gaps go through offline catch-up. */
@@ -32,7 +42,7 @@ export class Game {
   readonly content: Content = loadContent();
   state: GameState;
   /** Set when a save was loaded and time was skipped. */
-  lastCatchUp: CatchUpSummary | null = null;
+  lastCatchUp: AwaySummary | null = null;
   private listeners = new Set<Listener>();
   private lastSave = 0;
   /** Bumped whenever rooms change shape, so the renderer can rebuild static art. */
@@ -50,8 +60,7 @@ export class Game {
     }
     if (loaded) {
       this.state = loaded;
-      const summary = catchUp(this.state, this.content, Date.now());
-      if (summary.seconds > 60) this.lastCatchUp = summary;
+      this.catchUpNow();
     } else {
       this.state = newGame(this.content);
     }
@@ -84,10 +93,25 @@ export class Game {
 
   /** Coming back to the tab/app: fast-forward safely. */
   resume(): void {
-    const summary = catchUp(this.state, this.content, Date.now());
-    if (summary.seconds > 60) this.lastCatchUp = summary;
+    this.catchUpNow();
     this.claimDaily();
     this.flush();
+  }
+
+  /** Offline catch-up, noting which explorers came home or fell meanwhile. */
+  private catchUpNow(): void {
+    const before = new Map(this.state.expeditions.map((e) => [e.id, e.status]));
+    const summary = catchUp(this.state, this.content, Date.now());
+    if (summary.seconds <= 60) return;
+    const explorersHome: number[] = [];
+    const explorersFallen: number[] = [];
+    for (const e of this.state.expeditions) {
+      const was = before.get(e.id);
+      if (was === undefined || was === e.status) continue;
+      if (e.status === 'returned') explorersHome.push(e.residentId);
+      else if (e.status === 'dead') explorersFallen.push(e.residentId);
+    }
+    this.lastCatchUp = { ...summary, explorersHome, explorersFallen };
   }
 
   /** Local calendar day number, so the daily crate resets at local midnight. */
@@ -172,6 +196,40 @@ export class Game {
       give: (defId: string) => grantItem(game.state, game.content, defId),
       crate: (tier: CrateTier = 'standard', n = 1) => {
         game.state.crates[tier] += n;
+      },
+      /** Add salvage by id, e.g. salvage('tin_cans', 20). */
+      salvage: (id: string, n = 10) => {
+        const added = addSalvage(game.state, game.content, id, n);
+        game.flush();
+        return added;
+      },
+      /** Add blueprint fragments toward an item's recipe. */
+      fragments: (defId: string, n = 1) => {
+        const added = addFragment(game.state, game.content, defId, n);
+        game.flush();
+        return added;
+      },
+      /** Learn an item's recipe outright. */
+      learn: (defId: string) => {
+        const ok = unlockRecipe(game.state, game.content, defId, 'found');
+        game.flush();
+        return ok;
+      },
+      /** Send a resident (or the first one who can go) to the first open region. */
+      explore: (residentId?: number) => {
+        const { state, content } = game;
+        const res =
+          residentId !== undefined
+            ? state.residents.find((r) => r.id === residentId)
+            : state.residents.find((r) => canExplore(state, content, r) === null);
+        if (!res) return { ok: false, reason: 'nobody can explore right now' };
+        return game.run({
+          type: 'explore',
+          residentId: res.id,
+          regionId: state.regionsUnlocked[0] ?? 'dustbowl',
+          medpatch: Math.min(5, MAX_SUPPLIES, Math.floor(state.resources.medpatch)),
+          purge: Math.min(5, MAX_SUPPLIES, Math.floor(state.resources.purge)),
+        });
       },
       skip: (seconds: number) => {
         advance(game.state, game.content, seconds);
