@@ -3,5 +3,633 @@
     "rare": 3,
     "legendary": 5
   },
-  "achievements": []
+  "tuning": {
+    "maxCrewStat": 102,
+    "maxTimeReduction": 0.9,
+    "xpPerCraft": {
+      "common": 25,
+      "rare": 100,
+      "legendary": 400
+    },
+    "reforge": {
+      "cost": {
+        "common": 150,
+        "rare": 1500,
+        "legendary": 4000
+      },
+      "upgradeChance": {
+        "common": 0.35,
+        "rare": 0.2
+      },
+      "pityAfter": 3
+    },
+    "scrap": {
+      "loss": {
+        "common": {
+          "common": {
+            "loss": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "w": [
+              25,
+              40,
+              25,
+              10
+            ],
+            "minKeep": 1
+          }
+        },
+        "rare": {
+          "rare": {
+            "loss": [
+              0,
+              1,
+              2,
+              3,
+              999
+            ],
+            "w": [
+              20,
+              25,
+              25,
+              20,
+              10
+            ],
+            "minKeep": 0
+          },
+          "common": {
+            "loss": [
+              0,
+              1
+            ],
+            "w": [
+              50,
+              50
+            ],
+            "minKeep": 0
+          }
+        },
+        "legendary": {
+          "legendary": {
+            "loss": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "w": [
+              20,
+              30,
+              30,
+              20
+            ],
+            "minKeep": 1
+          },
+          "rare": {
+            "loss": [
+              0,
+              1
+            ],
+            "w": [
+              50,
+              50
+            ],
+            "minKeep": 0
+          }
+        }
+      },
+      "legendaryFragmentChance": {
+        "common": 0.02,
+        "rare": 0.05,
+        "legendary": 0.1
+      }
+    }
+  },
+  "recipes": [
+    {
+      "defId": "rusty_revolver",
+      "workshop": "weaponshop",
+      "minLevel": 1,
+      "salvage": {
+        "tin_cans": 2,
+        "sticky_tape": 1
+      },
+      "scrip": 20,
+      "seconds": 1800
+    },
+    {
+      "defId": "wrench",
+      "workshop": "weaponshop",
+      "minLevel": 1,
+      "salvage": {
+        "tin_cans": 3,
+        "rat_leather": 1
+      },
+      "scrip": 20,
+      "seconds": 1800
+    },
+    {
+      "defId": "service_pistol",
+      "workshop": "weaponshop",
+      "minLevel": 1,
+      "salvage": {
+        "tin_cans": 3,
+        "sticky_tape": 1
+      },
+      "scrip": 30,
+      "seconds": 2100
+    },
+    {
+      "defId": "nail_driver",
+      "workshop": "weaponshop",
+      "minLevel": 1,
+      "salvage": {
+        "tin_cans": 3,
+        "sticky_tape": 2,
+        "vacuum_tube": 1
+      },
+      "scrip": 35,
+      "seconds": 2400
+    },
+    {
+      "defId": "flare_gun",
+      "workshop": "weaponshop",
+      "minLevel": 1,
+      "salvage": {
+        "baking_soda_tin": 2,
+        "tin_cans": 1,
+        "sticky_tape": 1
+      },
+      "scrip": 40,
+      "seconds": 2700
+    },
+    {
+      "defId": "scrap_carbine",
+      "workshop": "weaponshop",
+      "minLevel": 1,
+      "salvage": {
+        "tin_cans": 4,
+        "sticky_tape": 2,
+        "rat_leather": 1
+      },
+      "scrip": 55,
+      "seconds": 3600
+    },
+    {
+      "defId": "rivet_rifle",
+      "workshop": "weaponshop",
+      "minLevel": 2,
+      "salvage": {
+        "tin_cans": 4,
+        "rebar_bundle": 2,
+        "rubber_cement": 1
+      },
+      "scrip": 300,
+      "seconds": 10800
+    },
+    {
+      "defId": "scattergun",
+      "workshop": "weaponshop",
+      "minLevel": 2,
+      "salvage": {
+        "tin_cans": 5,
+        "rebar_bundle": 2,
+        "chemistry_set": 1
+      },
+      "scrip": 350,
+      "seconds": 12600
+    },
+    {
+      "defId": "arc_pistol",
+      "workshop": "weaponshop",
+      "minLevel": 2,
+      "salvage": {
+        "vacuum_tube": 4,
+        "relay_board": 2,
+        "rubber_cement": 1
+      },
+      "scrip": 400,
+      "seconds": 14400
+    },
+    {
+      "defId": "longrifle",
+      "workshop": "weaponshop",
+      "minLevel": 2,
+      "salvage": {
+        "tin_cans": 3,
+        "rebar_bundle": 3,
+        "tanned_hide": 1
+      },
+      "scrip": 450,
+      "seconds": 16200
+    },
+    {
+      "defId": "coilgun",
+      "workshop": "weaponshop",
+      "minLevel": 2,
+      "salvage": {
+        "vacuum_tube": 5,
+        "relay_board": 3,
+        "rebar_bundle": 1
+      },
+      "scrip": 550,
+      "seconds": 21600
+    },
+    {
+      "defId": "sunbeam_rifle",
+      "workshop": "weaponshop",
+      "minLevel": 3,
+      "salvage": {
+        "atomic_logic_core": 3,
+        "isotope_vial": 2,
+        "relay_board": 4
+      },
+      "scrip": 8000,
+      "seconds": 50400
+    },
+    {
+      "defId": "thunderclap",
+      "workshop": "weaponshop",
+      "minLevel": 3,
+      "salvage": {
+        "titanium_plate": 3,
+        "mil_spec_resin": 2,
+        "rebar_bundle": 4
+      },
+      "scrip": 9500,
+      "seconds": 61200
+    },
+    {
+      "defId": "peacemaker",
+      "workshop": "weaponshop",
+      "minLevel": 3,
+      "salvage": {
+        "gold_pocket_watch": 2,
+        "titanium_plate": 3,
+        "silver_locket": 3
+      },
+      "scrip": 12000,
+      "seconds": 72000
+    },
+    {
+      "defId": "glare_lance",
+      "workshop": "weaponshop",
+      "minLevel": 3,
+      "salvage": {
+        "isotope_vial": 4,
+        "atomic_logic_core": 3,
+        "relay_board": 5
+      },
+      "scrip": 15000,
+      "seconds": 86400
+    },
+    {
+      "defId": "work_overalls",
+      "workshop": "outfitshop",
+      "minLevel": 1,
+      "salvage": {
+        "burlap_scrap": 3,
+        "sticky_tape": 1
+      },
+      "scrip": 20,
+      "seconds": 1800
+    },
+    {
+      "defId": "lookout_jacket",
+      "workshop": "outfitshop",
+      "minLevel": 1,
+      "salvage": {
+        "burlap_scrap": 2,
+        "rat_leather": 2
+      },
+      "scrip": 30,
+      "seconds": 2100
+    },
+    {
+      "defId": "miners_gear",
+      "workshop": "outfitshop",
+      "minLevel": 1,
+      "salvage": {
+        "rat_leather": 2,
+        "tin_cans": 2,
+        "vacuum_tube": 1
+      },
+      "scrip": 35,
+      "seconds": 2400
+    },
+    {
+      "defId": "evening_wear",
+      "workshop": "outfitshop",
+      "minLevel": 1,
+      "salvage": {
+        "burlap_scrap": 3,
+        "costume_jewelry": 2
+      },
+      "scrip": 45,
+      "seconds": 3000
+    },
+    {
+      "defId": "lab_smock",
+      "workshop": "outfitshop",
+      "minLevel": 1,
+      "salvage": {
+        "burlap_scrap": 3,
+        "baking_soda_tin": 1
+      },
+      "scrip": 30,
+      "seconds": 2100
+    },
+    {
+      "defId": "mechanic_jumpsuit",
+      "workshop": "outfitshop",
+      "minLevel": 1,
+      "salvage": {
+        "burlap_scrap": 3,
+        "sticky_tape": 2
+      },
+      "scrip": 30,
+      "seconds": 2400
+    },
+    {
+      "defId": "lucky_suspenders",
+      "workshop": "outfitshop",
+      "minLevel": 1,
+      "salvage": {
+        "rat_leather": 2,
+        "costume_jewelry": 2
+      },
+      "scrip": 50,
+      "seconds": 3600
+    },
+    {
+      "defId": "foreman_overalls",
+      "workshop": "outfitshop",
+      "minLevel": 2,
+      "salvage": {
+        "burlap_scrap": 5,
+        "tanned_hide": 2,
+        "rebar_bundle": 1
+      },
+      "scrip": 300,
+      "seconds": 10800
+    },
+    {
+      "defId": "scout_jacket",
+      "workshop": "outfitshop",
+      "minLevel": 2,
+      "salvage": {
+        "rat_leather": 4,
+        "tanned_hide": 2,
+        "parachute_silk": 1
+      },
+      "scrip": 320,
+      "seconds": 12600
+    },
+    {
+      "defId": "tunneler_gear",
+      "workshop": "outfitshop",
+      "minLevel": 2,
+      "salvage": {
+        "tin_cans": 4,
+        "tanned_hide": 2,
+        "rebar_bundle": 2
+      },
+      "scrip": 380,
+      "seconds": 14400
+    },
+    {
+      "defId": "dinner_jacket",
+      "workshop": "outfitshop",
+      "minLevel": 2,
+      "salvage": {
+        "burlap_scrap": 3,
+        "parachute_silk": 3,
+        "silver_locket": 1
+      },
+      "scrip": 450,
+      "seconds": 16200
+    },
+    {
+      "defId": "research_smock",
+      "workshop": "outfitshop",
+      "minLevel": 2,
+      "salvage": {
+        "burlap_scrap": 4,
+        "parachute_silk": 2,
+        "chemistry_set": 2
+      },
+      "scrip": 400,
+      "seconds": 14400
+    },
+    {
+      "defId": "racing_jumpsuit",
+      "workshop": "outfitshop",
+      "minLevel": 2,
+      "salvage": {
+        "sticky_tape": 3,
+        "parachute_silk": 3,
+        "rubber_cement": 1
+      },
+      "scrip": 420,
+      "seconds": 16200
+    },
+    {
+      "defId": "gamblers_vest",
+      "workshop": "outfitshop",
+      "minLevel": 2,
+      "salvage": {
+        "costume_jewelry": 4,
+        "parachute_silk": 2,
+        "silver_locket": 2
+      },
+      "scrip": 550,
+      "seconds": 19800
+    },
+    {
+      "defId": "titan_harness",
+      "workshop": "outfitshop",
+      "minLevel": 3,
+      "salvage": {
+        "titanium_plate": 3,
+        "glare_beast_pelt": 2,
+        "rebar_bundle": 4
+      },
+      "scrip": 9000,
+      "seconds": 57600
+    },
+    {
+      "defId": "hawkeye_duster",
+      "workshop": "outfitshop",
+      "minLevel": 3,
+      "salvage": {
+        "glare_beast_pelt": 3,
+        "halcyon_banner": 2,
+        "tanned_hide": 3
+      },
+      "scrip": 9500,
+      "seconds": 61200
+    },
+    {
+      "defId": "bedrock_armor",
+      "workshop": "outfitshop",
+      "minLevel": 3,
+      "salvage": {
+        "titanium_plate": 4,
+        "mil_spec_resin": 2,
+        "rebar_bundle": 3
+      },
+      "scrip": 10500,
+      "seconds": 64800
+    },
+    {
+      "defId": "silver_tongue_suit",
+      "workshop": "outfitshop",
+      "minLevel": 3,
+      "salvage": {
+        "halcyon_banner": 3,
+        "gold_pocket_watch": 2,
+        "silver_locket": 3
+      },
+      "scrip": 11500,
+      "seconds": 64800
+    },
+    {
+      "defId": "professors_tweed",
+      "workshop": "outfitshop",
+      "minLevel": 3,
+      "salvage": {
+        "halcyon_banner": 2,
+        "atomic_logic_core": 2,
+        "chemistry_set": 3
+      },
+      "scrip": 10000,
+      "seconds": 61200
+    },
+    {
+      "defId": "quicksilver_suit",
+      "workshop": "outfitshop",
+      "minLevel": 3,
+      "salvage": {
+        "halcyon_banner": 3,
+        "mil_spec_resin": 2,
+        "parachute_silk": 4
+      },
+      "scrip": 10500,
+      "seconds": 61200
+    },
+    {
+      "defId": "four_leaf_tux",
+      "workshop": "outfitshop",
+      "minLevel": 3,
+      "salvage": {
+        "halcyon_banner": 3,
+        "gold_pocket_watch": 3,
+        "silver_locket": 2
+      },
+      "scrip": 13500,
+      "seconds": 72000
+    }
+  ],
+  "achievements": [
+    {
+      "id": "craft_first",
+      "name": "Handmade",
+      "description": "Craft your first item.",
+      "tier": "bronze",
+      "stat": "itemsCrafted",
+      "target": 1
+    },
+    {
+      "id": "craft_25",
+      "name": "Cottage Industry",
+      "description": "Craft 25 items.",
+      "tier": "bronze",
+      "stat": "itemsCrafted",
+      "target": 25
+    },
+    {
+      "id": "craft_100",
+      "name": "Mass Production",
+      "description": "Craft 100 items.",
+      "tier": "silver",
+      "stat": "itemsCrafted",
+      "target": 100
+    },
+    {
+      "id": "craft_rare",
+      "name": "Fine Work",
+      "description": "Craft a rare item.",
+      "tier": "bronze",
+      "stat": "crafted.rare",
+      "target": 1
+    },
+    {
+      "id": "craft_rare_10",
+      "name": "Journeyman",
+      "description": "Craft 10 rare items.",
+      "tier": "silver",
+      "stat": "crafted.rare",
+      "target": 10
+    },
+    {
+      "id": "craft_legendary",
+      "name": "Masterwork",
+      "description": "Craft a legendary item.",
+      "tier": "silver",
+      "stat": "crafted.legendary",
+      "target": 1
+    },
+    {
+      "id": "craft_legendary_7",
+      "name": "Heirloom Collection",
+      "description": "Craft 7 legendary items.",
+      "tier": "gold",
+      "stat": "crafted.legendary",
+      "target": 7
+    },
+    {
+      "id": "scrap_first",
+      "name": "Waste Not",
+      "description": "Scrap an item for salvage.",
+      "tier": "bronze",
+      "stat": "itemsScrapped",
+      "target": 1
+    },
+    {
+      "id": "scrap_50",
+      "name": "Recycling Drive",
+      "description": "Scrap 50 items.",
+      "tier": "silver",
+      "stat": "itemsScrapped",
+      "target": 50
+    },
+    {
+      "id": "reforge_first",
+      "name": "Melting Pot",
+      "description": "Reforge three items into one.",
+      "tier": "bronze",
+      "stat": "reforges",
+      "target": 1
+    },
+    {
+      "id": "reforge_legendary",
+      "name": "Alchemy of Scrap",
+      "description": "Reforge three rare items into a legendary.",
+      "tier": "silver",
+      "stat": "reforgeUpgrades.legendary",
+      "target": 1
+    },
+    {
+      "id": "reforge_pity",
+      "name": "Fourth Time Lucky",
+      "description": "Earn a guaranteed upgrade after a run of bad luck at the forge.",
+      "tier": "bronze",
+      "stat": "reforgePityUpgrades",
+      "target": 1,
+      "hidden": true
+    }
+  ]
 }
