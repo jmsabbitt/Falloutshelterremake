@@ -1,0 +1,67 @@
+import type { Content } from './content';
+import { refreshUnlocks } from './economy';
+import { createResident } from './residents';
+import { nextInt, seedRng } from './rng';
+import type { GameState, Room, StatKey } from './types';
+
+export interface NewGameOptions {
+  seed?: number;
+  now?: number;
+  homesteadNumber?: number;
+}
+
+export function newGame(content: Content, opts: NewGameOptions = {}): GameState {
+  const seed = opts.seed ?? Math.floor(Math.random() * 2 ** 32);
+  const start = content.balance.start;
+  const state: GameState = {
+    time: 0,
+    lastRealTime: opts.now ?? Date.now(),
+    homesteadNumber: 0,
+    rng: seedRng(seed),
+    nextId: 1,
+    scrip: start.scrip,
+    resources: { ...start.resources },
+    rooms: [],
+    residents: [],
+    incidents: [],
+    rushStrain: 0,
+    peakPopulation: 0,
+    unlockedRooms: [],
+    achievements: {},
+    stats: {},
+    offlineConsumed: 0,
+    events: [],
+  };
+  state.homesteadNumber = opts.homesteadNumber ?? nextInt(state.rng, 100, 999);
+
+  const place = (type: string, floor: number, x: number): Room => {
+    const room: Room = { id: state.nextId++, type, floor, x, segments: 1, level: 1, pool: 0, ready: false, powered: true };
+    state.rooms.push(room);
+    return room;
+  };
+
+  // Starter layout: door, an elevator shaft three floors deep, and the basics.
+  place('door', 0, 0);
+  place('elevator', 0, 6);
+  place('quarters', 0, 7);
+  place('elevator', 1, 6);
+  place('generator', 1, 7);
+  place('canteen', 1, 10);
+  place('elevator', 2, 6);
+  place('waterworks', 2, 7);
+
+  // The founding crew each have a clear specialty matching a starter room, so
+  // the first hour teaches "put people where they are good".
+  for (let i = 0; i < start.waitingResidents; i++) {
+    const res = createResident(state, content, { sex: i % 2 === 0 ? 'f' : 'm' });
+    const specialty = start.specialties[i % start.specialties.length] as StatKey | undefined;
+    if (specialty) {
+      res.stats[specialty] = Math.max(res.stats[specialty], nextInt(state.rng, start.specialtyMin, start.specialtyMax));
+    }
+    state.residents.push(res);
+  }
+
+  refreshUnlocks(state, content);
+  state.events = [];
+  return state;
+}

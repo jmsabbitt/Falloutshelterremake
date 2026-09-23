@@ -1,6 +1,6 @@
-# Game Design Document — v0.1 draft
+# Game Design Document — v0.2
 
-**Status:** first draft for discussion. Every name here is a **placeholder** until we settle the identity and run a trademark check.
+**Status:** v0.2. It now includes the owner's decisions and wishlist (§15, §16). Every name here is a **placeholder** until we settle the identity and run a trademark check.
 **Direction (decided):** an original IP inspired by Fallout Shelter. Web first, with a port to mobile later. Wasteland exploration and quests are in scope from the start. The headline feature is a **prestige system** that keeps opening up the game instead of simply resetting it.
 
 Research that backs this document is in [`../research/`](../research/00_overview.md). When this doc says "same as the original", the formulas are in those files.
@@ -346,13 +346,86 @@ If you would rather end up in Godot for sure, **Option B** is better than C: bui
 
 Art and audio proceed in parallel. Placeholder art is fine through M4.
 
+Two systems grow with every milestone instead of being a milestone of their own:
+- **Achievements and the Collection Log.** The event bus and tracker land in M1, and every later milestone adds achievements for its systems.
+- **Supply Crates and crate tokens.** These arrive in M2, and their sources expand with each system.
+
+The **Custom Game** mode ships after M9. It is built on the developer console, which exists from M0.
+
 ---
 
-## 15. Open questions for you
+## 15. Owner's wishlist (v0.2)
 
-1. **Your wishlist.** What did you wish Fallout Shelter had? Anything beyond §6 and §10 goes straight into the design.
-2. **Name and identity.** Keep the placeholders (Homestead, HALCY, the Glare, Scrip) or brainstorm? Is atompunk the right genre, or would you prefer something else (e.g. post-climate, cosmic horror, fantasy dwarven hold)?
-3. **Engine path.** Option A (TS + PixiJS + Capacitor) or Option B (Godot from day one)?
-4. **Ageing and generations.** Should residents age, retire and die of old age over real time? This is great for family sagas, but some players hate losing favourites.
-5. **Art style.** 2D sprites, 2.5D (the original used 3D models seen from the side), or pixel art?
-6. **Real-time vs. idle balance.** Should the game stay a check-in game (5–10 minute sessions), or also support long active sessions with more hands-on play?
+These come directly from the project owner's experience beating Fallout Shelter many times. They are design requirements, not nice-to-haves.
+
+### 15.1 More ways to get rare items
+
+In the original, rare and legendary gear came almost entirely from lunchbox RNG, late crafting and grinding high-level quests. Ours offers many overlapping, **deterministic-leaning** paths:
+
+| Path | How it works |
+|---|---|
+| **Blueprint fragments** | Every legendary recipe splits into N fragments. Fragments drop from exploring, quests, bosses and scrapping. Collecting all N **guarantees** the recipe. This turns luck into steady progress |
+| **Crate pity counter** | Each Supply Crate raises a hidden-but-shown "luck meter". A legendary is guaranteed every X crates (e.g. every 10) if none has dropped |
+| **Reforging** | Combine 3 items of one rarity (plus scrip and salvage) for a chance at the next rarity, with guaranteed success after a few failures |
+| **Faction vendors** | Rare and legendary items bought with scrip plus reputation. The stock rotates |
+| **Bounty contracts** | Quests that **name the reward item** up front, so you can target the one you want |
+| **Treasure maps** | Rare finds while exploring that point to a specific legendary cache on the world map |
+| **Boss first-kill drops** | Each named boss guarantees a specific item the first time it is defeated, and has a lower chance afterwards |
+| **Region and Deep exclusives** | Each region and stratum has signature loot that is only found there |
+| **Outpost trade** | Prestige outposts can specialise, e.g. an armoury outpost produces gear |
+
+### 15.2 Achievements and "Platinum"
+
+- There are **150+ achievements** in tiers (bronze, silver, gold), across every system: building, residents, breeding, combat, exploring, quests, crafting, collecting, prestige, story, challenge modes and hidden ones.
+- The **Warden's Seal** (our "Platinum") is awarded for earning every non-DLC achievement. It gives a unique cosmetic, a title and a homestead monument.
+- The **Collection Log** (a codex) tracks every item, resident, creature and room theme you have ever obtained. It has its own completion percentage.
+- Each achievement shows **visible progress** and gives a reward (titles, cosmetics, crates) so it feels like accomplishment, not a checklist.
+- The design leaves room to mirror achievements to Steam, Game Center and Google Play Games later.
+- **Rule:** no achievement requires spending money. None needs extreme luck either: bad luck is covered by the pity counters and fragments above.
+
+### 15.3 Supply Crates are much easier to earn
+
+In the original, a lunchbox could take hours to earn without paying. Our target: **several crates per day of normal play, and about one per hour of active play.**
+
+| Source | Rate (starting point, to tune) |
+|---|---|
+| Daily login | A crate **every day**, not only every 7th day. Day 7 gives a better crate |
+| Objectives | Crates are a common reward, not a rare one |
+| Crate tokens | Almost every activity (collecting, rushing, winning fights, exploring) drops tokens. **10 tokens = 1 crate**, with a visible progress bar |
+| Resident level-ups | A crate every 5th level of any resident |
+| Population milestones | A crate at each milestone |
+| Quests and bosses | Crates are part of the reward table |
+| Explorer finds | A small chance per event |
+| Outposts | Each outpost produces crates over time |
+| Achievements | Many of them award crates |
+
+- **Crate tiers:** Standard, Rare-guaranteed and Legendary-guaranteed.
+- **Crate economy guardrail:** crates must not make crafting and exploring pointless. Crates give variety and a boost; targeted paths (§15.1) give control.
+
+### 15.4 Custom Game (post-launch, low priority)
+
+This is a sandbox and scenario mode for testing and "what if" play:
+- Set resources and population, spawn residents and items, choose rooms and layout
+- Trigger incidents on demand, speed time up or down (×1 to ×100), set stat caps and rules
+- Save **scenarios** to share, and load preset challenges ("start with 5 residents at pop 80")
+- Achievements are disabled, and custom saves are kept separate from normal ones
+
+**Why it is cheap to add later:** the simulation takes commands and produces state (§13.1), so Custom Game is mostly a UI over a **developer console** that we build from day one for testing anyway.
+
+---
+
+## 16. Decisions log
+
+| Date | Decision |
+|---|---|
+| 2026-09-23 | Original IP inspired by Fallout Shelter; exploring and quests in scope; prestige is the headline feature |
+| 2026-09-23 | **Engine: TypeScript + PixiJS web app, mobile through Capacitor** (Option A) |
+| 2026-09-23 | **Genre: atompunk** (placeholder names kept for now) |
+| 2026-09-23 | **Art: 2.5D.** Rooms are layered pseudo-3D cross-sections with depth and parallax. Residents are sprite sheets. Procedural placeholder art at first; final assets may come from PixelLab |
+| 2026-09-23 | Wishlist adopted: rare-item paths, Platinum-style achievements, easier crates, Custom Game (post-launch) |
+
+## 17. Open questions
+
+1. **Name and identity.** Keep the placeholders (Homestead, HALCY, the Glare, Scrip) or brainstorm?
+2. **Ageing and generations.** Should residents age, retire and die of old age? The default for now is **off**, with an optional rule planned for later.
+3. **Real-time vs. idle balance.** Should the game stay a check-in game (5–10 minute sessions), or also support long active sessions?

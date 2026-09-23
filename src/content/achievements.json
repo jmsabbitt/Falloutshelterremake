@@ -1,0 +1,23 @@
+[
+  { "id": "first_collect", "name": "Clocking In", "description": "Collect your first batch of anything.", "tier": "bronze", "stat": "collections", "target": 1 },
+  { "id": "collect_100", "name": "Productive Citizens", "description": "Collect 100 batches.", "tier": "bronze", "stat": "collections", "target": 100 },
+  { "id": "collect_1000", "name": "Assembly Line", "description": "Collect 1,000 batches.", "tier": "silver", "stat": "collections", "target": 1000 },
+  { "id": "power_1000", "name": "Keep the Lights On", "description": "Produce 1,000 power.", "tier": "bronze", "stat": "produced.power", "target": 1000 },
+  { "id": "food_1000", "name": "Three Square Meals", "description": "Produce 1,000 food.", "tier": "bronze", "stat": "produced.food", "target": 1000 },
+  { "id": "water_1000", "name": "Hydration Station", "description": "Produce 1,000 water.", "tier": "bronze", "stat": "produced.water", "target": 1000 },
+  { "id": "build_first", "name": "Groundbreaking", "description": "Build your first room.", "tier": "bronze", "stat": "roomsBuilt", "target": 1 },
+  { "id": "build_25", "name": "Urban Sprawl", "description": "Build 25 rooms.", "tier": "silver", "stat": "roomsBuilt", "target": 25 },
+  { "id": "merge_first", "name": "Knock Down That Wall", "description": "Merge two rooms together.", "tier": "bronze", "stat": "merges", "target": 1 },
+  { "id": "triple_room", "name": "Go Big", "description": "Build a room three segments wide.", "tier": "bronze", "stat": "tripleRooms", "target": 1 },
+  { "id": "upgrade_first", "name": "Home Improvement", "description": "Upgrade a room.", "tier": "bronze", "stat": "upgrades", "target": 1 },
+  { "id": "rush_first", "name": "Overtime", "description": "Successfully rush a room.", "tier": "bronze", "stat": "rushSuccesses", "target": 1 },
+  { "id": "rush_50", "name": "Crunch Culture", "description": "Successfully rush 50 rooms.", "tier": "silver", "stat": "rushSuccesses", "target": 50 },
+  { "id": "fire_first", "name": "Stop, Drop and Roll", "description": "Put out a fire.", "tier": "bronze", "stat": "incidentsResolved.fire", "target": 1 },
+  { "id": "pop_10", "name": "Neighbourhood", "description": "Reach a population of 10.", "tier": "bronze", "stat": "peakPopulation", "target": 10 },
+  { "id": "pop_25", "name": "Township", "description": "Reach a population of 25.", "tier": "silver", "stat": "peakPopulation", "target": 25 },
+  { "id": "pop_50", "name": "Boomtown", "description": "Reach a population of 50.", "tier": "gold", "stat": "peakPopulation", "target": 50 },
+  { "id": "level_10", "name": "Seasoned", "description": "Raise a resident to level 10.", "tier": "bronze", "stat": "highestLevel", "target": 10 },
+  { "id": "bonus_scrip", "name": "Found Money", "description": "Earn bonus scrip while collecting.", "tier": "bronze", "stat": "bonusScripEvents", "target": 1 },
+  { "id": "jackpot", "name": "Jackpot!", "description": "Hit the top bonus scrip tier.", "tier": "gold", "stat": "jackpots", "target": 1, "hidden": true },
+  { "id": "revive_first", "name": "Not Today", "description": "Revive a fallen resident.", "tier": "bronze", "stat": "revives", "target": 1 }
+]

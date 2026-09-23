@@ -1,0 +1,88 @@
+{
+  "grid": { "floors": 25, "cellsPerFloor": 26, "cellsPerSegment": 3 },
+  "upgradeWidthMultiplier": [1, 1.5, 2],
+  "maxPopulation": 200,
+  "maxScrip": 999999,
+  "baseStorage": { "power": 0, "food": 0, "water": 0, "medpatch": 5, "purge": 5, "items": 10 },
+
+  "consumption": {
+    "foodPerResidentPerMin": 0.3,
+    "waterPerResidentPerMin": 0.3,
+    "powerPerRoomPerMin": [[0.52, 1.09, 1.71], [0.62, 1.30, 2.05], [1.14, 2.39, 3.76]],
+    "shortageThresholdMinutes": 13.5
+  },
+
+  "shortage": {
+    "foodHpLossPerMin": 1,
+    "waterTaintPerMin": 0.5,
+    "happinessPenalty": 20
+  },
+
+  "happiness": {
+    "base": 50,
+    "rightRoomBonus": 25,
+    "changePerMin": 2,
+    "productionBonusDivisor": 1000,
+    "injuredPenalty": 15
+  },
+
+  "rush": {
+    "baseFail": 40,
+    "statFactor": 1.5,
+    "minFail": 10,
+    "perRecentRush": 10,
+    "maxRecent": 6,
+    "strainDecayPerMin": 0.5,
+    "successHappiness": 5,
+    "failHappiness": -5
+  },
+
+  "bonusScrip": {
+    "chancePerFortune": 0.05,
+    "maxChance": 0.5,
+    "tiers": [
+      { "chance": 0.01, "base": 200, "mult": 6 },
+      { "chance": 0.05, "base": 100, "mult": 4 },
+      { "chance": 0.20, "base": 20, "mult": 3 },
+      { "chance": 1.00, "base": 5, "mult": 1 }
+    ]
+  },
+
+  "resident": {
+    "maxLevel": 50,
+    "baseHp": 105,
+    "hpPerLevelBase": 2.5,
+    "hpPerLevelPerGrit": 0.5,
+    "xpCurveBase": 100,
+    "xpCurveExponent": 1.6,
+    "xpPerCollectPerSegment": 12,
+    "regenPerMin": 1,
+    "commonStatTotal": 12
+  },
+
+  "revive": { "base": 100, "perLevel": 20, "max": 1000 },
+
+  "fire": {
+    "hpPerSegment": 30,
+    "hpPerRoomLevel": 0.5,
+    "hpPerAvgLevel": 0.08,
+    "dpsPerSegment": 1.2,
+    "damagePerResidentPerSec": 1,
+    "xpOnResolvePerResident": 25
+  },
+
+  "offline": {
+    "maxCatchUpHours": 72,
+    "consumptionMinutes": 5,
+    "stepSeconds": 5
+  },
+
+  "start": {
+    "scrip": 1000,
+    "resources": { "power": 50, "food": 50, "water": 50, "medpatch": 2, "purge": 1 },
+    "waitingResidents": 6,
+    "specialties": ["brawn", "knack", "sight", "brawn", "knack", "sight"],
+    "specialtyMin": 4,
+    "specialtyMax": 6
+  }
+}
