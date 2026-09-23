@@ -4,8 +4,2250 @@
       "id": "dustbowl",
       "name": "Dustbowl Flats",
       "description": "Sun-baked farmland and roadside ruins around the homestead.",
-      "danger": 1
+      "danger": 1,
+      "enemies": [
+        {
+          "id": "glare_rat",
+          "name": "glare-rat",
+          "stat": "sight",
+          "difficulty": 1,
+          "minMinute": 1,
+          "maxMinute": 180,
+          "damage": 5,
+          "xp": 160,
+          "drop": {
+            "materials": [
+              "hide"
+            ],
+            "rarity": "common",
+            "chance": 0.3,
+            "count": [
+              1,
+              1
+            ]
+          },
+          "encounter": [
+            "A glare-rat is staring at me. It glows faintly. So, now, do I, probably.",
+            "Spotted a glare-rat. Big as a cat. Brave as a much bigger cat."
+          ],
+          "win": [
+            "Chased off a glare-rat. It squeaked something unkind about my mother.",
+            "Beat a glare-rat with a little help from my boot."
+          ],
+          "retreat": [
+            "The glare-rat bit my ankle and I left the area at speed.",
+            "Lost a fight to a rat. Moving on. Nobody needs to know."
+          ]
+        },
+        {
+          "id": "dust_gnats",
+          "name": "cloud of dust gnats",
+          "stat": "grit",
+          "difficulty": 2,
+          "minMinute": 1,
+          "maxMinute": 200,
+          "damage": 5,
+          "xp": 180,
+          "drop": null,
+          "encounter": [
+            "A cloud of dust gnats found me. Or I found them. Either way, nobody's happy.",
+            "Walked into a swarm of dust gnats. They're in my ears. They're in my everything."
+          ],
+          "win": [
+            "Outlasted the dust gnats. I think they got bored of me.",
+            "Swatted my way out of a gnat cloud. Victory tastes like gnats."
+          ],
+          "retreat": [
+            "Fled the gnats. They followed me for a mile, humming judgementally.",
+            "The gnats won. I ran. I'm still itching in places I can't reach."
+          ]
+        },
+        {
+          "id": "scrap_hound",
+          "name": "scrap hound",
+          "stat": "sight",
+          "difficulty": 3,
+          "minMinute": 1,
+          "maxMinute": 240,
+          "damage": 6,
+          "xp": 200,
+          "drop": {
+            "materials": [
+              "hide"
+            ],
+            "rarity": "common",
+            "chance": 0.3,
+            "count": [
+              1,
+              1
+            ]
+          },
+          "encounter": [
+            "A scrap hound is trotting towards me. Its collar says 'Buddy'. Buddy is not a buddy anymore.",
+            "Spotted a scrap hound nosing through junk. It smelled me first, and I smell strongly."
+          ],
+          "win": [
+            "Sent the scrap hound packing. Good boy. Bad boy. Gone boy.",
+            "The scrap hound lost interest after I hit it with a hubcap."
+          ],
+          "retreat": [
+            "The scrap hound chewed on me for a while. I climbed a car and waited it out.",
+            "Man's best friend just ruined my trousers. Retreating."
+          ]
+        },
+        {
+          "id": "skitter",
+          "name": "lone Skitter",
+          "stat": "knack",
+          "difficulty": 4,
+          "minMinute": 1,
+          "maxMinute": 270,
+          "damage": 6,
+          "xp": 220,
+          "drop": {
+            "materials": [
+              "chemicals"
+            ],
+            "rarity": "common",
+            "chance": 0.3,
+            "count": [
+              1,
+              1
+            ]
+          },
+          "encounter": [
+            "A Skitter clicked at me from under a porch.",
+            "One Skitter. Where there's one Skitter there are forty. Staying alert."
+          ],
+          "win": [
+            "Stomped a Skitter. It made a noise like a dropped bag of crisps.",
+            "Dealt with a Skitter. Legs everywhere. None of them mine."
+          ],
+          "retreat": [
+            "The Skitter ran up my leg and I ran everywhere else.",
+            "Lost to a bug. A big bug. But still, technically, a bug."
+          ]
+        },
+        {
+          "id": "tin_crab",
+          "name": "tin-can crab",
+          "stat": "brawn",
+          "difficulty": 5,
+          "minMinute": 10,
+          "maxMinute": 300,
+          "damage": 7,
+          "xp": 240,
+          "drop": {
+            "materials": [
+              "steel"
+            ],
+            "rarity": "common",
+            "chance": 0.3,
+            "count": [
+              1,
+              1
+            ]
+          },
+          "encounter": [
+            "Something is living in a paint can and it has claws. A tin-can crab.",
+            "A tin-can crab is waving its pincers at me in what I assume is not a greeting."
+          ],
+          "win": [
+            "Evicted the tin-can crab. Kept the can.",
+            "Cracked the tin-can crab's shell. Smells like low tide and motor oil."
+          ],
+          "retreat": [
+            "The tin-can crab pinched me somewhere I will not be writing down. Leaving.",
+            "The crab won. The crab lives in a soup can. I lost to soup."
+          ]
+        },
+        {
+          "id": "burrower_pup",
+          "name": "Burrower pup",
+          "stat": "brawn",
+          "difficulty": 6,
+          "minMinute": 20,
+          "maxMinute": 330,
+          "damage": 7,
+          "xp": 280,
+          "drop": {
+            "materials": [
+              "hide"
+            ],
+            "rarity": "common",
+            "chance": 0.3,
+            "count": [
+              1,
+              1
+            ]
+          },
+          "encounter": [
+            "A Burrower pup popped out of the ground. Cute, if you like teeth.",
+            "The ground is wriggling. It's a Burrower pup. Its mother is hopefully elsewhere."
+          ],
+          "win": [
+            "Shooed the Burrower pup back into its hole. It sulked.",
+            "The Burrower pup gave up and dug away. Mother not sighted. Grateful."
+          ],
+          "retreat": [
+            "The Burrower pup took a chunk out of me. Retreating before it fetches the family.",
+            "Lost to a baby. A baby with a jaw like a bear trap, but still."
+          ]
+        },
+        {
+          "id": "rustman_scout",
+          "name": "Rustman scout",
+          "stat": "knack",
+          "difficulty": 8,
+          "minMinute": 40,
+          "maxMinute": 405,
+          "damage": 8,
+          "xp": 320,
+          "drop": {
+            "materials": [
+              "steel"
+            ],
+            "rarity": "common",
+            "chance": 0.3,
+            "count": [
+              1,
+              1
+            ]
+          },
+          "encounter": [
+            "A Rustman scout is watching me through a spyglass made from two bottle necks.",
+            "Spotted a Rustman scout. He spotted me too. Awkward for everyone."
+          ],
+          "win": [
+            "The Rustman scout ran off to tell his friends. His friends will be disappointed.",
+            "Beat a Rustman scout. He had a list of 'targets'. I was on it. I crossed myself off."
+          ],
+          "retreat": [
+            "The Rustman scout shot at me with something rusty. I left before the tetanus set in.",
+            "Retreated from a Rustman scout. He yelled 'And stay out!' This is not his property."
+          ]
+        },
+        {
+          "id": "hollowed_wanderer",
+          "name": "Hollowed wanderer",
+          "stat": "knack",
+          "difficulty": 10,
+          "minMinute": 60,
+          "maxMinute": 480,
+          "damage": 9,
+          "xp": 360,
+          "drop": {
+            "materials": [
+              "cloth"
+            ],
+            "rarity": "common",
+            "chance": 0.3,
+            "count": [
+              1,
+              1
+            ]
+          },
+          "encounter": [
+            "A Hollowed is wandering the road, humming a jingle from before the Glare.",
+            "Saw a Hollowed standing at a bus stop, patiently waiting for a bus that isn't coming."
+          ],
+          "win": [
+            "Put the Hollowed to rest. I finished humming its jingle for it.",
+            "The Hollowed went down. I hope it caught its bus."
+          ],
+          "retreat": [
+            "The Hollowed grabbed me with a very cold hand. I ran. I'm still cold.",
+            "Couldn't handle the Hollowed. It's still humming. I can hear it from here."
+          ]
+        },
+        {
+          "id": "carrion_kite",
+          "name": "carrion kite",
+          "stat": "sight",
+          "difficulty": 11,
+          "minMinute": 75,
+          "maxMinute": 540,
+          "damage": 9,
+          "xp": 380,
+          "drop": {
+            "materials": [
+              "hide"
+            ],
+            "rarity": "common",
+            "chance": 0.3,
+            "count": [
+              1,
+              1
+            ]
+          },
+          "encounter": [
+            "A carrion kite is circling overhead. I'm trying to look extremely alive.",
+            "Big bird, bad attitude. A carrion kite has decided I'm lunch."
+          ],
+          "win": [
+            "Knocked the carrion kite out of the sky with a well-thrown rock. Feeling heroic.",
+            "The carrion kite flapped off to find someone deader."
+          ],
+          "retreat": [
+            "The carrion kite dive-bombed me until I hid under a car.",
+            "Lost a fight to a bird. I'm not writing any more about it."
+          ]
+        },
+        {
+          "id": "dust_stalker",
+          "name": "dust stalker",
+          "stat": "sight",
+          "difficulty": 13,
+          "minMinute": 90,
+          "maxMinute": 620,
+          "damage": 10,
+          "xp": 420,
+          "drop": {
+            "materials": [
+              "hide"
+            ],
+            "rarity": "common",
+            "chance": 0.3,
+            "count": [
+              1,
+              1
+            ]
+          },
+          "encounter": [
+            "Something tall and dust-coloured moves whenever I'm not looking. A dust stalker.",
+            "A dust stalker. It stops when I look at it. It gets closer when I blink."
+          ],
+          "win": [
+            "Stared the dust stalker down and then hit it very hard. Worked.",
+            "The dust stalker is down. I can finally blink again."
+          ],
+          "retreat": [
+            "The dust stalker got its claws into me. I ran with my eyes open the whole way.",
+            "Blinked. Regretted it. Ran."
+          ]
+        },
+        {
+          "id": "skitter_swarm",
+          "name": "Skitter swarm",
+          "stat": "wits",
+          "difficulty": 14,
+          "minMinute": 110,
+          "maxMinute": 740,
+          "damage": 11,
+          "xp": 460,
+          "drop": {
+            "materials": [
+              "chemicals"
+            ],
+            "rarity": "common",
+            "chance": 0.3,
+            "count": [
+              1,
+              2
+            ]
+          },
+          "encounter": [
+            "A carpet of Skitters is rolling over the hill. The carpet is heading my way.",
+            "Skitter swarm, dead ahead. Hundreds of little legs, one terrible idea."
+          ],
+          "win": [
+            "Got through the Skitter swarm by thinking faster than they could click. The crunching will haunt me.",
+            "Survived a Skitter swarm. I'll be shaking them out of my boots for a week."
+          ],
+          "retreat": [
+            "The Skitter swarm engulfed my legs. I retreated in a very undignified dance.",
+            "Nope. Too many Skitters. Absolutely leaving."
+          ]
+        },
+        {
+          "id": "rustman_bruiser",
+          "name": "Rustman bruiser",
+          "stat": "brawn",
+          "difficulty": 16,
+          "minMinute": 135,
+          "maxMinute": 900,
+          "damage": 12,
+          "xp": 500,
+          "drop": {
+            "materials": [
+              "steel"
+            ],
+            "rarity": "common",
+            "chance": 0.3,
+            "count": [
+              1,
+              1
+            ]
+          },
+          "encounter": [
+            "A Rustman bruiser, built like a refrigerator, is cracking his knuckles at me.",
+            "A Rustman bruiser wants my stuff. He is very large and says 'please' sarcastically."
+          ],
+          "win": [
+            "Knocked out a Rustman bruiser. He's going to wake up confused and lighter.",
+            "The Rustman bruiser went down like a demolished chimney."
+          ],
+          "retreat": [
+            "The Rustman bruiser punched me into next week. I'll be back when this week catches up.",
+            "Got flattened by a Rustman bruiser. Crawled away while he gloated."
+          ]
+        },
+        {
+          "id": "glow_hog",
+          "name": "glow-hog",
+          "stat": "grit",
+          "difficulty": 18,
+          "minMinute": 150,
+          "maxMinute": 1000,
+          "damage": 13,
+          "xp": 560,
+          "drop": {
+            "materials": [
+              "hide"
+            ],
+            "rarity": "common",
+            "chance": 0.3,
+            "count": [
+              1,
+              2
+            ]
+          },
+          "encounter": [
+            "A glow-hog is rooting around in the dirt, lighting up the whole field.",
+            "Heard snorting. Saw a glow. It's a glow-hog, and it's heard me too."
+          ],
+          "win": [
+            "Brought down a glow-hog. Nightlight included.",
+            "Beat the glow-hog. I would eat it, but I'd glow for a week."
+          ],
+          "retreat": [
+            "The glow-hog charged. I suddenly remembered an appointment elsewhere.",
+            "Got trampled by a glow-hog. I can see my bruises in the dark."
+          ]
+        },
+        {
+          "id": "burrower",
+          "name": "full-grown Burrower",
+          "stat": "brawn",
+          "difficulty": 20,
+          "minMinute": 180,
+          "maxMinute": 1200,
+          "damage": 14,
+          "xp": 620,
+          "drop": {
+            "materials": [
+              "hide"
+            ],
+            "rarity": "common",
+            "chance": 0.3,
+            "count": [
+              1,
+              2
+            ]
+          },
+          "encounter": [
+            "The ground bulged and a full-grown Burrower came up snapping.",
+            "A Burrower. Adult. Angry. Standing between me and the road."
+          ],
+          "win": [
+            "Killed a full-grown Burrower. My hands are shaking. My everything is shaking.",
+            "The Burrower is down. I'm going to be walking on tiptoe for a while."
+          ],
+          "retreat": [
+            "The Burrower dragged me halfway into its tunnel. I kicked free and ran.",
+            "Retreated from a Burrower. The ground is not my friend today."
+          ]
+        },
+        {
+          "id": "haywire_drone",
+          "name": "haywire Halcyon courtesy drone",
+          "stat": "wits",
+          "difficulty": 22,
+          "minMinute": 220,
+          "maxMinute": 1400,
+          "damage": 15,
+          "xp": 680,
+          "drop": {
+            "materials": [
+              "circuitry"
+            ],
+            "rarity": "common",
+            "chance": 0.3,
+            "count": [
+              1,
+              2
+            ]
+          },
+          "encounter": [
+            "A Halcyon courtesy drone floated up and said 'Welcome, valued customer!' Then it drew a saw.",
+            "A haywire Halcyon drone is offering me a coupon and a laser. Not necessarily in that order."
+          ],
+          "win": [
+            "Unplugged the haywire drone. Its final words: 'Please rate your experience.'",
+            "Short-circuited a courtesy drone. Five stars. Would short-circuit again."
+          ],
+          "retreat": [
+            "The courtesy drone chased me down the road reciting terms and conditions and firing.",
+            "Fled a haywire drone. It thanked me for my business."
+          ]
+        },
+        {
+          "id": "hollowed_pack",
+          "name": "pack of Hollowed",
+          "stat": "knack",
+          "difficulty": 24,
+          "minMinute": 300,
+          "maxMinute": 1800,
+          "damage": 16,
+          "xp": 760,
+          "drop": {
+            "materials": [
+              "cloth"
+            ],
+            "rarity": "common",
+            "chance": 0.3,
+            "count": [
+              1,
+              3
+            ]
+          },
+          "encounter": [
+            "A pack of Hollowed is shambling in formation, like a very sad marching band.",
+            "Six, seven, eight Hollowed. They've seen me. They're all humming the same jingle."
+          ],
+          "win": [
+            "Fought off a pack of Hollowed. The humming has stopped. It's so quiet.",
+            "The Hollowed pack is scattered. Now I'm humming. I can't stop."
+          ],
+          "retreat": [
+            "Too many Hollowed. Too many cold hands. Running.",
+            "The Hollowed pack surrounded me. I squeezed through a gap and did not look back."
+          ]
+        },
+        {
+          "id": "rustman_raiders",
+          "name": "Rustman raiding party",
+          "stat": "knack",
+          "difficulty": 26,
+          "minMinute": 420,
+          "maxMinute": 2400,
+          "damage": 17,
+          "xp": 840,
+          "drop": {
+            "materials": [
+              "steel",
+              "adhesive"
+            ],
+            "rarity": "common",
+            "chance": 0.3,
+            "count": [
+              1,
+              3
+            ]
+          },
+          "encounter": [
+            "A Rustman raiding party on scrap-bikes. They're pointing at me and laughing.",
+            "Spotted a Rustman raiding party. They've painted skulls on everything, including their own faces, badly."
+          ],
+          "win": [
+            "Beat back a Rustman raiding party. Their bikes are mine now. Well, the parts.",
+            "The Rustmen fled on their bikes. One bike fell apart as they went. I laughed out loud."
+          ],
+          "retreat": [
+            "The Rustman raiding party ran me off the road. And then ran me off the next road.",
+            "Rustmen took some shots at me. I took some cover. Then I took off."
+          ]
+        },
+        {
+          "id": "dune_eel",
+          "name": "dune eel",
+          "stat": "grit",
+          "difficulty": 28,
+          "minMinute": 520,
+          "maxMinute": 3000,
+          "damage": 18,
+          "xp": 920,
+          "drop": {
+            "materials": [
+              "hide"
+            ],
+            "rarity": "rare",
+            "chance": 0.2,
+            "count": [
+              1,
+              1
+            ]
+          },
+          "encounter": [
+            "The sand is moving like water. Something long underneath. A dune eel.",
+            "A dune eel just surfaced and yawned. I could see its lunch. It was a mailbox."
+          ],
+          "win": [
+            "Wrestled a dune eel and won. It's longer than a bus. I'm telling everyone.",
+            "The dune eel sank back into the sand, defeated. The sand is still, finally."
+          ],
+          "retreat": [
+            "The dune eel wrapped around my leg. I left my dignity and most of my sock.",
+            "Retreated from the dune eel. I'm walking only on rocks from now on."
+          ]
+        },
+        {
+          "id": "hollowed_shepherd",
+          "name": "Hollowed shepherd",
+          "stat": "grit",
+          "difficulty": 30,
+          "minMinute": 700,
+          "maxMinute": 3800,
+          "damage": 19,
+          "xp": 1000,
+          "drop": {
+            "materials": [
+              "cloth"
+            ],
+            "rarity": "rare",
+            "chance": 0.2,
+            "count": [
+              1,
+              1
+            ]
+          },
+          "encounter": [
+            "A Hollowed shepherd, glowing like a lamp, is leading its flock right at me.",
+            "The light on the ridge is a Hollowed shepherd. The Hollowed follow it. So, at a distance, do I."
+          ],
+          "win": [
+            "Snuffed out the Hollowed shepherd. Its flock wandered off, lost.",
+            "Beat the Hollowed shepherd. The light's gone out. It's darker now, but better."
+          ],
+          "retreat": [
+            "The Hollowed shepherd's light burned. I had to run.",
+            "Fled from the Hollowed shepherd. I can still see its glow when I close my eyes."
+          ]
+        },
+        {
+          "id": "stalker_alpha",
+          "name": "dust stalker alpha",
+          "stat": "sight",
+          "difficulty": 32,
+          "minMinute": 850,
+          "maxMinute": 4700,
+          "damage": 20,
+          "xp": 1100,
+          "drop": {
+            "materials": [
+              "hide"
+            ],
+            "rarity": "rare",
+            "chance": 0.25,
+            "count": [
+              1,
+              1
+            ]
+          },
+          "encounter": [
+            "A dust stalker alpha. The normal dust stalkers are scared of it. I'm scared of it.",
+            "Something enormous just stood up out of the dust. A dust stalker alpha. Stay calm. Don't blink."
+          ],
+          "win": [
+            "Took down a dust stalker alpha! I didn't blink once. My eyes are so dry.",
+            "The alpha is down. The whole desert went quiet out of respect."
+          ],
+          "retreat": [
+            "Blinked at the alpha. Bad call. Running with sand in my eyes.",
+            "The dust stalker alpha threw me like a sack of potatoes. I'm the potatoes."
+          ]
+        },
+        {
+          "id": "rustman_warlord",
+          "name": "Rustman warlord",
+          "stat": "brawn",
+          "difficulty": 34,
+          "minMinute": 1000,
+          "maxMinute": 5800,
+          "damage": 21,
+          "xp": 1200,
+          "drop": {
+            "materials": [
+              "steel",
+              "valuables"
+            ],
+            "rarity": "rare",
+            "chance": 0.3,
+            "count": [
+              1,
+              1
+            ]
+          },
+          "encounter": [
+            "A Rustman warlord, wearing a hubcap crown and carrying a car door for a shield, has declared me his enemy.",
+            "The Rustman warlord has a throne on wheels, pushed by his cronies. He's pointing at me."
+          ],
+          "win": [
+            "Dethroned a Rustman warlord. Kept the hubcap crown. It doesn't fit.",
+            "The Rustman warlord surrendered and gave a long speech about honour. Then he ran."
+          ],
+          "retreat": [
+            "The Rustman warlord's cronies chased me for miles. They took turns pushing the throne.",
+            "Retreated from the warlord. He'll write songs about this. They'll be bad songs."
+          ]
+        },
+        {
+          "id": "peacekeeper",
+          "name": "decommissioned Halcyon Peacekeeper",
+          "stat": "wits",
+          "difficulty": 36,
+          "minMinute": 1200,
+          "maxMinute": 7000,
+          "damage": 22,
+          "xp": 1300,
+          "drop": {
+            "materials": [
+              "circuitry"
+            ],
+            "rarity": "rare",
+            "chance": 0.3,
+            "count": [
+              1,
+              1
+            ]
+          },
+          "encounter": [
+            "A decommissioned Halcyon Peacekeeper rolled into view. 'CITIZEN, YOU ARE IN VIOLATION OF CURFEW.'",
+            "A Peacekeeper robot, rust on its treads, still enforcing a curfew from before the Glare."
+          ],
+          "win": [
+            "Decommissioned the Peacekeeper. Again. Permanently, this time.",
+            "The Peacekeeper toppled over and said 'HAVE A SAFE AND PRODUCTIVE EVENING.'"
+          ],
+          "retreat": [
+            "The Peacekeeper fined me four hundred scrip and then tried to collect with a rocket.",
+            "Ran from the Peacekeeper. I'm now wanted for curfew violations in a town that doesn't exist."
+          ]
+        },
+        {
+          "id": "mauler_juvenile",
+          "name": "juvenile Mauler",
+          "stat": "fortune",
+          "difficulty": 38,
+          "minMinute": 1500,
+          "maxMinute": 9000,
+          "damage": 24,
+          "xp": 1400,
+          "drop": {
+            "materials": [
+              "hide"
+            ],
+            "rarity": "rare",
+            "chance": 0.35,
+            "count": [
+              1,
+              1
+            ]
+          },
+          "encounter": [
+            "A juvenile Mauler. It's the size of a car. A SMALL car. That's supposed to be comforting.",
+            "A young Mauler is playing with a telephone pole. It's noticed me. It wants a new toy."
+          ],
+          "win": [
+            "Chased off a juvenile Mauler! Its parents are going to hear about this. I hope they don't.",
+            "Beat a young Mauler. I'm shaking so hard I can barely write. Worth it."
+          ],
+          "retreat": [
+            "The juvenile Mauler batted me around like a cat with a ball of yarn. I rolled away.",
+            "Juvenile Mauler. Juvenile, my foot. Running."
+          ]
+        },
+        {
+          "id": "burrower_matriarch",
+          "name": "Burrower matriarch",
+          "stat": "grit",
+          "difficulty": 40,
+          "minMinute": 1900,
+          "maxMinute": null,
+          "damage": 26,
+          "xp": 1520,
+          "drop": {
+            "materials": [
+              "hide"
+            ],
+            "rarity": "rare",
+            "chance": 0.5,
+            "count": [
+              1,
+              2
+            ]
+          },
+          "encounter": [
+            "The earth split open. A Burrower matriarch, bigger than a house, rose out of it.",
+            "Every Burrower in the area just fled. Something bigger is coming. The Burrower matriarch."
+          ],
+          "win": [
+            "Killed the Burrower matriarch. The ground has stopped shaking. I haven't.",
+            "The Burrower matriarch is dead. I'm going to be a legend. A very tired legend."
+          ],
+          "retreat": [
+            "The Burrower matriarch collapsed the road under me. I climbed out and kept climbing.",
+            "Fled the matriarch. I'll hear that roar in my nightmares, which I will be having tonight."
+          ]
+        },
+        {
+          "id": "mauler",
+          "name": "Mauler",
+          "stat": "fortune",
+          "difficulty": 43,
+          "minMinute": 2300,
+          "maxMinute": null,
+          "damage": 29,
+          "xp": 1680,
+          "drop": {
+            "materials": [
+              "hide"
+            ],
+            "rarity": "legendary",
+            "chance": 0.3,
+            "count": [
+              1,
+              1
+            ]
+          },
+          "encounter": [
+            "A Mauler. Every horror story from the homestead campfire, with worse breath.",
+            "Spotted a Mauler. I've never seen one before. I never wanted to."
+          ],
+          "win": [
+            "It was a nasty fight, but the Mauler is dead. I need to sit down. For a year.",
+            "Killed a Mauler. Nobody back home is going to believe this. I barely believe this."
+          ],
+          "retreat": [
+            "Fighting a Mauler? What was I thinking? I've got to run!",
+            "The Mauler roared and I ran. I'm going to be running for a while."
+          ]
+        },
+        {
+          "id": "elder_mauler",
+          "name": "elder Mauler",
+          "stat": "fortune",
+          "difficulty": 46,
+          "minMinute": 3000,
+          "maxMinute": null,
+          "damage": 32,
+          "xp": 1920,
+          "drop": {
+            "materials": [
+              "hide"
+            ],
+            "rarity": "legendary",
+            "chance": 0.6,
+            "count": [
+              1,
+              1
+            ]
+          },
+          "encounter": [
+            "An elder Mauler, scarred and grey, the size of a barn. Its eyes are ancient. Its teeth are new.",
+            "The Glarelands just went silent. The elder Mauler is here, and everything else knows to hide."
+          ],
+          "win": [
+            "I killed the elder Mauler. I should be dead. I'm not. Somebody write this down. Oh, right. I am.",
+            "The elder Mauler is dead. The whole desert breathed out."
+          ],
+          "retreat": [
+            "The elder Mauler barely noticed me, and that was still nearly fatal. Running.",
+            "The elder Mauler swatted me like a gnat. I am very much running."
+          ]
+        }
+      ],
+      "locations": [
+        {
+          "id": "farmhouse",
+          "name": "abandoned farmhouse",
+          "stat": "fortune",
+          "difficulty": 3,
+          "minMinute": 1,
+          "maxMinute": null,
+          "xp": 160,
+          "damage": 6,
+          "taint": 0,
+          "reward": {
+            "scrip": [
+              10,
+              30
+            ],
+            "item": {
+              "chance": 0.15,
+              "rarity": "common"
+            }
+          },
+          "text": "Found an abandoned farmhouse. The pie on the windowsill has outlived the family.",
+          "win": "Searched the farmhouse. Found something good behind a loose floorboard.",
+          "fail": "The farmhouse stairs gave way. I found the basement the fast way."
+        },
+        {
+          "id": "drive_in",
+          "name": "Moonbeam Motor-Vue drive-in",
+          "stat": "knack",
+          "difficulty": 4,
+          "minMinute": 1,
+          "maxMinute": null,
+          "xp": 180,
+          "damage": 6,
+          "taint": 0,
+          "reward": {
+            "scrip": [
+              15,
+              40
+            ],
+            "item": {
+              "chance": 0.2,
+              "rarity": "common"
+            }
+          },
+          "text": "Stumbled onto the Moonbeam Motor-Vue drive-in. The last reel is still burned onto the screen.",
+          "win": "Checked the cars at the drive-in. Lots of popcorn. Lots of spare change.",
+          "fail": "Something in the concession stand didn't want company. Left the drive-in in a hurry."
+        },
+        {
+          "id": "filling_station",
+          "name": "Sunny Piston filling station",
+          "stat": "brawn",
+          "difficulty": 5,
+          "minMinute": 1,
+          "maxMinute": null,
+          "xp": 200,
+          "damage": 6,
+          "taint": 0,
+          "reward": {
+            "salvage": {
+              "rarity": "common",
+              "count": [
+                2,
+                4
+              ],
+              "materials": [
+                "steel",
+                "adhesive"
+              ]
+            }
+          },
+          "text": "Came across a Sunny Piston filling station. The mascot is a grinning piston. It has stopped grinning.",
+          "win": "Pried open the filling station garage. Tools galore.",
+          "fail": "The filling station sign fell on me. The piston still wasn't grinning."
+        },
+        {
+          "id": "sales_office",
+          "name": "Halcyon Shelter Company sales office",
+          "stat": "charm",
+          "difficulty": 6,
+          "minMinute": 10,
+          "maxMinute": null,
+          "xp": 220,
+          "damage": 6,
+          "taint": 0,
+          "reward": {
+            "scrip": [
+              20,
+              50
+            ],
+            "salvage": {
+              "rarity": "common",
+              "count": [
+                2,
+                3
+              ],
+              "materials": [
+                "valuables",
+                "cloth"
+              ]
+            }
+          },
+          "text": "A Halcyon Shelter Company sales office. The cardboard HALCY in the window is still waving.",
+          "win": "Charmed the receptionist robot into opening the petty cash. It said I'd been pre-approved.",
+          "fail": "The sales office security system tried to sell me a timeshare, and then shot me."
+        },
+        {
+          "id": "orbit_diner",
+          "name": "Orbit Diner",
+          "stat": "sight",
+          "difficulty": 7,
+          "minMinute": 30,
+          "maxMinute": null,
+          "xp": 240,
+          "damage": 6,
+          "taint": 0,
+          "reward": {
+            "item": {
+              "chance": 0.25,
+              "rarity": "rare",
+              "kind": "weapon"
+            },
+            "scrip": [
+              5,
+              20
+            ]
+          },
+          "text": "Found the Orbit Diner. Chrome stools, a Saturn-shaped sign and a very old smell.",
+          "win": "Checked behind the counter at the Orbit Diner. The owner kept something for rowdy customers.",
+          "fail": "Slipped on something in the Orbit Diner kitchen. Something older than me. Left."
+        },
+        {
+          "id": "grain_silo",
+          "name": "grain silo",
+          "stat": "brawn",
+          "difficulty": 8,
+          "minMinute": 20,
+          "maxMinute": null,
+          "xp": 240,
+          "damage": 6,
+          "taint": 0,
+          "reward": {
+            "salvage": {
+              "rarity": "common",
+              "count": [
+                2,
+                4
+              ],
+              "materials": [
+                "cloth",
+                "steel"
+              ]
+            }
+          },
+          "text": "A grain silo, leaning like a tired man at a bus stop.",
+          "win": "Climbed the silo. Got a great view, and a lot of burlap.",
+          "fail": "The silo ladder snapped. I landed in the grain. Some of the grain moved."
+        },
+        {
+          "id": "water_tower",
+          "name": "water tower",
+          "stat": "grit",
+          "difficulty": 9,
+          "minMinute": 40,
+          "maxMinute": null,
+          "xp": 260,
+          "damage": 3,
+          "taint": 6,
+          "reward": {
+            "purge": 1
+          },
+          "text": "An old water tower with a town's name painted on it. The name is spelled wrong.",
+          "win": "Found a first-aid box in the water tower's pump house. There was a Purge in it.",
+          "fail": "Drank from the water tower. That was a mistake. That was a big, glowing mistake."
+        },
+        {
+          "id": "motor_lodge",
+          "name": "Sleepy Atom Motor Lodge",
+          "stat": "sight",
+          "difficulty": 10,
+          "minMinute": 60,
+          "maxMinute": null,
+          "xp": 280,
+          "damage": 8,
+          "taint": 0,
+          "reward": {
+            "scrip": [
+              20,
+              60
+            ],
+            "item": {
+              "chance": 0.3,
+              "rarity": "common"
+            }
+          },
+          "text": "The Sleepy Atom Motor Lodge. The sign says VACANCY. For once, a sign is telling the truth.",
+          "win": "Searched the motel rooms. Every bedside drawer had scrip in it.",
+          "fail": "Something was checked into room 6. It was not checking out."
+        },
+        {
+          "id": "monorail",
+          "name": "crashed Skyway monorail",
+          "stat": "wits",
+          "difficulty": 12,
+          "minMinute": 120,
+          "maxMinute": null,
+          "xp": 320,
+          "damage": 9,
+          "taint": 0,
+          "reward": {
+            "salvage": {
+              "rarity": "common",
+              "count": [
+                3,
+                5
+              ],
+              "materials": [
+                "circuitry"
+              ]
+            }
+          },
+          "text": "The Skyway monorail came down here. It's still pointing at a city that isn't there anymore.",
+          "win": "Got into the monorail's control car. All kinds of circuitry to pull out.",
+          "fail": "The monorail car tipped as I climbed in. I rode it for about four feet. Ow."
+        },
+        {
+          "id": "chapel",
+          "name": "chapel of the Second Sunrise",
+          "stat": "charm",
+          "difficulty": 14,
+          "minMinute": 180,
+          "maxMinute": null,
+          "xp": 360,
+          "damage": 5,
+          "taint": 8,
+          "reward": {
+            "medpatch": 2,
+            "scrip": [
+              10,
+              30
+            ]
+          },
+          "text": "Found a chapel of the Second Sunrise. They worship the Glare. Their hymns are mostly shouting.",
+          "win": "Sat through a sermon. Very long. Very bright. They gave me Med-Patches for listening.",
+          "fail": "The congregation decided I needed to see the Glare up close. I declined, sprinting."
+        },
+        {
+          "id": "fairground",
+          "name": "county fairground",
+          "stat": "knack",
+          "difficulty": 15,
+          "minMinute": 200,
+          "maxMinute": null,
+          "xp": 360,
+          "damage": 10,
+          "taint": 0,
+          "reward": {
+            "scrip": [
+              30,
+              80
+            ],
+            "item": {
+              "chance": 0.35,
+              "rarity": "common"
+            }
+          },
+          "text": "A fairground. The ferris wheel is still turning, slowly, in the wind. Nobody is on it. Probably.",
+          "win": "Won a prize at the ring toss. The game was rigged. I rigged it back.",
+          "fail": "The ferris wheel gave me a ride I did not ask for. Very long. Very high."
+        },
+        {
+          "id": "relay_tower",
+          "name": "HALCY relay tower",
+          "stat": "wits",
+          "difficulty": 16,
+          "minMinute": 240,
+          "maxMinute": null,
+          "xp": 400,
+          "damage": 10,
+          "taint": 0,
+          "reward": {
+            "scrip": [
+              40,
+              100
+            ],
+            "fragment": {
+              "chance": 0.25,
+              "rarity": "rare"
+            }
+          },
+          "text": "A HALCY relay tower, still blinking. It said 'Hello!' into my radio. It says it a lot.",
+          "win": "Rebooted the relay tower. HALCY sent me a thank-you, and some old blueprint files.",
+          "fail": "The relay tower zapped me. HALCY said 'Oops!' and seemed to mean it."
+        },
+        {
+          "id": "bowling_alley",
+          "name": "Atomic Lanes bowling alley",
+          "stat": "knack",
+          "difficulty": 18,
+          "minMinute": 300,
+          "maxMinute": null,
+          "xp": 440,
+          "damage": 11,
+          "taint": 0,
+          "reward": {
+            "item": {
+              "chance": 0.35,
+              "rarity": "rare"
+            }
+          },
+          "text": "Atomic Lanes bowling alley. The pins are still standing. They're the last things standing around here.",
+          "win": "Bowled a strike at Atomic Lanes. The prize counter paid out.",
+          "fail": "Something in the ball return grabbed me. I let go of the ball. It didn't let go of me for a while."
+        },
+        {
+          "id": "constable_post",
+          "name": "constable post",
+          "stat": "wits",
+          "difficulty": 20,
+          "minMinute": 360,
+          "maxMinute": null,
+          "xp": 480,
+          "damage": 12,
+          "taint": 0,
+          "reward": {
+            "item": {
+              "chance": 0.4,
+              "rarity": "rare",
+              "kind": "weapon"
+            }
+          },
+          "text": "An old constable post, windows barred. The evidence locker is still locked.",
+          "win": "Cracked the evidence locker. Lots of confiscated goodies.",
+          "fail": "Tripped the constable post's alarm. The old tear gas still works. It works great."
+        },
+        {
+          "id": "glare_crater",
+          "name": "Glare crater",
+          "stat": "grit",
+          "difficulty": 24,
+          "minMinute": 480,
+          "maxMinute": null,
+          "xp": 560,
+          "damage": 8,
+          "taint": 15,
+          "reward": {
+            "salvage": {
+              "rarity": "rare",
+              "count": [
+                1,
+                2
+              ],
+              "materials": [
+                "chemicals"
+              ]
+            }
+          },
+          "text": "The edge of a Glare crater. The glass at the bottom glows. It's quite pretty. Don't look at it.",
+          "win": "Scooped up some crystallised chemicals from the crater rim. Didn't lick anything.",
+          "fail": "Slid into the crater. Climbed out glowing. Not metaphorically."
+        },
+        {
+          "id": "defense_depot",
+          "name": "Civil Defense depot",
+          "stat": "grit",
+          "difficulty": 30,
+          "minMinute": 2400,
+          "maxMinute": null,
+          "xp": 800,
+          "damage": 20,
+          "taint": 0,
+          "reward": {
+            "item": {
+              "chance": 0.5,
+              "rarity": "rare",
+              "kind": "outfit"
+            },
+            "fragment": {
+              "chance": 0.2,
+              "rarity": "legendary"
+            }
+          },
+          "text": "A Civil Defense depot. The sign says 'Be Prepared.' They were not.",
+          "win": "Got past the depot's locks. Crates of gear, still in their wax paper.",
+          "fail": "The depot's defence turret still works. I'm going to need to sit down somewhere."
+        },
+        {
+          "id": "demo_shelter",
+          "name": "sealed Halcyon demonstration shelter",
+          "stat": "wits",
+          "difficulty": 38,
+          "minMinute": 3300,
+          "maxMinute": null,
+          "xp": 1040,
+          "damage": 24,
+          "taint": 0,
+          "reward": {
+            "scrip": [
+              100,
+              250
+            ],
+            "fragment": {
+              "chance": 0.6,
+              "rarity": "legendary"
+            }
+          },
+          "text": "A Halcyon demonstration shelter, sealed since opening day. The ribbon is still on the door.",
+          "win": "Got the demonstration shelter open. It's full of the good stuff they only showed investors.",
+          "fail": "The shelter's welcome film played at me until I passed out. Also, it gassed me."
+        }
+      ],
+      "npcs": [
+        {
+          "id": "surveyor",
+          "name": "lost surveyor",
+          "stat": "sight",
+          "difficulty": 3,
+          "minMinute": 1,
+          "maxMinute": null,
+          "xp": 160,
+          "damage": 0,
+          "taint": 0,
+          "reward": {
+            "scrip": [
+              25,
+              25
+            ]
+          },
+          "text": "Met a lost surveyor. He's been measuring the same road for years. He says it keeps changing.",
+          "win": "Pointed the surveyor north. He paid me for the directions, and the company.",
+          "fail": "The surveyor couldn't be helped. He measured me instead and wandered off."
+        },
+        {
+          "id": "tinker",
+          "name": "travelling tinker",
+          "stat": "charm",
+          "difficulty": 5,
+          "minMinute": 1,
+          "maxMinute": null,
+          "xp": 180,
+          "damage": 0,
+          "taint": 0,
+          "reward": {
+            "scrip": [
+              40,
+              40
+            ],
+            "salvage": {
+              "rarity": "common",
+              "count": [
+                1,
+                3
+              ],
+              "materials": [
+                "steel",
+                "adhesive",
+                "circuitry"
+              ]
+            }
+          },
+          "text": "A travelling tinker with a cart full of pots, pans and wind chimes. You can hear him coming for miles.",
+          "win": "Haggled with the tinker. He threw in some odds and ends because he liked my face.",
+          "fail": "The tinker overcharged me for a spoon. I don't know why I bought a spoon."
+        },
+        {
+          "id": "nurse",
+          "name": "roving nurse",
+          "stat": "charm",
+          "difficulty": 6,
+          "minMinute": 30,
+          "maxMinute": null,
+          "xp": 200,
+          "damage": 0,
+          "taint": 0,
+          "reward": {
+            "medpatch": 2,
+            "heal": 0.3
+          },
+          "text": "Met a roving nurse with a stitched-on heart and a very large umbrella.",
+          "win": "The nurse patched me up and pressed two Med-Patches into my hand. 'For later, dear.'",
+          "fail": "The nurse took one look at me and said 'Well, you're not dead.' Then she left. Fair."
+        },
+        {
+          "id": "polite_hollowed",
+          "name": "Hollowed who still remembers manners",
+          "stat": "grit",
+          "difficulty": 8,
+          "minMinute": 60,
+          "maxMinute": null,
+          "xp": 220,
+          "damage": 6,
+          "taint": 0,
+          "reward": {
+            "scrip": [
+              40,
+              40
+            ]
+          },
+          "text": "A Hollowed tipped its hat at me. It still has a hat. It still has manners.",
+          "win": "Shared a quiet moment with the polite Hollowed. It gave me the scrip from its wallet and waved goodbye.",
+          "fail": "The polite Hollowed got a lot less polite when I stared. Sorry."
+        },
+        {
+          "id": "prospector",
+          "name": "prospector with a divining rod",
+          "stat": "fortune",
+          "difficulty": 10,
+          "minMinute": 60,
+          "maxMinute": null,
+          "xp": 260,
+          "damage": 0,
+          "taint": 0,
+          "reward": {
+            "scrip": [
+              80,
+              80
+            ]
+          },
+          "text": "An old prospector swears his divining rod finds scrip. It's a coat hanger.",
+          "win": "The divining rod worked! Or the prospector knew where he'd buried his savings. We split it.",
+          "fail": "Followed the prospector's divining rod for an hour. It found a hole. We already had plenty of holes."
+        },
+        {
+          "id": "mercenaries",
+          "name": "pair of mercenaries",
+          "stat": "wits",
+          "difficulty": 12,
+          "minMinute": 120,
+          "maxMinute": null,
+          "xp": 300,
+          "damage": 8,
+          "taint": 0,
+          "reward": {
+            "scrip": [
+              65,
+              65
+            ]
+          },
+          "text": "Two mercenaries, looking for work. Or looking for trouble. Out here the line is blurry.",
+          "win": "Talked the mercenaries into splitting a bounty with me. Easy scrip.",
+          "fail": "The mercenaries charged me a 'consultation fee.' It was my lunch."
+        },
+        {
+          "id": "preacher",
+          "name": "preacher of the Second Sunrise",
+          "stat": "charm",
+          "difficulty": 15,
+          "minMinute": 120,
+          "maxMinute": null,
+          "xp": 340,
+          "damage": 0,
+          "taint": 0,
+          "reward": {
+            "purge": 1,
+            "scrip": [
+              30,
+              30
+            ]
+          },
+          "text": "A preacher of the Second Sunrise wants to tell me about the Glare's plan for me.",
+          "win": "Nodded through the sermon. The preacher gave me a Purge 'for when your faith wavers.'",
+          "fail": "Argued theology with the preacher. Lost. Somehow I also lost my sunglasses."
+        },
+        {
+          "id": "fridge_hermit",
+          "name": "hermit who lives in a refrigerator",
+          "stat": "fortune",
+          "difficulty": 18,
+          "minMinute": 300,
+          "maxMinute": null,
+          "xp": 400,
+          "damage": 0,
+          "taint": 0,
+          "reward": {
+            "scrip": [
+              100,
+              100
+            ],
+            "fragment": {
+              "chance": 0.35,
+              "rarity": "rare"
+            }
+          },
+          "text": "Met a hermit living in a refrigerator. He says it's the safest place in the world. He may have a point.",
+          "win": "The fridge hermit shared his treasures: a stack of scrip and a scrap of some old schematic.",
+          "fail": "The fridge hermit shut the door on me. Rude, but hygienic."
+        },
+        {
+          "id": "rustman_deserter",
+          "name": "Rustman deserter",
+          "stat": "knack",
+          "difficulty": 16,
+          "minMinute": 600,
+          "maxMinute": null,
+          "xp": 440,
+          "damage": 10,
+          "taint": 0,
+          "reward": {
+            "scrip": [
+              125,
+              125
+            ]
+          },
+          "text": "A Rustman deserter, hiding from his old crew. He says he's 'between raids.'",
+          "win": "Helped the Rustman deserter shake his pursuers. He gave me his cut of the last raid.",
+          "fail": "The Rustman deserter got nervous and threw a rock at me. Old habits."
+        },
+        {
+          "id": "old_soldier",
+          "name": "old soldier at a checkpoint",
+          "stat": "sight",
+          "difficulty": 20,
+          "minMinute": 900,
+          "maxMinute": null,
+          "xp": 520,
+          "damage": 14,
+          "taint": 0,
+          "reward": {
+            "scrip": [
+              150,
+              150
+            ],
+            "medpatch": 1
+          },
+          "text": "Met an old soldier still guarding a checkpoint. Nobody told him the war ended. I didn't have the heart.",
+          "win": "Saluted the old soldier and gave him a password I made up on the spot. He shared his rations and his pay.",
+          "fail": "The old soldier didn't like my password. Warning shots. Several. Not all of them warnings."
+        },
+        {
+          "id": "caravan_master",
+          "name": "caravan master",
+          "stat": "charm",
+          "difficulty": 22,
+          "minMinute": 1200,
+          "maxMinute": null,
+          "xp": 600,
+          "damage": 0,
+          "taint": 0,
+          "reward": {
+            "scrip": [
+              180,
+              180
+            ],
+            "item": {
+              "chance": 0.3,
+              "rarity": "rare"
+            }
+          },
+          "text": "A caravan master leading a string of two-headed pack mules. Both heads on each mule look unimpressed.",
+          "win": "Did some business with the caravan master. Good prices, better stories.",
+          "fail": "The caravan master decided I looked like trouble. The mules agreed. All eight heads."
+        },
+        {
+          "id": "halcyon_rep",
+          "name": "Halcyon sales representative",
+          "stat": "charm",
+          "difficulty": 28,
+          "minMinute": 3000,
+          "maxMinute": null,
+          "xp": 880,
+          "damage": 0,
+          "taint": 0,
+          "reward": {
+            "scrip": [
+              250,
+              250
+            ],
+            "fragment": {
+              "chance": 0.3,
+              "rarity": "legendary"
+            }
+          },
+          "text": "A Halcyon sales rep in a pressed suit. 'Have you considered upgrading your shelter?' He's been out here for decades.",
+          "win": "Let the Halcyon rep finish his pitch. He was so grateful he gave me his sample case.",
+          "fail": "The Halcyon rep signed me up for a newsletter. I don't know how. I never signed anything."
+        }
+      ],
+      "salvage": [
+        {
+          "id": "mailboxes",
+          "name": "row of mailboxes",
+          "stat": "fortune",
+          "difficulty": 3,
+          "minMinute": 1,
+          "maxMinute": 300,
+          "xp": 160,
+          "damage": 0,
+          "taint": 0,
+          "reward": {
+            "salvage": {
+              "rarity": "common",
+              "count": [
+                3,
+                5
+              ],
+              "materials": [
+                "valuables",
+                "cloth"
+              ]
+            }
+          },
+          "text": "A row of mailboxes, every one of them stuffed full.",
+          "win": "Went through everyone's mail. Trinkets, and a lot of sweepstakes letters. We have all won.",
+          "fail": "The mailboxes were full of Skitters. I only grabbed what I could reach."
+        },
+        {
+          "id": "junkyard",
+          "name": "junkyard",
+          "stat": "brawn",
+          "difficulty": 6,
+          "minMinute": 1,
+          "maxMinute": 600,
+          "xp": 200,
+          "damage": 0,
+          "taint": 0,
+          "reward": {
+            "salvage": {
+              "rarity": "common",
+              "count": [
+                4,
+                6
+              ],
+              "materials": [
+                "steel",
+                "adhesive"
+              ]
+            }
+          },
+          "text": "A junkyard. Some people would call it full of junk. Those people are not in the salvage business.",
+          "win": "Hauled some good salvage out of the junkyard.",
+          "fail": "The junk pile collapsed. Pulled out one piece before it buried me."
+        },
+        {
+          "id": "repair_shop",
+          "name": "Tube & Transistor repair shop",
+          "stat": "wits",
+          "difficulty": 9,
+          "minMinute": 60,
+          "maxMinute": 1200,
+          "xp": 240,
+          "damage": 0,
+          "taint": 0,
+          "reward": {
+            "salvage": {
+              "rarity": "common",
+              "count": [
+                3,
+                5
+              ],
+              "materials": [
+                "circuitry"
+              ]
+            }
+          },
+          "text": "Found a Tube & Transistor repair shop, doors wide open.",
+          "win": "Pulled the good tubes out of every television in the shop.",
+          "fail": "Broke most of the tubes getting them out. Saved one."
+        },
+        {
+          "id": "pharmacy",
+          "name": "Happy Days pharmacy",
+          "stat": "wits",
+          "difficulty": 12,
+          "minMinute": 60,
+          "maxMinute": 1500,
+          "xp": 280,
+          "damage": 0,
+          "taint": 0,
+          "reward": {
+            "salvage": {
+              "rarity": "rare",
+              "count": [
+                1,
+                2
+              ],
+              "materials": [
+                "chemicals"
+              ]
+            }
+          },
+          "text": "The Happy Days pharmacy. The shelves are picked clean, but nobody has been in the back room.",
+          "win": "Picked the back-room lock at the pharmacy. Proper chemistry supplies.",
+          "fail": "Couldn't get into the pharmacy's back room. Grabbed a tin of baking soda from the front."
+        },
+        {
+          "id": "tailor",
+          "name": "tailor's shop",
+          "stat": "sight",
+          "difficulty": 14,
+          "minMinute": 120,
+          "maxMinute": 1800,
+          "xp": 300,
+          "damage": 0,
+          "taint": 0,
+          "reward": {
+            "salvage": {
+              "rarity": "common",
+              "count": [
+                4,
+                6
+              ],
+              "materials": [
+                "cloth",
+                "adhesive"
+              ]
+            }
+          },
+          "text": "A tailor's shop with a dozen headless mannequins in the window. They're all pointing somewhere.",
+          "win": "Cleaned out the tailor's stock room. The mannequins watched.",
+          "fail": "The mannequins... moved? I grabbed a handful of scraps and left."
+        },
+        {
+          "id": "tanning_shed",
+          "name": "tanning shed",
+          "stat": "grit",
+          "difficulty": 17,
+          "minMinute": 180,
+          "maxMinute": 2400,
+          "xp": 340,
+          "damage": 0,
+          "taint": 0,
+          "reward": {
+            "salvage": {
+              "rarity": "rare",
+              "count": [
+                1,
+                2
+              ],
+              "materials": [
+                "hide"
+              ]
+            }
+          },
+          "text": "An old tanning shed. The smell hit me before the sight did.",
+          "win": "Held my breath and grabbed the good hides.",
+          "fail": "Couldn't take the smell. Grabbed one scrap of leather and ran."
+        },
+        {
+          "id": "defense_cache",
+          "name": "Civil Defense supply cache",
+          "stat": "brawn",
+          "difficulty": 20,
+          "minMinute": 300,
+          "maxMinute": 3000,
+          "xp": 380,
+          "damage": 0,
+          "taint": 0,
+          "reward": {
+            "salvage": {
+              "rarity": "rare",
+              "count": [
+                1,
+                3
+              ],
+              "materials": [
+                "steel",
+                "adhesive"
+              ]
+            }
+          },
+          "text": "A Civil Defense supply cache, buried under a sign that says 'Keep Calm'.",
+          "win": "Dug out the Civil Defense cache. Solid materials, military grade.",
+          "fail": "The cache was booby-trapped. I got a bit of it before the trap got a bit of me."
+        },
+        {
+          "id": "jeweller",
+          "name": "Glitz & Glamour jewellery store",
+          "stat": "knack",
+          "difficulty": 24,
+          "minMinute": 600,
+          "maxMinute": 3600,
+          "xp": 440,
+          "damage": 0,
+          "taint": 0,
+          "reward": {
+            "salvage": {
+              "rarity": "rare",
+              "count": [
+                1,
+                2
+              ],
+              "materials": [
+                "valuables"
+              ]
+            }
+          },
+          "text": "Glitz & Glamour jewellery store. The display cases are still locked. The glass is still very thick.",
+          "win": "Cracked the jeweller's display cases. My pockets are very shiny now.",
+          "fail": "Couldn't crack the cases. Pocketed some costume jewellery from the floor."
+        },
+        {
+          "id": "research_annex",
+          "name": "Halcyon research annex",
+          "stat": "wits",
+          "difficulty": 28,
+          "minMinute": 1200,
+          "maxMinute": null,
+          "xp": 520,
+          "damage": 0,
+          "taint": 0,
+          "reward": {
+            "salvage": {
+              "rarity": "rare",
+              "count": [
+                2,
+                3
+              ],
+              "materials": [
+                "circuitry",
+                "chemicals"
+              ]
+            }
+          },
+          "text": "A Halcyon research annex. The door says 'AUTHORISED PERSONNEL ONLY.' I'm authorising myself.",
+          "win": "Looted the research annex's lab. Science!",
+          "fail": "The annex's security locked me in a supply closet for an hour. At least I grabbed something."
+        },
+        {
+          "id": "mauler_den",
+          "name": "abandoned Mauler den",
+          "stat": "grit",
+          "difficulty": 32,
+          "minMinute": 2400,
+          "maxMinute": null,
+          "xp": 640,
+          "damage": 0,
+          "taint": 0,
+          "reward": {
+            "salvage": {
+              "rarity": "legendary",
+              "count": [
+                1,
+                1
+              ],
+              "materials": [
+                "hide"
+              ]
+            }
+          },
+          "text": "Found an abandoned Mauler den. Abandoned, I'm fairly sure. Fairly.",
+          "win": "Crept into the Mauler den and found a pelt that shimmers like the Glare itself.",
+          "fail": "Heard breathing in the Mauler den. Grabbed what I could and ran without looking back."
+        },
+        {
+          "id": "mail_rocket",
+          "name": "crashed mail rocket",
+          "stat": "wits",
+          "difficulty": 36,
+          "minMinute": 3000,
+          "maxMinute": null,
+          "xp": 720,
+          "damage": 0,
+          "taint": 0,
+          "reward": {
+            "salvage": {
+              "rarity": "legendary",
+              "count": [
+                1,
+                1
+              ],
+              "materials": [
+                "circuitry",
+                "steel"
+              ]
+            }
+          },
+          "text": "A crashed mail rocket, nose-down in the dirt. Neither rain nor sleet nor Glare, huh?",
+          "win": "Got into the mail rocket's guidance bay. Parts they don't make anymore, or ever.",
+          "fail": "The mail rocket's fuel tank wasn't as empty as I thought. Grabbed a scrap and ran from the fire."
+        },
+        {
+          "id": "savings_vault",
+          "name": "First Atomic Savings vault",
+          "stat": "fortune",
+          "difficulty": 40,
+          "minMinute": 3600,
+          "maxMinute": null,
+          "xp": 800,
+          "damage": 0,
+          "taint": 0,
+          "reward": {
+            "salvage": {
+              "rarity": "legendary",
+              "count": [
+                1,
+                1
+              ],
+              "materials": [
+                "valuables",
+                "cloth"
+              ]
+            }
+          },
+          "text": "The First Atomic Savings bank. The vault door is ajar. Just a crack. Just enough.",
+          "win": "Squeezed into the bank vault. Found the manager's private safe-deposit box.",
+          "fail": "The vault door swung shut behind me. Took hours to pry it open. Grabbed a trinket on the way out."
+        }
+      ]
     }
   ],
-  "achievements": []
+  "tuning": {
+    "itemMinutes": [
+      45,
+      75
+    ],
+    "salvageMinutes": [
+      150,
+      210
+    ],
+    "encounterMinutes": [
+      10,
+      24
+    ],
+    "musingMinutes": [
+      20,
+      45
+    ],
+    "scripMinutes": [
+      20,
+      40
+    ],
+    "scripPerFortune": [
+      4,
+      10
+    ],
+    "scripGrowthPerHour": 0.02,
+    "encounterWeights": {
+      "enemy": 60,
+      "location": 22,
+      "npc": 18
+    },
+    "rareItem": {
+      "base": 0.05,
+      "perHour": 0.01,
+      "max": 0.35
+    },
+    "legendaryFragment": {
+      "base": 0.0,
+      "perHour": 0.0015,
+      "max": 0.06
+    },
+    "commonToRareFragment": 0.06,
+    "rareToLegendaryFragment": 0.12,
+    "rareRecipe": 0.04,
+    "salvageUpgrade": {
+      "rarePerHour": 0.01,
+      "rareMax": 0.3,
+      "legendaryPerHour": 0.0015,
+      "legendaryMax": 0.06
+    },
+    "salvageFailCount": [
+      1,
+      1
+    ],
+    "failXpFraction": 0.1,
+    "damageGrowthPerHour": 0.015,
+    "damageJitter": [
+      0.8,
+      1.2
+    ],
+    "taintPerHour": 2.0,
+    "taintGrowthPerHour": 0.02,
+    "taintImmuneGrit": 11,
+    "medpatchAt": 0.5,
+    "purgeAt": 0.5,
+    "reviveTaintCap": 0.5,
+    "bodyLootFraction": 0.5,
+    "minReturnSeconds": 60,
+    "journalCap": 150,
+    "autoEquip": true
+  },
+  "musings": [
+    "Found a billboard promising 'A Brighter Tomorrow, Guaranteed.' It's on fire.",
+    "Traded pleasantries with a Rustman. Mostly he pleasantly threatened me.",
+    "The sky is doing that colour again. I've decided not to have an opinion about it.",
+    "Walked past a milk float with no milk and no float. Just the optimism.",
+    "My boots have developed opinions. Mostly about rocks.",
+    "Counted eleven skeletons today. Nine of them were holding coupons.",
+    "HALCY's voice on my radio says morale is 'nominal.' I asked nominal compared to what. It played a jingle.",
+    "If you squint, the Glarelands look like a postcard. If you stop squinting, they bite.",
+    "Found a sign: 'Picnic Area.' Did not picnic.",
+    "Ate something from a can labelled 'Meat Product, Loyal.' It was loyal. It stayed with me for hours.",
+    "A tumbleweed followed me for a mile. I think it's lonely. I know I am.",
+    "The wind is carrying someone's shopping list. They needed eggs. Good luck with that.",
+    "Passed a lawn that is still, somehow, perfectly mown. I did not go near it.",
+    "I've started narrating my own life in the voice of a newsreel announcer. It's helping.",
+    "Every mailbox out here is full. Nobody has checked the mail in a long time. Mostly bills, I bet.",
+    "Saw a family of ceramic ducks on a roof. They survived the Glare. They look smug about it.",
+    "Somewhere to the west, a car alarm has been going off since before I was born.",
+    "The water in my canteen tastes faintly of pennies. I've decided that's a mineral.",
+    "There's a rocket ship in a playground. Took it for a spin. It did not spin.",
+    "Rain today. It hissed. I stood under a bus shelter and pretended I was waiting for the 4:15.",
+    "Wrote my name in the dust on a car. Then realised someone else's name was already in the car.",
+    "Found a schoolhouse. The blackboard says 'Duck and Cover: Test on Friday.' I hope they studied.",
+    "My shadow has gone slightly green. Probably the light. Probably.",
+    "Heard singing over the ridge. Did not investigate. Singing out here is never a good sign.",
+    "I'm getting good at telling a rock from a Skitter. Rocks rarely apologise.",
+    "Took a nap in a bathtub in the middle of a field. Best sleep I've had in weeks.",
+    "The Halcyon brochure promised 'a surface ready for your return.' It did not say ready for what.",
+    "Sunset over the flats. Gorgeous. Also, I think, radioactive.",
+    "A windmill is still turning out here. Nobody told it.",
+    "I miss the canteen. I miss the stew. I never thought I'd write that sentence.",
+    "Stopped to tie my boot and a lizard stole my sandwich. I respect the hustle.",
+    "Found a garden gnome with a hole through its hat. It has seen things.",
+    "The road signs all point to towns that aren't there anymore. Very confident signs, though.",
+    "Talked to a mannequin for twenty minutes. Best conversation I've had all week.",
+    "I would trade every scrip in my pocket for a bicycle. Maybe not every scrip. Most of them.",
+    "A jukebox in a burnt-out diner still plays one song, over and over. I know all the words now. I didn't want to.",
+    "Gunfire to the east. I've become very interested in the west.",
+    "The dust gets into everything. My teeth. My thoughts. My sandwiches.",
+    "Found a refrigerator standing alone in a field. Didn't open it. Some doors are best left closed.",
+    "Keep thinking about my bunk back home. It's a terrible bunk. I love it.",
+    "My map says there's a lake here. There's a hole where a lake would be, if it tried harder.",
+    "Wrote a letter home. Then remembered I'd be delivering it myself.",
+    "Crossed a field of dead televisions. Every one of them showing the same static. It felt like a message.",
+    "Found an old ad: 'Halcyon Home Shelters. Why wait for the future? Hide from it today!' Solid marketing.",
+    "Ate a cactus. On purpose. I am a different person now.",
+    "The longer I'm out here, the more the horizon looks like it's thinking about me.",
+    "Saw a leash walking along the road. No dog. No owner. Just the leash. I did not ask questions.",
+    "Kicked a can down the road for a mile. The can won.",
+    "Passed a car with a family's luggage still strapped to the roof. Their holiday is taking a while.",
+    "HALCY pinged my radio to remind me to 'hydrate responsibly.' I hydrated irresponsibly, out of spite.",
+    "A house here still has a 'Welcome' mat. I wiped my feet. Old habits.",
+    "Discovered I can whistle two notes at once when I'm scared. I've been whistling a lot.",
+    "Found a stack of newspapers. Headline: 'EXPERTS SAY GLARE NOTHING TO WORRY ABOUT.' The experts are under the newspapers.",
+    "The ticker on my wrist is ticking in waltz time. That can't be standard.",
+    "Built a little cairn of rocks to mark my path. Came back an hour later. Someone had given it a hat.",
+    "I've named my left boot Gerald. Gerald is holding up better than I am.",
+    "Clouds shaped like mushrooms. Hilarious, clouds. Really funny.",
+    "Sat on a porch swing and watched the heat haze wobble for a while. I think this is what retirement was supposed to be.",
+    "Found a lunchbox with a sandwich in it that's older than me. It looks better than I do.",
+    "Every town out here has a sign bragging about its population. Every one of those signs is a liar now.",
+    "A radio in a ditch is broadcasting a cooking show. Today it's gelatin salad. The Glare took so much, but not that.",
+    "Walked for three hours in a straight line. The scenery did not change. I may be on a treadmill.",
+    "Nights are cold out here. I hug my pack. My pack does not hug back. Classic pack.",
+    "Spotted my own footprints ahead of me. Either I walked in a circle or someone is copying me. Both are bad.",
+    "Found a phone booth. Called home. Got a recording of HALCY thanking me for my patience.",
+    "Travel advisory: the filling stations are out of fuel, the grocers are out of groceries, and the motels are out of honest signs.",
+    "Tried to find the silver lining. It's the Glare. The lining is also the Glare.",
+    "A statue of a town founder, arm raised towards the future. Somebody has hung a boot on the arm. The future got the boot.",
+    "Used a rock as a pillow. The rock had the better night.",
+    "It's quiet. Too quiet. Then something screamed. Then it was loud. I preferred the quiet.",
+    "Found a tin of mints. Ate one. I now have the freshest breath for fifty miles.",
+    "Every lawn chair I sit in collapses. I'm choosing not to take it personally.",
+    "The flats go on forever. At least, they go on until my feet stop, which will be soon.",
+    "Found a Halcyon loyalty card with nine stamps out of ten. So close to a free something.",
+    "Thought I saw a person on the ridge. It was a coat rack. We waved at each other anyway.",
+    "The ground crunches like breakfast cereal. I really wish it were breakfast cereal.",
+    "My watch stopped at 4:17. Everything stopped at 4:17, apparently. We have that in common now.",
+    "A dust devil spun past, picked up my hat, thought about it, and put it back. Manners.",
+    "A billboard of a smiling family, twenty feet tall. Their eyes follow you. So do the Skitters living in them.",
+    "Found a bomb shelter someone dug in their backyard. The door says 'Occupied.' I knocked. Nobody said come in.",
+    "Somebody painted 'THE END IS NIGH' on a barn, then crossed out NIGH and wrote HERE. Tidy.",
+    "There's a hopscotch grid chalked on a road out here. Fresh chalk. I didn't play. I did look over my shoulder a lot.",
+    "Out here, 'fresh air' is a marketing term.",
+    "Tried to hitchhike. Three hours, no cars. One Burrower slowed down to look, which was worse.",
+    "Found a vending machine that still works. It ate my scrip. So, it works exactly like before."
+  ],
+  "journal": {
+    "departure": [
+      "Stepped out of the homestead. The door shut behind me with a very final-sounding clunk.",
+      "HALCY wished me 'a productive excursion' and locked the door. Here we go.",
+      "Left the homestead. Took a deep breath of surface air. Coughed. Took a shallower one.",
+      "First step onto the {region}. Nothing bit me. Great start.",
+      "Packed: Med-Patches, Purge, optimism. Two of the three are standard issue.",
+      "Waved goodbye to the homestead. The homestead, being a door, did not wave back.",
+      "Out the door and into the {region}. Sun's up. Glare's up. Let's go.",
+      "Day one. The Glarelands are exactly as advertised, if the advert was a warning."
+    ],
+    "item": [
+      "Found under a pile of hubcaps: {item}.",
+      "Mailbox haul: {item}. Postage was due.",
+      "Sitting in the middle of the road like it was waiting for me: {item}.",
+      "Dug out of a sandpit: {item}. Finders keepers.",
+      "Traded a very convincing story for this: {item}.",
+      "Car boot contents: {item}. The car won't miss it.",
+      "Hanging from a tree, of all places: {item}. Nobody is going to believe that.",
+      "Picked this up: {item}. The previous owner is no longer using it, or anything.",
+      "From a department store window: {item}. The mannequin didn't put up a fight.",
+      "Tripped over my latest find: {item}. Tripping over things is how I find most things.",
+      "Wrapped in newspaper inside a hollow log: {item}. Someone was planning to come back.",
+      "Found in a doghouse: {item}. The dog had been using it as a pillow."
+    ],
+    "rareItem": [
+      "Now THIS is a find: {item}. Somebody lost something good.",
+      "{item}! My luck is changing. Probably I'll be eaten soon to balance it out.",
+      "In a locked case: {item}. It is now an unlocked case.",
+      "Still in the box, with the warranty card: {item}. I filled the card in.",
+      "Behind a false wall: {item}. Whoever hid it had taste."
+    ],
+    "equip": [
+      "Swapped my old gear for the {item}. Upgrade!",
+      "Now using the {item}. It just feels right.",
+      "Switched to the {item} straight away. The old one goes in the pack for the homestead."
+    ],
+    "fragment": [
+      "Found part of the blueprint for the {item}. The rest of it is out here somewhere.",
+      "A torn schematic: '{item}, assembly, sheet 2 of many.' Keeping it.",
+      "Tucked a scrap of {item} blueprint into my shirt. It's a start.",
+      "A page of engineering notes on the {item}. Mostly equations. Some doodles."
+    ],
+    "recipe": [
+      "A full set of plans for the {item}! Now we can build our own.",
+      "Blueprints for the {item}, rolled up inside a thermos. Genius storage. Taking both.",
+      "Found the complete workshop manual for the {item}. Only slightly chewed."
+    ],
+    "salvage": [
+      "Bagged {n} × {salvage}.",
+      "Picked up {n} × {salvage}. The workshops will be thrilled. Workshops can't be thrilled. Still.",
+      "Added {n} × {salvage} to the pile. My pack clinks now.",
+      "Scavenged {n} × {salvage}. One person's junk, and so on."
+    ],
+    "rareSalvage": [
+      "Now that's salvage: {n} × {salvage}.",
+      "Found {n} × {salvage}. Wrapped it in my spare socks for safekeeping.",
+      "{n} × {salvage}! The workshop crew owes me a drink."
+    ],
+    "scrip": [
+      "Found {n} scrip in a coat pocket. The coat wasn't using it.",
+      "{n} scrip in a cookie jar. No cookies. Priorities, past people.",
+      "Found {n} scrip taped under a table. Somebody was very paranoid, and correct.",
+      "{n} scrip in a parking meter. Finally, parking pays.",
+      "Found {n} scrip in a jukebox coin return.",
+      "{n} scrip at the bottom of a wishing well. Wish granted.",
+      "Shook {n} scrip out of a piggy bank. Sorry, pig.",
+      "{n} scrip under a sofa cushion. The oldest bank in the world.",
+      "A fallen Rustman had {n} scrip on him. He had worse luck than me today.",
+      "Found {n} scrip tucked in a hymn book. Blessed be the collection plate.",
+      "{n} scrip in a glovebox, next to a map to somewhere that isn't there.",
+      "Found {n} scrip in the lining of a hat. I'm wearing the hat now. It's a good hat."
+    ],
+    "levelup": [
+      "Level {level}. I feel tougher. Could be the Glare. Could be character growth.",
+      "Level {level}. Got my second wind. And my third.",
+      "Level {level}. Somewhere, HALCY just updated a spreadsheet about me.",
+      "Reached level {level}. Treated myself to a nap.",
+      "Level {level}. My bruises have bruises, and they're all healing.",
+      "Level {level}. I'm starting to understand the Glarelands. I don't like what they're saying.",
+      "Level {level}. I feel like I could wrestle a Burrower. I won't. But I could."
+    ],
+    "medpatch": [
+      "Slapped on a Med-Patch. Hurts less. Not zero. Less. ({left} left)",
+      "Used a Med-Patch. The label says 'Smile Through It!' I did not. ({left} left)",
+      "Patched myself up. I'm held together by adhesive and spite. ({left} left)",
+      "Med-Patch applied. Feeling almost like a person again. ({left} left)"
+    ],
+    "purge": [
+      "Drank a Purge. Tastes like battery acid and regret. The Glare-sickness is easing. ({left} left)",
+      "Purge time. My insides are now cleaner than my outsides. ({left} left)",
+      "Used a Purge. I glow a little less. Pity, it was a good look. ({left} left)"
+    ],
+    "lowHp": [
+      "Out of Med-Patches and bleeding. Could someone call me home? Please?",
+      "No patches left. I'm fine. I'm totally fine. I'm not fine.",
+      "I've stopped being brave and started being careful. I'm hurt and out of Med-Patches."
+    ],
+    "highTaint": [
+      "The Glare-sickness is getting bad and I'm out of Purge. My nose is doing things.",
+      "Out of Purge. My skin tingles like a radio between stations.",
+      "No Purge left. I can hear colours now. That's probably a bad sign."
+    ],
+    "death": [
+      "Tell the homestead I— [the entry ends here]",
+      "This is fine. This is f— [the entry ends here]",
+      "If you find this journal, the recipe for canteen stew is on the back page. Sorry about the stew. [the entry ends here]",
+      "Should have gone west. [the entry ends here]"
+    ],
+    "revived": [
+      "Woke up. Was I dead? The homestead paid to bring me back. I'm told there were forms.",
+      "Back from the dead. The afterlife had a waiting room. HALCY was the receptionist.",
+      "Revived. Feeling great. Feeling slightly haunted. Carrying on."
+    ],
+    "recalled": [
+      "Radio says head home. You don't have to tell me twice. Well, you did, but I'm going.",
+      "Turning around. The homestead has a bunk with my name on it. Literally. I carved it.",
+      "Recalled. Packing up the souvenirs and hoofing it back.",
+      "Heading home. If anyone asks, I'm walking, not running. Mostly walking."
+    ],
+    "full": [
+      "Pack's full. I physically cannot carry one more thing. Heading home.",
+      "I am more junk than person at this point. Time to go home.",
+      "Tried to fit one more tin can in my pack and the pack filed a complaint. Homeward."
+    ],
+    "body": [
+      "[Recovered by the Halcyon Next-of-Kin Courier Service. Some items were lost in transit. HALCY apologises for the inconvenience.]"
+    ],
+    "arrived": [
+      "Home! The door opened. HALCY said 'Welcome back!' and I almost cried.",
+      "Back at the homestead. Never been so happy to see a door.",
+      "Made it home. Going to sleep for a week. Right after I unpack. Right after I sleep."
+    ]
+  },
+  "achievements": [
+    {
+      "id": "explore_first",
+      "name": "Welcome Home",
+      "description": "Bring an explorer back from the Glarelands.",
+      "tier": "bronze",
+      "stat": "expeditionsCompleted",
+      "target": 1
+    },
+    {
+      "id": "explore_25",
+      "name": "Frequent Walker",
+      "description": "Complete 25 expeditions.",
+      "tier": "silver",
+      "stat": "expeditionsCompleted",
+      "target": 25
+    },
+    {
+      "id": "explore_day",
+      "name": "Day Tripper",
+      "description": "Spend a total of 24 hours exploring the Glarelands.",
+      "tier": "bronze",
+      "stat": "explorerSeconds",
+      "target": 86400
+    },
+    {
+      "id": "explore_month",
+      "name": "Surface Dweller",
+      "description": "Spend a total of 30 days exploring the Glarelands.",
+      "tier": "gold",
+      "stat": "explorerSeconds",
+      "target": 2592000
+    },
+    {
+      "id": "explore_long",
+      "name": "Out of Office",
+      "description": "Keep one explorer out for 48 hours.",
+      "tier": "silver",
+      "stat": "longestExpedition",
+      "target": 172800
+    },
+    {
+      "id": "encounters_100",
+      "name": "Pest Control",
+      "description": "Win 100 fights in the Glarelands.",
+      "tier": "bronze",
+      "stat": "encountersWon",
+      "target": 100
+    },
+    {
+      "id": "encounters_1000",
+      "name": "Scourge of the Flats",
+      "description": "Win 1,000 fights in the Glarelands.",
+      "tier": "silver",
+      "stat": "encountersWon",
+      "target": 1000
+    },
+    {
+      "id": "glare_scrip",
+      "name": "Finders Keepers",
+      "description": "Bring home 10,000 scrip from the Glarelands.",
+      "tier": "silver",
+      "stat": "glarelandsScrip",
+      "target": 10000
+    },
+    {
+      "id": "npcs_50",
+      "name": "People Person",
+      "description": "Meet 50 strangers in the Glarelands.",
+      "tier": "bronze",
+      "stat": "npcsMet",
+      "target": 50
+    },
+    {
+      "id": "locations_100",
+      "name": "Sightseer",
+      "description": "Explore 100 locations in the Glarelands.",
+      "tier": "silver",
+      "stat": "locationsExplored",
+      "target": 100
+    },
+    {
+      "id": "mauler_slain",
+      "name": "Bigger Teeth",
+      "description": "Defeat a Mauler in the Glarelands.",
+      "tier": "gold",
+      "stat": "slain.mauler",
+      "target": 1,
+      "hidden": true
+    },
+    {
+      "id": "explorer_died",
+      "name": "Occupational Hazard",
+      "description": "Lose an explorer in the Glarelands.",
+      "tier": "bronze",
+      "stat": "explorerDeaths",
+      "target": 1,
+      "hidden": true
+    }
+  ]
 }
