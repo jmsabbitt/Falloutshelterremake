@@ -43,6 +43,9 @@ export {
   craftTimeLeft,
   scrapPreview,
   reforgeCost,
+  reforgeChance,
+  canReforge,
+  crewCraftStat,
   type Recipe,
 } from './systems/crafting';
 export { knowsRecipe, fragmentsNeeded, salvageCount, SALVAGE_CAP } from './systems/inventory';
