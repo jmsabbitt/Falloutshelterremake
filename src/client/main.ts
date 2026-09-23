@@ -27,6 +27,7 @@ async function boot(): Promise<void> {
     onResidentDrop: (id, room) => ui?.onResidentDrop(id, room),
     onResidentTap: (res) => ui?.onResidentTap(res),
     onBuildAt: (floor, x) => ui?.onBuildAt(floor, x),
+    onExplorerTap: () => ui?.openPanel('explore'),
   });
   ui = new UI(game, view);
   (window as unknown as Record<string, unknown>).homesteadView = {

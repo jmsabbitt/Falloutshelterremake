@@ -3,7 +3,26 @@
 import {
   achievementProgress,
   buildCost,
+  canCraft,
+  canExplore,
+  carriedCount,
   combatDamage,
+  craftSeconds,
+  craftTimeLeft,
+  fragmentsNeeded,
+  isAway,
+  knowsRecipe,
+  recipeFor,
+  reforgeCost,
+  salvageCount,
+  scrapPreview,
+  secondsUntilHome,
+  workersInRoom,
+  workshopRecipes,
+  CARRY_LIMIT,
+  MAX_EXPLORERS,
+  MAX_SUPPLIES,
+  SALVAGE_CAP,
   courtshipSeconds,
   cycleSeconds,
   effectiveMaxHp,
@@ -34,17 +53,55 @@ import {
   tableValue,
   type CrateCard,
   type CrateTier,
+  type Expedition,
+  type ExpeditionLoot,
   type GameEvent,
+  type Item,
+  type ItemDef,
+  type Rarity,
+  type Recipe,
   type Resident,
   type Room,
   type StatKey,
 } from '../../sim';
+import type { Content } from '../../sim';
 import type { Game } from '../game';
 import type { VaultView } from '../render/vaultView';
 import { downloadFile } from '../storage';
 import { duration, fmt, h } from './dom';
 
-type PanelKind = 'build' | 'room' | 'residents' | 'storage' | 'crates' | 'achievements' | 'menu' | null;
+type PanelKind = 'build' | 'room' | 'residents' | 'storage' | 'crates' | 'explore' | 'achievements' | 'menu' | null;
+type StorageTab = 'items' | 'salvage' | 'blueprints';
+
+/** Draft of the send-to-explore modal. */
+interface ExploreDraft {
+  residentId: number | null;
+  regionId: string;
+  medpatch: number;
+  purge: number;
+}
+
+interface RegionInfo {
+  id: string;
+  name: string;
+  description: string;
+  danger: number;
+}
+
+const RARITY_ORDER: Record<Rarity, number> = { legendary: 0, rare: 1, common: 2 };
+const RARITY_MARK: Record<Rarity, string> = { legendary: '★', rare: '◆', common: '•' };
+/**
+ * Approximate reforge upgrade odds and the pity streak, from the M3 spec. The
+ * sim does not export these, so the UI only uses them for display.
+ */
+const REFORGE_ODDS: Record<Rarity, number | null> = { common: 0.35, rare: 0.2, legendary: null };
+const REFORGE_PITY = 3;
+const EXPEDITION_STATUS: Record<Expedition['status'], string> = {
+  exploring: 'Exploring',
+  returning: 'Heading home',
+  returned: 'Home',
+  dead: 'Fallen',
+};
 
 const STAT_LABEL: Record<StatKey, string> = {
   brawn: 'BRN',
@@ -89,6 +146,15 @@ export class UI {
   private sortBy: 'level' | StatKey | 'name' = 'level';
   private lastPanelRender = 0;
   private lastToolbarKey = '';
+  private lastHudHtml = '';
+  private storageTab: StorageTab = 'items';
+  /** Item ids picked for reforging; null when not in reforge mode. */
+  private reforgeSel: number[] | null = null;
+  /** Expeditions whose journal is expanded. */
+  private openJournals = new Set<number>();
+  /** Expedition id -> resident id, kept after an expedition is removed so late events can name them. */
+  private explorerOf = new Map<number, number>();
+  private exploreDraft: ExploreDraft | null = null;
 
   constructor(
     private game: Game,
@@ -117,6 +183,14 @@ export class UI {
     }
     if (room.ready) {
       this.game.run({ type: 'collect', roomId: room.id });
+      return;
+    }
+    if (room.job && room.job.remaining === 0) {
+      const res = this.game.run({ type: 'collectCraft', roomId: room.id });
+      if (!res.ok) {
+        this.toast(res.reason, 'bad');
+        this.openRoom(room.id);
+      }
       return;
     }
     this.openRoom(room.id);
@@ -163,6 +237,7 @@ export class UI {
   // ---------------------------------------------------------------- frame
 
   update(): void {
+    if (this.game.lastCatchUp) this.showAwaySummary();
     this.renderHud();
     this.renderHint();
     this.renderToolbar();
@@ -188,7 +263,10 @@ export class UI {
     const pop = population(state);
     const cap = storageCapacity(state, content, 'population');
     const crates = state.crates.standard + state.crates.rare + state.crates.legendary;
-    this.hud.replaceChildren(
+    const ready = state.rooms.filter((r) => r.ready).length;
+    const next = h(
+      'div',
+      {},
       h('div', { class: 'title' }, `HOMESTEAD ${state.homesteadNumber}`),
       meter('power', 'var(--power)', 'P', powerDemandPerMin(state, content)),
       meter('food', 'var(--food)', 'F', foodDemandPerMin(state, content)),
@@ -204,7 +282,25 @@ export class UI {
         h('b', {}, `${crates}`),
         h('span', { class: 'token-mini' }, h('span', { style: `width:${(state.crateTokens / content.balance.crates.tokensPerCrate) * 100}%` })),
       ),
+      h(
+        'button',
+        {
+          class: `stat-chip chip-button collect-chip${ready ? ' glow' : ''}`,
+          title: 'Collect everything that is ready',
+          onclick: () => {
+            const res = this.game.run({ type: 'collectAll' });
+            if (res.ok && res.detail?.startsWith('0')) this.toast('Nothing ready yet');
+          },
+        },
+        '⤓ Collect',
+        ready ? h('b', {}, ` ${ready}`) : null,
+      ),
     );
+    // Rebuild only when something visible changed, so buttons are not swapped
+    // out between a press and its release (that would swallow the click).
+    if (next.innerHTML === this.lastHudHtml) return;
+    this.lastHudHtml = next.innerHTML;
+    this.hud.replaceChildren(...next.childNodes);
   }
 
   private renderHint(): void {
@@ -226,7 +322,7 @@ export class UI {
       text = 'Incident! Drag residents into the affected room to deal with it';
     } else if (waiting > 0) {
       text = `${waiting} resident${waiting > 1 ? 's' : ''} waiting: tap the door to let them in`;
-    } else if (state.residents.some((r) => !r.waiting && !r.dead && r.roomId === null && !isChild(state, r))) {
+    } else if (state.residents.some((r) => !r.waiting && !r.dead && !isAway(r) && r.roomId === null && !isChild(state, r))) {
       text = 'Drag idle residents into rooms to put them to work';
     }
     // On phones an open panel covers the bottom of the screen; the hint would sit on top of it.
@@ -240,20 +336,16 @@ export class UI {
   private renderToolbar(): void {
     const { state } = this.game;
     const crates = state.crates.standard + state.crates.rare + state.crates.legendary;
-    const key = `${this.panel}|${crates}|${state.items.length}`;
+    const homeOrFallen = state.expeditions.filter((e) => e.status === 'returned' || e.status === 'dead').length;
+    const key = `${this.panel}|${crates}|${state.items.length}|${homeOrFallen}|${window.innerWidth < 640}`;
     if (key === this.lastToolbarKey) return;
     this.lastToolbarKey = key;
-    const btn = (label: string, kind: PanelKind | 'collect', extra = '', badge?: number) =>
+    const btn = (label: string, kind: PanelKind, extra = '', badge?: number) =>
       h(
         'button',
         {
           class: `${this.panel === kind ? 'active' : ''} ${extra}`,
           onclick: () => {
-            if (kind === 'collect') {
-              const res = this.game.run({ type: 'collectAll' });
-              if (res.ok && res.detail?.startsWith('0')) this.toast('Nothing ready yet');
-              return;
-            }
             if (this.panel === kind) this.closePanel();
             else this.openPanel(kind);
           },
@@ -266,7 +358,7 @@ export class UI {
       btn(window.innerWidth < 640 ? 'People' : 'Residents', 'residents'),
       btn('Storage', 'storage'),
       btn('Crates', 'crates', '', crates),
-      btn('Collect', 'collect'),
+      btn('Explore', 'explore', '', homeOrFallen),
       btn('Goals', 'achievements'),
       btn('☰', 'menu'),
     );
@@ -280,7 +372,10 @@ export class UI {
       this.residentId = null;
       this.view.selectedResidentId = null;
     }
-    if (kind !== 'storage') this.equipFor = null;
+    if (kind !== 'storage') {
+      this.equipFor = null;
+      this.reforgeSel = null;
+    }
     if (kind !== 'room') {
       this.roomId = null;
       this.view.selectedRoomId = null;
@@ -319,6 +414,7 @@ export class UI {
       residents: 'Residents',
       storage: 'Storage',
       crates: 'Supply Crates',
+      explore: 'The Glarelands',
       achievements: 'Goals',
       menu: 'Menu',
     };
@@ -347,6 +443,9 @@ export class UI {
         break;
       case 'crates':
         body = this.cratesPanel();
+        break;
+      case 'explore':
+        body = this.explorePanel();
         break;
       case 'achievements':
         body = this.achievementsPanel();
@@ -460,6 +559,8 @@ export class UI {
       );
     }
 
+    if (def.category === 'workshop') parts.push(...this.workshopSection(room));
+
     if (cap > 0) {
       parts.push(h('h3', { style: 'margin:12px 0 4px;font-size:14px' }, `${def.category === 'door' ? 'Guards' : 'Crew'} ${crew.length}/${cap}`));
       for (const r of crew) {
@@ -472,7 +573,11 @@ export class UI {
             h(
               'span',
               {},
-              def.stat ? h('b', {}, `${STAT_LABEL[def.stat]} ${effectiveStats(content, r)[def.stat]}`) : h('b', {}, `DMG ${combatDamage(content, r)}`),
+              def.stat
+                ? h('b', {}, `${STAT_LABEL[def.stat]} ${effectiveStats(content, r)[def.stat]}`)
+                : def.category === 'workshop'
+                  ? h('b', {}, topStats(effectiveStats(content, r)).slice(0, 2).map((k) => `${STAT_LABEL[k]} ${effectiveStats(content, r)[k]}`).join(' '))
+                  : h('b', {}, `DMG ${combatDamage(content, r)}`),
               ' ',
               h('button', { class: 'close', onclick: () => (this.game.run({ type: 'assign', residentId: r.id, roomId: null }), this.renderPanel(true)) }, 'Remove'),
             ),
@@ -560,7 +665,8 @@ export class UI {
     const { state, content } = this.game;
     const room = r.roomId !== null ? state.rooms.find((x) => x.id === r.roomId) : undefined;
     const child = isChild(state, r);
-    const where = r.dead ? '☠ Fallen' : r.waiting ? 'At the door' : child ? 'Child' : room ? roomDef(content, room).name : 'Idle';
+    const away = isAway(r);
+    const where = away ? (r.dead ? '☠ Fallen outside' : '🧭 Glarelands') : r.dead ? '☠ Fallen' : r.waiting ? 'At the door' : child ? 'Child' : room ? roomDef(content, room).name : 'Idle';
     const eff = effectiveStats(content, r);
     const top = topStats(eff);
     const max = r.maxHp;
@@ -620,7 +726,7 @@ export class UI {
         h(
           'span',
           {},
-          !r.dead && !child
+          !r.dead && !child && !away
             ? h(
                 'button',
                 {
@@ -636,7 +742,7 @@ export class UI {
                 'Change',
               )
             : '',
-          equipped
+          equipped && !away
             ? h(
                 'button',
                 {
@@ -658,7 +764,10 @@ export class UI {
     );
 
     const actions: HTMLElement[] = [];
-    if (r.dead) {
+    if (away) {
+      // Out in the Glarelands: everything is managed from the expedition card.
+      actions.push(h('button', { class: 'primary', onclick: stop(() => this.openPanel('explore')) }, 'View expedition'));
+    } else if (r.dead) {
       actions.push(
         h(
           'button',
@@ -690,7 +799,18 @@ export class UI {
       if (r.taint > 0)
         actions.push(h('button', { disabled: state.resources.purge < 1, onclick: stop(() => this.cmdToast({ type: 'purge', residentId: r.id }, 'Glare-sickness purged.')) }, `☢ Purge (${Math.floor(state.resources.purge)})`));
     }
+    const exploreWhy = !away && !r.dead ? canExplore(state, content, r) : undefined;
+    if (exploreWhy !== undefined) {
+      actions.push(
+        h(
+          'button',
+          { disabled: exploreWhy !== null, title: exploreWhy ?? 'Send out into the Glarelands', onclick: stop(() => this.showExploreModal(r.id)) },
+          '🧭 Explore',
+        ),
+      );
+    }
     if (actions.length) card.append(h('div', { class: 'row', style: 'justify-content:flex-start;flex-wrap:wrap;margin-top:6px' }, ...actions));
+    if (exploreWhy) card.append(h('div', { class: 'muted small' }, `Can't explore: ${exploreWhy}`));
     return card;
   }
 
@@ -726,7 +846,8 @@ export class UI {
         ),
       ),
     );
-    const idle = list.filter((r) => !r.dead && r.roomId === null && !isChild(state, r)).length;
+    const idle = list.filter((r) => !r.dead && !isAway(r) && r.roomId === null && !isChild(state, r)).length;
+    const exploring = list.filter((r) => isAway(r)).length;
     const kids = list.filter((r) => isChild(state, r)).length;
     // Selected resident first, expanded.
     const selected = list.find((r) => r.id === this.residentId);
@@ -734,23 +855,62 @@ export class UI {
     return h(
       'div',
       { class: 'body' },
-      h('div', { class: 'muted', style: 'margin-bottom:6px' }, `${list.length} residents · ${idle} idle${kids ? ` · ${kids} children` : ''}. Select one, then tap a room.`),
+      h('div', { class: 'muted', style: 'margin-bottom:6px' }, `${list.length} residents · ${idle} idle${exploring ? ` · ${exploring} exploring` : ''}${kids ? ` · ${kids} children` : ''}. Select one, then tap a room.`),
       tabs,
       selected ? this.residentCard(selected, true) : null,
       ...rest.map((r) => this.residentCard(r, false)),
     );
   }
 
+  // ---------------------------------------------------------------- storage
+
   private storagePanel(): HTMLElement {
+    const { state } = this.game;
+    // Picking gear for someone always happens on the Items tab.
+    const tab: StorageTab = this.equipFor ? 'items' : this.storageTab;
+    const salvageUnits = Object.values(state.salvage).reduce((a, b) => a + b, 0);
+    const blueprints = state.recipes.length;
+    const tabBtn = (id: StorageTab, label: string) =>
+      h(
+        'button',
+        {
+          class: tab === id ? 'active' : '',
+          onclick: () => {
+            this.storageTab = id;
+            this.equipFor = null;
+            if (id !== 'items') this.reforgeSel = null;
+            this.renderPanel(true);
+          },
+        },
+        label,
+      );
+    const tabs = h(
+      'div',
+      { class: 'tabs storage-tabs' },
+      tabBtn('items', `Items ${state.items.length}`),
+      tabBtn('salvage', `Salvage ${fmt(salvageUnits)}`),
+      tabBtn('blueprints', `Blueprints ${blueprints}`),
+    );
+    const body = tab === 'items' ? this.itemsTab() : tab === 'salvage' ? this.salvageTab() : this.blueprintsTab();
+    return h('div', { class: 'body' }, tabs, ...body);
+  }
+
+  private itemsTab(): HTMLElement[] {
     const { state, content } = this.game;
     const target = this.equipFor ? state.residents.find((r) => r.id === this.equipFor?.residentId) : undefined;
     const slot = this.equipFor?.slot;
-    const order = { legendary: 0, rare: 1, common: 2 } as const;
+    const reforging = this.reforgeSel !== null && !target;
+    // Drop picks that no longer exist (sold, scrapped, equipped).
+    const sel = (this.reforgeSel ?? []).filter((id) => state.items.some((i) => i.id === id));
+    if (this.reforgeSel) this.reforgeSel = sel;
+    const firstDef = sel.length ? content.items[state.items.find((i) => i.id === sel[0])?.defId ?? ''] : undefined;
+
     const items = state.items
       .map((i) => ({ item: i, def: content.items[i.defId] }))
-      .filter((x): x is { item: (typeof state.items)[number]; def: NonNullable<(typeof x)['def']> } => !!x.def)
+      .filter((x): x is { item: Item; def: ItemDef } => !!x.def)
       .filter((x) => !slot || x.def.kind === slot)
-      .sort((a, b) => order[a.def.rarity] - order[b.def.rarity] || a.def.name.localeCompare(b.def.name));
+      .sort((a, b) => RARITY_ORDER[a.def.rarity] - RARITY_ORDER[b.def.rarity] || a.def.name.localeCompare(b.def.name));
+
     const header = target
       ? h(
           'div',
@@ -758,21 +918,61 @@ export class UI {
           h('b', {}, `Choose ${slot === 'weapon' ? 'a weapon' : 'an outfit'} for ${target.firstName}`),
           h('button', { class: 'close', onclick: () => ((this.equipFor = null), this.renderPanel(true)) }, 'Cancel'),
         )
-      : h('p', { class: 'muted' }, 'Weapons help residents fight incidents. Outfits boost stats, which speeds up work and changes their best room. Equip from a resident\'s card, or sell spares here.');
-    const rows = items.map(({ item, def }) =>
-      h(
+      : reforging
+        ? this.reforgeBar(sel, firstDef)
+        : h(
+            'div',
+            {},
+            h('p', { class: 'muted' }, "Weapons help residents fight incidents. Outfits boost stats. Equip from a resident's card; sell or scrap spares here."),
+            h(
+              'div',
+              { class: 'row', style: 'justify-content:flex-start' },
+              h(
+                'button',
+                {
+                  class: 'close',
+                  disabled: items.length < 3,
+                  title: 'Combine three items of the same kind and rarity for a chance at a better one',
+                  onclick: () => {
+                    this.reforgeSel = [];
+                    this.renderPanel(true);
+                  },
+                },
+                '⚗ Reforge…',
+              ),
+              h('span', { class: 'muted small' }, 'Scrap breaks an item into salvage for crafting.'),
+            ),
+          );
+
+    const rows = items.map(({ item, def }) => {
+      const stats = h('span', { class: 'muted' }, def.kind === 'weapon' ? `${def.min}–${def.max} dmg` : bonusText(def.bonus));
+      const label = h('span', { class: 'item-name' }, h('span', { class: `rarity ${def.rarity}` }, RARITY_MARK[def.rarity]), ` ${def.name} `, stats);
+      if (reforging) {
+        const picked = sel.includes(item.id);
+        const fits = !firstDef || (firstDef.kind === def.kind && firstDef.rarity === def.rarity);
+        const usable = picked || (fits && sel.length < 3);
+        return h(
+          'div',
+          {
+            class: `list-item row pick${picked ? ' selected' : ''}${usable ? '' : ' locked'}`,
+            onclick: () => {
+              if (!usable) return;
+              this.reforgeSel = picked ? sel.filter((id) => id !== item.id) : [...sel, item.id];
+              this.renderPanel(true);
+            },
+          },
+          label,
+          h('span', { class: `check${picked ? ' on' : ''}` }, picked ? '✓' : ''),
+        );
+      }
+      const preview = scrapText(content, scrapPreview(content, def.id));
+      return h(
         'div',
         { class: 'list-item row' },
+        label,
         h(
           'span',
-          {},
-          h('span', { class: `rarity ${def.rarity}` }, def.rarity === 'legendary' ? '★' : def.rarity === 'rare' ? '◆' : '•'),
-          ` ${def.name} `,
-          h('span', { class: 'muted' }, def.kind === 'weapon' ? `${def.min}–${def.max} dmg` : bonusText(def.bonus)),
-        ),
-        h(
-          'span',
-          {},
+          { class: 'item-actions' },
           target
             ? h(
                 'button',
@@ -791,8 +991,7 @@ export class UI {
                 },
                 'Equip',
               )
-            : '',
-          ' ',
+            : null,
           h(
             'button',
             {
@@ -805,16 +1004,156 @@ export class UI {
             },
             `Sell ${sellValue(content, def.id)}`,
           ),
+          target
+            ? null
+            : h(
+                'button',
+                {
+                  class: 'close',
+                  title: preview ? `Scrap for about: ${preview}` : 'Break down into salvage',
+                  onclick: () => {
+                    if (def.rarity !== 'common' && !confirm(`Scrap ${def.name}?${preview ? ` You get about ${preview}.` : ''}`)) return;
+                    const res = this.game.run({ type: 'scrap', itemId: item.id });
+                    if (!res.ok) this.toast(res.reason, 'bad');
+                    this.renderPanel(true);
+                  },
+                },
+                'Scrap',
+              ),
+        ),
+      );
+    });
+    return [
+      h('div', { class: 'row' }, h('b', {}, `${state.items.length}/${itemCapacity(state, content)} items`), h('span', { class: 'muted' }, 'Storerooms add space')),
+      header,
+      ...(rows.length ? rows : [h('p', { class: 'muted' }, 'Nothing here yet. Open Supply Crates or explore the Glarelands to find gear.')]),
+    ];
+  }
+
+  /** Reforge mode header: what is picked, the cost, the odds and the confirm button. */
+  private reforgeBar(sel: number[], first: ItemDef | undefined): HTMLElement {
+    const { state, content } = this.game;
+    const cost = first ? reforgeCost(content, first.rarity) : 0;
+    const odds = first ? REFORGE_ODDS[first.rarity] : null;
+    const pityLeft = Math.max(1, REFORGE_PITY - state.reforgePity);
+    const next: Record<Rarity, string> = { common: 'rare', rare: 'legendary', legendary: 'legendary' };
+    const outcome = !first
+      ? 'Pick three items of the same kind (weapon or outfit) and rarity.'
+      : first.rarity === 'legendary'
+        ? 'Three legendaries reroll into a different legendary.'
+        : `${odds !== null ? `About ${Math.round(odds * 100)}%` : 'A'} chance of a ${next[first.rarity]} ${first.kind}; otherwise a different ${first.rarity} one. ` +
+          `Upgrade guaranteed within ${pityLeft} ${pityLeft === 1 ? 'try' : 'tries'}.`;
+    const short = state.scrip < cost;
+    return h(
+      'div',
+      { class: 'reforge-bar' },
+      h(
+        'div',
+        { class: 'row', style: 'margin-top:0' },
+        h('b', {}, `⚗ Reforge · ${sel.length}/3 picked`),
+        h('button', { class: 'close', onclick: () => ((this.reforgeSel = null), this.renderPanel(true)) }, 'Cancel'),
+      ),
+      h('div', { class: 'muted' }, outcome),
+      h(
+        'div',
+        { class: 'row' },
+        h('span', { class: short && first ? 'short' : '' }, first ? `Cost ${fmt(cost)} scrip` : ''),
+        h(
+          'button',
+          {
+            class: 'primary',
+            disabled: sel.length !== 3 || short,
+            onclick: () => {
+              const res = this.game.run({ type: 'reforge', itemIds: sel });
+              if (!res.ok) this.toast(res.reason, 'bad');
+              else this.reforgeSel = [];
+              this.renderPanel(true);
+            },
+          },
+          'Reforge',
         ),
       ),
     );
-    return h(
-      'div',
-      { class: 'body' },
-      h('div', { class: 'row' }, h('b', {}, `${state.items.length}/${itemCapacity(state, content)} items`), h('span', { class: 'muted' }, 'Storerooms add space')),
-      header,
-      ...(rows.length ? rows : [h('p', { class: 'muted' }, 'Nothing here yet. Open Supply Crates to find gear.')]),
-    );
+  }
+
+  private salvageTab(): HTMLElement[] {
+    const { state, content } = this.game;
+    const materials: string[] = [];
+    for (const s of content.salvageList) if (!materials.includes(s.material)) materials.push(s.material);
+    const total = Object.values(state.salvage).reduce((a, b) => a + b, 0);
+    const groups = materials.map((m) => {
+      const list = content.salvageList.filter((s) => s.material === m).sort((a, b) => RARITY_ORDER[b.rarity] - RARITY_ORDER[a.rarity]);
+      const sum = list.reduce((a, s) => a + salvageCount(state, s.id), 0);
+      return h(
+        'div',
+        { class: `list-item salvage-group${sum ? '' : ' empty'}` },
+        h('div', { class: 'row', style: 'margin:0 0 4px' }, h('b', {}, capitalize(m)), h('span', { class: 'muted' }, `${sum}`)),
+        h(
+          'div',
+          { class: 'salvage-cells' },
+          ...list.map((s) => {
+            const n = salvageCount(state, s.id);
+            return h(
+              'div',
+              { class: `salvage-cell ${s.rarity}${n ? '' : ' none'}`, title: `${s.name} (${s.rarity}): ${n}/${SALVAGE_CAP}` },
+              h('span', { class: `rarity ${s.rarity}` }, RARITY_MARK[s.rarity]),
+              h('span', { class: 'sname' }, s.name),
+              h('b', {}, `${n}`),
+            );
+          }),
+        ),
+      );
+    });
+    return [
+      h('div', { class: 'row' }, h('b', {}, `${fmt(total)} salvage`), h('span', { class: 'muted' }, `Own bin · up to ${SALVAGE_CAP} each`)),
+      h('p', { class: 'muted', style: 'margin-top:0' }, 'Explorers bring salvage home from the Glarelands, and scrapping items breaks them down. Workshops turn it into gear.'),
+      ...groups,
+    ];
+  }
+
+  private blueprintsTab(): HTMLElement[] {
+    const { state, content } = this.game;
+    const special = Object.values(content.items)
+      .filter((d) => d.rarity !== 'common')
+      .sort((a, b) => RARITY_ORDER[a.rarity] - RARITY_ORDER[b.rarity] || a.name.localeCompare(b.name));
+    const known = special.filter((d) => knowsRecipe(state, content, d.id));
+    const partial = special.filter((d) => !knowsRecipe(state, content, d.id) && (state.fragments[d.id] ?? 0) > 0);
+    const unseen = special.length - known.length - partial.length;
+    const where = (d: ItemDef) => {
+      const r = recipeFor(content, d.id);
+      const shop = r ? content.rooms[r.workshop]?.name : content.rooms[d.kind === 'weapon' ? 'weaponshop' : 'outfitshop']?.name;
+      return `${shop ?? 'Workshop'}${r ? ` · level ${r.minLevel}` : ''}`;
+    };
+    const line = (d: ItemDef, extra: HTMLElement | string) =>
+      h(
+        'div',
+        { class: 'list-item' },
+        h('div', { class: 'row', style: 'margin:0' }, h('span', {}, h('span', { class: `rarity ${d.rarity}` }, RARITY_MARK[d.rarity]), ` ${d.name}`), extra),
+        h('div', { class: 'muted small' }, `${d.kind === 'weapon' ? `${d.min}–${d.max} dmg` : bonusText(d.bonus)} · ${where(d)}`),
+      );
+    const out: HTMLElement[] = [
+      h('p', { class: 'muted', style: 'margin-top:0' }, 'Common recipes are always known. Rare and legendary ones need blueprint fragments: explorers find them, and scrapping an item you cannot craft yet gives one toward it.'),
+    ];
+    if (partial.length) {
+      out.push(h('h3', { class: 'group' }, 'Fragments'));
+      for (const d of partial) {
+        const have = state.fragments[d.id] ?? 0;
+        const need = Math.max(1, fragmentsNeeded(content, d.id));
+        out.push(
+          h(
+            'div',
+            { class: 'list-item' },
+            h('div', { class: 'row', style: 'margin:0' }, h('span', {}, h('span', { class: `rarity ${d.rarity}` }, RARITY_MARK[d.rarity]), ` ${d.name}`), h('b', {}, `📜 ${have}/${need}`)),
+            h('div', { class: 'progress' }, h('div', { style: `width:${Math.min(100, (have / need) * 100)}%;background:var(--${d.rarity})` })),
+          ),
+        );
+      }
+    }
+    out.push(h('h3', { class: 'group' }, `Known recipes ${known.length}/${special.length}`));
+    if (known.length) out.push(...known.map((d) => line(d, h('span', { class: 'ok-text' }, '✓ known'))));
+    else out.push(h('p', { class: 'muted' }, 'No rare or legendary recipes yet.'));
+    if (unseen > 0) out.push(h('p', { class: 'muted' }, `${unseen} more blueprint${unseen === 1 ? '' : 's'} still out there.`));
+    return out;
   }
 
   private cratesPanel(): HTMLElement {
@@ -1002,8 +1341,435 @@ export class UI {
           'New homestead',
         ),
       ),
-      h('p', { class: 'muted', style: 'margin-top:18px' }, 'Homestead is an early prototype (milestone M2). Placeholder art. Developer console: window.homestead'),
+      h('p', { class: 'muted', style: 'margin-top:18px' }, 'Homestead is an early prototype (milestone M3). Placeholder art. Developer console: window.homestead'),
     );
+  }
+
+  // ---------------------------------------------------------------- Glarelands
+
+  private regions(): RegionInfo[] {
+    return (this.game.content.exploration.regions ?? []) as RegionInfo[];
+  }
+
+  private explorePanel(): HTMLElement {
+    const { state, content } = this.game;
+    const regions = this.regions();
+    const eligible = state.residents.filter((r) => !r.waiting && canExplore(state, content, r) === null);
+    const out = state.expeditions.length;
+    const regionCards = regions.map((rg) => {
+      const open = state.regionsUnlocked.includes(rg.id);
+      const here = state.expeditions.filter((e) => e.regionId === rg.id).length;
+      return h(
+        'div',
+        { class: `list-item region-card${open ? '' : ' locked'}` },
+        h('div', { class: 'row', style: 'margin:0' }, h('b', {}, open ? rg.name : `🔒 ${rg.name}`), dangerPips(rg.danger)),
+        h('div', { class: 'muted' }, rg.description),
+        here ? h('div', { class: 'muted small', style: 'margin-top:4px' }, `${here} explorer${here === 1 ? '' : 's'} out here`) : null,
+      );
+    });
+    const order: Record<Expedition['status'], number> = { returned: 0, dead: 1, returning: 2, exploring: 3 };
+    const exps = [...state.expeditions].sort((a, b) => order[a.status] - order[b.status] || a.id - b.id);
+    return h(
+      'div',
+      { class: 'body' },
+      ...regionCards,
+      h(
+        'div',
+        { class: 'row' },
+        h('b', {}, `Explorers ${out}/${MAX_EXPLORERS}`),
+        h(
+          'button',
+          { class: 'primary close', disabled: !eligible.length || out >= MAX_EXPLORERS, onclick: () => this.showExploreModal(null) },
+          '🧭 Send explorer',
+        ),
+      ),
+      ...(exps.length
+        ? exps.map((e) => this.expeditionCard(e))
+        : [
+            h(
+              'p',
+              { class: 'muted' },
+              eligible.length
+                ? 'Nobody is out. Explorers bring home scrip, gear, salvage and blueprint fragments. The longer they stay out, the better the finds and the worse the danger.'
+                : 'Nobody is out, and nobody can leave right now. Adults inside the homestead can be sent from their card in Residents.',
+            ),
+          ]),
+    );
+  }
+
+  private expeditionCard(e: Expedition): HTMLElement {
+    const { state, content } = this.game;
+    const r = state.residents.find((x) => x.id === e.residentId);
+    const name = r ? `${r.firstName} ${r.lastName}` : 'Unknown explorer';
+    const region = this.regions().find((x) => x.id === e.regionId)?.name ?? e.regionId;
+    const max = r?.maxHp ?? 1;
+    const hp = r ? Math.max(0, r.hp) : 0;
+    const taint = r?.taint ?? 0;
+    const carried = carriedCount(e);
+    const statusText =
+      e.status === 'exploring'
+        ? `${duration(e.elapsed)} out`
+        : e.status === 'returning'
+          ? `home in ${duration(secondsUntilHome(e))}`
+          : e.status === 'returned'
+            ? 'ready to collect'
+            : `after ${duration(e.elapsed)}`;
+
+    const actions: HTMLElement[] = [];
+    if (e.status === 'exploring') {
+      actions.push(h('button', { onclick: () => this.expCmd({ type: 'recall', expeditionId: e.id }) }, 'Recall'));
+    } else if (e.status === 'returned') {
+      actions.push(h('button', { class: 'primary', onclick: () => this.expCmd({ type: 'collectExpedition', expeditionId: e.id }) }, 'Collect'));
+    } else if (e.status === 'dead' && r) {
+      const cost = reviveCost(content, r);
+      actions.push(
+        h(
+          'button',
+          {
+            class: 'primary',
+            disabled: state.scrip < cost,
+            onclick: () => this.expCmd({ type: 'revive', residentId: r.id }, `${r.firstName} is back on their feet and exploring.`),
+          },
+          `Revive (${fmt(cost)} scrip)`,
+        ),
+        h(
+          'button',
+          {
+            class: 'danger',
+            onclick: () => {
+              if (!confirm(`Bring ${r.firstName}'s body home? Half of what they carried is lost.`)) return;
+              this.expCmd({ type: 'recall', expeditionId: e.id });
+            },
+          },
+          'Recall body',
+        ),
+      );
+    }
+    const open = this.openJournals.has(e.id);
+    actions.push(
+      h(
+        'button',
+        {
+          class: 'close journal-toggle',
+          onclick: () => {
+            if (open) this.openJournals.delete(e.id);
+            else this.openJournals.add(e.id);
+            this.renderPanel(true);
+          },
+        },
+        `Journal ${e.journal.length} ${open ? '▴' : '▾'}`,
+      ),
+    );
+
+    const card = h(
+      'div',
+      { class: `list-item expedition ${e.status}` },
+      h(
+        'div',
+        { class: 'row', style: 'margin:0' },
+        h('b', {}, r && r.rarity !== 'common' ? h('span', { class: `rarity ${r.rarity}` }, RARITY_MARK[r.rarity]) : null, ` ${name}`, h('span', { class: 'muted' }, ` L${r?.level ?? 1}`)),
+        h('span', { class: `status-pill ${e.status}` }, EXPEDITION_STATUS[e.status]),
+      ),
+      h('div', { class: 'muted small' }, `${region} · ${statusText}`),
+      h('div', { class: 'hpbar' }, h('div', { class: 'hp', style: `width:${Math.min(100, (hp / max) * 100)}%` }), h('div', { class: 'taint', style: `width:${Math.min(100, (taint / max) * 100)}%` })),
+      h(
+        'div',
+        { class: 'row muted small exp-stats' },
+        h('span', {}, `HP ${Math.ceil(hp)}/${Math.ceil(r ? effectiveMaxHp(r) : 0)}`),
+        h('span', { title: 'Glare-sickness' }, `Taint ${Math.ceil(taint)}`),
+        h('span', { title: 'Med-Patches / Purge left' }, `✚ ${e.supplies.medpatch} ☢ ${e.supplies.purge}`),
+        h('span', { class: carried >= CARRY_LIMIT ? 'short' : '', title: 'Carried items and salvage' }, `🎒 ${carried}/${CARRY_LIMIT}`),
+      ),
+      h('div', { class: 'loot-line' }, ...lootChips(e.loot)),
+      h('div', { class: 'row', style: 'justify-content:flex-start;flex-wrap:wrap;margin-bottom:0' }, ...actions),
+    );
+    if (open) card.append(this.journalView(e));
+    return card;
+  }
+
+  private journalView(e: Expedition): HTMLElement {
+    const { content } = this.game;
+    const found = e.loot.items
+      .map((id) => content.items[id])
+      .filter((d): d is ItemDef => !!d)
+      .sort((a, b) => RARITY_ORDER[a.rarity] - RARITY_ORDER[b.rarity]);
+    const entries = [...e.journal].reverse().slice(0, 150);
+    return h(
+      'div',
+      { class: 'journal' },
+      found.length
+        ? h(
+            'div',
+            { class: 'journal-loot' },
+            ...found.map((d) => h('span', { class: `rarity ${d.rarity}` }, `${RARITY_MARK[d.rarity]} ${d.name}`)),
+          )
+        : null,
+      ...(entries.length
+        ? entries.map((j) => h('div', { class: `jline ${j.kind}` }, h('span', { class: 'jt' }, clock(j.t)), h('span', {}, j.text)))
+        : [h('div', { class: 'muted small' }, 'Nothing written yet.')]),
+    );
+  }
+
+  /** Run an expedition command, toasting failures (success toasts come from events). */
+  private expCmd(cmd: Parameters<Game['run']>[0], okText?: string): void {
+    const res = this.game.run(cmd);
+    if (!res.ok) this.toast(res.reason, 'bad');
+    else if (okText) this.toast(okText, 'good');
+    this.renderPanel(true);
+  }
+
+  private showExploreModal(residentId: number | null): void {
+    const { state, content } = this.game;
+    const first = residentId ?? state.residents.find((r) => !r.waiting && canExplore(state, content, r) === null)?.id ?? null;
+    const open = this.regions().filter((rg) => state.regionsUnlocked.includes(rg.id));
+    this.exploreDraft = {
+      residentId: first,
+      regionId: open[0]?.id ?? state.regionsUnlocked[0] ?? 'dustbowl',
+      medpatch: Math.min(5, this.supplyMax('medpatch')),
+      purge: Math.min(5, this.supplyMax('purge')),
+    };
+    this.renderExploreModal(residentId === null);
+  }
+
+  private supplyMax(kind: 'medpatch' | 'purge'): number {
+    return Math.max(0, Math.min(MAX_SUPPLIES, Math.floor(this.game.state.resources[kind])));
+  }
+
+  private renderExploreModal(pickResident: boolean): void {
+    const d = this.exploreDraft;
+    if (!d) return;
+    const { state, content } = this.game;
+    const close = () => {
+      this.exploreDraft = null;
+      this.modalHost.replaceChildren();
+    };
+    const again = () => this.renderExploreModal(pickResident);
+    const res = state.residents.find((r) => r.id === d.residentId);
+    const why = res ? canExplore(state, content, res) : 'pick someone to send';
+
+    let picker: HTMLElement | null = null;
+    if (pickResident) {
+      const eligible = state.residents.filter((r) => !r.waiting && canExplore(state, content, r) === null).sort((a, b) => b.level - a.level || a.id - b.id);
+      const select = h(
+        'select',
+        {
+          class: 'picker',
+          onchange: (ev: Event) => {
+            d.residentId = Number((ev.target as HTMLSelectElement).value);
+            again();
+          },
+        },
+        ...eligible.map((r) => h('option', { value: r.id, selected: r.id === d.residentId }, `${r.firstName} ${r.lastName} · L${r.level} · HP ${Math.ceil(r.hp)}`)),
+      );
+      picker = h('label', { class: 'field' }, h('span', { class: 'muted' }, 'Explorer'), select);
+    }
+
+    let summary: HTMLElement | null = null;
+    if (res) {
+      const eff = effectiveStats(content, res);
+      const weapon = res.weapon ? content.weapons[res.weapon] : undefined;
+      const outfit = res.outfit ? content.outfits[res.outfit] : undefined;
+      summary = h(
+        'div',
+        { class: 'list-item explorer-summary' },
+        h('div', { class: 'row', style: 'margin:0' }, h('b', {}, `${res.firstName} ${res.lastName}`), h('span', { class: 'muted' }, `L${res.level} · HP ${Math.ceil(res.hp)}/${Math.ceil(effectiveMaxHp(res))}`)),
+        h('div', { class: 'stats' }, ...STAT_KEYS.map((k) => h('span', { class: k === 'fortune' || k === 'grit' ? 'hi' : '' }, `${STAT_LABEL[k]} ${eff[k]}`))),
+        h('div', { class: 'muted small', style: 'margin-top:4px' }, `${weapon ? `${weapon.name} (${weapon.min}–${weapon.max} dmg)` : 'Fists (1 dmg)'} · ${outfit ? outfit.name : 'Halcyon jumpsuit'}`),
+        h('div', { class: 'muted small' }, 'Every stat matters out there: Grit shrugs off the Glare, Fortune finds scrip, and a good weapon wins fights.'),
+      );
+    }
+
+    const regions = this.regions().map((rg) => {
+      const open = state.regionsUnlocked.includes(rg.id);
+      return h(
+        'div',
+        {
+          class: `list-item region-pick${d.regionId === rg.id ? ' selected' : ''}${open ? '' : ' locked'}`,
+          onclick: () => {
+            if (!open) return;
+            d.regionId = rg.id;
+            again();
+          },
+        },
+        h('div', { class: 'row', style: 'margin:0' }, h('b', {}, open ? rg.name : `🔒 ${rg.name}`), dangerPips(rg.danger)),
+        h('div', { class: 'muted small' }, rg.description),
+      );
+    });
+
+    const stepper = (kind: 'medpatch' | 'purge', label: string) => {
+      const max = this.supplyMax(kind);
+      const set = (n: number) => {
+        d[kind] = Math.max(0, Math.min(max, n));
+        again();
+      };
+      return h(
+        'div',
+        { class: 'row stepper-row' },
+        h('span', {}, label, h('span', { class: 'muted small' }, ` · ${Math.floor(state.resources[kind])} in stock`)),
+        h(
+          'span',
+          { class: 'stepper' },
+          h('button', { disabled: d[kind] <= 0, onclick: () => set(d[kind] - 1), 'aria-label': `fewer ${label}` }, '−'),
+          h('b', {}, `${d[kind]}`),
+          h('button', { disabled: d[kind] >= max, onclick: () => set(d[kind] + 1), 'aria-label': `more ${label}` }, '+'),
+        ),
+      );
+    };
+
+    const send = () => {
+      if (d.residentId === null) return;
+      const result = this.game.run({ type: 'explore', residentId: d.residentId, regionId: d.regionId, medpatch: d.medpatch, purge: d.purge });
+      if (!result.ok) {
+        this.toast(result.reason, 'bad');
+        return;
+      }
+      close();
+      this.openPanel('explore');
+    };
+
+    this.modalHost.replaceChildren(
+      h(
+        'div',
+        { class: 'modal-backdrop', onclick: (e: Event) => e.target === e.currentTarget && close() },
+        h(
+          'div',
+          { class: 'modal explore-modal' },
+          h('h2', {}, 'Into the Glarelands'),
+          picker,
+          summary,
+          h('h3', { class: 'group' }, 'Region'),
+          ...regions,
+          h('h3', { class: 'group' }, 'Supplies'),
+          stepper('medpatch', '✚ Med-Patches'),
+          stepper('purge', '☢ Purge'),
+          h('p', { class: 'muted small' }, `Up to ${MAX_SUPPLIES} of each. Med-Patches are used at half health, Purge when Glare-sickness builds up. Whatever is left comes home.`),
+          why ? h('div', { class: 'row short' }, `Can't send: ${why}`) : null,
+          h(
+            'div',
+            { class: 'row', style: 'justify-content:flex-end;margin-top:12px;gap:8px' },
+            h('button', { onclick: close }, 'Cancel'),
+            h('button', { class: 'primary', disabled: !!why, onclick: send }, 'Send out'),
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ---------------------------------------------------------------- workshops
+
+  private workshopSection(room: Room): HTMLElement[] {
+    const { state, content } = this.game;
+    const parts: HTMLElement[] = [];
+    const job = room.job;
+    if (job) {
+      const def = content.items[job.defId];
+      const done = job.remaining <= 0;
+      const left = craftTimeLeft(state, content, room);
+      const p = job.total > 0 ? Math.max(0, Math.min(1, 1 - job.remaining / job.total)) : 0;
+      const stall = !room.powered
+        ? 'no power'
+        : workersInRoom(state, room.id).length === 0
+          ? 'nobody is working here'
+          : state.incidents.some((i) => i.roomId === room.id)
+            ? 'incident in the room'
+            : null;
+      parts.push(
+        h(
+          'div',
+          { class: `list-item craft-job${done ? ' done' : ''}` },
+          h(
+            'div',
+            { class: 'row', style: 'margin:0' },
+            h('span', {}, def ? h('span', { class: `rarity ${def.rarity}` }, RARITY_MARK[def.rarity]) : null, h('b', {}, ` ${def?.name ?? job.defId}`)),
+            h('b', {}, done ? 'READY' : isFinite(left) ? `${duration(left)} left` : 'Stalled'),
+          ),
+          h('div', { class: 'progress' }, h('div', { style: `width:${p * 100}%;background:var(--accent)` })),
+          !done && (stall || !isFinite(left)) ? h('div', { class: 'muted small short' }, `Paused: ${stall ?? 'waiting for a crew'}`) : null,
+          h(
+            'div',
+            { class: 'row', style: 'justify-content:flex-start;margin-bottom:0' },
+            done
+              ? h('button', { class: 'primary', onclick: () => this.craftCmd({ type: 'collectCraft', roomId: room.id }) }, 'Collect')
+              : h(
+                  'button',
+                  {
+                    class: 'danger close',
+                    onclick: () => {
+                      if (!confirm(`Cancel crafting ${def?.name ?? 'this item'}? Salvage and scrip are refunded.`)) return;
+                      this.craftCmd({ type: 'cancelCraft', roomId: room.id }, 'Job cancelled. Materials refunded.');
+                    },
+                  },
+                  'Cancel (refund)',
+                ),
+          ),
+        ),
+      );
+    }
+
+    const recipes = workshopRecipes(content, room);
+    parts.push(h('h3', { class: 'group' }, 'Recipes'));
+    if (!recipes.length) {
+      parts.push(h('p', { class: 'muted' }, 'No recipes available here yet.'));
+      return parts;
+    }
+    parts.push(h('p', { class: 'muted small', style: 'margin-top:0' }, 'Each recipe is sped up by one stat of the crew working here. Rare recipes need workshop level 2, legendary level 3.'));
+    for (const rarity of ['common', 'rare', 'legendary'] as const) {
+      const group = recipes
+        .filter((r) => content.items[r.defId]?.rarity === rarity)
+        .sort((a, b) => Number(knowsRecipe(state, content, b.defId)) - Number(knowsRecipe(state, content, a.defId)) || a.scrip - b.scrip);
+      if (!group.length) continue;
+      const known = group.filter((r) => knowsRecipe(state, content, r.defId)).length;
+      parts.push(h('div', { class: 'row group-row' }, h('b', { class: `rarity ${rarity}` }, `${RARITY_MARK[rarity]} ${capitalize(rarity)}`), h('span', { class: 'muted small' }, `${known}/${group.length} known`)));
+      for (const r of group) parts.push(this.recipeCard(room, r));
+    }
+    return parts;
+  }
+
+  private recipeCard(room: Room, recipe: Recipe): HTMLElement {
+    const { state, content } = this.game;
+    const def = content.items[recipe.defId];
+    if (!def) return h('div');
+    const title = h('span', {}, h('span', { class: `rarity ${def.rarity}` }, RARITY_MARK[def.rarity]), ` ${def.name}`);
+    const stats = `${def.kind === 'weapon' ? `${def.min}–${def.max} dmg` : bonusText(def.bonus)} · uses ${STAT_NAME[def.craftStat]}`;
+    if (!knowsRecipe(state, content, recipe.defId)) {
+      const have = state.fragments[recipe.defId] ?? 0;
+      const need = Math.max(1, fragmentsNeeded(content, recipe.defId));
+      return h(
+        'div',
+        { class: 'list-item recipe locked-recipe' },
+        h('div', { class: 'row', style: 'margin:0' }, h('span', {}, '🔒 ', title), h('span', { class: 'muted' }, `📜 ${have}/${need}`)),
+        h('div', { class: 'progress' }, h('div', { style: `width:${Math.min(100, (have / need) * 100)}%;background:var(--${def.rarity})` })),
+        h('div', { class: 'muted small' }, `${stats} · blueprint fragments needed`),
+      );
+    }
+    const why = canCraft(state, content, room, recipe.defId);
+    const secs = craftSeconds(state, content, room, recipe.defId);
+    const costs = Object.entries(recipe.salvage).map(([id, n]) => {
+      const s = content.salvage[id];
+      const have = salvageCount(state, id);
+      return h('span', { class: `cost ${have >= n ? 'ok' : 'short'}`, title: s ? `${s.name} (${s.rarity})` : id }, h('span', { class: `rarity ${s?.rarity ?? 'common'}` }, RARITY_MARK[s?.rarity ?? 'common']), ` ${s?.name ?? id} ${have}/${n}`);
+    });
+    const scripOk = state.scrip >= recipe.scrip;
+    return h(
+      'div',
+      { class: 'list-item recipe' },
+      h('div', { class: 'row', style: 'margin:0' }, title, h('span', { class: 'muted' }, `⏱ ${duration(secs)}`)),
+      h('div', { class: 'muted small' }, stats),
+      h('div', { class: 'costs' }, ...costs, h('span', { class: `cost ${scripOk ? 'ok' : 'short'}` }, `💰 ${fmt(recipe.scrip)} scrip`)),
+      h(
+        'div',
+        { class: 'row', style: 'margin-bottom:0' },
+        h('span', { class: 'muted small' }, room.job ? '' : why ?? ''),
+        h('button', { class: 'primary close', disabled: !!why, title: why ?? `Craft ${def.name}`, onclick: () => this.craftCmd({ type: 'craft', roomId: room.id, defId: recipe.defId }) }, 'Craft'),
+      ),
+    );
+  }
+
+  private craftCmd(cmd: Parameters<Game['run']>[0], okText?: string): void {
+    const res = this.game.run(cmd);
+    if (!res.ok) this.toast(res.reason, 'bad');
+    else if (okText) this.toast(okText, 'good');
+    this.renderPanel(true);
   }
 
   // ---------------------------------------------------------------- events & feedback
@@ -1013,9 +1779,18 @@ export class UI {
     return r ? r.firstName : 'Someone';
   }
 
+  private explorerName(expeditionId: number): string {
+    const e = this.game.state.expeditions.find((x) => x.id === expeditionId);
+    const rid = e?.residentId ?? this.explorerOf.get(expeditionId);
+    return rid === undefined ? 'An explorer' : this.name(rid);
+  }
+
   private onEvents(events: GameEvent[]): void {
     const { content } = this.game;
+    // Remember who is on which expedition, so events after collection can still name them.
+    for (const e of this.game.state.expeditions) this.explorerOf.set(e.id, e.residentId);
     for (const ev of events) {
+      if (ev.type === 'expeditionStarted') this.explorerOf.set(ev.expeditionId, ev.residentId);
       switch (ev.type) {
         case 'achievementUnlocked': {
           const a = content.achievements.find((x) => x.id === ev.achievementId);
@@ -1063,6 +1838,75 @@ export class UI {
         case 'roomsMerged':
           if (ev.segments === 3) this.toast('Rooms merged into a triple!', 'good');
           break;
+        // M3: the Glarelands
+        case 'expeditionStarted':
+          this.toast(`🧭 ${this.name(ev.residentId)} sets out into the Glarelands.`, 'good');
+          break;
+        case 'expeditionJournal': {
+          const tone = ev.entry.kind === 'danger' || ev.entry.kind === 'status' ? 'bad' : ev.entry.kind === 'levelup' || ev.entry.kind === 'find' ? 'gold' : undefined;
+          this.toast(`🧭 ${this.explorerName(ev.expeditionId)}: ${ev.entry.text}`, tone);
+          break;
+        }
+        case 'expeditionReturning':
+          this.toast(
+            ev.reason === 'full'
+              ? `🎒 ${this.explorerName(ev.expeditionId)} can't carry any more and is heading home.`
+              : `${this.explorerName(ev.expeditionId)} is heading home.`,
+          );
+          break;
+        case 'expeditionReturned':
+          this.toast(`🏠 ${this.explorerName(ev.expeditionId)} is back from the Glarelands. Collect their haul in Explore.`, 'gold');
+          break;
+        case 'expeditionCollected': {
+          const bits = lootText(content, ev.loot);
+          this.toast(`${this.explorerName(ev.expeditionId)} unpacked${bits ? `: ${bits}` : '. Nothing much this time.'}`, 'good');
+          break;
+        }
+        case 'explorerDied':
+          this.toast(`☠ ${this.name(ev.residentId)} has fallen in the Glarelands. Revive them or recall the body from Explore.`, 'bad');
+          break;
+        // M3: crafting and salvage
+        case 'recipeUnlocked': {
+          const d = content.items[ev.defId];
+          this.toast(`📜 Recipe learned: ${d?.name ?? ev.defId}${ev.source === 'fragments' ? ' (blueprint complete)' : ''}`, 'gold');
+          break;
+        }
+        case 'fragmentFound': {
+          const d = content.items[ev.defId];
+          this.toast(`📜 Blueprint fragment: ${d?.name ?? ev.defId} (${ev.have}/${ev.need})`, 'good');
+          break;
+        }
+        case 'craftStarted': {
+          const d = content.items[ev.defId];
+          this.toast(`🔧 Crafting ${d?.name ?? 'an item'}.`);
+          break;
+        }
+        case 'craftFinished': {
+          const d = content.items[ev.defId];
+          const room = this.game.state.rooms.find((r) => r.id === ev.roomId);
+          const where = room ? roomDef(content, room).name : 'the workshop';
+          this.toast(`🔧 ${d?.name ?? 'An item'} is ready in the ${where}. Tap the room to collect.`, 'gold');
+          break;
+        }
+        case 'craftCollected': {
+          const d = content.items[ev.defId];
+          this.toast(`${d?.name ?? 'Item'} added to storage.`, 'good');
+          break;
+        }
+        case 'itemScrapped': {
+          const d = content.items[ev.defId];
+          const got = scrapText(content, ev.salvage);
+          this.toast(`Scrapped ${d?.name ?? 'an item'}${got ? `: ${got}` : ''}`);
+          break;
+        }
+        case 'reforged': {
+          const d = content.items[ev.result];
+          this.toast(
+            ev.upgraded ? `⚗ Reforge succeeded: ${d?.name ?? ev.result} (${d?.rarity ?? 'better'})!` : `⚗ Reforged into ${d?.name ?? ev.result}. No upgrade this time.`,
+            ev.upgraded ? 'gold' : undefined,
+          );
+          break;
+        }
       }
     }
   }
@@ -1098,14 +1942,28 @@ export class UI {
     const s = this.game.lastCatchUp;
     if (!s) return;
     this.game.lastCatchUp = null;
-    const extras = [s.births ? `${s.births} baby${s.births > 1 ? ' babies were' : ' was'} born.` : '', s.arrivals ? `${s.arrivals} new arrival${s.arrivals > 1 ? 's are' : ' is'} at the door.` : '']
+    const names = (ids: number[]) => ids.map((id) => this.name(id)).join(', ');
+    const home = s.explorersHome.length;
+    const fallen = s.explorersFallen.length;
+    const extras = [
+      s.births ? `${s.births} baby${s.births > 1 ? ' babies were' : ' was'} born.` : '',
+      s.arrivals ? `${s.arrivals} new arrival${s.arrivals > 1 ? 's are' : ' is'} at the door.` : '',
+    ]
       .filter(Boolean)
       .join(' ');
+    const out = this.game.state.expeditions.filter((e) => e.status === 'exploring' || e.status === 'returning').length;
+    const glare = [
+      home ? `🏠 ${names(s.explorersHome)} came home from the Glarelands with their haul.` : '',
+      fallen ? `☠ ${names(s.explorersFallen)} fell out in the Glarelands.` : '',
+      out && !home && !fallen ? `🧭 ${out} explorer${out === 1 ? ' is' : 's are'} still out in the Glarelands.` : '',
+    ].filter(Boolean);
     this.modal(
       'While you were away',
       h('p', {}, `${duration(s.seconds)} passed. ${s.readyRooms} room${s.readyRooms === 1 ? ' is' : 's are'} ready to collect. ${extras}`),
+      ...glare.map((t) => h('p', {}, t)),
       s.cappedAt ? h('p', { class: 'muted' }, `Offline progress is capped at ${duration(s.cappedAt)}.`) : '',
       h('p', { class: 'muted' }, 'Your homestead is safe while you are gone: no incidents, no shortage damage.'),
+      home || fallen ? h('div', { class: 'row', style: 'justify-content:flex-start' }, h('button', { onclick: () => (this.modalHost.replaceChildren(), this.openPanel('explore')) }, 'Open the Glarelands')) : '',
     );
   }
 }
@@ -1114,4 +1972,63 @@ function bonusText(bonus: Partial<Record<StatKey, number>>): string {
   return Object.entries(bonus)
     .map(([k, v]) => `+${v} ${STAT_NAME[k as StatKey]}`)
     .join(', ');
+}
+
+function capitalize(s: string): string {
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
+/** Expedition clock for journal lines: 0:05, 2:14, 26:03 (hours:minutes out). */
+function clock(t: number): string {
+  const m = Math.floor(Math.max(0, t) / 60);
+  return `${Math.floor(m / 60)}:${String(m % 60).padStart(2, '0')}`;
+}
+
+function dangerPips(danger: number): HTMLElement {
+  const n = Math.max(1, Math.min(5, Math.round(danger)));
+  return h('span', { class: 'danger-pips', title: `Danger ${n}/5` }, '☠'.repeat(n), h('span', { class: 'off' }, '☠'.repeat(5 - n)));
+}
+
+/** "2 Tin Cans, 1 Sticky Tape" from a salvage map. */
+function scrapText(content: Content, salvage: Record<string, number>): string {
+  return Object.entries(salvage)
+    .filter(([, n]) => n > 0)
+    .map(([id, n]) => `${Math.round(n * 10) / 10} ${content.salvage[id]?.name ?? id}`)
+    .join(', ');
+}
+
+function lootCounts(loot: ExpeditionLoot) {
+  return {
+    scrip: loot.scrip,
+    items: loot.items.length,
+    salvage: Object.values(loot.salvage).reduce((a, b) => a + b, 0),
+    fragments: Object.values(loot.fragments).reduce((a, b) => a + b, 0),
+    recipes: loot.recipes.length,
+  };
+}
+
+function lootChips(loot: ExpeditionLoot): HTMLElement[] {
+  const c = lootCounts(loot);
+  const chip = (icon: string, n: number, label: string) => h('span', { class: `loot-chip${n ? '' : ' none'}`, title: label }, `${icon} ${fmt(n)}`);
+  return [
+    chip('💰', c.scrip, 'Scrip'),
+    chip('⚔', c.items, 'Weapons and outfits'),
+    chip('⚙', c.salvage, 'Salvage'),
+    chip('📜', c.fragments, 'Blueprint fragments'),
+    c.recipes ? chip('📘', c.recipes, 'Whole recipes') : null,
+  ].filter((x): x is HTMLElement => !!x);
+}
+
+function lootText(content: Content, loot: ExpeditionLoot): string {
+  const c = lootCounts(loot);
+  const bits: string[] = [];
+  if (c.scrip) bits.push(`${fmt(c.scrip)} scrip`);
+  if (c.items) {
+    const best = loot.items.map((id) => content.items[id]).filter((d): d is ItemDef => !!d).sort((a, b) => RARITY_ORDER[a.rarity] - RARITY_ORDER[b.rarity])[0];
+    bits.push(`${c.items} item${c.items === 1 ? '' : 's'}${best && best.rarity !== 'common' ? ` incl. ${best.name}` : ''}`);
+  }
+  if (c.salvage) bits.push(`${c.salvage} salvage`);
+  if (c.fragments) bits.push(`${c.fragments} fragment${c.fragments === 1 ? '' : 's'}`);
+  if (c.recipes) bits.push(`${c.recipes} recipe${c.recipes === 1 ? '' : 's'}`);
+  return bits.join(', ');
 }

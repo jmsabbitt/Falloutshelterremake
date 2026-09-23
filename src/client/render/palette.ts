@@ -37,6 +37,8 @@ const LOOKS: Record<string, RoomLook> = {
   clinic: { wall: 0xf1e9dc, trim: 0xb86a66, accent: 0xef6f6c, floor: 0x9b8f84 },
   purgelab: { wall: 0xe6e0f0, trim: 0x7c6ca8, accent: 0xb18cf2, floor: 0x7f7890 },
   radio: { wall: 0xe2c9a6, trim: 0x8a5a44, accent: 0xd9645b, floor: 0x6d4f3b },
+  weaponshop: { wall: 0xd3c4a2, trim: 0x5f5446, accent: 0xe4572e, floor: 0x5b4a37 },
+  outfitshop: { wall: 0xecdcd2, trim: 0x8e3b5e, accent: 0xe08fb0, floor: 0x7a5a52 },
 };
 
 export function roomLook(type: string): RoomLook {
@@ -51,3 +53,10 @@ export function shade(color: number, amount: number): number {
   const f = (c: number) => Math.max(0, Math.min(255, Math.round(amount < 0 ? c * (1 + amount) : c + (255 - c) * amount)));
   return (f(r) << 16) | (f(g) << 8) | f(b);
 }
+
+/** Rarity colours shared by item icons, bubbles and salvage. */
+export const RARITY_COLORS: Record<string, number> = {
+  common: 0xb9b19c,
+  rare: 0xc9d1d3,
+  legendary: 0xf2c14e,
+};

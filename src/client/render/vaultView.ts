@@ -6,6 +6,7 @@
 import { Application, Container, Graphics, Text, type FederatedPointerEvent } from 'pixi.js';
 import {
   buildCost,
+  isAway,
   isChild,
   radioInterval,
   type Content,
@@ -20,9 +21,11 @@ import {
 } from '../../sim';
 import type { Game } from '../game';
 import {
+  type RoomLook,
   FRAME,
   GROUND,
   LAMP,
+  RARITY_COLORS,
   RESOURCE_COLORS,
   ROCK,
   ROCK_DARK,
@@ -47,7 +50,22 @@ export interface ViewCallbacks {
   onResidentDrop(residentId: number, room: Room | null): void;
   onResidentTap(resident: Resident): void;
   onBuildAt(floor: number, x: number): void;
+  /** Tapped one of the explorer figures on the surface. */
+  onExplorerTap(): void;
 }
+
+/** Explorer figures drawn on the surface while expeditions are out. */
+interface Walker {
+  root: Container;
+  body: Graphics;
+  look: string;
+}
+
+/** At most this many explorers are drawn on the surface at once. */
+const MAX_WALKERS = 5;
+/** How far right of the door explorers walk before fading into the Glarelands. */
+const WALK_RANGE = 560;
+const WALKER_SCALE = 0.8;
 
 interface ResidentSprite {
   root: Container;
@@ -83,10 +101,12 @@ export class VaultView {
   private overlay = new Graphics();
   private ghostLayer = new Container();
   private residentLayer = new Container();
+  private walkerLayer = new Container();
   private fxLayer = new Container();
 
   private builtLayout = -1;
   private sprites = new Map<number, ResidentSprite>();
+  private walkers = new Map<number, Walker>();
   private floats: FloatText[] = [];
   private time = 0;
 
@@ -110,7 +130,7 @@ export class VaultView {
     private game: Game,
     private cb: ViewCallbacks,
   ) {
-    this.world.addChild(this.bg, this.statics, this.overlay, this.ghostLayer, this.residentLayer, this.fxLayer);
+    this.world.addChild(this.bg, this.statics, this.overlay, this.ghostLayer, this.residentLayer, this.walkerLayer, this.fxLayer);
     app.stage.addChild(this.world);
     this.drawBackground();
     this.installInput();
@@ -297,6 +317,7 @@ export class VaultView {
     if (this.builtLayout !== this.game.layoutVersion) this.rebuildStatics();
     this.drawOverlay();
     this.updateResidents(dt);
+    this.updateWalkers();
     this.updateFloats(dt);
   }
 
@@ -329,6 +350,23 @@ export class VaultView {
         g.circle(cx, cy, 17).fill(0x14100d);
         g.circle(cx, cy, 14).fill(color);
         drawResourceGlyph(g, def.produces.resource, cx, cy);
+      }
+      // crafting progress, and a bubble with the item once it is done
+      if (room.job) {
+        const job = room.job;
+        const item = content.items[job.defId];
+        if (job.remaining > 0) {
+          const p = job.total > 0 ? Math.max(0, Math.min(1, 1 - job.remaining / job.total)) : 0;
+          g.rect(r.x + 6, r.y + r.h - 7, r.w - 12, 3).fill({ color: 0x000000, alpha: 0.35 });
+          g.rect(r.x + 6, r.y + r.h - 7, (r.w - 12) * p, 3).fill({ color: roomLook(room.type).accent, alpha: 0.95 });
+        } else {
+          const bob = Math.sin(this.time * 4 + room.id) * 3;
+          const cx = r.x + r.w / 2;
+          const cy = r.y + 30 + bob;
+          g.circle(cx, cy, 19).fill(0x14100d);
+          g.circle(cx, cy, 16).fill(RARITY_COLORS[item?.rarity ?? 'common'] ?? 0xf4ecd8);
+          drawItemGlyph(g, item?.kind ?? 'weapon', cx, cy);
+        }
       }
       const inc = burning.get(room.id);
       if (inc) this.drawIncident(g, inc, r);
@@ -420,6 +458,8 @@ export class VaultView {
     const alive = new Set<number>();
     const waitingList = state.residents.filter((r) => r.waiting);
     for (const res of state.residents) {
+      // Explorers are out in the Glarelands, not inside (see updateWalkers).
+      if (isAway(res)) continue;
       alive.add(res.id);
       let sp = this.sprites.get(res.id);
       if (!sp) {
@@ -468,6 +508,80 @@ export class VaultView {
         this.sprites.delete(id);
       }
     }
+  }
+
+  /**
+   * A visual cue for expeditions: small figures on the surface, walking off to
+   * the right while exploring, back toward the door while returning, and
+   * waiting by the door once home. Positions come from the clock, so there is
+   * no per-walker state to keep in sync.
+   */
+  private updateWalkers(): void {
+    const { state, content } = this.game;
+    const shown = state.expeditions.filter((e) => e.status !== 'dead').slice(0, MAX_WALKERS);
+    const door = state.rooms.find((r) => r.type === 'door');
+    const base = door ? this.roomRect(door).x + this.roomRect(door).w + 16 : 200;
+    const keep = new Set<number>();
+    shown.forEach((e, i) => {
+      const res = state.residents.find((r) => r.id === e.residentId);
+      if (!res) return;
+      keep.add(e.id);
+      let w = this.walkers.get(e.id);
+      if (!w) {
+        const root = new Container();
+        const body = new Graphics();
+        root.addChild(body);
+        this.walkerLayer.addChild(root);
+        w = { root, body, look: '' };
+        this.walkers.set(e.id, w);
+      }
+      const look = `${res.weapon ?? ''}|${res.outfit ?? ''}`;
+      if (w.look !== look) {
+        w.look = look;
+        w.body.clear();
+        drawBackpack(w.body);
+        drawResident(w.body, res, content, false);
+      }
+      const offset = (i * WALK_RANGE) / MAX_WALKERS;
+      const along = (this.time * 20 + offset + (hash(e.id) % 60)) % WALK_RANGE;
+      let x = base;
+      let facing = 1;
+      let alpha = 1;
+      let bobbing = true;
+      if (e.status === 'exploring') {
+        x = base + along;
+        alpha = Math.min(1, (WALK_RANGE - along) / 90, along / 30 + 0.2);
+      } else if (e.status === 'returning') {
+        x = base + WALK_RANGE - along;
+        facing = -1;
+        alpha = Math.min(1, along / 90, (WALK_RANGE - along) / 30 + 0.2);
+      } else {
+        // Home and waiting to be collected: stand by the door.
+        x = base + 4 + i * 26;
+        facing = -1;
+        bobbing = false;
+      }
+      const step = bobbing ? Math.abs(Math.sin(this.time * 8 + e.id)) * 2 : 0;
+      w.root.position.set(x, SURFACE_H - 40 - step);
+      w.root.scale.set(facing * WALKER_SCALE, WALKER_SCALE);
+      w.root.alpha = Math.max(0, alpha);
+      w.body.rotation = bobbing ? Math.sin(this.time * 8 + e.id) * 0.05 : 0;
+    });
+    for (const [id, w] of this.walkers) {
+      if (keep.has(id)) continue;
+      w.root.destroy({ children: true });
+      this.walkers.delete(id);
+    }
+  }
+
+  /** True if a world point is on one of the surface explorer figures. */
+  private walkerAt(wx: number, wy: number): boolean {
+    for (const w of this.walkers.values()) {
+      if (w.root.alpha < 0.2) continue;
+      const { x, y } = w.root.position;
+      if (Math.abs(wx - x) < 16 && wy < y + 6 && wy > y - RESIDENT_H * WALKER_SCALE - 6) return true;
+    }
+    return false;
   }
 
   private residentBounds(res: Resident, waitingIndex: number) {
@@ -570,7 +684,8 @@ export class VaultView {
         if (sp) sp.roomId = -999; // re-seat
       } else if (g.kind === 'pan' && !g.moved) {
         const room = this.roomAt(local.x, local.y);
-        if (room) this.cb.onRoomTap(room);
+        if (this.walkerAt(local.x, local.y)) this.cb.onExplorerTap();
+        else if (room) this.cb.onRoomTap(room);
         else this.cb.onEmptyTap();
       }
       this.gesture = { kind: 'none', startX: 0, startY: 0, t: 0, moved: false };
@@ -603,6 +718,13 @@ export class VaultView {
       } else if (ev.type === 'residentLeveled') {
         const sp = this.sprites.get(ev.residentId);
         if (sp) this.float(`LEVEL ${ev.level}`, sp.x, sp.root.y - RESIDENT_H - 10, 0xf4ecd8);
+      } else if (ev.type === 'craftCollected') {
+        const room = state.rooms.find((r) => r.id === ev.roomId);
+        const item = this.game.content.items[ev.defId];
+        if (room && item) {
+          const r = this.roomRect(room);
+          this.float(`+ ${item.name}`, r.x + r.w / 2, r.y + 40, RARITY_COLORS[item.rarity] ?? 0xf4ecd8);
+        }
       } else if (ev.type === 'rushSucceeded') {
         const room = state.rooms.find((r) => r.id === ev.roomId);
         if (room) {
@@ -789,6 +911,12 @@ function drawRoomBox(g: Graphics, type: string, w: number, h: number, level: num
       }
       break;
     }
+    case 'weaponshop':
+      drawWeaponshop(g, look, bx, by, bw, bh);
+      break;
+    case 'outfitshop':
+      drawOutfitshop(g, look, bx, by, bw, bh);
+      break;
     default: {
       for (let s = 0; s < segments * 2; s++) {
         const px = bx + 10 + s * ((bw - 20) / (segments * 2));
@@ -797,6 +925,198 @@ function drawRoomBox(g: Graphics, type: string, w: number, h: number, level: num
       }
     }
   }
+}
+
+const WOOD = 0x8a6a45;
+const WOOD_DARK = 0x5e452c;
+const STEEL = 0x6f7b7a;
+const STEEL_DARK = 0x2b2f33;
+
+/** Weapon Workshop: tool pegboard, workbench with a vice, and a gun rack. */
+function drawWeaponshop(g: Graphics, look: RoomLook, bx: number, by: number, bw: number, bh: number): void {
+  const floorY = by + bh;
+  // pegboard with hanging tools
+  const px = bx + 12;
+  const py = by + 12;
+  g.rect(px, py, 104, 44).fill(shade(look.wall, -0.28));
+  g.rect(px, py, 104, 3).fill(look.trim);
+  for (let r = 0; r < 4; r++) for (let c = 0; c < 10; c++) g.circle(px + 6 + c * 10.5, py + 8 + r * 10, 1).fill(shade(look.wall, -0.5));
+  // wrench
+  g.rect(px + 12, py + 10, 4, 26).fill(STEEL);
+  g.circle(px + 14, py + 10, 5).fill(STEEL);
+  g.circle(px + 14, py + 8, 2.5).fill(shade(look.wall, -0.28));
+  // hammer
+  g.rect(px + 32, py + 14, 4, 24).fill(WOOD);
+  g.rect(px + 26, py + 9, 16, 7).fill(STEEL_DARK);
+  // saw
+  g.poly([px + 50, py + 10, px + 76, py + 10, px + 76, py + 18, px + 50, py + 30]).fill(0xa9b3b2);
+  g.roundRect(px + 74, py + 8, 10, 14, 3).fill(look.accent);
+  // screwdrivers
+  for (let k = 0; k < 3; k++) {
+    g.rect(px + 88 + k * 5, py + 10, 3, 9).fill(k % 2 ? look.accent : 0xf2c14e);
+    g.rect(px + 89 + k * 5, py + 19, 1.5, 14).fill(STEEL);
+  }
+
+  // hanging lamp over the bench
+  const lx = bx + 104;
+  g.rect(lx - 1, by, 2, 18).fill(STEEL_DARK);
+  g.poly([lx - 12, by + 28, lx - 5, by + 18, lx + 5, by + 18, lx + 12, by + 28]).fill(look.trim);
+  g.ellipse(lx, by + 29, 9, 2.5).fill(LAMP);
+
+  // workbench
+  const benchX = bx + 20;
+  const benchW = 176;
+  const topY = by + bh * 0.6;
+  g.rect(benchX + 6, topY + 8, 8, floorY - topY - 8).fill(WOOD_DARK);
+  g.rect(benchX + benchW - 14, topY + 8, 8, floorY - topY - 8).fill(WOOD_DARK);
+  g.rect(benchX + 10, floorY - 14, benchW - 20, 5).fill(WOOD_DARK);
+  g.rect(benchX + 40, topY + 10, 60, 18).fill(shade(WOOD, -0.15));
+  g.rect(benchX + 66, topY + 17, 10, 3).fill(STEEL);
+  g.rect(benchX, topY, benchW, 10).fill(WOOD);
+  g.rect(benchX, topY, benchW, 3).fill(shade(WOOD, 0.2));
+  // a pistol being assembled on the bench
+  g.rect(benchX + 22, topY - 7, 30, 6).fill(STEEL_DARK);
+  g.poly([benchX + 22, topY - 1, benchX + 32, topY - 1, benchX + 28, topY - 0.5, benchX + 22, topY - 0.5]).fill(STEEL_DARK);
+  g.rect(benchX + 26, topY - 3, 8, 3).fill(WOOD);
+  for (let k = 0; k < 3; k++) g.circle(benchX + 64 + k * 6, topY - 2, 1.6).fill(0xc9a45a);
+  // bench vice
+  const vx = benchX + benchW - 44;
+  g.rect(vx, topY - 6, 30, 6).fill(STEEL_DARK);
+  g.rect(vx + 2, topY - 20, 10, 14).fill(look.accent);
+  g.rect(vx + 18, topY - 20, 10, 14).fill(look.accent);
+  g.rect(vx + 2, topY - 20, 26, 3).fill(shade(look.accent, -0.3));
+  g.rect(vx + 28, topY - 14, 14, 3).fill(STEEL);
+  g.rect(vx + 40, topY - 18, 3, 11).fill(STEEL);
+  g.rect(vx + 12, topY - 16, 6, 4).fill(0xc9a45a); // stock clamped in the jaws
+
+  // gun rack on the right
+  const rw = 112;
+  const rx = bx + bw - rw - 12;
+  const ry = by + 12;
+  const rh = bh - 18;
+  g.rect(rx, ry, rw, rh).fill(shade(WOOD, -0.35));
+  g.rect(rx + 4, ry + 4, rw - 8, rh - 8).fill(shade(look.wall, -0.4));
+  for (let k = 0; k < 5; k++) {
+    const gx = rx + 14 + k * 21;
+    const long = k % 2 === 0;
+    const top = ry + (long ? 8 : 18);
+    g.rect(gx, top, 4, rh - 34 - (top - ry - 8)).fill(STEEL_DARK);
+    g.rect(gx - 1, top + 16, 6, 12).fill(STEEL);
+    g.poly([gx - 3, ry + rh - 28, gx + 7, ry + rh - 28, gx + 9, ry + rh - 8, gx - 1, ry + rh - 8]).fill(k === 2 ? 0xa0522d : WOOD);
+    if (k === 1 || k === 3) g.rect(gx + 4, top + 8, 5, 4).fill(STEEL_DARK); // scope
+  }
+  g.rect(rx + 2, ry + 26, rw - 4, 4).fill(WOOD);
+  g.rect(rx + 2, ry + rh - 10, rw - 4, 6).fill(WOOD);
+  g.rect(rx + rw / 2 - 18, ry - 2, 36, 8).fill(look.accent);
+
+  // ammo crates on the floor between bench and rack
+  const cx = benchX + benchW + 14;
+  g.rect(cx, floorY - 20, 26, 20).fill(0x5d6b3a);
+  g.rect(cx, floorY - 20, 26, 3).fill(0x3e4a26);
+  g.rect(cx + 8, floorY - 13, 10, 5).fill(0xf2c14e);
+  g.rect(cx + 3, floorY - 34, 20, 14).fill(0x6b7a44);
+  g.rect(cx + 3, floorY - 34, 20, 3).fill(0x3e4a26);
+}
+
+/** Outfit Workshop: fabric rolls, a sewing machine table and dress forms. */
+function drawOutfitshop(g: Graphics, look: RoomLook, bx: number, by: number, bw: number, bh: number): void {
+  const floorY = by + bh;
+  const cloth = [0x3f6f9a, 0xd9645b, 0x8fc93a, 0xf2c14e, 0x8e3b5e, 0x4fb3a9, 0xe8e4d8, 0xb5562f];
+
+  // fabric shelf: rolls seen end-on
+  const sx = bx + 12;
+  const sy = by + 14;
+  g.rect(sx, sy, 78, bh - 14).fill(shade(WOOD, -0.3));
+  g.rect(sx + 3, sy + 3, 72, bh - 20).fill(shade(look.wall, -0.35));
+  for (let row = 0; row < 3; row++) {
+    const yy = sy + 6 + row * 28;
+    g.rect(sx + 2, yy + 22, 74, 4).fill(WOOD);
+    for (let c = 0; c < 3; c++) {
+      const col = cloth[(row * 3 + c) % cloth.length] ?? 0xffffff;
+      const cxr = sx + 15 + c * 24;
+      g.circle(cxr, yy + 11, 10).fill(col);
+      g.circle(cxr, yy + 11, 7).fill(shade(col, -0.15));
+      g.circle(cxr, yy + 11, 2.5).fill(0xe9d9b6);
+    }
+  }
+  // two tall rolls leaning against the shelf
+  g.poly([sx + 82, floorY, sx + 90, floorY, sx + 104, by + 22, sx + 96, by + 20]).fill(cloth[4] ?? 0);
+  g.poly([sx + 94, floorY, sx + 102, floorY, sx + 110, by + 34, sx + 102, by + 32]).fill(cloth[5] ?? 0);
+
+  // pattern sheets pinned to the wall
+  g.rect(bx + 132, by + 12, 34, 26).fill(0xf4ecd8);
+  g.poly([bx + 138, by + 18, bx + 160, by + 18, bx + 156, by + 32, bx + 142, by + 32]).stroke({ width: 1, color: 0x7fb7c9 });
+  g.rect(bx + 172, by + 16, 26, 20).fill(0xe9d9b6);
+  g.circle(bx + 185, by + 26, 6).stroke({ width: 1, color: look.trim });
+  g.circle(bx + 149, by + 13, 2).fill(look.accent);
+  g.circle(bx + 185, by + 17, 2).fill(look.accent);
+
+  // sewing table
+  const tx = bx + 124;
+  const tw = 104;
+  const topY = by + bh * 0.62;
+  g.rect(tx + 6, topY + 8, 6, floorY - topY - 8).fill(STEEL_DARK);
+  g.rect(tx + tw - 12, topY + 8, 6, floorY - topY - 8).fill(STEEL_DARK);
+  // treadle
+  g.rect(tx + 30, floorY - 8, 40, 5).fill(STEEL_DARK);
+  g.circle(tx + tw - 20, floorY - 18, 9).stroke({ width: 2, color: STEEL_DARK });
+  g.rect(tx, topY, tw, 8).fill(WOOD);
+  g.rect(tx, topY, tw, 2).fill(shade(WOOD, 0.2));
+  // sewing machine (classic arm shape)
+  const mx = tx + 22;
+  g.rect(mx, topY - 8, 60, 8).fill(STEEL_DARK);
+  g.rect(mx + 44, topY - 34, 14, 28).fill(STEEL_DARK);
+  g.roundRect(mx + 4, topY - 38, 54, 11, 4).fill(STEEL_DARK);
+  g.rect(mx + 4, topY - 30, 12, 18).fill(STEEL_DARK);
+  g.rect(mx + 9, topY - 12, 2, 5).fill(0xc9d1d3); // needle
+  g.rect(mx + 8, topY - 35, 46, 2).fill(0xf2c14e); // gold stripe
+  g.circle(mx + 58, topY - 22, 6).fill(0x5d6a68); // handwheel
+  g.rect(mx + 28, topY - 44, 4, 6).fill(look.accent); // spool
+  g.rect(mx - 12, topY - 3, 40, 3).fill(cloth[0] ?? 0); // fabric under the needle
+  // pincushion and scissors
+  g.circle(tx + tw - 10, topY - 4, 5).fill(look.accent);
+  g.circle(tx + tw - 22, topY - 2, 2).stroke({ width: 1, color: STEEL });
+  g.circle(tx + tw - 16, topY - 2, 2).stroke({ width: 1, color: STEEL });
+
+  // dress forms (mannequins) on stands
+  const form = (fx: number, color: number, dressed: boolean) => {
+    g.rect(fx - 1.5, by + bh * 0.62, 3, floorY - by - bh * 0.62 - 4).fill(STEEL_DARK);
+    g.poly([fx - 12, floorY, fx, floorY - 8, fx + 12, floorY]).fill(STEEL_DARK);
+    const top = by + 18;
+    g.rect(fx - 2, top - 6, 4, 6).fill(WOOD_DARK);
+    g.circle(fx, top - 7, 3).fill(WOOD_DARK);
+    // torso: shoulders, waist, hips
+    g.poly([fx - 15, top + 4, fx - 11, top, fx + 11, top, fx + 15, top + 4, fx + 9, top + 30, fx + 14, top + 48, fx - 14, top + 48, fx - 9, top + 30]).fill(dressed ? color : 0xe9d9b6);
+    if (dressed) {
+      g.rect(fx - 9, top + 27, 18, 4).fill(shade(color, -0.35)); // belt
+      g.poly([fx - 4, top, fx, top + 10, fx + 4, top]).fill(0xf4ecd8); // collar
+    } else {
+      g.rect(fx - 12, top + 20, 24, 1.5).fill(look.trim); // tape measure
+    }
+  };
+  form(bx + bw - 94, 0x3f6f9a, true);
+  form(bx + bw - 44, look.accent, false);
+  // an outfit on a hanger rail between them
+  g.rect(bx + bw - 76, by + 12, 22, 2).fill(STEEL);
+}
+
+function drawItemGlyph(g: Graphics, kind: 'weapon' | 'outfit', cx: number, cy: number): void {
+  const ink = 0x14100d;
+  if (kind === 'weapon') {
+    g.rect(cx - 9, cy - 5, 18, 5).fill(ink);
+    g.poly([cx - 9, cy, cx - 2, cy, cx - 4, cy + 9, cx - 9, cy + 9]).fill(ink);
+    g.rect(cx + 7, cy - 7, 2, 2).fill(ink);
+  } else {
+    g.poly([cx - 4, cy - 8, cx - 10, cy - 4, cx - 7, cy + 1, cx - 5, cy - 1, cx - 5, cy + 9, cx + 5, cy + 9, cx + 5, cy - 1, cx + 7, cy + 1, cx + 10, cy - 4, cx + 4, cy - 8, cx, cy - 5]).fill(ink);
+  }
+}
+
+/** Explorer's pack, drawn behind the figure (who faces right). */
+function drawBackpack(g: Graphics): void {
+  const top = -RESIDENT_H;
+  g.roundRect(-17, top + 13, 10, 18, 3).fill(0x6b5434);
+  g.rect(-17, top + 18, 10, 2).fill(0x3e2f1c);
+  g.roundRect(-15, top + 8, 7, 6, 2).fill(0xd9c9a3); // bedroll
 }
 
 function drawResourceGlyph(g: Graphics, resource: string, cx: number, cy: number): void {
