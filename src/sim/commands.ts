@@ -231,6 +231,8 @@ function dispatch(state: GameState, content: Content, cmd: Command): CommandResu
       res.hp = effectiveMaxHp(res);
       bump(state, 'revives');
       state.events.push({ type: 'residentRevived', residentId: res.id });
+      // Explorers revived in the field: the exploration system resumes the trip
+      // (and caps their taint) after the generic revive above.
       onResidentRevived(state, content, res.id);
       return { ok: true };
     }
@@ -239,6 +241,7 @@ function dispatch(state: GameState, content: Content, cmd: Command): CommandResu
       // Remove a fallen resident for good. Their gear goes to storage (or is sold if full).
       const res = findResident(state, cmd.residentId);
       if (!res || !res.dead) return fail('only the fallen can be laid to rest');
+      if (res.expedition !== null) return fail('recall their body from the Glarelands first');
       for (const slot of ['weapon', 'outfit'] as const) {
         const item = res[slot];
         if (item) grantItem(state, content, item);
@@ -252,6 +255,7 @@ function dispatch(state: GameState, content: Content, cmd: Command): CommandResu
     case 'heal': {
       const res = findResident(state, cmd.residentId);
       if (!res || res.dead) return fail('no such resident');
+      if (res.expedition !== null) return fail('they are out exploring');
       if (res.hp >= effectiveMaxHp(res) - 0.5) return fail('already at full health');
       if (state.resources.medpatch < 1) return fail('no Med-Patches: build a Clinic');
       state.resources.medpatch -= 1;
@@ -263,6 +267,7 @@ function dispatch(state: GameState, content: Content, cmd: Command): CommandResu
     case 'purge': {
       const res = findResident(state, cmd.residentId);
       if (!res || res.dead) return fail('no such resident');
+      if (res.expedition !== null) return fail('they are out exploring');
       if (res.taint <= 0) return fail('no Glare-sickness to purge');
       if (state.resources.purge < 1) return fail('no Purge: build a Purge Lab');
       state.resources.purge -= 1;
