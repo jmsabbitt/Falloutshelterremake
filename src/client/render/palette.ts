@@ -1,0 +1,52 @@
+// Placeholder art direction: atompunk cutaways. Warm cream walls, teal
+// machinery, amber lamps, over dark bedrock. Final art may replace these with
+// PixelLab or hand-made sprites; the renderer only needs a colour per room.
+
+export interface RoomLook {
+  wall: number;
+  trim: number;
+  accent: number;
+  floor: number;
+}
+
+export const ROCK = 0x2a1d15;
+export const ROCK_DARK = 0x1c130e;
+export const ROCK_SPECK = 0x3b2a1f;
+export const SKY_TOP = 0x3d6f86;
+export const SKY_BOTTOM = 0xe7b27a;
+export const GROUND = 0x8a6a45;
+export const FRAME = 0x14100d;
+export const LAMP = 0xffe3a3;
+
+export const RESOURCE_COLORS: Record<string, number> = {
+  power: 0xf2c14e,
+  food: 0x8fc93a,
+  water: 0x4fb3e9,
+  medpatch: 0xef6f6c,
+  purge: 0xb18cf2,
+};
+
+const LOOKS: Record<string, RoomLook> = {
+  door: { wall: 0x6d7a78, trim: 0x3d4746, accent: 0xf2a541, floor: 0x3b4443 },
+  elevator: { wall: 0x3a4a4c, trim: 0x263234, accent: 0xf2a541, floor: 0x2a3436 },
+  quarters: { wall: 0xe9d9b6, trim: 0xb08d5b, accent: 0xd9645b, floor: 0x8b6a47 },
+  generator: { wall: 0xd8c69a, trim: 0x8c7a4a, accent: 0xf2c14e, floor: 0x6c5a3a },
+  canteen: { wall: 0xe8d7a8, trim: 0x7aa05a, accent: 0x8fc93a, floor: 0x7a5c3c },
+  waterworks: { wall: 0xcfe0dc, trim: 0x4f8c95, accent: 0x4fb3e9, floor: 0x55696b },
+  storeroom: { wall: 0xcdbb95, trim: 0x7b6848, accent: 0xc08a4b, floor: 0x6a5538 },
+  clinic: { wall: 0xf1e9dc, trim: 0xb86a66, accent: 0xef6f6c, floor: 0x9b8f84 },
+  purgelab: { wall: 0xe6e0f0, trim: 0x7c6ca8, accent: 0xb18cf2, floor: 0x7f7890 },
+};
+
+export function roomLook(type: string): RoomLook {
+  return LOOKS[type] ?? { wall: 0xcccccc, trim: 0x777777, accent: 0xffffff, floor: 0x555555 };
+}
+
+/** Shade a colour: amount < 0 darkens, > 0 lightens. */
+export function shade(color: number, amount: number): number {
+  const r = (color >> 16) & 0xff;
+  const g = (color >> 8) & 0xff;
+  const b = color & 0xff;
+  const f = (c: number) => Math.max(0, Math.min(255, Math.round(amount < 0 ? c * (1 + amount) : c + (255 - c) * amount)));
+  return (f(r) << 16) | (f(g) << 8) | f(b);
+}
