@@ -3,7 +3,7 @@
 import { tableValue, type Content } from '../content';
 import { resourceCapacity } from '../economy';
 import { roomDef } from '../grid';
-import { effectiveMaxHp, livingResidents, topStats } from '../residents';
+import { effectiveMaxHp, effectiveStats, livingResidents, topStats } from '../residents';
 import type { GameState, Resident, Room } from '../types';
 
 export function powerDemandPerMin(state: GameState, content: Content): number {
@@ -108,7 +108,7 @@ export function isRightRoom(state: GameState, content: Content, r: Resident): bo
   const room = state.rooms.find((x) => x.id === r.roomId);
   if (!room) return false;
   const stat = roomDef(content, room).stat;
-  return stat !== null && topStats(r.stats).includes(stat);
+  return stat !== null && topStats(effectiveStats(content, r)).includes(stat);
 }
 
 export function happinessTarget(state: GameState, content: Content, r: Resident, shortage: boolean): number {

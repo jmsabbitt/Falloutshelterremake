@@ -5,9 +5,10 @@ import roomsJson from '../content/rooms.json';
 import balanceJson from '../content/balance.json';
 import namesJson from '../content/names.json';
 import achievementsJson from '../content/achievements.json';
-import type { ResourceKey, StatKey } from './types';
+import itemsJson from '../content/items.json';
+import type { Rarity, ResourceKey, StatKey, Stats } from './types';
 
-export type RoomCategory = 'door' | 'elevator' | 'living' | 'production' | 'storage';
+export type RoomCategory = 'door' | 'elevator' | 'living' | 'production' | 'storage' | 'radio';
 export type StorageKind = ResourceKey | 'population' | 'items';
 
 /** Tables indexed [level - 1][segments - 1]. */
@@ -31,7 +32,26 @@ export interface RoomDef {
   usesPower: boolean;
   produces?: { resource: ResourceKey; poolBase: number; output: LevelWidthTable };
   storage?: { resource: StorageKind; amount: LevelWidthTable };
+  /** Door only: HP that raiders must break through, per door level. */
+  doorHp?: number[];
 }
+
+export interface WeaponDef {
+  id: string;
+  name: string;
+  rarity: Rarity;
+  min: number;
+  max: number;
+}
+
+export interface OutfitDef {
+  id: string;
+  name: string;
+  rarity: Rarity;
+  bonus: Partial<Stats>;
+}
+
+export type ItemDef = ({ kind: 'weapon' } & WeaponDef) | ({ kind: 'outfit' } & OutfitDef);
 
 export interface AchievementDef {
   id: string;
@@ -52,6 +72,11 @@ export interface Content {
   balance: Balance;
   names: typeof namesJson;
   achievements: AchievementDef[];
+  weapons: Record<string, WeaponDef>;
+  outfits: Record<string, OutfitDef>;
+  /** Every item by id, with its kind. */
+  items: Record<string, ItemDef>;
+  sellValue: Record<Rarity, number>;
 }
 
 function validate(content: Content): Content {
@@ -70,12 +95,21 @@ function validate(content: Content): Content {
 
 export function loadContent(): Content {
   const roomList = roomsJson as RoomDef[];
+  const weapons = itemsJson.weapons as WeaponDef[];
+  const outfits = itemsJson.outfits as OutfitDef[];
+  const items: Record<string, ItemDef> = {};
+  for (const w of weapons) items[w.id] = { kind: 'weapon', ...w };
+  for (const o of outfits) items[o.id] = { kind: 'outfit', ...o };
   return validate({
     rooms: Object.fromEntries(roomList.map((r) => [r.id, r])),
     roomList,
     balance: balanceJson,
     names: namesJson,
     achievements: achievementsJson as AchievementDef[],
+    weapons: Object.fromEntries(weapons.map((w) => [w.id, w])),
+    outfits: Object.fromEntries(outfits.map((o) => [o.id, o])),
+    items,
+    sellValue: itemsJson.sellValue as Record<Rarity, number>,
   });
 }
 

@@ -3,7 +3,7 @@
 
 import type { GameState } from './types';
 
-export const SAVE_VERSION = 1;
+export const SAVE_VERSION = 2;
 
 interface SaveFile {
   format: 'homestead-save';
@@ -15,7 +15,50 @@ interface SaveFile {
 type Migration = (state: Record<string, unknown>) => Record<string, unknown>;
 
 /** migrations[n] upgrades a version-n save to version n+1. */
-const migrations: Record<number, Migration> = {};
+const migrations: Record<number, Migration> = {
+  // v1 (M1) -> v2 (M2): families, gear, items, crates, incident timers, radio.
+  1: (s) => {
+    const residents = (s['residents'] as Record<string, unknown>[]).map((r) => {
+      const id = r['id'] as number;
+      return {
+        ...r,
+        appearance: { skin: id % 6, hair: (id * 7) % 7 },
+        motherId: null,
+        fatherId: null,
+        adultAt: null,
+        pregnancy: null,
+        courtship: null,
+        weapon: null,
+        outfit: null,
+      };
+    });
+    const rooms = (s['rooms'] as Record<string, unknown>[]).map((r) => ({ ...r, timer: 0 }));
+    const incidents = (s['incidents'] as Record<string, unknown>[]).map((i) => ({
+      ...i,
+      visited: [i['roomId']],
+      emptyFor: 0,
+      roomTime: 0,
+      doorHp: 0,
+      stolen: 0,
+    }));
+    const time = (s['time'] as number) ?? 0;
+    return {
+      ...s,
+      residents,
+      rooms,
+      incidents,
+      items: [],
+      crates: { standard: 3, rare: 0, legendary: 0 },
+      crateTokens: 0,
+      pity: 0,
+      daily: { lastDay: -1, streak: 0 },
+      milestones: [],
+      incidentTimer: 0,
+      nextIncidentAt: 1800,
+      nextWandererAt: time + 600,
+    };
+  },
+};
 
 export function serialize(state: GameState, now = Date.now()): string {
   const { events: _events, ...rest } = state;

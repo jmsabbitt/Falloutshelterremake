@@ -20,7 +20,15 @@ export function resourceCapacity(state: GameState, content: Content, key: Resour
   return storageCapacity(state, content, key);
 }
 
+/**
+ * Residents inside the homestead, including fallen ones not yet revived or
+ * laid to rest (their bodies still take a bed, as in the original).
+ */
 export function population(state: GameState): number {
+  return state.residents.filter((r) => !r.waiting).length;
+}
+
+export function livingPopulation(state: GameState): number {
   return livingResidents(state).length;
 }
 
@@ -51,7 +59,7 @@ export function isUnlocked(state: GameState, def: RoomDef): boolean {
 
 /** Record newly unlocked room types; call after population changes. */
 export function refreshUnlocks(state: GameState, content: Content): void {
-  const pop = population(state);
+  const pop = livingPopulation(state);
   if (pop > state.peakPopulation) state.peakPopulation = pop;
   if ((state.stats['peakPopulation'] ?? 0) < state.peakPopulation) state.stats['peakPopulation'] = state.peakPopulation;
   for (const def of content.roomList) {

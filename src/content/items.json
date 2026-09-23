@@ -1,0 +1,43 @@
+{
+  "weapons": [
+    { "id": "rusty_revolver", "name": "Rusty Revolver", "rarity": "common", "min": 1, "max": 2 },
+    { "id": "wrench", "name": "Heavy Wrench", "rarity": "common", "min": 1, "max": 3 },
+    { "id": "service_pistol", "name": "Service Pistol", "rarity": "common", "min": 2, "max": 3 },
+    { "id": "nail_driver", "name": "Nail Driver", "rarity": "common", "min": 2, "max": 4 },
+    { "id": "flare_gun", "name": "Flare Gun", "rarity": "common", "min": 2, "max": 5 },
+    { "id": "scrap_carbine", "name": "Scrap Carbine", "rarity": "common", "min": 3, "max": 5 },
+    { "id": "rivet_rifle", "name": "Rivet Rifle", "rarity": "rare", "min": 6, "max": 9 },
+    { "id": "scattergun", "name": "Scattergun", "rarity": "rare", "min": 7, "max": 10 },
+    { "id": "arc_pistol", "name": "Arc Pistol", "rarity": "rare", "min": 8, "max": 11 },
+    { "id": "longrifle", "name": "Frontier Longrifle", "rarity": "rare", "min": 9, "max": 12 },
+    { "id": "coilgun", "name": "Coilgun", "rarity": "rare", "min": 10, "max": 13 },
+    { "id": "sunbeam_rifle", "name": "Sunbeam Rifle", "rarity": "legendary", "min": 15, "max": 19 },
+    { "id": "thunderclap", "name": "Thunderclap", "rarity": "legendary", "min": 16, "max": 20 },
+    { "id": "peacemaker", "name": "Halcyon Peacemaker", "rarity": "legendary", "min": 18, "max": 22 },
+    { "id": "glare_lance", "name": "Glare Lance", "rarity": "legendary", "min": 20, "max": 25 }
+  ],
+  "outfits": [
+    { "id": "work_overalls", "name": "Work Overalls", "rarity": "common", "bonus": { "brawn": 3 } },
+    { "id": "lookout_jacket", "name": "Lookout Jacket", "rarity": "common", "bonus": { "sight": 3 } },
+    { "id": "miners_gear", "name": "Miner's Gear", "rarity": "common", "bonus": { "grit": 3 } },
+    { "id": "evening_wear", "name": "Evening Wear", "rarity": "common", "bonus": { "charm": 3 } },
+    { "id": "lab_smock", "name": "Lab Smock", "rarity": "common", "bonus": { "wits": 3 } },
+    { "id": "mechanic_jumpsuit", "name": "Mechanic Jumpsuit", "rarity": "common", "bonus": { "knack": 3 } },
+    { "id": "lucky_suspenders", "name": "Lucky Suspenders", "rarity": "common", "bonus": { "fortune": 3 } },
+    { "id": "foreman_overalls", "name": "Foreman Overalls", "rarity": "rare", "bonus": { "brawn": 5 } },
+    { "id": "scout_jacket", "name": "Scout Jacket", "rarity": "rare", "bonus": { "sight": 5 } },
+    { "id": "tunneler_gear", "name": "Tunneler Gear", "rarity": "rare", "bonus": { "grit": 5 } },
+    { "id": "dinner_jacket", "name": "Dinner Jacket", "rarity": "rare", "bonus": { "charm": 5 } },
+    { "id": "research_smock", "name": "Research Smock", "rarity": "rare", "bonus": { "wits": 5 } },
+    { "id": "racing_jumpsuit", "name": "Racing Jumpsuit", "rarity": "rare", "bonus": { "knack": 5 } },
+    { "id": "gamblers_vest", "name": "Gambler's Vest", "rarity": "rare", "bonus": { "fortune": 5 } },
+    { "id": "titan_harness", "name": "Titan Harness", "rarity": "legendary", "bonus": { "brawn": 7 } },
+    { "id": "hawkeye_duster", "name": "Hawkeye Duster", "rarity": "legendary", "bonus": { "sight": 7 } },
+    { "id": "bedrock_armor", "name": "Bedrock Armor", "rarity": "legendary", "bonus": { "grit": 7 } },
+    { "id": "silver_tongue_suit", "name": "Silver-Tongue Suit", "rarity": "legendary", "bonus": { "charm": 7 } },
+    { "id": "professors_tweed", "name": "Professor's Tweed", "rarity": "legendary", "bonus": { "wits": 7 } },
+    { "id": "quicksilver_suit", "name": "Quicksilver Suit", "rarity": "legendary", "bonus": { "knack": 7 } },
+    { "id": "four_leaf_tux", "name": "Four-Leaf Tux", "rarity": "legendary", "bonus": { "fortune": 7 } }
+  ],
+  "sellValue": { "common": 10, "rare": 100, "legendary": 500 }
+}

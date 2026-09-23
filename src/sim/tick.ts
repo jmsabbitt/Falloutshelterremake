@@ -1,13 +1,16 @@
 // The simulation clock. `advance` is used while the game is open; `catchUp`
 // fast-forwards over time spent away, under the "safe offline" rules:
-//   - timers and production continue (each room still stops at one batch)
+//   - timers continue: production (each room still stops at one batch),
+//     pregnancies, children growing up, radio and wanderer arrivals
 //   - consumption only runs for the first few minutes of an absence
-//   - no incidents progress and no shortage damage is applied
+//   - no incidents start or progress, no courtship, no shortage damage
 
 import type { Content } from './content';
 import { refreshUnlocks } from './economy';
-import { checkAchievements } from './systems/achievements';
-import { tickIncidents } from './systems/incidents';
+import { tickArrivals } from './systems/arrivals';
+import { settle } from './systems/crates';
+import { tickCourtship, tickFamily } from './systems/family';
+import { tickIncidents, tickIncidentTimer } from './systems/incidents';
 import { tickNeeds, updatePower } from './systems/needs';
 import { tickProduction } from './systems/production';
 import { tickRushStrain } from './systems/rush';
@@ -21,12 +24,21 @@ interface StepOptions {
 }
 
 function step(state: GameState, content: Content, dt: number, opts: StepOptions): void {
+  const from = state.events.length;
   updatePower(state, content);
   tickProduction(state, content, dt);
   tickNeeds(state, content, dt, { consume: opts.consume, harm: !opts.offline });
-  if (!opts.offline) tickIncidents(state, content, dt);
+  if (!opts.offline) {
+    tickIncidents(state, content, dt);
+    tickIncidentTimer(state, content, dt);
+    tickCourtship(state, content, dt);
+  }
   tickRushStrain(state, content, dt);
   state.time += dt;
+  tickFamily(state, content);
+  tickArrivals(state, content, dt);
+  refreshUnlocks(state, content);
+  settle(state, content, from);
 }
 
 /** Advance the live game by `seconds` of play. */
@@ -37,14 +49,14 @@ export function advance(state: GameState, content: Content, seconds: number): vo
     step(state, content, dt, { offline: false, consume: true });
     remaining -= dt;
   }
-  refreshUnlocks(state, content);
-  checkAchievements(state, content);
 }
 
 export interface CatchUpSummary {
   seconds: number;
   cappedAt: number | null;
   readyRooms: number;
+  births: number;
+  arrivals: number;
 }
 
 /** Fast-forward from state.lastRealTime to `nowMs`. */
@@ -55,6 +67,8 @@ export function catchUp(state: GameState, content: Content, nowMs: number): Catc
   const seconds = Math.min(raw, maxSeconds);
   const consumeWindow = off.consumptionMinutes * 60;
   state.offlineConsumed = 0;
+  const births0 = state.stats['births'] ?? 0;
+  const arrivals0 = (state.stats['arrivals.radio'] ?? 0) + (state.stats['arrivals.wanderer'] ?? 0);
 
   let elapsed = 0;
   while (elapsed < seconds - 1e-9) {
@@ -68,12 +82,12 @@ export function catchUp(state: GameState, content: Content, nowMs: number): Catc
     elapsed += dt;
   }
   state.lastRealTime = nowMs;
-  refreshUnlocks(state, content);
-  checkAchievements(state, content);
   return {
     seconds,
     cappedAt: raw > maxSeconds ? maxSeconds : null,
     readyRooms: state.rooms.filter((r) => r.ready).length,
+    births: (state.stats['births'] ?? 0) - births0,
+    arrivals: (state.stats['arrivals.radio'] ?? 0) + (state.stats['arrivals.wanderer'] ?? 0) - arrivals0,
   };
 }
 

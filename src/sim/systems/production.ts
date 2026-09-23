@@ -6,7 +6,7 @@
 import { tableValue, type Content } from '../content';
 import { addScrip, resourceCapacity } from '../economy';
 import { roomDef } from '../grid';
-import { bump, grantXp, residentsInRoom } from '../residents';
+import { bump, effectiveStat, grantXp, workersInRoom } from '../residents';
 import { chance, nextFloat } from '../rng';
 import type { GameState, Room } from '../types';
 
@@ -24,7 +24,7 @@ export function roomStatTotal(state: GameState, content: Content, room: Room): n
   const def = roomDef(content, room);
   if (!def.stat) return 0;
   const stat = def.stat;
-  return residentsInRoom(state, room.id).reduce((s, r) => s + r.stats[stat], 0);
+  return workersInRoom(state, room.id).reduce((s, r) => s + effectiveStat(content, r, stat), 0);
 }
 
 export function poolSize(content: Content, room: Room): number {
@@ -61,10 +61,10 @@ export function tickProduction(state: GameState, content: Content, dt: number): 
 
 /** Bonus scrip roll on collection (research 01 §4.2). Returns scrip awarded. */
 export function rollBonusScrip(state: GameState, content: Content, room: Room): number {
-  const crew = residentsInRoom(state, room.id);
+  const crew = workersInRoom(state, room.id);
   if (crew.length === 0) return 0;
   const bs = content.balance.bonusScrip;
-  const avgFortune = crew.reduce((s, r) => s + r.stats.fortune, 0) / crew.length;
+  const avgFortune = crew.reduce((s, r) => s + effectiveStat(content, r, 'fortune'), 0) / crew.length;
   if (!chance(state.rng, Math.min(bs.maxChance, bs.chancePerFortune * avgFortune))) return 0;
   for (const tier of bs.tiers) {
     if (nextFloat(state.rng) < tier.chance) {
@@ -93,8 +93,8 @@ export function collectRoom(state: GameState, content: Content, room: Room): num
     bump(state, 'bonusScripTotal', bonusScrip);
   }
 
-  const xp = content.balance.resident.xpPerCollectPerSegment * room.segments * room.level;
-  for (const r of residentsInRoom(state, room.id)) grantXp(state, content, r, xp);
+  const xp = content.balance.resident.xpPerCollectPerSegment * room.segments * (1 + 0.25 * (room.level - 1));
+  for (const r of workersInRoom(state, room.id)) grantXp(state, content, r, xp);
 
   bump(state, 'collections');
   bump(state, `produced.${key}`, amount);

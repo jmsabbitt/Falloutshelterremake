@@ -89,7 +89,7 @@ export function canPlace(state: GameState, content: Content, type: string, floor
 
   // Must attach to the connected network.
   const connected = connectedRoomIds(state, content);
-  const probe: Room = { id: -1, type, floor, x, segments: 1, level: 1, pool: 0, ready: false, powered: true };
+  const probe: Room = { id: -1, type, floor, x, segments: 1, level: 1, pool: 0, ready: false, powered: true, timer: 0 };
   const attaches = neighbours(state, content, probe).some((n) => connected.has(n.id));
   if (!attaches) {
     return {

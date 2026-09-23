@@ -83,7 +83,7 @@ These match the original closely, because they work. Numbers start from the rese
 - **Traits** (1–3 per resident, some inherited). Examples: *Night Owl* (+production on the night shift), *Claustrophobic* (unhappy deep down, happy topside), *Green Thumb*, *Hothead* (fights better, argues more), *Hoarder*. Traits make every resident feel like an individual, not a row of stats.
 - **Professions and mastery.** Time spent in one room type builds mastery (Apprentice → Journeyman → Master), which gives small boosts and unlocks abilities. This gives a reason to keep people in their roles.
 - **Relationships.** Friends, rivals, partners and family trees. Friends in the same room are happier; rivals cause friction events.
-- **Ageing and heirs** (optional, see open questions). Residents grow old over many real days, retire as "Elders" who mentor others, and pass heirlooms to their children.
+- **Children and heirs.** Residents born in the homestead start as children and grow into adults. There is no ageing beyond that and no death from old age (decided 2026-09-23; may be revisited). Heirlooms can still pass down family lines.
 - **Legendary residents** are original named characters, each with a personal questline.
 
 ### 4.3 Levels
@@ -423,9 +423,9 @@ This is a sandbox and scenario mode for testing and "what if" play:
 | 2026-09-23 | **Genre: atompunk** (placeholder names kept for now) |
 | 2026-09-23 | **Art: 2.5D.** Rooms are layered pseudo-3D cross-sections with depth and parallax. Residents are sprite sheets. Procedural placeholder art at first; final assets may come from PixelLab |
 | 2026-09-23 | Wishlist adopted: rare-item paths, Platinum-style achievements, easier crates, Custom Game (post-launch) |
+| 2026-09-23 | **No ageing or death from old age.** Residents are born as children and grow into adults; that is the only life stage change. Revisit later |
 
 ## 17. Open questions
 
 1. **Name and identity.** Keep the placeholders (Homestead, HALCY, the Glare, Scrip) or brainstorm?
-2. **Ageing and generations.** Should residents age, retire and die of old age? The default for now is **off**, with an optional rule planned for later.
-3. **Real-time vs. idle balance.** Should the game stay a check-in game (5–10 minute sessions), or also support long active sessions?
+2. **Real-time vs. idle balance.** Should the game stay a check-in game (5–10 minute sessions), or also support long active sessions?

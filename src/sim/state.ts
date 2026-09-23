@@ -2,6 +2,8 @@ import type { Content } from './content';
 import { refreshUnlocks } from './economy';
 import { createResident } from './residents';
 import { nextInt, seedRng } from './rng';
+import { scheduleWanderer } from './systems/arrivals';
+import { scheduleIncident } from './systems/incidents';
 import type { GameState, Room, StatKey } from './types';
 
 export interface NewGameOptions {
@@ -24,6 +26,15 @@ export function newGame(content: Content, opts: NewGameOptions = {}): GameState 
     rooms: [],
     residents: [],
     incidents: [],
+    items: [],
+    crates: { ...start.crates },
+    crateTokens: 0,
+    pity: 0,
+    daily: { lastDay: -1, streak: 0 },
+    milestones: [],
+    incidentTimer: 0,
+    nextIncidentAt: 0,
+    nextWandererAt: 0,
     rushStrain: 0,
     peakPopulation: 0,
     unlockedRooms: [],
@@ -35,7 +46,7 @@ export function newGame(content: Content, opts: NewGameOptions = {}): GameState 
   state.homesteadNumber = opts.homesteadNumber ?? nextInt(state.rng, 100, 999);
 
   const place = (type: string, floor: number, x: number): Room => {
-    const room: Room = { id: state.nextId++, type, floor, x, segments: 1, level: 1, pool: 0, ready: false, powered: true };
+    const room: Room = { id: state.nextId++, type, floor, x, segments: 1, level: 1, pool: 0, ready: false, powered: true, timer: 0 };
     state.rooms.push(room);
     return room;
   };
@@ -61,6 +72,8 @@ export function newGame(content: Content, opts: NewGameOptions = {}): GameState 
     state.residents.push(res);
   }
 
+  scheduleIncident(state, content);
+  scheduleWanderer(state, content);
   refreshUnlocks(state, content);
   state.events = [];
   return state;

@@ -1,23 +1,51 @@
 {
-  "grid": { "floors": 25, "cellsPerFloor": 26, "cellsPerSegment": 3 },
-  "upgradeWidthMultiplier": [1, 1.5, 2],
+  "grid": {
+    "floors": 25,
+    "cellsPerFloor": 26,
+    "cellsPerSegment": 3
+  },
+  "upgradeWidthMultiplier": [
+    1,
+    1.5,
+    2
+  ],
   "maxPopulation": 200,
   "maxScrip": 999999,
-  "baseStorage": { "power": 0, "food": 0, "water": 0, "medpatch": 5, "purge": 5, "items": 10 },
-
+  "baseStorage": {
+    "power": 0,
+    "food": 0,
+    "water": 0,
+    "medpatch": 5,
+    "purge": 5,
+    "items": 10
+  },
   "consumption": {
     "foodPerResidentPerMin": 0.3,
     "waterPerResidentPerMin": 0.3,
-    "powerPerRoomPerMin": [[0.52, 1.09, 1.71], [0.62, 1.30, 2.05], [1.14, 2.39, 3.76]],
+    "powerPerRoomPerMin": [
+      [
+        0.52,
+        1.09,
+        1.71
+      ],
+      [
+        0.62,
+        1.3,
+        2.05
+      ],
+      [
+        1.14,
+        2.39,
+        3.76
+      ]
+    ],
     "shortageThresholdMinutes": 13.5
   },
-
   "shortage": {
     "foodHpLossPerMin": 1,
     "waterTaintPerMin": 0.5,
     "happinessPenalty": 20
   },
-
   "happiness": {
     "base": 50,
     "rightRoomBonus": 25,
@@ -25,7 +53,6 @@
     "productionBonusDivisor": 1000,
     "injuredPenalty": 15
   },
-
   "rush": {
     "baseFail": 40,
     "statFactor": 1.5,
@@ -36,18 +63,32 @@
     "successHappiness": 5,
     "failHappiness": -5
   },
-
   "bonusScrip": {
     "chancePerFortune": 0.05,
     "maxChance": 0.5,
     "tiers": [
-      { "chance": 0.01, "base": 200, "mult": 6 },
-      { "chance": 0.05, "base": 100, "mult": 4 },
-      { "chance": 0.20, "base": 20, "mult": 3 },
-      { "chance": 1.00, "base": 5, "mult": 1 }
+      {
+        "chance": 0.01,
+        "base": 200,
+        "mult": 6
+      },
+      {
+        "chance": 0.05,
+        "base": 100,
+        "mult": 4
+      },
+      {
+        "chance": 0.2,
+        "base": 20,
+        "mult": 3
+      },
+      {
+        "chance": 1,
+        "base": 5,
+        "mult": 1
+      }
     ]
   },
-
   "resident": {
     "maxLevel": 50,
     "baseHp": 105,
@@ -55,34 +96,321 @@
     "hpPerLevelPerGrit": 0.5,
     "xpCurveBase": 100,
     "xpCurveExponent": 1.6,
-    "xpPerCollectPerSegment": 12,
+    "xpPerCollectPerSegment": 4,
     "regenPerMin": 1,
     "commonStatTotal": 12
   },
-
-  "revive": { "base": 100, "perLevel": 20, "max": 1000 },
-
-  "fire": {
-    "hpPerSegment": 30,
-    "hpPerRoomLevel": 0.5,
-    "hpPerAvgLevel": 0.08,
-    "dpsPerSegment": 1.2,
-    "damagePerResidentPerSec": 1,
-    "xpOnResolvePerResident": 25
+  "revive": {
+    "base": 100,
+    "perLevel": 20,
+    "max": 1000
   },
-
   "offline": {
     "maxCatchUpHours": 72,
     "consumptionMinutes": 5,
     "stepSeconds": 5
   },
-
   "start": {
     "scrip": 1000,
-    "resources": { "power": 50, "food": 50, "water": 50, "medpatch": 2, "purge": 1 },
+    "resources": {
+      "power": 50,
+      "food": 50,
+      "water": 50,
+      "medpatch": 2,
+      "purge": 1
+    },
     "waitingResidents": 6,
-    "specialties": ["brawn", "knack", "sight", "brawn", "knack", "sight"],
+    "specialties": [
+      "brawn",
+      "knack",
+      "sight",
+      "brawn",
+      "knack",
+      "sight"
+    ],
     "specialtyMin": 4,
-    "specialtyMax": 6
+    "specialtyMax": 6,
+    "crates": {
+      "standard": 3,
+      "rare": 0,
+      "legendary": 0
+    }
+  },
+  "incidents": {
+    "timer": {
+      "minSeconds": 900,
+      "maxSeconds": 2700
+    },
+    "spreadDelaySeconds": 12,
+    "hpPerAvgLevel": 0.08,
+    "xpOnResolvePerResident": 25,
+    "types": {
+      "fire": {
+        "name": "Fire",
+        "natural": 2,
+        "rush": 1,
+        "hpPerSegment": 30,
+        "hpPerRoomLevel": 0.5,
+        "dpsPerSegment": 0.8,
+        "fixedDamage": 1,
+        "spreads": true
+      },
+      "skitters": {
+        "name": "Skitter swarm",
+        "natural": 9,
+        "rush": 8,
+        "hpPerSegment": 35,
+        "hpPerRoomLevel": 0.5,
+        "dpsPerSegment": 1,
+        "spreads": true
+      },
+      "burrowers": {
+        "name": "Burrowers",
+        "natural": 31,
+        "rush": 30,
+        "hpPerSegment": 70,
+        "hpPerRoomLevel": 0.6,
+        "dpsPerSegment": 2.2,
+        "spreads": true,
+        "needsDirt": true,
+        "powerDrainPerSec": 0.5
+      },
+      "rustmen": {
+        "name": "Rustmen raiders",
+        "natural": 14,
+        "rush": null,
+        "hp": 90,
+        "hpPerAvgLevel": 0.12,
+        "dps": 3,
+        "external": true,
+        "roomSeconds": 20,
+        "stealScripPerSec": 2,
+        "lootPerAvgLevel": 15,
+        "lootBase": 60
+      }
+    }
+  },
+  "family": {
+    "courtshipBaseSeconds": 150,
+    "courtshipCharmDivisor": 6,
+    "pregnancySeconds": 10800,
+    "childhoodSeconds": 10800,
+    "childCommonStatTotal": 12,
+    "childPrimaryStat": 3
+  },
+  "arrivals": {
+    "wandererUntilPopulation": 20,
+    "wandererMinSeconds": 420,
+    "wandererMaxSeconds": 900,
+    "maxWaiting": 10,
+    "radioBaseSeconds": 1800,
+    "radioMaxReduction": 0.6,
+    "radioCharmForMax": 20,
+    "radioChance": [
+      [
+        0.08,
+        0.18,
+        0.3
+      ],
+      [
+        0.1,
+        0.23,
+        0.33
+      ],
+      [
+        0.13,
+        0.28,
+        0.38
+      ]
+    ]
+  },
+  "medical": {
+    "medpatchHeal": 0.5,
+    "purgeRemove": 0.5
+  },
+  "crates": {
+    "tokensPerCrate": 10,
+    "pityThreshold": 10,
+    "tokenChance": {
+      "collect": 0.015
+    },
+    "tokens": {
+      "rushSuccess": 1,
+      "incidentResolved": 1,
+      "birth": 2,
+      "levelUp": 0,
+      "arrival": 1
+    },
+    "levelCrateEvery": 10,
+    "milestones": {
+      "10": "standard",
+      "15": "standard",
+      "20": "standard",
+      "25": "rare",
+      "30": "standard",
+      "35": "standard",
+      "40": "rare",
+      "50": "rare",
+      "60": "standard",
+      "75": "rare",
+      "100": "legendary",
+      "150": "legendary",
+      "200": "legendary"
+    },
+    "daily": {
+      "normal": "standard",
+      "seventh": "rare"
+    },
+    "achievementReward": {
+      "bronze": null,
+      "silver": "standard",
+      "gold": "rare"
+    },
+    "scripCard": [
+      {
+        "w": 80,
+        "amount": 100
+      },
+      {
+        "w": 18,
+        "amount": 250
+      },
+      {
+        "w": 2,
+        "amount": 1000
+      }
+    ],
+    "itemCard": [
+      {
+        "w": 40,
+        "kind": "weapon",
+        "rarity": "common"
+      },
+      {
+        "w": 40,
+        "kind": "outfit",
+        "rarity": "common"
+      },
+      {
+        "w": 7,
+        "kind": "weapon",
+        "rarity": "rare"
+      },
+      {
+        "w": 7,
+        "kind": "outfit",
+        "rarity": "rare"
+      },
+      {
+        "w": 3,
+        "kind": "weapon",
+        "rarity": "legendary"
+      },
+      {
+        "w": 3,
+        "kind": "outfit",
+        "rarity": "legendary"
+      }
+    ],
+    "resourceCard": [
+      {
+        "w": 20,
+        "resource": "power",
+        "amount": 50
+      },
+      {
+        "w": 20,
+        "resource": "food",
+        "amount": 50
+      },
+      {
+        "w": 20,
+        "resource": "water",
+        "amount": 50
+      },
+      {
+        "w": 15,
+        "resource": "medpatch",
+        "amount": 2
+      },
+      {
+        "w": 15,
+        "resource": "purge",
+        "amount": 2
+      },
+      {
+        "w": 10,
+        "tokens": 3
+      }
+    ],
+    "suppliesCard": [
+      {
+        "w": 35,
+        "resource": "medpatch",
+        "amount": 3
+      },
+      {
+        "w": 35,
+        "resource": "purge",
+        "amount": 3
+      },
+      {
+        "w": 30,
+        "tokens": 5
+      }
+    ],
+    "rareCard": [
+      {
+        "w": 30,
+        "scrip": 500
+      },
+      {
+        "w": 22,
+        "kind": "resident",
+        "rarity": "rare"
+      },
+      {
+        "w": 4,
+        "kind": "resident",
+        "rarity": "legendary"
+      },
+      {
+        "w": 14,
+        "kind": "weapon",
+        "rarity": "rare"
+      },
+      {
+        "w": 14,
+        "kind": "outfit",
+        "rarity": "rare"
+      },
+      {
+        "w": 8,
+        "kind": "weapon",
+        "rarity": "legendary"
+      },
+      {
+        "w": 8,
+        "kind": "outfit",
+        "rarity": "legendary"
+      }
+    ],
+    "legendaryCard": [
+      {
+        "w": 20,
+        "kind": "resident",
+        "rarity": "legendary"
+      },
+      {
+        "w": 40,
+        "kind": "weapon",
+        "rarity": "legendary"
+      },
+      {
+        "w": 40,
+        "kind": "outfit",
+        "rarity": "legendary"
+      }
+    ]
   }
 }

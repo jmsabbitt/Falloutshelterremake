@@ -1,39 +1,195 @@
-// Headless balance run: `npm run sim -- [hours] [seed]`
-// Plays a simple "sensible player" policy and prints resource curves.
+// Headless balance run with a simple "sensible player" bot.
+//   npm run sim -- [hours] [seed] [checkInMinutes]
+// Prints a timeline of population, resources, incidents and crates, so pacing
+// targets from the GDD can be checked without playing by hand.
 
-import { advance, applyCommand, cycleSeconds, loadContent, newGame, powerDemandPerMin, foodDemandPerMin, type GameState, type StatKey } from '../src/sim';
+import {
+  advance,
+  applyCommand,
+  buildCost,
+  canPlace,
+  combatDamage,
+  effectiveStat,
+  foodDemandPerMin,
+  isChild,
+  loadContent,
+  newGame,
+  population,
+  powerDemandPerMin,
+  resourceCapacity,
+  roomCapacity,
+  roomCells,
+  roomDef,
+  storageCapacity,
+  upgradeCost,
+  waterDemandPerMin,
+  type GameState,
+  type Resident,
+  type Room,
+} from '../src/sim';
 
 const content = loadContent();
-const hours = Number(process.argv[2] ?? 24);
+const hours = Number(process.argv[2] ?? 48);
 const seed = Number(process.argv[3] ?? 3);
+const checkIn = Number(process.argv[4] ?? 1); // minutes between bot actions
 
 const s: GameState = newGame(content, { seed, now: 0 });
-applyCommand(s, content, { type: 'admitAll' });
 
-const byType = (t: string) => s.rooms.find((r) => r.type === t)!;
-const pool = s.residents.filter((r) => !r.waiting);
-const take = (stat: StatKey, roomType: string) => {
-  pool.sort((a, b) => b.stats[stat] - a.stats[stat]);
-  for (const r of pool.splice(0, 2)) applyCommand(s, content, { type: 'assign', residentId: r.id, roomId: byType(roomType).id });
-};
-take('knack', 'canteen');
-take('sight', 'waterworks');
-take('brawn', 'generator');
-
-for (const t of ['generator', 'canteen', 'waterworks']) {
-  const room = byType(t);
-  console.log(`${t.padEnd(11)} cycle ${cycleSeconds(s, content, room).toFixed(0)}s`);
-}
-console.log(`power demand ${powerDemandPerMin(s, content).toFixed(2)}/min, food demand ${foodDemandPerMin(s, content).toFixed(2)}/min`);
-
-for (let minute = 0; minute <= hours * 60; minute++) {
-  if (minute % 60 === 0) {
-    const r = s.resources;
-    const hp = s.residents.reduce((a, x) => a + x.hp, 0) / s.residents.length;
-    console.log(
-      `h${String(minute / 60).padStart(3)}  power ${r.power.toFixed(0).padStart(4)}  food ${r.food.toFixed(0).padStart(4)}  water ${r.water.toFixed(0).padStart(4)}  scrip ${s.scrip}  avgHP ${hp.toFixed(0)}  happy ${(s.residents.reduce((a, x) => a + x.happiness, 0) / s.residents.length).toFixed(0)}`,
-    );
+function slots(type: string): { floor: number; x: number }[] {
+  const def = content.rooms[type];
+  if (!def) return [];
+  const out: { floor: number; x: number }[] = [];
+  for (const room of s.rooms) {
+    const w = roomCells(content, room);
+    for (const c of [
+      { floor: room.floor, x: room.x + w },
+      { floor: room.floor, x: room.x - def.cells },
+      ...(type === 'elevator' && room.type === 'elevator' ? [{ floor: room.floor + 1, x: room.x }] : []),
+    ]) {
+      if (canPlace(s, content, type, c.floor, c.x).ok) out.push(c);
+    }
   }
-  advance(s, content, 60);
-  applyCommand(s, content, { type: 'collectAll' });
+  // Prefer slots next to a room of the same type (merges), then shallow floors.
+  const same = (c: { floor: number; x: number }) =>
+    s.rooms.some((r) => r.type === type && r.floor === c.floor && (r.x + roomCells(content, r) === c.x || c.x + def.cells === r.x));
+  return out.sort((a, b) => Number(same(b)) - Number(same(a)) || a.floor - b.floor || a.x - b.x);
 }
+
+function tryBuild(type: string): boolean {
+  if (!s.unlockedRooms.includes(type) || s.scrip < buildCost(s, content, type) + 150) return false;
+  for (const c of slots(type)) if (applyCommand(s, content, { type: 'build', roomType: type, ...c }).ok) return true;
+  // No slot: extend the elevator shaft downwards.
+  for (const c of slots('elevator')) if (applyCommand(s, content, { type: 'build', roomType: 'elevator', ...c }).ok) return false;
+  return false;
+}
+
+function production(resource: string): number {
+  let perMin = 0;
+  for (const room of s.rooms) {
+    const def = roomDef(content, room);
+    if (def.produces?.resource !== resource) continue;
+    const stat = def.stat;
+    const total = s.residents.filter((r) => r.roomId === room.id && !r.dead && !isChild(s, r)).reduce((a, r) => a + (stat ? effectiveStat(content, r, stat) : 0), 0);
+    if (total <= 0) continue;
+    const secs = (def.produces.poolBase * room.segments) / total;
+    perMin += (def.produces.output[room.level - 1]?.[room.segments - 1] ?? 0) / (secs / 60);
+  }
+  return perMin;
+}
+
+function freeSlots(room: Room): number {
+  return roomCapacity(content, room) - s.residents.filter((r) => r.roomId === room.id && !r.dead).length;
+}
+
+function botTurn(): void {
+  applyCommand(s, content, { type: 'collectAll' });
+  if (s.residents.some((r) => r.waiting)) applyCommand(s, content, { type: 'admitAll' });
+  for (const tier of ['legendary', 'rare', 'standard'] as const) while (s.crates[tier] > 0) applyCommand(s, content, { type: 'openCrate', tier });
+  for (const r of s.residents.filter((x) => x.dead)) applyCommand(s, content, { type: 'revive', residentId: r.id });
+  for (const r of s.residents.filter((x) => !x.dead && x.hp < x.maxHp * 0.5)) applyCommand(s, content, { type: 'heal', residentId: r.id });
+
+  // Gear: best weapons to the door guards first, then anyone.
+  const weapons = s.items.filter((i) => content.items[i.defId]?.kind === 'weapon');
+  const armed = [...s.residents].filter((r) => !r.dead && !r.waiting).sort((a, b) => combatDamage(content, a) - combatDamage(content, b));
+  for (const w of weapons.sort((a, b) => (content.weapons[b.defId]?.max ?? 0) - (content.weapons[a.defId]?.max ?? 0))) {
+    const target = armed.shift();
+    const def = content.weapons[w.defId];
+    if (target && def && (def.min + def.max) / 2 > combatDamage(content, target)) applyCommand(s, content, { type: 'equip', residentId: target.id, itemId: w.id });
+  }
+  for (const o of s.items.filter((i) => content.items[i.defId]?.kind === 'outfit')) {
+    const target = s.residents.find((r) => !r.dead && !r.waiting && !r.outfit);
+    if (target) applyCommand(s, content, { type: 'equip', residentId: target.id, itemId: o.id });
+  }
+
+  // Build: grow beds ahead of population, and production ahead of demand.
+  const pop = population(s);
+  const expectingNow = s.residents.filter((r) => r.pregnancy).length;
+  if (storageCapacity(s, content, 'population') - pop - expectingNow < 4) tryBuild('quarters');
+  if (production('power') < powerDemandPerMin(s, content) * 1.4) tryBuild('generator');
+  if (production('food') < foodDemandPerMin(s, content) * 1.4) tryBuild('canteen');
+  if (production('water') < waterDemandPerMin(s, content) * 1.4) tryBuild('waterworks');
+  if (pop >= 14 && !s.rooms.some((r) => r.type === 'clinic')) tryBuild('clinic');
+  if (pop >= 20 && s.rooms.filter((r) => r.type === 'radio').length < 1) tryBuild('radio');
+  if (pop >= 12 && s.items.length >= storageCapacity(s, content, 'items') - 2) tryBuild('storeroom');
+  // Spend spare scrip on upgrades, production and beds first.
+  for (const room of [...s.rooms].sort((a, b) => a.level - b.level)) {
+    const cost = upgradeCost(content, room);
+    if (cost !== null && s.scrip > cost * 3 + 500 && roomDef(content, room).category !== 'elevator') {
+      applyCommand(s, content, { type: 'upgrade', roomId: room.id });
+    }
+  }
+
+  // Door guards: the two best-armed adults.
+  const door = s.rooms.find((r) => r.type === 'door');
+  if (door && freeSlots(door) > 0) {
+    const guard = s.residents
+      .filter((r) => !r.dead && !r.waiting && !isChild(s, r) && r.roomId === null)
+      .sort((a, b) => combatDamage(content, b) - combatDamage(content, a))[0];
+    if (guard) applyCommand(s, content, { type: 'assign', residentId: guard.id, roomId: door.id });
+  }
+
+  // Breeding: one couple in the quarters while there are spare beds.
+  const quarters = s.rooms.find((r) => r.type === 'quarters');
+  const spare = storageCapacity(s, content, 'population') - pop;
+  const expecting = s.residents.filter((r) => r.pregnancy).length;
+  if (quarters && spare - expecting >= 2) {
+    const inside = s.residents.filter((r) => r.roomId === quarters.id && !r.dead);
+    const pick = (sex: 'f' | 'm') =>
+      s.residents.find((r) => r.sex === sex && !r.dead && !r.waiting && !isChild(s, r) && !r.pregnancy && r.roomId !== door?.id && r.roomId !== quarters.id);
+    for (const sex of ['f', 'm'] as const) {
+      if (inside.some((r) => r.sex === sex)) continue;
+      const who = pick(sex);
+      if (who) applyCommand(s, content, { type: 'assign', residentId: who.id, roomId: quarters.id });
+    }
+  }
+  // Send pregnant women and finished couples back to work.
+  for (const r of s.residents.filter((x) => x.roomId === quarters?.id && (x.pregnancy || !x.courtship))) {
+    if (r.pregnancy || s.residents.some((o) => o.pregnancy?.fatherId === r.id)) applyCommand(s, content, { type: 'assign', residentId: r.id, roomId: null });
+  }
+
+  // Jobs: fill production rooms with the best-matching idle adults.
+  const idle = s.residents.filter((r) => !r.dead && !r.waiting && !isChild(s, r) && r.roomId === null);
+  const jobs = s.rooms.filter((r) => {
+    const cat = roomDef(content, r).category;
+    return (cat === 'production' || cat === 'radio') && freeSlots(r) > 0;
+  });
+  for (const r of idle) {
+    const best = jobs
+      .filter((room) => freeSlots(room) > 0)
+      .sort((a, b) => {
+        const sa = roomDef(content, a).stat;
+        const sb = roomDef(content, b).stat;
+        return (sb ? effectiveStat(content, r, sb) : 0) - (sa ? effectiveStat(content, r, sa) : 0);
+      })[0];
+    if (best) applyCommand(s, content, { type: 'assign', residentId: r.id, roomId: best.id });
+  }
+}
+
+const row = (h: number) => {
+  const r = s.resources;
+  const living = s.residents.filter((x) => !x.dead && !x.waiting);
+  const kids = living.filter((x) => isChild(s, x)).length;
+  const bar = (k: 'power' | 'food' | 'water') => `${Math.round(r[k])}/${resourceCapacity(s, content, k)}`.padStart(8);
+  console.log(
+    `h${String(h).padStart(3)} pop ${String(population(s)).padStart(3)} (kids ${kids}) waiting ${s.residents.filter((x) => x.waiting).length}` +
+      `  P${bar('power')} F${bar('food')} W${bar('water')}  scrip ${String(Math.round(s.scrip)).padStart(6)}` +
+      `  rooms ${s.rooms.length}  incidents ${s.stats['incidentsResolved'] ?? 0} deaths ${s.stats['deaths'] ?? 0}` +
+      `  crates ${s.stats['cratesOpened'] ?? 0} births ${s.stats['births'] ?? 0} ach ${Object.keys(s.achievements).length}`,
+  );
+};
+
+const milestones: Record<number, number> = {};
+for (let minute = 0; minute <= hours * 60; minute++) {
+  if (minute % 60 === 0 && (minute / 60) % Math.max(1, Math.floor(hours / 24)) === 0) row(minute / 60);
+  if (minute % checkIn === 0) botTurn();
+  for (const m of [10, 20, 30, 40, 50]) if (population(s) >= m && milestones[m] === undefined) milestones[m] = minute / 60;
+  advance(s, content, 60);
+}
+console.log('\nhours to reach population:', Object.entries(milestones).map(([p, h]) => `${p}: ${h.toFixed(1)}h`).join('  '));
+console.log('crates earned', s.stats['cratesEarned'] ?? 0, 'opened', s.stats['cratesOpened'] ?? 0, '· legendary items', s.stats['legendaryItems'] ?? 0, '· raids repelled', s.stats['incidentsResolved.rustmen'] ?? 0, 'escaped', s.stats['raidsEscaped'] ?? 0);
+console.log('crate sources:', Object.entries(s.stats).filter(([k]) => k.startsWith('cratesFrom.')).map(([k, v]) => `${k.slice(11)} ${v}`).join(', '));
+console.log('pregnancies', s.stats['pregnancies'] ?? 0, 'still pregnant', s.residents.filter((r) => r.pregnancy).length, 'overdue', s.residents.filter((r) => r.pregnancy && r.pregnancy.dueAt < s.time).length);
+console.log('deaths by cause:', Object.entries(s.stats).filter(([k]) => k.startsWith('deaths.')).map(([k, v]) => `${k.slice(7)} ${v}`).join(', '));
+console.log('highest level', s.stats['highestLevel'], '· level-ups', s.stats['levelUps'], '· arrivals', ['wanderer', 'radio', 'crate'].map((k) => `${k} ${s.stats['arrivals.' + k] ?? 0}`).join(' '));
+const unused: Resident[] = s.residents.filter((r) => !r.dead && !r.waiting && !isChild(s, r) && r.roomId === null);
+console.log('idle adults at end:', unused.length);
