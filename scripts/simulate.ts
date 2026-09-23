@@ -84,7 +84,47 @@ function freeSlots(room: Room): number {
   return roomCapacity(content, room) - s.residents.filter((r) => r.roomId === room.id && !r.dead).length;
 }
 
+let turn = 0;
+
+/** Reassign workers: cover power, food and water by need first, best stat to each job. */
+function rebalance(): void {
+  const keep = new Set(s.rooms.filter((r) => ['door', 'living'].includes(roomDef(content, r).category)).map((r) => r.id));
+  const workers = s.residents.filter(
+    (r) => !r.dead && !r.waiting && !isChild(s, r) && r.expedition === null && (r.roomId === null || !keep.has(r.roomId)),
+  );
+  for (const r of workers) applyCommand(s, content, { type: 'assign', residentId: r.id, roomId: null });
+  const pool = [...workers];
+  const need: Record<string, number> = { power: powerDemandPerMin(s, content), food: foodDemandPerMin(s, content), water: waterDemandPerMin(s, content) };
+  const essentials = s.rooms.filter((r) => need[roomDef(content, r).produces?.resource ?? ''] !== undefined);
+  for (let guard = 0; guard < 500 && pool.length; guard++) {
+    // The resource furthest below its demand gets the next worker.
+    const open = essentials.filter((r) => freeSlots(r) > 0);
+    if (!open.length) break;
+    const ratio = (r: Room) => {
+      const res = roomDef(content, r).produces?.resource ?? '';
+      return production(res) / Math.max(0.01, need[res] ?? 1);
+    };
+    const room = open.sort((a, b) => ratio(a) - ratio(b))[0] as Room;
+    if (ratio(room) > 2.5) break; // comfortably covered; leave the rest for other jobs
+    const stat = roomDef(content, room).stat;
+    pool.sort((a, b) => (stat ? effectiveStat(content, b, stat) - effectiveStat(content, a, stat) : 0));
+    const w = pool.shift() as Resident;
+    applyCommand(s, content, { type: 'assign', residentId: w.id, roomId: room.id });
+  }
+  // Everyone else to the job that best matches their top stat.
+  for (const w of pool) {
+    const jobs = s.rooms.filter((r) => ['production', 'radio', 'workshop'].includes(roomDef(content, r).category) && freeSlots(r) > 0);
+    const best = jobs.sort((a, b) => {
+      const sa = roomDef(content, a).stat;
+      const sb = roomDef(content, b).stat;
+      return (sb ? effectiveStat(content, w, sb) : 0) - (sa ? effectiveStat(content, w, sa) : 0);
+    })[0];
+    if (best) applyCommand(s, content, { type: 'assign', residentId: w.id, roomId: best.id });
+  }
+}
+
 function botTurn(): void {
+  turn++;
   applyCommand(s, content, { type: 'collectAll' });
   if (s.residents.some((r) => r.waiting)) applyCommand(s, content, { type: 'admitAll' });
   for (const tier of ['legendary', 'rare', 'standard'] as const) while (s.crates[tier] > 0) applyCommand(s, content, { type: 'openCrate', tier });
@@ -108,9 +148,19 @@ function botTurn(): void {
   const pop = population(s);
   const expectingNow = s.residents.filter((r) => r.pregnancy).length;
   if (storageCapacity(s, content, 'population') - pop - expectingNow < 4) tryBuild('quarters');
-  if (production('power') < powerDemandPerMin(s, content) * 1.4) tryBuild('generator');
-  if (production('food') < foodDemandPerMin(s, content) * 1.4) tryBuild('canteen');
-  if (production('water') < waterDemandPerMin(s, content) * 1.4) tryBuild('waterworks');
+  // Add a production room for a short resource only when its rooms are already
+  // fully staffed (empty rooms still draw power, which is how homesteads spiral).
+  const roomTypeFor: Record<string, string> = { power: 'generator', food: 'canteen', water: 'waterworks' };
+  const demand: Record<string, number> = { power: powerDemandPerMin(s, content), food: foodDemandPerMin(s, content), water: waterDemandPerMin(s, content) };
+  for (const res of ['power', 'food', 'water']) {
+    const type = roomTypeFor[res] as string;
+    const full = s.rooms.filter((r) => r.type === type).every((r) => freeSlots(r) === 0);
+    if (full && production(res) < (demand[res] ?? 0) * 1.4) {
+      tryBuild(type);
+      break;
+    }
+  }
+  if (turn % 60 === 0) rebalance();
   if (pop >= 14 && !s.rooms.some((r) => r.type === 'clinic')) tryBuild('clinic');
   if (pop >= 20 && s.rooms.filter((r) => r.type === 'radio').length < 1) tryBuild('radio');
   if (pop >= 12 && s.items.length >= storageCapacity(s, content, 'items') - 2) tryBuild('storeroom');

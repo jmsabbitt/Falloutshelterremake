@@ -150,8 +150,8 @@
         "natural": 2,
         "rush": 1,
         "hpPerSegment": 30,
-        "hpPerRoomLevel": 0.5,
-        "dpsPerSegment": 0.8,
+        "hpPerRoomLevel": 0.25,
+        "dpsPerSegment": 0.55,
         "fixedDamage": 1,
         "spreads": true
       },
@@ -168,9 +168,9 @@
         "name": "Burrowers",
         "natural": 31,
         "rush": 30,
-        "hpPerSegment": 70,
+        "hpPerSegment": 60,
         "hpPerRoomLevel": 0.6,
-        "dpsPerSegment": 2.2,
+        "dpsPerSegment": 1.6,
         "spreads": true,
         "needsDirt": true,
         "powerDrainPerSec": 0.5
