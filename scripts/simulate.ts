@@ -7,6 +7,8 @@ import {
   advance,
   applyCommand,
   buildCost,
+  canCraft,
+  canExplore,
   canPlace,
   combatDamage,
   effectiveStat,
@@ -23,6 +25,7 @@ import {
   storageCapacity,
   upgradeCost,
   waterDemandPerMin,
+  workshopRecipes,
   type GameState,
   type Resident,
   type Room,
@@ -147,8 +150,42 @@ function botTurn(): void {
     if (r.pregnancy || s.residents.some((o) => o.pregnancy?.fatherId === r.id)) applyCommand(s, content, { type: 'assign', residentId: r.id, roomId: null });
   }
 
+  // Exploration: keep a couple of explorers out once the homestead can spare them.
+  const out = s.expeditions.filter((e) => e.status !== 'returned');
+  for (const e of s.expeditions) {
+    if (e.status === 'returned') applyCommand(s, content, { type: 'collectExpedition', expeditionId: e.id });
+    else if (e.status === 'exploring' && e.elapsed > 10 * 3600) applyCommand(s, content, { type: 'recall', expeditionId: e.id });
+    else if (e.status === 'dead') applyCommand(s, content, { type: 'revive', residentId: e.residentId });
+  }
+  const wantOut = pop >= 30 ? 3 : pop >= 12 ? 1 : 0;
+  if (out.length < wantOut) {
+    const scout = s.residents
+      .filter((r) => canExplore(s, content, r) === null && r.roomId !== door?.id)
+      .sort((a, b) => combatDamage(content, b) + b.level - (combatDamage(content, a) + a.level))[0];
+    if (scout) {
+      const med = Math.min(5, Math.floor(s.resources.medpatch));
+      const pur = Math.min(3, Math.floor(s.resources.purge));
+      applyCommand(s, content, { type: 'explore', residentId: scout.id, regionId: 'dustbowl', medpatch: med, purge: pur });
+    }
+  }
+
+  // Crafting: a weapon workshop once unlocked; craft the best known weapon we can afford.
+  if (pop >= 22 && !s.rooms.some((r) => r.type === 'weaponshop')) tryBuild('weaponshop');
+  for (const shop of s.rooms.filter((r) => roomDef(content, r).category === 'workshop')) {
+    if (shop.job && shop.job.remaining <= 0) applyCommand(s, content, { type: 'collectCraft', roomId: shop.id });
+    if (!shop.job) {
+      const options = workshopRecipes(content, shop).filter((rec) => canCraft(s, content, shop, rec.defId) === null);
+      const best = options.sort((a, b) => b.minLevel - a.minLevel || b.scrip - a.scrip)[0];
+      if (best) applyCommand(s, content, { type: 'craft', roomId: shop.id, defId: best.defId });
+    }
+    if (freeSlots(shop) > 0) {
+      const helper = s.residents.find((r) => !r.dead && !r.waiting && !isChild(s, r) && r.roomId === null && r.expedition === null);
+      if (helper) applyCommand(s, content, { type: 'assign', residentId: helper.id, roomId: shop.id });
+    }
+  }
+
   // Jobs: fill production rooms with the best-matching idle adults.
-  const idle = s.residents.filter((r) => !r.dead && !r.waiting && !isChild(s, r) && r.roomId === null);
+  const idle = s.residents.filter((r) => !r.dead && !r.waiting && !isChild(s, r) && r.roomId === null && r.expedition === null);
   const jobs = s.rooms.filter((r) => {
     const cat = roomDef(content, r).category;
     return (cat === 'production' || cat === 'radio') && freeSlots(r) > 0;
@@ -190,6 +227,8 @@ console.log('crates earned', s.stats['cratesEarned'] ?? 0, 'opened', s.stats['cr
 console.log('crate sources:', Object.entries(s.stats).filter(([k]) => k.startsWith('cratesFrom.')).map(([k, v]) => `${k.slice(11)} ${v}`).join(', '));
 console.log('pregnancies', s.stats['pregnancies'] ?? 0, 'still pregnant', s.residents.filter((r) => r.pregnancy).length, 'overdue', s.residents.filter((r) => r.pregnancy && r.pregnancy.dueAt < s.time).length);
 console.log('deaths by cause:', Object.entries(s.stats).filter(([k]) => k.startsWith('deaths.')).map(([k, v]) => `${k.slice(7)} ${v}`).join(', '));
+console.log('exploration:', ['expeditionsCompleted', 'explorerSeconds', 'glarelandsScrip', 'encountersWon', 'salvageFound', 'fragmentsFound', 'recipesLearned', 'itemsCrafted'].map((k) => `${k} ${Math.round(s.stats[k] ?? 0)}`).join(', '));
+console.log('salvage bin:', Object.entries(s.salvage).filter(([, n]) => n > 0).map(([k, n]) => `${k}×${n}`).join(' ') || 'empty', '· recipes', s.recipes.length);
 console.log('highest level', s.stats['highestLevel'], '· level-ups', s.stats['levelUps'], '· arrivals', ['wanderer', 'radio', 'crate'].map((k) => `${k} ${s.stats['arrivals.' + k] ?? 0}`).join(' '));
 const unused: Resident[] = s.residents.filter((r) => !r.dead && !r.waiting && !isChild(s, r) && r.roomId === null);
 console.log('idle adults at end:', unused.length);
