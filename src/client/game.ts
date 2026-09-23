@@ -17,6 +17,9 @@ import {
   type GameState,
 } from '../sim';
 import { createResident } from '../sim/residents';
+import { startIncident, startRaid } from '../sim/systems/incidents';
+import { grantItem } from '../sim/systems/items';
+import type { CrateTier, IncidentType } from '../sim';
 import { clearSave, readSave, writeSave } from './storage';
 
 type Listener = (events: GameEvent[]) => void;
@@ -52,7 +55,7 @@ export class Game {
     } else {
       this.state = newGame(this.content);
     }
-    this.flush();
+    this.claimDaily();
 
     document.addEventListener('visibilitychange', () => {
       if (document.hidden) this.save();
@@ -83,7 +86,18 @@ export class Game {
   resume(): void {
     const summary = catchUp(this.state, this.content, Date.now());
     if (summary.seconds > 60) this.lastCatchUp = summary;
+    this.claimDaily();
     this.flush();
+  }
+
+  /** Local calendar day number, so the daily crate resets at local midnight. */
+  static today(): number {
+    const now = new Date();
+    return Math.floor((now.getTime() - now.getTimezoneOffset() * 60_000) / 86_400_000);
+  }
+
+  claimDaily(): CommandResult {
+    return this.run({ type: 'claimDaily', day: Game.today() });
   }
 
   run(cmd: Command): CommandResult {
@@ -115,8 +129,8 @@ export class Game {
     clearSave();
     this.state = newGame(this.content);
     this.layoutVersion++;
+    this.claimDaily();
     this.save();
-    this.flush();
   }
 
   private flush(): void {
@@ -145,6 +159,19 @@ export class Game {
       },
       spawn: (n = 1) => {
         for (let i = 0; i < n; i++) game.state.residents.push(createResident(game.state, game.content));
+      },
+      raid: () => {
+        startRaid(game.state, game.content);
+        game.flush();
+      },
+      incident: (type: IncidentType, roomId?: number) => {
+        const room = game.state.rooms.find((r) => r.id === roomId) ?? game.state.rooms.find((r) => r.type === 'generator');
+        if (room) startIncident(game.state, game.content, type, room);
+        game.flush();
+      },
+      give: (defId: string) => grantItem(game.state, game.content, defId),
+      crate: (tier: CrateTier = 'standard', n = 1) => {
+        game.state.crates[tier] += n;
       },
       skip: (seconds: number) => {
         advance(game.state, game.content, seconds);

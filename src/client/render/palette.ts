@@ -36,6 +36,7 @@ const LOOKS: Record<string, RoomLook> = {
   storeroom: { wall: 0xcdbb95, trim: 0x7b6848, accent: 0xc08a4b, floor: 0x6a5538 },
   clinic: { wall: 0xf1e9dc, trim: 0xb86a66, accent: 0xef6f6c, floor: 0x9b8f84 },
   purgelab: { wall: 0xe6e0f0, trim: 0x7c6ca8, accent: 0xb18cf2, floor: 0x7f7890 },
+  radio: { wall: 0xe2c9a6, trim: 0x8a5a44, accent: 0xd9645b, floor: 0x6d4f3b },
 };
 
 export function roomLook(type: string): RoomLook {

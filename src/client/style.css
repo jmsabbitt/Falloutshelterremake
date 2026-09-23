@@ -169,3 +169,48 @@ button:disabled { opacity: 0.45; cursor: not-allowed; }
   .toolbar { gap: 4px; padding: 6px; }
   .toolbar button { padding: 8px 9px; font-size: 13px; }
 }
+
+/* ---------- M2: crates, gear, badges ---------- */
+:root { --legendary: #f2c14e; --rare: #c9d1d3; }
+.chip-button { min-height: 0; padding: 3px 8px; font-weight: 400; font-size: 13px; border-radius: 12px; position: relative; display: inline-flex; align-items: center; gap: 2px; }
+.chip-button.glow { border-color: var(--accent); box-shadow: 0 0 8px rgba(242, 165, 65, 0.55); }
+.token-mini { display: inline-block; width: 28px; height: 4px; background: #0b1113; border-radius: 2px; margin-left: 6px; overflow: hidden; }
+.token-mini > span { display: block; height: 100%; background: var(--accent); }
+.toolbar button { position: relative; }
+.badge { position: absolute; top: -6px; right: -6px; background: var(--danger); color: #fff; font-size: 11px; line-height: 18px; min-width: 18px; padding: 0 5px; border-radius: 9px; }
+.rarity { font-weight: 700; }
+.rarity.common { color: var(--ink-dim); }
+.rarity.rare { color: var(--rare); }
+.rarity.legendary { color: var(--legendary); }
+.stats span.boosted { box-shadow: inset 0 -2px 0 var(--accent); }
+.row.gear { font-size: 13px; margin: 4px 0; }
+.crate-icon { display: inline-block; width: 18px; height: 14px; margin-right: 8px; border-radius: 3px; vertical-align: -2px; background: #9b7447; border: 2px solid #6a4f30; }
+.crate-icon.rare { background: #8fa3a6; border-color: #c9d1d3; }
+.crate-icon.legendary { background: #c99a2e; border-color: var(--legendary); }
+.crate-row.legendary { border-color: rgba(242, 193, 78, 0.5); }
+
+.crate-modal { width: min(640px, calc(100vw - 24px)); }
+.cards { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; perspective: 800px; }
+.crate-card { height: 150px; opacity: 0; animation: deal 0.5s ease-out forwards; }
+.crate-card-inner { position: relative; width: 100%; height: 100%; transform-style: preserve-3d; animation: flip 0.6s ease-in-out forwards; animation-delay: inherit; transform: rotateY(180deg); }
+.crate-card .face { position: absolute; inset: 0; border-radius: 10px; backface-visibility: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 6px; font-size: 12px; gap: 4px; }
+.crate-card .back { background: repeating-linear-gradient(45deg, #3f5a5c, #3f5a5c 8px, #33484a 8px, #33484a 16px); border: 2px solid #5d7c7e; transform: rotateY(180deg); }
+.crate-card .front { background: #1a2729; border: 2px solid #5d7c7e; }
+.crate-card.rare .front { border-color: var(--rare); background: #243335; }
+.crate-card.legendary .front { border-color: var(--legendary); background: linear-gradient(160deg, #3a2f12, #1a2729); box-shadow: 0 0 14px rgba(242, 193, 78, 0.6); }
+.card-icon { font-size: 28px; }
+@keyframes deal { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: none; } }
+@keyframes flip { from { transform: rotateY(180deg); } to { transform: rotateY(0deg); } }
+@media (max-width: 640px) {
+  .cards { grid-template-columns: repeat(3, 1fr); }
+  .crate-card { height: 130px; }
+  .toolbar button { padding: 7px 7px; font-size: 12px; }
+}
+@media (max-width: 640px) {
+  .hint { white-space: normal; text-align: center; width: max-content; max-width: calc(100vw - 32px); }
+}
+.row.gear > span:last-child { display: flex; gap: 4px; flex: none; }
+@media (max-width: 640px) {
+  .toolbar { left: 6px; right: 6px; transform: none; gap: 3px; padding: 5px; }
+  .toolbar button { flex: 1 1 0; min-width: 0; padding: 7px 2px; font-size: 11px; }
+}

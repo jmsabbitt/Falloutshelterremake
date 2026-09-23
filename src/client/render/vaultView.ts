@@ -6,6 +6,10 @@
 import { Application, Container, Graphics, Text, type FederatedPointerEvent } from 'pixi.js';
 import {
   buildCost,
+  isChild,
+  radioInterval,
+  type Content,
+  type Incident,
   canPlace,
   poolSize,
   roomCells,
@@ -50,9 +54,11 @@ interface ResidentSprite {
   body: Graphics;
   x: number;
   targetX: number;
-  roomId: number | null | 'waiting';
+  roomId: number | null | 'waiting' | 'child';
   phase: number;
   facing: 1 | -1;
+  /** Key of what the sprite currently shows; redraw when it changes. */
+  look: string;
 }
 
 interface FloatText {
@@ -324,23 +330,89 @@ export class VaultView {
         g.circle(cx, cy, 14).fill(color);
         drawResourceGlyph(g, def.produces.resource, cx, cy);
       }
-      // fire
       const inc = burning.get(room.id);
-      if (inc) {
-        for (let i = 0; i < Math.ceil(r.w / 22); i++) {
-          const fx = r.x + 10 + i * 22 + Math.sin(this.time * 9 + i) * 3;
-          const fh = 26 + Math.sin(this.time * 13 + i * 1.7) * 9;
-          g.poly([fx - 9, r.y + r.h - 10, fx, r.y + r.h - 10 - fh, fx + 9, r.y + r.h - 10]).fill({ color: 0xff7a1a, alpha: 0.85 });
-          g.poly([fx - 5, r.y + r.h - 10, fx, r.y + r.h - 10 - fh * 0.6, fx + 5, r.y + r.h - 10]).fill({ color: 0xffd23f, alpha: 0.9 });
-        }
-        g.rect(r.x + 10, r.y + 8, r.w - 20, 6).fill(0x14100d);
-        g.rect(r.x + 10, r.y + 8, (r.w - 20) * Math.max(0, inc.hp / inc.maxHp), 6).fill(0xff7a1a);
+      if (inc) this.drawIncident(g, inc, r);
+      // Radio: signal progress arc on the ceiling lip.
+      if (def.category === 'radio' && room.powered) {
+        const p = Math.min(1, room.timer / Math.max(1, radioInterval(state, content, room)));
+        g.rect(r.x + 6, r.y + r.h - 7, (r.w - 12) * p, 3).fill({ color: 0xd9645b, alpha: 0.9 });
       }
       if (room.id === this.selectedRoomId) {
         const pulse = 0.6 + 0.4 * Math.sin(this.time * 5);
         g.rect(r.x + 1, r.y + 1, r.w - 2, r.h - 2).stroke({ width: 3, color: 0xf2a541, alpha: pulse });
       }
     }
+    // Hearts above courting couples.
+    for (const res of state.residents) {
+      if (!res.courtship) continue;
+      const a = this.sprites.get(res.id);
+      const b = this.sprites.get(res.courtship.partnerId);
+      if (!a || !b) continue;
+      const hx = (a.x + b.x) / 2;
+      const hy = a.root.y - RESIDENT_H - 16 + Math.sin(this.time * 3) * 3;
+      drawHeart(g, hx, hy, 7 + Math.sin(this.time * 6) * 1);
+    }
+  }
+
+  private drawIncident(g: Graphics, inc: Incident, r: { x: number; y: number; w: number; h: number }): void {
+    const floorY = r.y + r.h - 10;
+    const t = this.time;
+    switch (inc.type) {
+      case 'fire':
+        for (let i = 0; i < Math.ceil(r.w / 22); i++) {
+          const fx = r.x + 10 + i * 22 + Math.sin(t * 9 + i) * 3;
+          const fh = 26 + Math.sin(t * 13 + i * 1.7) * 9;
+          g.poly([fx - 9, floorY, fx, floorY - fh, fx + 9, floorY]).fill({ color: 0xff7a1a, alpha: 0.85 });
+          g.poly([fx - 5, floorY, fx, floorY - fh * 0.6, fx + 5, floorY]).fill({ color: 0xffd23f, alpha: 0.9 });
+        }
+        break;
+      case 'skitters':
+        // A swarm of glowing beetles scurrying across the floor.
+        for (let i = 0; i < Math.ceil(r.w / 16); i++) {
+          const phase = (t * (0.35 + (i % 5) * 0.08) + i * 0.37) % 1;
+          const dir = i % 2 === 0 ? 1 : -1;
+          const bx = r.x + 12 + (dir > 0 ? phase : 1 - phase) * (r.w - 24);
+          const by = floorY - 2 - (i % 3) * 3;
+          g.ellipse(bx, by, 7, 4).fill(0x2c3a1e);
+          g.ellipse(bx + dir * 4, by - 1, 3, 2.5).fill(0xb7f36a);
+        }
+        break;
+      case 'burrowers':
+        for (let i = 0; i < Math.max(2, Math.floor(r.w / 45)); i++) {
+          const mx = r.x + 24 + i * ((r.w - 48) / Math.max(1, Math.floor(r.w / 45) - 1 || 1));
+          g.ellipse(mx, floorY + 2, 16, 7).fill(0x5a3b24);
+          const pop = Math.max(0, Math.sin(t * 3 + i * 2));
+          g.ellipse(mx, floorY - 4 - pop * 10, 8, 7 + pop * 3).fill(0xc79a82);
+          g.circle(mx + 3, floorY - 8 - pop * 10, 1.6).fill(0x1b1b1b);
+        }
+        break;
+      case 'rustmen': {
+        // Three raiders in rust-red scrap armour; at the door they hammer on it.
+        const breaking = inc.doorHp > 0;
+        for (let i = 0; i < 3; i++) {
+          // While breaking in they stand on the surface above the door.
+          const rx = breaking ? r.x + r.w * 0.2 + i * 26 : r.x + r.w * (0.3 + i * 0.22) + Math.sin(t * 2 + i) * 6;
+          const ry = breaking ? SURFACE_H - 10 : floorY;
+          const lunge = breaking ? Math.max(0, Math.sin(t * 8 + i * 2)) * 5 : 0;
+          g.roundRect(rx - 8 + lunge, ry - 30, 16, 20, 4).fill(0x7a2e1c);
+          g.rect(rx - 8 + lunge, ry - 24, 16, 3).fill(0x2b1b14);
+          g.roundRect(rx - 6 + lunge, ry - 12, 5, 12, 2).fill(0x3b2a20);
+          g.roundRect(rx + 1 + lunge, ry - 12, 5, 12, 2).fill(0x3b2a20);
+          g.circle(rx + lunge, ry - 37, 7).fill(0xc68b62);
+          g.poly([rx - 8 + lunge, ry - 40, rx - 4 + lunge, ry - 50, rx + lunge, ry - 42, rx + 4 + lunge, ry - 52, rx + 8 + lunge, ry - 40]).fill(0x8c8c8c);
+        }
+        if (breaking) {
+          const doorMax = roomDef(this.game.content, this.game.state.rooms.find((x) => x.id === inc.roomId) as Room).doorHp?.[0] ?? 1;
+          const hpFrac = Math.min(1, inc.doorHp / Math.max(doorMax, inc.doorHp));
+          g.rect(r.x + 10, r.y - 14, r.w - 20, 6).fill(0x14100d);
+          g.rect(r.x + 10, r.y - 14, (r.w - 20) * hpFrac, 6).fill(0x9fb4b2);
+        }
+        break;
+      }
+    }
+    const colour = { fire: 0xff7a1a, skitters: 0xb7f36a, burrowers: 0xc79a82, rustmen: 0xe4572e }[inc.type];
+    g.rect(r.x + 10, r.y + 8, r.w - 20, 6).fill(0x14100d);
+    g.rect(r.x + 10, r.y + 8, (r.w - 20) * Math.max(0, inc.hp / inc.maxHp), 6).fill(colour);
   }
 
   private updateResidents(dt: number): void {
@@ -354,7 +426,14 @@ export class VaultView {
         sp = this.createSprite(res);
         this.sprites.set(res.id, sp);
       }
-      const where: number | null | 'waiting' = res.waiting ? 'waiting' : res.roomId;
+      const child = isChild(state, res);
+      const look = `${res.pregnancy ? 'p' : ''}${child ? 'c' : ''}${res.weapon ?? ''}|${res.outfit ?? ''}`;
+      if (sp.look !== look) {
+        sp.look = look;
+        sp.body.clear();
+        drawResident(sp.body, res, this.game.content, child);
+      }
+      const where: ResidentSprite['roomId'] = res.waiting ? 'waiting' : child ? 'child' : res.roomId;
       const bounds = this.residentBounds(res, waitingList.indexOf(res));
       if (sp.roomId !== where) {
         sp.roomId = where;
@@ -376,7 +455,8 @@ export class VaultView {
       }
       sp.x = Math.min(bounds.max, Math.max(bounds.min, sp.x));
       sp.root.position.set(sp.x, bounds.y);
-      sp.root.scale.x = sp.facing;
+      const size = child ? 0.62 : 1;
+      sp.root.scale.set(sp.facing * size, size);
       sp.body.rotation = res.dead ? -Math.PI / 2 : Math.sin(sp.phase) * 0.04;
       sp.root.alpha = res.dead ? 0.7 : 1;
       const selected = res.id === this.selectedResidentId;
@@ -398,7 +478,12 @@ export class VaultView {
       const x = base + waitingIndex * 30;
       return { min: x, max: x, y: SURFACE_H - 40 };
     }
-    const room = res.roomId !== null ? state.rooms.find((r) => r.id === res.roomId) : undefined;
+    let room = res.roomId !== null ? state.rooms.find((r) => r.id === res.roomId) : undefined;
+    if (!room && isChild(state, res)) {
+      // Children play in the quarters.
+      const homes = state.rooms.filter((r) => roomDef(this.game.content, r).category === 'living');
+      room = homes[hash(res.id) % Math.max(1, homes.length)];
+    }
     const target = room ?? state.rooms.find((r) => r.type === 'door');
     if (!target) return { min: 0, max: 0, y: SURFACE_H };
     const r = this.roomRect(target);
@@ -412,19 +497,17 @@ export class VaultView {
     halo.visible = false;
     root.addChild(halo);
     const body = new Graphics();
-    drawResident(body, res);
     root.addChild(body);
     root.eventMode = 'static';
     root.cursor = 'grab';
     root.hitArea = { contains: (x: number, y: number) => x > -14 && x < 14 && y > -RESIDENT_H && y < 4 };
     root.on('pointerdown', (e: FederatedPointerEvent) => {
-      if (res.dead) return;
       e.stopPropagation();
       this.pointers.set(e.pointerId, { x: e.global.x, y: e.global.y });
       this.gesture = { kind: 'drag', startX: e.global.x, startY: e.global.y, t: performance.now(), moved: false, residentId: res.id };
     });
     this.residentLayer.addChild(root);
-    return { root, body, x: 0, targetX: 0, roomId: -999, phase: hash(res.id) % 10, facing: 1 };
+    return { root, body, x: 0, targetX: 0, roomId: -999, phase: hash(res.id) % 10, facing: 1, look: '' };
   }
 
   // ---------------------------------------------------------------- input
@@ -480,7 +563,7 @@ export class VaultView {
       if (g.kind === 'drag' && g.residentId !== undefined) {
         const res = this.game.state.residents.find((r) => r.id === g.residentId);
         if (res) {
-          if (g.moved) this.cb.onResidentDrop(res.id, this.roomAt(local.x, local.y));
+          if (g.moved && !res.dead) this.cb.onResidentDrop(res.id, this.roomAt(local.x, local.y));
           else this.cb.onResidentTap(res);
         }
         const sp = this.sprites.get(g.residentId);
@@ -658,6 +741,54 @@ function drawRoomBox(g: Graphics, type: string, w: number, h: number, level: num
       }
       break;
     }
+    case 'radio': {
+      for (let s = 0; s < segments; s++) {
+        const cx = bx + (bw / segments) * (s + 0.5);
+        // console desk with dials, a microphone and a speaker grille
+        g.rect(cx - 30, by + bh * 0.58, 60, bh * 0.42).fill(shade(look.trim, -0.2));
+        g.rect(cx - 26, by + bh * 0.62, 52, 8).fill(0x2b2f33);
+        for (let k = 0; k < 4; k++) g.circle(cx - 18 + k * 12, by + bh * 0.66, 3).fill(k % 2 ? look.accent : 0x7fe0c0);
+        g.rect(cx + 18, by + bh * 0.3, 3, bh * 0.28).fill(0x2b2f33);
+        g.roundRect(cx + 13, by + bh * 0.22, 13, 16, 6).fill(0x5d6a68);
+        g.roundRect(cx - 34, by + bh * 0.16, 26, 30, 4).fill(0x3b2f2a);
+        for (let k = 0; k < 4; k++) g.rect(cx - 30, by + bh * 0.16 + 5 + k * 6, 18, 2).fill(0x8c7a4a);
+      }
+      break;
+    }
+    case 'clinic': {
+      for (let s = 0; s < segments; s++) {
+        const px = bx + (bw / segments) * s + 10;
+        const pw = bw / segments - 20;
+        g.rect(px, by + bh * 0.62, pw * 0.7, 10).fill(0xf4ecd8);
+        g.rect(px, by + bh * 0.62 + 10, 4, bh * 0.25).fill(0x9b9b9b);
+        g.rect(px + pw * 0.7 - 4, by + bh * 0.62 + 10, 4, bh * 0.25).fill(0x9b9b9b);
+        const cx = px + pw * 0.8;
+        const cy = by + bh * 0.3;
+        g.rect(cx - 9, cy - 3, 18, 6).fill(look.accent);
+        g.rect(cx - 3, cy - 9, 6, 18).fill(look.accent);
+      }
+      break;
+    }
+    case 'purgelab': {
+      for (let s = 0; s < segments * 3; s++) {
+        const fx = bx + 14 + s * ((bw - 28) / (segments * 3));
+        g.rect(bx + 6, by + bh * 0.66, bw - 12, 6).fill(shade(look.trim, -0.2));
+        g.rect(fx + 4, by + bh * 0.42, 6, 12).fill(0xe6e0f0);
+        g.poly([fx, by + bh * 0.66, fx + 14, by + bh * 0.66, fx + 10, by + bh * 0.52, fx + 4, by + bh * 0.52]).fill(s % 2 ? look.accent : 0x7fe0c0);
+      }
+      break;
+    }
+    case 'storeroom': {
+      for (let s = 0; s < segments * 3; s++) {
+        const cx = bx + 10 + s * ((bw - 20) / (segments * 3));
+        const size = 18 + (s % 3) * 4;
+        g.rect(cx, by + bh - size - 2, size, size).fill(0x9b7447);
+        g.rect(cx, by + bh - size - 2, size, 3).fill(0x6a4f30);
+        g.rect(cx + size / 2 - 1, by + bh - size - 2, 2, size).fill(0x6a4f30);
+        if (s % 2 === 0) g.rect(cx + 2, by + bh - size * 2 - 2, size - 4, size).fill(0xb58a57);
+      }
+      break;
+    }
     default: {
       for (let s = 0; s < segments * 2; s++) {
         const px = bx + 10 + s * ((bw - 20) / (segments * 2));
@@ -688,12 +819,31 @@ function drawResourceGlyph(g: Graphics, resource: string, cx: number, cy: number
   }
 }
 
-function drawResident(g: Graphics, res: Resident): void {
-  const h = hash(res.id);
-  const skin = SKIN[h % SKIN.length] ?? 0xf1c9a5;
-  const hair = HAIR[(h >> 4) % HAIR.length] ?? 0x2b1e16;
-  const suit = 0x3f8f8a; // teal Halcyon jumpsuit
-  const stripe = 0xf2a541;
+/** Outfit colour by the stat it boosts; the plain teal is the Halcyon jumpsuit. */
+const OUTFIT_COLORS: Record<string, number> = {
+  brawn: 0xb5562f,
+  sight: 0x3f6f9a,
+  grit: 0x6b6b4a,
+  charm: 0x8e3b5e,
+  wits: 0xe8e4d8,
+  knack: 0x3d8a4f,
+  fortune: 0x2c2c34,
+};
+const RARITY_TRIM: Record<string, number> = { common: 0xf2a541, rare: 0xc9d1d3, legendary: 0xf2c14e };
+
+function drawHeart(g: Graphics, x: number, y: number, s: number): void {
+  g.circle(x - s * 0.5, y, s * 0.55).fill(0xe4576e);
+  g.circle(x + s * 0.5, y, s * 0.55).fill(0xe4576e);
+  g.poly([x - s, y + s * 0.15, x + s, y + s * 0.15, x, y + s * 1.2]).fill(0xe4576e);
+}
+
+function drawResident(g: Graphics, res: Resident, content: Content, child: boolean): void {
+  const skin = SKIN[res.appearance.skin % SKIN.length] ?? 0xf1c9a5;
+  const hair = HAIR[res.appearance.hair % HAIR.length] ?? 0x2b1e16;
+  const outfit = res.outfit ? content.outfits[res.outfit] : undefined;
+  const outfitStat = outfit ? Object.keys(outfit.bonus)[0] : undefined;
+  const suit = child ? 0x6fb5c9 : outfitStat ? (OUTFIT_COLORS[outfitStat] ?? 0x3f8f8a) : 0x3f8f8a;
+  const stripe = outfit ? (RARITY_TRIM[outfit.rarity] ?? 0xf2a541) : 0xf2a541;
   const top = -RESIDENT_H;
   // shadow
   g.ellipse(0, 0, 11, 3).fill({ color: 0x000000, alpha: 0.35 });
@@ -717,5 +867,12 @@ function drawResident(g: Graphics, res: Resident): void {
   }
   // eye (facing right; sprite is mirrored for left)
   g.circle(4, top + 8, 1.4).fill(0x1b1b1b);
+  if (res.pregnancy) g.ellipse(9, top + 27, 5, 6).fill(suit);
+  if (res.weapon) {
+    const w = content.weapons[res.weapon];
+    const len = w ? 10 + Math.min(12, w.max / 2) : 10;
+    g.rect(10, top + 24, len, 4).fill(0x2b2f33);
+    g.rect(10, top + 27, 4, 5).fill(0x4a3a2a);
+  }
   if (res.rarity !== 'common') g.circle(0, top - 6, 3).fill(res.rarity === 'legendary' ? 0xf2c14e : 0xc9d1d3);
 }
