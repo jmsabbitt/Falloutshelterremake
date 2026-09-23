@@ -5,14 +5,17 @@ import {
   buildCost,
   canCraft,
   canExplore,
+  canReforge,
   carriedCount,
   combatDamage,
   craftSeconds,
   craftTimeLeft,
+  crewCraftStat,
   fragmentsNeeded,
   isAway,
   knowsRecipe,
   recipeFor,
+  reforgeChance,
   reforgeCost,
   salvageCount,
   scrapPreview,
@@ -90,11 +93,7 @@ interface RegionInfo {
 
 const RARITY_ORDER: Record<Rarity, number> = { legendary: 0, rare: 1, common: 2 };
 const RARITY_MARK: Record<Rarity, string> = { legendary: '★', rare: '◆', common: '•' };
-/**
- * Approximate reforge upgrade odds and the pity streak, from the M3 spec. The
- * sim does not export these, so the UI only uses them for display.
- */
-const REFORGE_ODDS: Record<Rarity, number | null> = { common: 0.35, rare: 0.2, legendary: null };
+/** Fallback for the reforge pity streak if the crafting tuning does not say. */
 const REFORGE_PITY = 3;
 const EXPEDITION_STATUS: Record<Expedition['status'], string> = {
   exploring: 'Exploring',
@@ -146,7 +145,6 @@ export class UI {
   private sortBy: 'level' | StatKey | 'name' = 'level';
   private lastPanelRender = 0;
   private lastToolbarKey = '';
-  private lastHudHtml = '';
   private storageTab: StorageTab = 'items';
   /** Item ids picked for reforging; null when not in reforge mode. */
   private reforgeSel: number[] | null = null;
@@ -264,9 +262,9 @@ export class UI {
     const cap = storageCapacity(state, content, 'population');
     const crates = state.crates.standard + state.crates.rare + state.crates.legendary;
     const ready = state.rooms.filter((r) => r.ready).length;
-    const next = h(
+    const info = h(
       'div',
-      {},
+      { class: 'hud-part' },
       h('div', { class: 'title' }, `HOMESTEAD ${state.homesteadNumber}`),
       meter('power', 'var(--power)', 'P', powerDemandPerMin(state, content)),
       meter('food', 'var(--food)', 'F', foodDemandPerMin(state, content)),
@@ -275,12 +273,17 @@ export class UI {
       h('div', { class: 'stat-chip' }, 'Pop ', h('b', {}, `${pop}/${cap}`)),
       h('div', { class: 'stat-chip' }, 'Mood ', h('b', {}, pop > 0 ? `${Math.round(vaultHappiness(state))}%` : '—')),
       h('div', { class: 'stat-chip', title: 'Med-Patches / Purge' }, '✚ ', h('b', {}, `${Math.floor(state.resources.medpatch)}`), ' ☢ ', h('b', {}, `${Math.floor(state.resources.purge)}`)),
+    );
+    const tokens = Math.round((state.crateTokens / content.balance.crates.tokensPerCrate) * 100);
+    const buttons = h(
+      'div',
+      { class: 'hud-part' },
       h(
         'button',
         { class: `stat-chip chip-button${crates ? ' glow' : ''}`, title: 'Supply Crates', onclick: () => this.openPanel('crates') },
         '📦 ',
         h('b', {}, `${crates}`),
-        h('span', { class: 'token-mini' }, h('span', { style: `width:${(state.crateTokens / content.balance.crates.tokensPerCrate) * 100}%` })),
+        h('span', { class: 'token-mini' }, h('span', { style: `width:${tokens}%` })),
       ),
       h(
         'button',
@@ -296,11 +299,13 @@ export class UI {
         ready ? h('b', {}, ` ${ready}`) : null,
       ),
     );
-    // Rebuild only when something visible changed, so buttons are not swapped
-    // out between a press and its release (that would swallow the click).
-    if (next.innerHTML === this.lastHudHtml) return;
-    this.lastHudHtml = next.innerHTML;
-    this.hud.replaceChildren(...next.childNodes);
+    // The meters change nearly every frame, but the buttons must not: swapping
+    // a button between press and release swallows the click. So each part is
+    // only rebuilt when its own markup changes.
+    if (!this.hud.firstChild) this.hud.append(h('div', { class: 'hud-part' }), h('div', { class: 'hud-part' }));
+    const [infoHost, buttonHost] = [this.hud.children[0], this.hud.children[1]] as HTMLElement[];
+    if (infoHost && infoHost.innerHTML !== info.innerHTML) infoHost.replaceChildren(...info.childNodes);
+    if (buttonHost && buttonHost.innerHTML !== buttons.innerHTML) buttonHost.replaceChildren(...buttons.childNodes);
   }
 
   private renderHint(): void {
@@ -386,8 +391,9 @@ export class UI {
   }
 
   openRoom(id: number): void {
-    this.openPanel('room');
+    // Set the room first: openPanel renders, and a room panel with no room closes itself.
     this.roomId = id;
+    this.openPanel('room');
     this.view.selectedRoomId = id;
     this.renderPanel(true);
   }
@@ -1034,15 +1040,19 @@ export class UI {
   private reforgeBar(sel: number[], first: ItemDef | undefined): HTMLElement {
     const { state, content } = this.game;
     const cost = first ? reforgeCost(content, first.rarity) : 0;
-    const odds = first ? REFORGE_ODDS[first.rarity] : null;
-    const pityLeft = Math.max(1, REFORGE_PITY - state.reforgePity);
+    const odds = first ? reforgeChance(state, content, first.rarity) : 0;
+    const pityAfter = (content.crafting as { tuning?: { reforge?: { pityAfter?: number } } }).tuning?.reforge?.pityAfter ?? REFORGE_PITY;
+    const pityLeft = Math.max(1, pityAfter - state.reforgePity);
+    const why = sel.length === 3 ? canReforge(state, content, sel) : null;
     const next: Record<Rarity, string> = { common: 'rare', rare: 'legendary', legendary: 'legendary' };
     const outcome = !first
       ? 'Pick three items of the same kind (weapon or outfit) and rarity.'
       : first.rarity === 'legendary'
         ? 'Three legendaries reroll into a different legendary.'
-        : `${odds !== null ? `About ${Math.round(odds * 100)}%` : 'A'} chance of a ${next[first.rarity]} ${first.kind}; otherwise a different ${first.rarity} one. ` +
-          `Upgrade guaranteed within ${pityLeft} ${pityLeft === 1 ? 'try' : 'tries'}.`;
+        : odds >= 1
+          ? `Lucky streak: this reforge is guaranteed to give a ${next[first.rarity]} ${first.kind}.`
+          : `${Math.round(odds * 100)}% chance of a ${next[first.rarity]} ${first.kind}; otherwise a different ${first.rarity} one. ` +
+            `Upgrade guaranteed within ${pityLeft} ${pityLeft === 1 ? 'try' : 'tries'}.`;
     const short = state.scrip < cost;
     return h(
       'div',
@@ -1054,6 +1064,7 @@ export class UI {
         h('button', { class: 'close', onclick: () => ((this.reforgeSel = null), this.renderPanel(true)) }, 'Cancel'),
       ),
       h('div', { class: 'muted' }, outcome),
+      why ? h('div', { class: 'muted small short' }, why) : null,
       h(
         'div',
         { class: 'row' },
@@ -1062,7 +1073,8 @@ export class UI {
           'button',
           {
             class: 'primary',
-            disabled: sel.length !== 3 || short,
+            disabled: sel.length !== 3 || !!why,
+            title: why ?? 'Reforge these three',
             onclick: () => {
               const res = this.game.run({ type: 'reforge', itemIds: sel });
               if (!res.ok) this.toast(res.reason, 'bad');
@@ -1730,7 +1742,8 @@ export class UI {
     const def = content.items[recipe.defId];
     if (!def) return h('div');
     const title = h('span', {}, h('span', { class: `rarity ${def.rarity}` }, RARITY_MARK[def.rarity]), ` ${def.name}`);
-    const stats = `${def.kind === 'weapon' ? `${def.min}–${def.max} dmg` : bonusText(def.bonus)} · uses ${STAT_NAME[def.craftStat]}`;
+    const crew = workersInRoom(state, room.id).length ? crewCraftStat(state, content, room, recipe.defId) : 0;
+    const stats = `${def.kind === 'weapon' ? `${def.min}–${def.max} dmg` : bonusText(def.bonus)} · ${STAT_NAME[def.craftStat]}${crew ? ` (crew ${crew})` : ''}`;
     if (!knowsRecipe(state, content, recipe.defId)) {
       const have = state.fragments[recipe.defId] ?? 0;
       const need = Math.max(1, fragmentsNeeded(content, recipe.defId));
