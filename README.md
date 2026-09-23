@@ -15,7 +15,7 @@ npm run build      # production build in dist/
 npm run sim -- 48  # headless bot-player balance run: 48 in-game hours
 ```
 
-In the browser console, `window.homestead` is a developer console: `skip(seconds)`, `addScrip(n)`, `spawn(n)`, `fill()`, `raid()`, `incident(type)`, `give(itemId)`, `crate(tier, n)`, `run(command)`, `reset()`. It is the basis for the future Custom Game mode.
+In the browser console, `window.homestead` is a developer console: `skip(seconds)`, `addScrip(n)`, `spawn(n)`, `fill()`, `raid()`, `incident(type)`, `give(itemId)`, `crate(tier, n)`, `salvage(id, n)`, `fragments(itemId, n)`, `learn(itemId)`, `explore(residentId?)`, `run(command)`, `reset()`. It is the basis for the future Custom Game mode.
 
 ## How to play (current prototype)
 
@@ -29,6 +29,8 @@ In the browser console, `window.homestead` is a developer console: `skip(seconds
 8. Put a woman and a man in the **Quarters** to start a family. Babies grow up into working adults in a few hours.
 9. Defend against fires, skitters, burrowers and **Rustmen raiders**: drag residents into the affected room. Arm your two door guards.
 10. Build a **Radio Room** (population 20) to attract new residents.
+11. **Explore**: send a resident into the Glarelands with Med-Patches and Purge. They keep exploring while you're away, writing a journal, and bring home scrip, gear, salvage and blueprint fragments. Recall them before they get into trouble.
+12. **Craft**: build a Weapon Workshop (population 22) or Outfit Workshop (32), staff it, and turn salvage into gear. Rare and legendary recipes come from blueprint fragments (exploring, scrapping duplicates). **Storage → Scrap** breaks items into salvage; **Reforge** turns three of a kind into a chance at the next rarity, guaranteed after a few tries.
 
 ## Layout
 
@@ -50,6 +52,7 @@ The client only changes the game through `applyCommand`. This keeps the simulati
 - **M0 (foundations): done.** Sim core, content pipeline, save/load with versioning, offline catch-up, tests.
 - **M1 (vault loop): playable.** Build, merge, upgrade, assign, collect, rush, fire, happiness, power brownouts, achievements.
 - **M2 (threats and growth): playable.** Four incident types including raiders, families and children, wanderers and radio recruiting, weapons and outfits, storage, Med-Patch/Purge, Supply Crates with pity and daily streaks, 37 achievements. A bot playing headlessly reaches population 40 in about a day of very active play.
-- Next: **M3** (the Glarelands: exploration, salvage, crafting).
+- **M3 (the Glarelands and crafting): playable.** Dustbowl Flats region with 26 enemies, 17 locations, 12 NPCs and 85+ journal musings; offline-safe explorer simulation; 21 salvage types; 36 recipes; Weapon and Outfit Workshops; blueprint fragments; scrapping; reforging with pity; 61 achievements. Built in parallel by three agents against a written contract (`docs/design/M3-spec.md`).
+- Next: **M4** (quests: Command Office, quest runner, real-time combat, first questline).
 
 See [`docs/design/GDD.md`](docs/design/GDD.md) for the full plan.
