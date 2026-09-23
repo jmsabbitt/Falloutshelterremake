@@ -518,7 +518,8 @@ export class VaultView {
    */
   private updateWalkers(): void {
     const { state, content } = this.game;
-    const shown = state.expeditions.filter((e) => e.status !== 'dead').slice(0, MAX_WALKERS);
+    // Fallen explorers (and bodies being carried home) are not shown walking.
+    const shown = state.expeditions.filter((e) => e.status !== 'dead' && !state.residents.find((r) => r.id === e.residentId)?.dead).slice(0, MAX_WALKERS);
     const door = state.rooms.find((r) => r.type === 'door');
     const base = door ? this.roomRect(door).x + this.roomRect(door).w + 16 : 200;
     const keep = new Set<number>();
@@ -937,10 +938,10 @@ function drawWeaponshop(g: Graphics, look: RoomLook, bx: number, by: number, bw:
   const floorY = by + bh;
   // pegboard with hanging tools
   const px = bx + 12;
-  const py = by + 12;
-  g.rect(px, py, 104, 44).fill(shade(look.wall, -0.28));
+  const py = by + 20;
+  g.rect(px, py, 104, 40).fill(shade(look.wall, -0.28));
   g.rect(px, py, 104, 3).fill(look.trim);
-  for (let r = 0; r < 4; r++) for (let c = 0; c < 10; c++) g.circle(px + 6 + c * 10.5, py + 8 + r * 10, 1).fill(shade(look.wall, -0.5));
+  for (let r = 0; r < 4; r++) for (let c = 0; c < 10; c++) g.circle(px + 6 + c * 10.5, py + 7 + r * 9, 1).fill(shade(look.wall, -0.5));
   // wrench
   g.rect(px + 12, py + 10, 4, 26).fill(STEEL);
   g.circle(px + 14, py + 10, 5).fill(STEEL);
@@ -958,7 +959,7 @@ function drawWeaponshop(g: Graphics, look: RoomLook, bx: number, by: number, bw:
   }
 
   // hanging lamp over the bench
-  const lx = bx + 104;
+  const lx = bx + 140;
   g.rect(lx - 1, by, 2, 18).fill(STEEL_DARK);
   g.poly([lx - 12, by + 28, lx - 5, by + 18, lx + 5, by + 18, lx + 12, by + 28]).fill(look.trim);
   g.ellipse(lx, by + 29, 9, 2.5).fill(LAMP);
@@ -992,8 +993,8 @@ function drawWeaponshop(g: Graphics, look: RoomLook, bx: number, by: number, bw:
   // gun rack on the right
   const rw = 112;
   const rx = bx + bw - rw - 12;
-  const ry = by + 12;
-  const rh = bh - 18;
+  const ry = by + 20;
+  const rh = bh - 24;
   g.rect(rx, ry, rw, rh).fill(shade(WOOD, -0.35));
   g.rect(rx + 4, ry + 4, rw - 8, rh - 8).fill(shade(look.wall, -0.4));
   for (let k = 0; k < 5; k++) {
@@ -1025,18 +1026,18 @@ function drawOutfitshop(g: Graphics, look: RoomLook, bx: number, by: number, bw:
 
   // fabric shelf: rolls seen end-on
   const sx = bx + 12;
-  const sy = by + 14;
-  g.rect(sx, sy, 78, bh - 14).fill(shade(WOOD, -0.3));
-  g.rect(sx + 3, sy + 3, 72, bh - 20).fill(shade(look.wall, -0.35));
+  const sy = by + 20;
+  g.rect(sx, sy, 78, bh - 20).fill(shade(WOOD, -0.3));
+  g.rect(sx + 3, sy + 3, 72, bh - 26).fill(shade(look.wall, -0.35));
   for (let row = 0; row < 3; row++) {
-    const yy = sy + 6 + row * 28;
-    g.rect(sx + 2, yy + 22, 74, 4).fill(WOOD);
+    const yy = sy + 4 + row * 25;
+    g.rect(sx + 2, yy + 20, 74, 4).fill(WOOD);
     for (let c = 0; c < 3; c++) {
       const col = cloth[(row * 3 + c) % cloth.length] ?? 0xffffff;
       const cxr = sx + 15 + c * 24;
-      g.circle(cxr, yy + 11, 10).fill(col);
-      g.circle(cxr, yy + 11, 7).fill(shade(col, -0.15));
-      g.circle(cxr, yy + 11, 2.5).fill(0xe9d9b6);
+      g.circle(cxr, yy + 10, 9.5).fill(col);
+      g.circle(cxr, yy + 10, 6.5).fill(shade(col, -0.15));
+      g.circle(cxr, yy + 10, 2.5).fill(0xe9d9b6);
     }
   }
   // two tall rolls leaning against the shelf
@@ -1044,12 +1045,12 @@ function drawOutfitshop(g: Graphics, look: RoomLook, bx: number, by: number, bw:
   g.poly([sx + 94, floorY, sx + 102, floorY, sx + 110, by + 34, sx + 102, by + 32]).fill(cloth[5] ?? 0);
 
   // pattern sheets pinned to the wall
-  g.rect(bx + 132, by + 12, 34, 26).fill(0xf4ecd8);
-  g.poly([bx + 138, by + 18, bx + 160, by + 18, bx + 156, by + 32, bx + 142, by + 32]).stroke({ width: 1, color: 0x7fb7c9 });
-  g.rect(bx + 172, by + 16, 26, 20).fill(0xe9d9b6);
-  g.circle(bx + 185, by + 26, 6).stroke({ width: 1, color: look.trim });
-  g.circle(bx + 149, by + 13, 2).fill(look.accent);
-  g.circle(bx + 185, by + 17, 2).fill(look.accent);
+  g.rect(bx + 132, by + 22, 34, 24).fill(0xf4ecd8);
+  g.poly([bx + 138, by + 27, bx + 160, by + 27, bx + 156, by + 40, bx + 142, by + 40]).stroke({ width: 1, color: 0x7fb7c9 });
+  g.rect(bx + 172, by + 24, 26, 20).fill(0xe9d9b6);
+  g.circle(bx + 185, by + 34, 6).stroke({ width: 1, color: look.trim });
+  g.circle(bx + 149, by + 23, 2).fill(look.accent);
+  g.circle(bx + 185, by + 25, 2).fill(look.accent);
 
   // sewing table
   const tx = bx + 124;
@@ -1082,22 +1083,22 @@ function drawOutfitshop(g: Graphics, look: RoomLook, bx: number, by: number, bw:
   const form = (fx: number, color: number, dressed: boolean) => {
     g.rect(fx - 1.5, by + bh * 0.62, 3, floorY - by - bh * 0.62 - 4).fill(STEEL_DARK);
     g.poly([fx - 12, floorY, fx, floorY - 8, fx + 12, floorY]).fill(STEEL_DARK);
-    const top = by + 18;
+    const top = by + 24;
     g.rect(fx - 2, top - 6, 4, 6).fill(WOOD_DARK);
     g.circle(fx, top - 7, 3).fill(WOOD_DARK);
     // torso: shoulders, waist, hips
-    g.poly([fx - 15, top + 4, fx - 11, top, fx + 11, top, fx + 15, top + 4, fx + 9, top + 30, fx + 14, top + 48, fx - 14, top + 48, fx - 9, top + 30]).fill(dressed ? color : 0xe9d9b6);
+    g.poly([fx - 15, top + 4, fx - 11, top, fx + 11, top, fx + 15, top + 4, fx + 9, top + 26, fx + 14, top + 42, fx - 14, top + 42, fx - 9, top + 26]).fill(dressed ? color : 0xe9d9b6);
     if (dressed) {
-      g.rect(fx - 9, top + 27, 18, 4).fill(shade(color, -0.35)); // belt
+      g.rect(fx - 9, top + 23, 18, 4).fill(shade(color, -0.35)); // belt
       g.poly([fx - 4, top, fx, top + 10, fx + 4, top]).fill(0xf4ecd8); // collar
     } else {
-      g.rect(fx - 12, top + 20, 24, 1.5).fill(look.trim); // tape measure
+      g.rect(fx - 12, top + 17, 24, 1.5).fill(look.trim); // tape measure
     }
   };
   form(bx + bw - 94, 0x3f6f9a, true);
   form(bx + bw - 44, look.accent, false);
   // an outfit on a hanger rail between them
-  g.rect(bx + bw - 76, by + 12, 22, 2).fill(STEEL);
+  g.rect(bx + bw - 76, by + 20, 22, 2).fill(STEEL);
 }
 
 function drawItemGlyph(g: Graphics, kind: 'weapon' | 'outfit', cx: number, cy: number): void {

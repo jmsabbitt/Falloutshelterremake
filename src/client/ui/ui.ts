@@ -61,6 +61,7 @@ import {
   type GameEvent,
   type Item,
   type ItemDef,
+  type JournalEntry,
   type Rarity,
   type Recipe,
   type Resident,
@@ -71,7 +72,7 @@ import type { Content } from '../../sim';
 import type { Game } from '../game';
 import type { VaultView } from '../render/vaultView';
 import { downloadFile } from '../storage';
-import { duration, fmt, h } from './dom';
+import { duration, fmt, h, morph } from './dom';
 
 type PanelKind = 'build' | 'room' | 'residents' | 'storage' | 'crates' | 'explore' | 'achievements' | 'menu' | null;
 type StorageTab = 'items' | 'salvage' | 'blueprints';
@@ -145,6 +146,8 @@ export class UI {
   private sortBy: 'level' | StatKey | 'name' = 'level';
   private lastPanelRender = 0;
   private lastToolbarKey = '';
+  /** What the open panel is showing; a change means a fresh render rather than a patch. */
+  private panelKey = '';
   private storageTab: StorageTab = 'items';
   /** Item ids picked for reforging; null when not in reforge mode. */
   private reforgeSel: number[] | null = null;
@@ -299,13 +302,12 @@ export class UI {
         ready ? h('b', {}, ` ${ready}`) : null,
       ),
     );
-    // The meters change nearly every frame, but the buttons must not: swapping
-    // a button between press and release swallows the click. So each part is
-    // only rebuilt when its own markup changes.
+    // The meters change nearly every frame. Patch in place, and keep the buttons
+    // in their own part so they are only touched when their own markup changes.
     if (!this.hud.firstChild) this.hud.append(h('div', { class: 'hud-part' }), h('div', { class: 'hud-part' }));
     const [infoHost, buttonHost] = [this.hud.children[0], this.hud.children[1]] as HTMLElement[];
-    if (infoHost && infoHost.innerHTML !== info.innerHTML) infoHost.replaceChildren(...info.childNodes);
-    if (buttonHost && buttonHost.innerHTML !== buttons.innerHTML) buttonHost.replaceChildren(...buttons.childNodes);
+    if (infoHost && infoHost.innerHTML !== info.innerHTML) morph(infoHost, info);
+    if (buttonHost && buttonHost.innerHTML !== buttons.innerHTML) morph(buttonHost, buttons);
   }
 
   private renderHint(): void {
@@ -470,11 +472,12 @@ export class UI {
     // replaced under the player's finger mid-tap. Scroll position is kept.
     const old = this.panelHost.firstElementChild;
     if (old && old.outerHTML === panel.outerHTML) return;
-    const oldBody = this.panelHost.querySelector('.body');
-    const scroll = oldBody?.scrollTop ?? 0;
-    this.panelHost.replaceChildren(panel);
-    const newBody = panel.querySelector('.body');
-    if (newBody) newBody.scrollTop = scroll;
+    // Same view: patch the live panel in place, which keeps the nodes under the
+    // finger and the scroll position. A different view starts fresh at the top.
+    const key = `${this.panel}|${this.roomId}|${this.storageTab}|${this.equipFor ? 'equip' : ''}`;
+    if (old && key === this.panelKey) morph(old, panel);
+    else this.panelHost.replaceChildren(panel);
+    this.panelKey = key;
   }
 
   private buildPanel(): HTMLElement {
@@ -936,7 +939,7 @@ export class UI {
               h(
                 'button',
                 {
-                  class: 'close',
+                  class: 'close nowrap',
                   disabled: items.length < 3,
                   title: 'Combine three items of the same kind and rarity for a chance at a better one',
                   onclick: () => {
@@ -1418,11 +1421,13 @@ export class UI {
     const hp = r ? Math.max(0, r.hp) : 0;
     const taint = r?.taint ?? 0;
     const carried = carriedCount(e);
+    // Recalling a fallen explorer brings the body home.
+    const body = e.status === 'returning' && !!r?.dead;
     const statusText =
       e.status === 'exploring'
         ? `${duration(e.elapsed)} out`
         : e.status === 'returning'
-          ? `home in ${duration(secondsUntilHome(e))}`
+          ? `${body ? 'body ' : ''}home in ${duration(secondsUntilHome(e))}`
           : e.status === 'returned'
             ? 'ready to collect'
             : `after ${duration(e.elapsed)}`;
@@ -1480,7 +1485,7 @@ export class UI {
         'div',
         { class: 'row', style: 'margin:0' },
         h('b', {}, r && r.rarity !== 'common' ? h('span', { class: `rarity ${r.rarity}` }, RARITY_MARK[r.rarity]) : null, ` ${name}`, h('span', { class: 'muted' }, ` L${r?.level ?? 1}`)),
-        h('span', { class: `status-pill ${e.status}` }, EXPEDITION_STATUS[e.status]),
+        h('span', { class: `status-pill ${body ? 'dead' : e.status}` }, body ? 'Carried home' : EXPEDITION_STATUS[e.status]),
       ),
       h('div', { class: 'muted small' }, `${region} · ${statusText}`),
       h('div', { class: 'hpbar' }, h('div', { class: 'hp', style: `width:${Math.min(100, (hp / max) * 100)}%` }), h('div', { class: 'taint', style: `width:${Math.min(100, (taint / max) * 100)}%` })),
@@ -1513,7 +1518,10 @@ export class UI {
         ? h(
             'div',
             { class: 'journal-loot' },
-            ...found.map((d) => h('span', { class: `rarity ${d.rarity}` }, `${RARITY_MARK[d.rarity]} ${d.name}`)),
+            ...[...new Set(found)].map((d) => {
+              const n = found.filter((x) => x === d).length;
+              return h('span', { class: `rarity ${d.rarity}` }, `${RARITY_MARK[d.rarity]} ${d.name}${n > 1 ? ` ×${n}` : ''}`);
+            }),
           )
         : null,
       ...(entries.length
@@ -1588,6 +1596,7 @@ export class UI {
         h('div', { class: 'stats' }, ...STAT_KEYS.map((k) => h('span', { class: k === 'fortune' || k === 'grit' ? 'hi' : '' }, `${STAT_LABEL[k]} ${eff[k]}`))),
         h('div', { class: 'muted small', style: 'margin-top:4px' }, `${weapon ? `${weapon.name} (${weapon.min}–${weapon.max} dmg)` : 'Fists (1 dmg)'} · ${outfit ? outfit.name : 'Halcyon jumpsuit'}`),
         h('div', { class: 'muted small' }, 'Every stat matters out there: Grit shrugs off the Glare, Fortune finds scrip, and a good weapon wins fights.'),
+        res.hp < effectiveMaxHp(res) * 0.5 ? h('div', { class: 'small short', style: 'margin-top:4px' }, '⚠ Low on health. Patch them up before they go.') : null,
       );
     }
 
@@ -1802,6 +1811,7 @@ export class UI {
     const { content } = this.game;
     // Remember who is on which expedition, so events after collection can still name them.
     for (const e of this.game.state.expeditions) this.explorerOf.set(e.id, e.residentId);
+    this.journalToasts(events);
     for (const ev of events) {
       if (ev.type === 'expeditionStarted') this.explorerOf.set(ev.expeditionId, ev.residentId);
       switch (ev.type) {
@@ -1855,11 +1865,7 @@ export class UI {
         case 'expeditionStarted':
           this.toast(`🧭 ${this.name(ev.residentId)} sets out into the Glarelands.`, 'good');
           break;
-        case 'expeditionJournal': {
-          const tone = ev.entry.kind === 'danger' || ev.entry.kind === 'status' ? 'bad' : ev.entry.kind === 'levelup' || ev.entry.kind === 'find' ? 'gold' : undefined;
-          this.toast(`🧭 ${this.explorerName(ev.expeditionId)}: ${ev.entry.text}`, tone);
-          break;
-        }
+        // expeditionJournal is batched in journalToasts() below.
         case 'expeditionReturning':
           this.toast(
             ev.reason === 'full'
@@ -1924,6 +1930,28 @@ export class UI {
     }
   }
 
+  /**
+   * Journal entries can arrive by the dozen after an offline catch-up, so each
+   * flush gives at most one toast per expedition (its latest entry), or a single
+   * summary line when several explorers report at once.
+   */
+  private journalToasts(events: GameEvent[]): void {
+    const latest = new Map<number, { entry: JournalEntry; n: number }>();
+    for (const ev of events) {
+      if (ev.type !== 'expeditionJournal') continue;
+      latest.set(ev.expeditionId, { entry: ev.entry, n: (latest.get(ev.expeditionId)?.n ?? 0) + 1 });
+    }
+    if (latest.size > 2) {
+      const total = [...latest.values()].reduce((a, b) => a + b.n, 0);
+      this.toast(`🧭 ${total} journal entries from ${latest.size} explorers. Read them in Explore.`);
+      return;
+    }
+    for (const [id, { entry, n }] of latest) {
+      const tone = entry.kind === 'danger' || entry.kind === 'status' ? 'bad' : entry.kind === 'levelup' || entry.kind === 'find' ? 'gold' : undefined;
+      this.toast(`🧭 ${this.explorerName(id)}: ${entry.text}${n > 1 ? ` (+${n - 1} more)` : ''}`, tone);
+    }
+  }
+
   toast(text: string, kind?: 'good' | 'bad' | 'gold'): void {
     const el = h('div', { class: `toast ${kind ?? ''}` }, text);
     this.toasts.prepend(el);
@@ -1955,7 +1983,10 @@ export class UI {
     const s = this.game.lastCatchUp;
     if (!s) return;
     this.game.lastCatchUp = null;
-    const names = (ids: number[]) => ids.map((id) => this.name(id)).join(', ');
+    const names = (ids: number[]) => {
+      const n = ids.map((id) => this.name(id));
+      return n.length > 1 ? `${n.slice(0, -1).join(', ')} and ${n[n.length - 1]}` : (n[0] ?? '');
+    };
     const home = s.explorersHome.length;
     const fallen = s.explorersFallen.length;
     const extras = [

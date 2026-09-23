@@ -3,12 +3,20 @@
 type Child = Node | string | number | null | undefined | false;
 type Attrs = Record<string, string | number | boolean | ((e: Event) => void) | undefined>;
 
+/** Listeners added by h(), so morph() can swap them onto a kept element. */
+const listeners = new WeakMap<Element, Record<string, (e: Event) => void>>();
+
 export function h<K extends keyof HTMLElementTagNameMap>(tag: K, attrs: Attrs = {}, ...children: Child[]): HTMLElementTagNameMap[K] {
   const el = document.createElement(tag);
   for (const [k, v] of Object.entries(attrs)) {
     if (v === undefined || v === false) continue;
-    if (k.startsWith('on') && typeof v === 'function') el.addEventListener(k.slice(2).toLowerCase(), v);
-    else if (k === 'class') el.className = String(v);
+    if (k.startsWith('on') && typeof v === 'function') {
+      const type = k.slice(2).toLowerCase();
+      el.addEventListener(type, v);
+      const map = listeners.get(el) ?? {};
+      map[type] = v;
+      listeners.set(el, map);
+    } else if (k === 'class') el.className = String(v);
     else if (k === 'style') el.setAttribute('style', String(v));
     else if (v === true) el.setAttribute(k, '');
     else el.setAttribute(k, String(v));
@@ -32,4 +40,41 @@ export function duration(seconds: number): string {
   const m = Math.floor(s / 60);
   if (m < 60) return `${m}m ${s % 60}s`;
   return `${Math.floor(m / 60)}h ${m % 60}m`;
+}
+
+/**
+ * Make `target` look like `source` while keeping the existing nodes where the
+ * tags match. Panels re-render every half second; replacing the DOM would swap
+ * a button out between press and release (a lost tap) and reset hover and
+ * scroll. Listeners recorded by h() are moved across, so handlers never go stale.
+ */
+export function morph(target: Node, source: Node): void {
+  if (target.nodeType !== source.nodeType || target.nodeName !== source.nodeName) {
+    target.parentNode?.replaceChild(source, target);
+    return;
+  }
+  if (target.nodeType !== Node.ELEMENT_NODE) {
+    if (target.nodeValue !== source.nodeValue) target.nodeValue = source.nodeValue;
+    return;
+  }
+  const t = target as Element;
+  const s = source as Element;
+  for (const a of [...t.attributes]) if (!s.hasAttribute(a.name)) t.removeAttribute(a.name);
+  for (const a of [...s.attributes]) if (t.getAttribute(a.name) !== a.value) t.setAttribute(a.name, a.value);
+  // Form state lives in properties, not attributes.
+  if (t instanceof HTMLButtonElement && s instanceof HTMLButtonElement) t.disabled = s.disabled;
+  const oldOn = listeners.get(t) ?? {};
+  const newOn = listeners.get(s) ?? {};
+  for (const [type, fn] of Object.entries(oldOn)) if (newOn[type] !== fn) t.removeEventListener(type, fn);
+  for (const [type, fn] of Object.entries(newOn)) if (oldOn[type] !== fn) t.addEventListener(type, fn);
+  listeners.set(t, newOn);
+  const tk = [...t.childNodes];
+  const sk = [...s.childNodes];
+  for (let i = 0; i < sk.length; i++) {
+    const src = sk[i] as Node;
+    const dst = tk[i];
+    if (dst) morph(dst, src);
+    else t.appendChild(src);
+  }
+  for (let i = sk.length; i < tk.length; i++) tk[i]?.remove();
 }
