@@ -462,6 +462,64 @@
     }
   },
   {
+    "id": "weaponshop",
+    "name": "Weapon Workshop",
+    "levelNames": [
+      "Weapon Workshop",
+      "Weapon Factory",
+      "Weapon Foundry"
+    ],
+    "category": "workshop",
+    "stat": null,
+    "unlockPop": 22,
+    "buildable": true,
+    "cost": {
+      "base": 800,
+      "perBuilt": 600
+    },
+    "upgrade": [
+      8000,
+      60000
+    ],
+    "upgradePop": [
+      45,
+      75
+    ],
+    "cells": 9,
+    "maxSegments": 1,
+    "capacityPerSegment": 6,
+    "usesPower": true
+  },
+  {
+    "id": "outfitshop",
+    "name": "Outfit Workshop",
+    "levelNames": [
+      "Outfit Workshop",
+      "Tailor Shop",
+      "Couture House"
+    ],
+    "category": "workshop",
+    "stat": null,
+    "unlockPop": 32,
+    "buildable": true,
+    "cost": {
+      "base": 1200,
+      "perBuilt": 900
+    },
+    "upgrade": [
+      12000,
+      90000
+    ],
+    "upgradePop": [
+      55,
+      90
+    ],
+    "cells": 9,
+    "maxSegments": 1,
+    "capacityPerSegment": 6,
+    "usesPower": true
+  },
+  {
     "id": "radio",
     "name": "Radio Room",
     "levelNames": [

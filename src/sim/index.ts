@@ -11,6 +11,7 @@ export {
   type ItemDef,
   type WeaponDef,
   type OutfitDef,
+  type SalvageDef,
 } from './content';
 export { newGame, type NewGameOptions } from './state';
 export { applyCommand, roomCapacity, type Command, type CommandResult } from './commands';
@@ -27,6 +28,25 @@ export { itemCapacity, sellValue, itemDef } from './systems/items';
 export { radioInterval, radioChance } from './systems/arrivals';
 export { courtshipSeconds } from './systems/family';
 export {
+  canExplore,
+  carriedCount,
+  secondsUntilHome,
+  MAX_SUPPLIES,
+  MAX_EXPLORERS,
+  CARRY_LIMIT,
+} from './systems/exploration';
+export {
+  recipeFor,
+  workshopRecipes,
+  canCraft,
+  craftSeconds,
+  craftTimeLeft,
+  scrapPreview,
+  reforgeCost,
+  type Recipe,
+} from './systems/crafting';
+export { knowsRecipe, fragmentsNeeded, salvageCount, SALVAGE_CAP } from './systems/inventory';
+export {
   residentsInRoom,
   workersInRoom,
   livingResidents,
@@ -39,5 +59,6 @@ export {
   topStats,
   statTotal,
   isChild,
+  isAway,
   fleesIncidents,
 } from './residents';

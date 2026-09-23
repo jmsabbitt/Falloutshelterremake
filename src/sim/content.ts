@@ -6,9 +6,12 @@ import balanceJson from '../content/balance.json';
 import namesJson from '../content/names.json';
 import achievementsJson from '../content/achievements.json';
 import itemsJson from '../content/items.json';
+import salvageJson from '../content/salvage.json';
+import explorationJson from '../content/exploration.json';
+import craftingJson from '../content/crafting.json';
 import type { Rarity, ResourceKey, StatKey, Stats } from './types';
 
-export type RoomCategory = 'door' | 'elevator' | 'living' | 'production' | 'storage' | 'radio';
+export type RoomCategory = 'door' | 'elevator' | 'living' | 'production' | 'storage' | 'radio' | 'workshop';
 export type StorageKind = ResourceKey | 'population' | 'items';
 
 /** Tables indexed [level - 1][segments - 1]. */
@@ -34,6 +37,8 @@ export interface RoomDef {
   storage?: { resource: StorageKind; amount: LevelWidthTable };
   /** Door only: HP that raiders must break through, per door level. */
   doorHp?: number[];
+  /** Population needed for each upgrade (to level 2, level 3). */
+  upgradePop?: number[];
 }
 
 export interface WeaponDef {
@@ -42,6 +47,8 @@ export interface WeaponDef {
   rarity: Rarity;
   min: number;
   max: number;
+  /** Stat that speeds up crafting this item. */
+  craftStat: StatKey;
 }
 
 export interface OutfitDef {
@@ -49,6 +56,17 @@ export interface OutfitDef {
   name: string;
   rarity: Rarity;
   bonus: Partial<Stats>;
+  craftStat: StatKey;
+}
+
+export type SalvageMaterial = 'circuitry' | 'hide' | 'adhesive' | 'cloth' | 'chemicals' | 'steel' | 'valuables';
+
+export interface SalvageDef {
+  id: string;
+  name: string;
+  material: SalvageMaterial;
+  rarity: Rarity;
+  value: number;
 }
 
 export type ItemDef = ({ kind: 'weapon' } & WeaponDef) | ({ kind: 'outfit' } & OutfitDef);
@@ -77,6 +95,12 @@ export interface Content {
   /** Every item by id, with its kind. */
   items: Record<string, ItemDef>;
   sellValue: Record<Rarity, number>;
+  salvage: Record<string, SalvageDef>;
+  salvageList: SalvageDef[];
+  /** Exploration content and tuning (owned by systems/exploration.ts). */
+  exploration: typeof explorationJson;
+  /** Crafting content and tuning (owned by systems/crafting.ts). */
+  crafting: typeof craftingJson;
 }
 
 function validate(content: Content): Content {
@@ -105,11 +129,20 @@ export function loadContent(): Content {
     roomList,
     balance: balanceJson,
     names: namesJson,
-    achievements: achievementsJson as AchievementDef[],
+    // Systems can ship their own achievements alongside their content.
+    achievements: [
+      ...(achievementsJson as AchievementDef[]),
+      ...((explorationJson as { achievements?: AchievementDef[] }).achievements ?? []),
+      ...((craftingJson as { achievements?: AchievementDef[] }).achievements ?? []),
+    ],
     weapons: Object.fromEntries(weapons.map((w) => [w.id, w])),
     outfits: Object.fromEntries(outfits.map((o) => [o.id, o])),
     items,
     sellValue: itemsJson.sellValue as Record<Rarity, number>,
+    salvage: Object.fromEntries((salvageJson as SalvageDef[]).map((x) => [x.id, x])),
+    salvageList: salvageJson as SalvageDef[],
+    exploration: explorationJson,
+    crafting: craftingJson,
   });
 }
 

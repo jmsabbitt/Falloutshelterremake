@@ -1,13 +1,16 @@
 // The simulation clock. `advance` is used while the game is open; `catchUp`
 // fast-forwards over time spent away, under the "safe offline" rules:
 //   - timers continue: production (each room still stops at one batch),
-//     pregnancies, children growing up, radio and wanderer arrivals
+//     pregnancies, children growing up, radio and wanderer arrivals,
+//     expeditions (explorers keep exploring) and crafting jobs
 //   - consumption only runs for the first few minutes of an absence
 //   - no incidents start or progress, no courtship, no shortage damage
 
 import type { Content } from './content';
 import { refreshUnlocks } from './economy';
 import { tickArrivals } from './systems/arrivals';
+import { tickCrafting } from './systems/crafting';
+import { tickExpeditions } from './systems/exploration';
 import { settle } from './systems/crates';
 import { tickCourtship, tickFamily } from './systems/family';
 import { tickIncidents, tickIncidentTimer } from './systems/incidents';
@@ -37,6 +40,8 @@ function step(state: GameState, content: Content, dt: number, opts: StepOptions)
   state.time += dt;
   tickFamily(state, content);
   tickArrivals(state, content, dt);
+  tickExpeditions(state, content, dt);
+  tickCrafting(state, content, dt);
   refreshUnlocks(state, content);
   settle(state, content, from);
 }

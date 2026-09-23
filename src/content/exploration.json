@@ -1,0 +1,11 @@
+{
+  "regions": [
+    {
+      "id": "dustbowl",
+      "name": "Dustbowl Flats",
+      "description": "Sun-baked farmland and roadside ruins around the homestead.",
+      "danger": 1
+    }
+  ],
+  "achievements": []
+}

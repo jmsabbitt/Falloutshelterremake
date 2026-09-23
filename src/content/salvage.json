@@ -1,0 +1,149 @@
+[
+  {
+    "id": "vacuum_tube",
+    "name": "Vacuum Tube",
+    "material": "circuitry",
+    "rarity": "common",
+    "value": 2
+  },
+  {
+    "id": "relay_board",
+    "name": "Relay Board",
+    "material": "circuitry",
+    "rarity": "rare",
+    "value": 50
+  },
+  {
+    "id": "atomic_logic_core",
+    "name": "Atomic Logic Core",
+    "material": "circuitry",
+    "rarity": "legendary",
+    "value": 200
+  },
+  {
+    "id": "rat_leather",
+    "name": "Rat Leather",
+    "material": "hide",
+    "rarity": "common",
+    "value": 2
+  },
+  {
+    "id": "tanned_hide",
+    "name": "Tanned Hide",
+    "material": "hide",
+    "rarity": "rare",
+    "value": 50
+  },
+  {
+    "id": "glare_beast_pelt",
+    "name": "Glare-Beast Pelt",
+    "material": "hide",
+    "rarity": "legendary",
+    "value": 200
+  },
+  {
+    "id": "sticky_tape",
+    "name": "Sticky Tape",
+    "material": "adhesive",
+    "rarity": "common",
+    "value": 2
+  },
+  {
+    "id": "rubber_cement",
+    "name": "Rubber Cement",
+    "material": "adhesive",
+    "rarity": "rare",
+    "value": 50
+  },
+  {
+    "id": "mil_spec_resin",
+    "name": "Mil-Spec Resin",
+    "material": "adhesive",
+    "rarity": "legendary",
+    "value": 200
+  },
+  {
+    "id": "burlap_scrap",
+    "name": "Burlap Scrap",
+    "material": "cloth",
+    "rarity": "common",
+    "value": 2
+  },
+  {
+    "id": "parachute_silk",
+    "name": "Parachute Silk",
+    "material": "cloth",
+    "rarity": "rare",
+    "value": 50
+  },
+  {
+    "id": "halcyon_banner",
+    "name": "Halcyon Banner",
+    "material": "cloth",
+    "rarity": "legendary",
+    "value": 200
+  },
+  {
+    "id": "baking_soda_tin",
+    "name": "Baking Soda Tin",
+    "material": "chemicals",
+    "rarity": "common",
+    "value": 2
+  },
+  {
+    "id": "chemistry_set",
+    "name": "Chemistry Set",
+    "material": "chemicals",
+    "rarity": "rare",
+    "value": 50
+  },
+  {
+    "id": "isotope_vial",
+    "name": "Isotope Vial",
+    "material": "chemicals",
+    "rarity": "legendary",
+    "value": 200
+  },
+  {
+    "id": "tin_cans",
+    "name": "Tin Cans",
+    "material": "steel",
+    "rarity": "common",
+    "value": 2
+  },
+  {
+    "id": "rebar_bundle",
+    "name": "Rebar Bundle",
+    "material": "steel",
+    "rarity": "rare",
+    "value": 50
+  },
+  {
+    "id": "titanium_plate",
+    "name": "Titanium Plate",
+    "material": "steel",
+    "rarity": "legendary",
+    "value": 200
+  },
+  {
+    "id": "costume_jewelry",
+    "name": "Costume Jewelry",
+    "material": "valuables",
+    "rarity": "common",
+    "value": 2
+  },
+  {
+    "id": "silver_locket",
+    "name": "Silver Locket",
+    "material": "valuables",
+    "rarity": "rare",
+    "value": 50
+  },
+  {
+    "id": "gold_pocket_watch",
+    "name": "Gold Pocket Watch",
+    "material": "valuables",
+    "rarity": "legendary",
+    "value": 200
+  }
+]

@@ -60,6 +60,59 @@ export interface Resident {
   /** Equipped item definition ids. */
   weapon: string | null;
   outfit: string | null;
+  /** Expedition id while out in the Glarelands; away residents are not in the homestead. */
+  expedition: number | null;
+}
+
+// ------------------------------------------------------------------ M3: Glarelands
+
+export type ExpeditionStatus = 'exploring' | 'returning' | 'returned' | 'dead';
+
+export type JournalKind = 'find' | 'fight' | 'event' | 'musing' | 'danger' | 'levelup' | 'status';
+
+export interface JournalEntry {
+  /** Seconds since the expedition left. */
+  t: number;
+  kind: JournalKind;
+  text: string;
+}
+
+export interface ExpeditionLoot {
+  scrip: number;
+  /** Weapon/outfit definition ids. */
+  items: string[];
+  /** Salvage id -> count. */
+  salvage: Record<string, number>;
+  /** Item definition id -> blueprint fragments found. */
+  fragments: Record<string, number>;
+  /** Item definition ids of whole recipes found. */
+  recipes: string[];
+}
+
+export interface Expedition {
+  id: number;
+  residentId: number;
+  regionId: string;
+  status: ExpeditionStatus;
+  /** Seconds spent exploring (stops growing once returning). */
+  elapsed: number;
+  /** Seconds left on the way home (only while returning). */
+  returnRemaining: number;
+  supplies: { medpatch: number; purge: number };
+  loot: ExpeditionLoot;
+  journal: JournalEntry[];
+  /** Next-event timers in expedition seconds, keyed by event kind (owned by exploration.ts). */
+  timers: Record<string, number>;
+  /** One-time event ids already seen on this trip. */
+  done: string[];
+}
+
+/** A crafting job in a workshop room. */
+export interface CraftJob {
+  defId: string;
+  /** Seconds left. 0 = finished, waiting to be collected. */
+  remaining: number;
+  total: number;
 }
 
 export interface Room {
@@ -78,6 +131,8 @@ export interface Room {
   powered: boolean;
   /** General-purpose room timer (radio signal progress). */
   timer: number;
+  /** Workshops only: the current crafting job. */
+  job: CraftJob | null;
 }
 
 export type IncidentType = 'fire' | 'skitters' | 'burrowers' | 'rustmen';
@@ -140,7 +195,21 @@ export type GameEvent =
   | { type: 'crateEarned'; tier: CrateTier; source: string }
   | { type: 'crateOpened'; tier: CrateTier; cards: CrateCard[] }
   | { type: 'storageFull'; defId: string; sold: number }
-  | { type: 'achievementUnlocked'; achievementId: string };
+  | { type: 'achievementUnlocked'; achievementId: string }
+  // M3
+  | { type: 'expeditionStarted'; expeditionId: number; residentId: number }
+  | { type: 'expeditionJournal'; expeditionId: number; entry: JournalEntry }
+  | { type: 'expeditionReturning'; expeditionId: number; reason: 'recalled' | 'full' }
+  | { type: 'expeditionReturned'; expeditionId: number }
+  | { type: 'expeditionCollected'; expeditionId: number; loot: ExpeditionLoot }
+  | { type: 'explorerDied'; expeditionId: number; residentId: number }
+  | { type: 'recipeUnlocked'; defId: string; source: 'fragments' | 'found' }
+  | { type: 'fragmentFound'; defId: string; have: number; need: number }
+  | { type: 'craftStarted'; roomId: number; defId: string }
+  | { type: 'craftFinished'; roomId: number; defId: string }
+  | { type: 'craftCollected'; roomId: number; defId: string }
+  | { type: 'itemScrapped'; defId: string; salvage: Record<string, number> }
+  | { type: 'reforged'; inputs: string[]; result: string; upgraded: boolean };
 
 /** Lifetime counters. Feed achievements, the stats screen and balancing. */
 export type LifetimeStats = Record<string, number>;
@@ -160,6 +229,18 @@ export interface GameState {
   incidents: Incident[];
   /** Unequipped items in storage. */
   items: Item[];
+  /** M3: salvage bin (salvage id -> count). Separate from item storage. */
+  salvage: Record<string, number>;
+  /** M3: item definition ids whose recipes are known (commons are always known). */
+  recipes: string[];
+  /** M3: blueprint fragments collected toward recipes not yet known. */
+  fragments: Record<string, number>;
+  /** M3: failed reforges in a row (guarantees an upgrade after a few). */
+  reforgePity: number;
+  /** M3: expeditions out in (or back from) the Glarelands. */
+  expeditions: Expedition[];
+  /** M3: region ids the player can send explorers to. */
+  regionsUnlocked: string[];
   crates: Record<CrateTier, number>;
   crateTokens: number;
   /** Crates opened since the last legendary card (drives the pity guarantee). */

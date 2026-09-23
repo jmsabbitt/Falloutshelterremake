@@ -7,6 +7,8 @@ import { canPlace, connectedRoomIds, mergeFloor, roomDef } from './grid';
 import { bump, effectiveMaxHp, effectiveStat, isChild, residentsInRoom, reviveCost } from './residents';
 import { claimDaily, openCrate, settle } from './systems/crates';
 import { equip, grantItem, sell, unequip } from './systems/items';
+import { collectExpedition, onResidentRevived, recallExpedition, startExpedition } from './systems/exploration';
+import { cancelCraft, collectCraft, reforge, scrapItem, startCraft } from './systems/crafting';
 import { collectRoom } from './systems/production';
 import { performRush } from './systems/rush';
 import type { CrateTier, GameState, Resident, Room } from './types';
@@ -29,11 +31,22 @@ export type Command =
   | { type: 'unequip'; residentId: number; slot: 'weapon' | 'outfit' }
   | { type: 'sell'; itemId: number }
   | { type: 'openCrate'; tier: CrateTier }
-  | { type: 'claimDaily'; day: number };
+  | { type: 'claimDaily'; day: number }
+  // M3
+  | { type: 'explore'; residentId: number; regionId: string; medpatch: number; purge: number }
+  | { type: 'recall'; expeditionId: number }
+  | { type: 'collectExpedition'; expeditionId: number }
+  | { type: 'craft'; roomId: number; defId: string }
+  | { type: 'collectCraft'; roomId: number }
+  | { type: 'cancelCraft'; roomId: number }
+  | { type: 'scrap'; itemId: number }
+  | { type: 'reforge'; itemIds: number[] };
 
 export type CommandResult = { ok: true; detail?: string } | { ok: false; reason: string };
 
 const fail = (reason: string): CommandResult => ({ ok: false, reason });
+/** Systems return an error string or null. */
+const result = (err: string | null): CommandResult => (err ? fail(err) : { ok: true });
 
 function findRoom(state: GameState, id: number): Room | undefined {
   return state.rooms.find((r) => r.id === id);
@@ -49,12 +62,12 @@ export function roomCapacity(content: Content, room: Room): number {
 
 export function applyCommand(state: GameState, content: Content, cmd: Command): CommandResult {
   const from = state.events.length;
-  const result = dispatch(state, content, cmd);
-  if (result.ok) {
+  const outcome = dispatch(state, content, cmd);
+  if (outcome.ok) {
     refreshUnlocks(state, content);
     settle(state, content, from);
   }
-  return result;
+  return outcome;
 }
 
 function dispatch(state: GameState, content: Content, cmd: Command): CommandResult {
@@ -79,6 +92,7 @@ function dispatch(state: GameState, content: Content, cmd: Command): CommandResu
         ready: false,
         powered: true,
         timer: 0,
+        job: null,
       };
       state.rooms.push(room);
       bump(state, 'roomsBuilt');
@@ -92,6 +106,8 @@ function dispatch(state: GameState, content: Content, cmd: Command): CommandResu
       if (!room) return fail('no such room');
       const cost = upgradeCost(content, room);
       if (cost === null) return fail('already at max level');
+      const needPop = roomDef(content, room).upgradePop?.[room.level - 1];
+      if (needPop !== undefined && population(state) < needPop) return fail(`needs population ${needPop} to upgrade`);
       if (state.incidents.length) return fail('deal with the incident first');
       if (state.scrip < cost) return fail('not enough scrip');
       addScrip(state, content, -cost);
@@ -106,6 +122,7 @@ function dispatch(state: GameState, content: Content, cmd: Command): CommandResu
       const room = findRoom(state, cmd.roomId);
       if (!room) return fail('no such room');
       if (room.type === 'door') return fail('the door stays');
+      if (room.job) return fail('finish or cancel the crafting job first');
       if (state.incidents.some((i) => i.roomId === room.id)) return fail('deal with the incident first');
       const without: GameState = { ...state, rooms: state.rooms.filter((r) => r.id !== room.id) };
       if (connectedRoomIds(without, content).size !== without.rooms.length) {
@@ -127,6 +144,7 @@ function dispatch(state: GameState, content: Content, cmd: Command): CommandResu
       if (!res || res.dead) return fail('no such resident');
       if (res.waiting) return fail('let them in first');
       if (isChild(state, res)) return fail('children are too young to work');
+      if (res.expedition !== null) return fail('they are out exploring');
       if (cmd.roomId === null) {
         res.roomId = null;
         res.courtship = null;
@@ -213,6 +231,7 @@ function dispatch(state: GameState, content: Content, cmd: Command): CommandResu
       res.hp = effectiveMaxHp(res);
       bump(state, 'revives');
       state.events.push({ type: 'residentRevived', residentId: res.id });
+      onResidentRevived(state, content, res.id);
       return { ok: true };
     }
 
@@ -281,6 +300,23 @@ function dispatch(state: GameState, content: Content, cmd: Command): CommandResu
       const tier = claimDaily(state, content, cmd.day);
       return tier ? { ok: true, detail: tier } : fail('already claimed today');
     }
+
+    case 'explore':
+      return result(startExpedition(state, content, cmd.residentId, cmd.regionId, { medpatch: cmd.medpatch, purge: cmd.purge }));
+    case 'recall':
+      return result(recallExpedition(state, content, cmd.expeditionId));
+    case 'collectExpedition':
+      return result(collectExpedition(state, content, cmd.expeditionId));
+    case 'craft':
+      return result(startCraft(state, content, cmd.roomId, cmd.defId));
+    case 'collectCraft':
+      return result(collectCraft(state, content, cmd.roomId));
+    case 'cancelCraft':
+      return result(cancelCraft(state, content, cmd.roomId));
+    case 'scrap':
+      return result(scrapItem(state, content, cmd.itemId));
+    case 'reforge':
+      return result(reforge(state, content, cmd.itemIds));
   }
 }
 

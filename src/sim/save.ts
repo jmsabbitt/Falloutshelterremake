@@ -3,7 +3,7 @@
 
 import type { GameState } from './types';
 
-export const SAVE_VERSION = 2;
+export const SAVE_VERSION = 3;
 
 interface SaveFile {
   format: 'homestead-save';
@@ -58,6 +58,18 @@ const migrations: Record<number, Migration> = {
       nextWandererAt: time + 600,
     };
   },
+  // v2 (M2) -> v3 (M3): exploration, salvage, recipes, crafting jobs.
+  2: (s) => ({
+    ...s,
+    residents: (s['residents'] as Record<string, unknown>[]).map((r) => ({ ...r, expedition: null })),
+    rooms: (s['rooms'] as Record<string, unknown>[]).map((r) => ({ ...r, job: null })),
+    salvage: {},
+    recipes: [],
+    fragments: {},
+    reforgePity: 0,
+    expeditions: [],
+    regionsUnlocked: ['dustbowl'],
+  }),
 };
 
 export function serialize(state: GameState, now = Date.now()): string {
