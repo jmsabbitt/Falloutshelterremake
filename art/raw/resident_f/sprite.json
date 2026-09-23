@@ -1,0 +1,9 @@
+{
+  "id": "resident_f",
+  "sex": "f",
+  "targetHeight": 128,
+  "referenceAnim": "walk",
+  "anims": {
+    "walk": { "file": "walk.webp", "fps": 11, "drop": [5], "idleFrame": 2 }
+  }
+}

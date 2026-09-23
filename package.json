@@ -10,7 +10,8 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "sim": "vite-node scripts/simulate.ts"
+    "sim": "vite-node scripts/simulate.ts",
+    "sprites": "python3 tools/sprites/build.py"
   },
   "devDependencies": {
     "@types/node": "^26.6.2",

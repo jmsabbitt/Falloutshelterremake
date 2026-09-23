@@ -1,0 +1,21 @@
+{
+  "_comment": "Colours used to recolour character sprites (tints multiply the grey-shaded layers, so these are highlight colours). Shared by the game and the sprite pipeline previews.",
+  "skin": ["#fbd1b0", "#efb892", "#d8996f", "#b27650", "#86533a", "#fde3d3"],
+  "hair": ["#3b3f52", "#6e4a33", "#a56d3c", "#f0cf7a", "#b8412a", "#2a2a2e", "#d9d2c6"],
+  "suit": {
+    "default": "#4aa7a2",
+    "brawn": "#c9643a",
+    "sight": "#4a7fb3",
+    "grit": "#7f7f58",
+    "charm": "#a5476f",
+    "wits": "#e8e4d8",
+    "knack": "#4a9d5c",
+    "fortune": "#3a3a46",
+    "child": "#7fc4d8"
+  },
+  "trim": {
+    "common": "#f2a541",
+    "rare": "#dfe6e8",
+    "legendary": "#f7cf5a"
+  }
+}

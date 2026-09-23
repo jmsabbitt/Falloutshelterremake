@@ -1,5 +1,6 @@
 import { Application } from 'pixi.js';
 import { Game } from './game';
+import { CharacterArt } from './render/sprites';
 import { VaultView } from './render/vaultView';
 import { UI } from './ui/ui';
 import './style.css';
@@ -30,6 +31,8 @@ async function boot(): Promise<void> {
     onExplorerTap: () => ui?.openPanel('explore'),
   });
   ui = new UI(game, view);
+  // Sprite art streams in after first paint; until then (or without it) residents use drawn placeholders.
+  void CharacterArt.load().then((art) => view.setArt(art));
   (window as unknown as Record<string, unknown>).homesteadView = {
     /** Screen position of a room's centre; for automated UI tests. */
     roomScreen: (id: number) => {

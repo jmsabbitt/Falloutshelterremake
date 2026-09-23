@@ -35,6 +35,7 @@ import {
   roomLook,
   shade,
 } from './palette';
+import { type CharacterArt, Figure, residentTints } from './sprites';
 
 export const CELL = 44;
 export const FLOOR_H = 132;
@@ -43,6 +44,8 @@ const DEPTH_X = 16; // horizontal inset of the back wall (perspective)
 const DEPTH_Y = 12; // vertical inset of the back wall
 const MARGIN_CELLS = 4;
 const RESIDENT_H = 46;
+/** Displayed height of sprite-art adults; a touch taller than the placeholder, which has no neck. */
+const SPRITE_H = RESIDENT_H * 1.1;
 
 export interface ViewCallbacks {
   onRoomTap(room: Room): void;
@@ -57,7 +60,10 @@ export interface ViewCallbacks {
 /** Explorer figures drawn on the surface while expeditions are out. */
 interface Walker {
   root: Container;
+  /** Rotated as one: the drawn figure (or sprite) plus its overlays. */
+  pose: Container;
   body: Graphics;
+  figure: Figure | null;
   look: string;
 }
 
@@ -69,7 +75,12 @@ const WALKER_SCALE = 0.8;
 
 interface ResidentSprite {
   root: Container;
+  /** Rotated as one: the drawn figure (or sprite) plus its overlays. */
+  pose: Container;
   body: Graphics;
+  /** Sprite art, when the resident's body type has some; else body draws a placeholder. */
+  figure: Figure | null;
+  moving: boolean;
   x: number;
   targetX: number;
   roomId: number | null | 'waiting' | 'child';
@@ -109,6 +120,7 @@ export class VaultView {
   private walkers = new Map<number, Walker>();
   private floats: FloatText[] = [];
   private time = 0;
+  private art: CharacterArt | null = null;
 
   buildMode: string | null = null;
   selectedRoomId: number | null = null;
@@ -453,6 +465,40 @@ export class VaultView {
     g.rect(r.x + 10, r.y + 8, (r.w - 20) * Math.max(0, inc.hp / inc.maxHp), 6).fill(colour);
   }
 
+  /** Switch residents to sprite art once it has loaded. */
+  setArt(art: CharacterArt | null): void {
+    this.art = art;
+    for (const sp of this.sprites.values()) sp.look = '';
+    for (const w of this.walkers.values()) w.look = '';
+  }
+
+  /**
+   * Redraw a figure: sprite art with small overlays if there is art for the
+   * resident's body type, else the drawn placeholder.
+   */
+  private dress(f: { pose: Container; body: Graphics; figure: Figure | null }, res: Resident, child: boolean, backpack: boolean): void {
+    const character = this.art?.forResident(res);
+    if (f.figure && f.figure.character !== character) {
+      f.figure.destroy();
+      f.figure = null;
+    }
+    if (character && !f.figure) {
+      f.figure = new Figure(character, SPRITE_H);
+      f.pose.addChildAt(f.figure, 1);
+    }
+    const { content } = this.game;
+    f.body.clear();
+    if (backpack) drawBackpack(f.body);
+    if (f.figure) {
+      f.figure.setTints(residentTints(res, content, child));
+      drawOverlays(f.body, res, content);
+    } else {
+      drawResident(f.body, res, content, child);
+    }
+    // Shadow sits under the sprite; overlays and placeholder on top.
+    f.pose.setChildIndex(f.body, f.pose.children.length - 1);
+  }
+
   private updateResidents(dt: number): void {
     const { state } = this.game;
     const alive = new Set<number>();
@@ -470,8 +516,7 @@ export class VaultView {
       const look = `${res.pregnancy ? 'p' : ''}${child ? 'c' : ''}${res.weapon ?? ''}|${res.outfit ?? ''}`;
       if (sp.look !== look) {
         sp.look = look;
-        sp.body.clear();
-        drawResident(sp.body, res, this.game.content, child);
+        this.dress(sp, res, child, false);
       }
       const where: ResidentSprite['roomId'] = res.waiting ? 'waiting' : child ? 'child' : res.roomId;
       const bounds = this.residentBounds(res, waitingList.indexOf(res));
@@ -482,6 +527,7 @@ export class VaultView {
       }
       if (this.gesture.kind === 'drag' && this.gesture.residentId === res.id) continue;
       // wander
+      sp.moving = false;
       if (Math.abs(sp.targetX - sp.x) < 2) {
         if (hash(res.id + Math.floor(this.time * 0.4 + res.id)) % 60 === 0 || sp.targetX < bounds.min || sp.targetX > bounds.max) {
           sp.targetX = bounds.min + ((hash(Math.floor(this.time * 10) + res.id * 31) % 1000) / 1000) * (bounds.max - bounds.min);
@@ -492,12 +538,15 @@ export class VaultView {
         const speed = res.dead ? 0 : 38;
         sp.x += dir * Math.min(Math.abs(sp.targetX - sp.x), speed * dt);
         sp.phase += dt * 9;
+        sp.moving = speed > 0;
       }
       sp.x = Math.min(bounds.max, Math.max(bounds.min, sp.x));
       sp.root.position.set(sp.x, bounds.y);
       const size = child ? 0.62 : 1;
       sp.root.scale.set(sp.facing * size, size);
-      sp.body.rotation = res.dead ? -Math.PI / 2 : Math.sin(sp.phase) * 0.04;
+      // Sprites carry their own walk; only the placeholder needs a wobble.
+      sp.pose.rotation = res.dead ? -Math.PI / 2 : sp.figure ? 0 : Math.sin(sp.phase) * 0.04;
+      sp.figure?.pose(sp.moving && !res.dead, sp.phase / 9);
       sp.root.alpha = res.dead ? 0.7 : 1;
       const selected = res.id === this.selectedResidentId;
       sp.root.children[0]!.visible = selected;
@@ -530,18 +579,19 @@ export class VaultView {
       let w = this.walkers.get(e.id);
       if (!w) {
         const root = new Container();
+        const pose = new Container();
+        const shadow = new Graphics().ellipse(0, 0, 11, 3).fill({ color: 0x000000, alpha: 0.35 });
         const body = new Graphics();
-        root.addChild(body);
+        pose.addChild(shadow, body);
+        root.addChild(pose);
         this.walkerLayer.addChild(root);
-        w = { root, body, look: '' };
+        w = { root, pose, body, figure: null, look: '' };
         this.walkers.set(e.id, w);
       }
       const look = `${res.weapon ?? ''}|${res.outfit ?? ''}`;
       if (w.look !== look) {
         w.look = look;
-        w.body.clear();
-        drawBackpack(w.body);
-        drawResident(w.body, res, content, false);
+        this.dress(w, res, false, true);
       }
       const offset = (i * WALK_RANGE) / MAX_WALKERS;
       const along = (this.time * 20 + offset + (hash(e.id) % 60)) % WALK_RANGE;
@@ -562,11 +612,12 @@ export class VaultView {
         facing = -1;
         bobbing = false;
       }
-      const step = bobbing ? Math.abs(Math.sin(this.time * 8 + e.id)) * 2 : 0;
+      const step = bobbing && !w.figure ? Math.abs(Math.sin(this.time * 8 + e.id)) * 2 : 0;
       w.root.position.set(x, SURFACE_H - 40 - step);
       w.root.scale.set(facing * WALKER_SCALE, WALKER_SCALE);
       w.root.alpha = Math.max(0, alpha);
-      w.body.rotation = bobbing ? Math.sin(this.time * 8 + e.id) * 0.05 : 0;
+      w.pose.rotation = bobbing && !w.figure ? Math.sin(this.time * 8 + e.id) * 0.05 : 0;
+      w.figure?.pose(bobbing, this.time + e.id);
     });
     for (const [id, w] of this.walkers) {
       if (keep.has(id)) continue;
@@ -611,8 +662,11 @@ export class VaultView {
     halo.ellipse(0, 0, 18, 6).fill({ color: 0xf2a541, alpha: 0.8 });
     halo.visible = false;
     root.addChild(halo);
+    const pose = new Container();
+    const shadow = new Graphics().ellipse(0, 0, 11, 3).fill({ color: 0x000000, alpha: 0.35 });
     const body = new Graphics();
-    root.addChild(body);
+    pose.addChild(shadow, body);
+    root.addChild(pose);
     root.eventMode = 'static';
     root.cursor = 'grab';
     root.hitArea = { contains: (x: number, y: number) => x > -14 && x < 14 && y > -RESIDENT_H && y < 4 };
@@ -622,7 +676,7 @@ export class VaultView {
       this.gesture = { kind: 'drag', startX: e.global.x, startY: e.global.y, t: performance.now(), moved: false, residentId: res.id };
     });
     this.residentLayer.addChild(root);
-    return { root, body, x: 0, targetX: 0, roomId: -999, phase: hash(res.id) % 10, facing: 1, look: '' };
+    return { root, pose, body, figure: null, moving: false, x: 0, targetX: 0, roomId: -999, phase: hash(res.id) % 10, facing: 1, look: '' };
   }
 
   // ---------------------------------------------------------------- input
@@ -1166,8 +1220,6 @@ function drawResident(g: Graphics, res: Resident, content: Content, child: boole
   const suit = child ? 0x6fb5c9 : outfitStat ? (OUTFIT_COLORS[outfitStat] ?? 0x3f8f8a) : 0x3f8f8a;
   const stripe = outfit ? (RARITY_TRIM[outfit.rarity] ?? 0xf2a541) : 0xf2a541;
   const top = -RESIDENT_H;
-  // shadow
-  g.ellipse(0, 0, 11, 3).fill({ color: 0x000000, alpha: 0.35 });
   // legs
   g.roundRect(-7, top + 30, 6, 16, 2).fill(shade(suit, -0.3));
   g.roundRect(1, top + 30, 6, 16, 2).fill(shade(suit, -0.3));
@@ -1189,11 +1241,30 @@ function drawResident(g: Graphics, res: Resident, content: Content, child: boole
   // eye (facing right; sprite is mirrored for left)
   g.circle(4, top + 8, 1.4).fill(0x1b1b1b);
   if (res.pregnancy) g.ellipse(9, top + 27, 5, 6).fill(suit);
-  if (res.weapon) {
-    const w = content.weapons[res.weapon];
-    const len = w ? 10 + Math.min(12, w.max / 2) : 10;
-    g.rect(10, top + 24, len, 4).fill(0x2b2f33);
-    g.rect(10, top + 27, 4, 5).fill(0x4a3a2a);
-  }
-  if (res.rarity !== 'common') g.circle(0, top - 6, 3).fill(res.rarity === 'legendary' ? 0xf2c14e : 0xc9d1d3);
+  drawWeapon(g, res, content, 10, top + 24);
+  drawRarityPip(g, res, top - 6);
+}
+
+function drawWeapon(g: Graphics, res: Resident, content: Content, x: number, y: number): void {
+  if (!res.weapon) return;
+  const w = content.weapons[res.weapon];
+  const len = w ? 10 + Math.min(12, w.max / 2) : 10;
+  g.rect(x, y, len, 4).fill(0x2b2f33);
+  g.rect(x, y + 3, 4, 5).fill(0x4a3a2a);
+}
+
+function drawRarityPip(g: Graphics, res: Resident, y: number): void {
+  if (res.rarity !== 'common') g.circle(0, y, 3).fill(res.rarity === 'legendary' ? 0xf2c14e : 0xc9d1d3);
+}
+
+/**
+ * What sprite art doesn't show yet, drawn over it: the weapon held low at
+ * the side, an expecting marker, and the rarity pip. Replace these as the
+ * art gains held-weapon poses.
+ */
+function drawOverlays(g: Graphics, res: Resident, content: Content): void {
+  const top = -SPRITE_H;
+  drawWeapon(g, res, content, 4, top + SPRITE_H * 0.5);
+  if (res.pregnancy) drawHeart(g, 11, top + 4, 3);
+  drawRarityPip(g, res, top - 5);
 }
