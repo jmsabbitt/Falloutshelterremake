@@ -25,7 +25,9 @@ export type PerkEffect =
   | 'outpostOutput'
   | 'foundingParty'
   | 'heirlooms'
-  | 'crateLuck';
+  | 'crateLuck'
+  /** M6: share of completed research (cheapest first) and unspent points kept when founding. */
+  | 'researchKeep';
 
 export interface PerkDef {
   id: string;
