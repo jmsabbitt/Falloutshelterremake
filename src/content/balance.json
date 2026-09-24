@@ -143,6 +143,7 @@
     },
     "spreadDelaySeconds": 12,
     "hpPerAvgLevel": 0.08,
+    "damagePerLevel": 0.25,
     "xpOnResolvePerResident": 25,
     "types": {
       "fire": {

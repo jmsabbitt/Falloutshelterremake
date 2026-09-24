@@ -41,6 +41,7 @@ import {
   type Room,
 } from '../src/sim';
 import { playQuest } from '../src/sim/systems/questBot';
+import { closelyRelated } from '../src/sim/residents';
 
 const content = loadContent();
 const hours = Number(process.argv[2] ?? 48);
@@ -198,8 +199,13 @@ function botTurn(): void {
   const expecting = s.residents.filter((r) => r.pregnancy).length;
   if (quarters && spare - expecting >= 2) {
     const inside = s.residents.filter((r) => r.roomId === quarters.id && !r.dead);
+    // Anyone home and free, and not related to whoever is already waiting in the quarters.
     const pick = (sex: 'f' | 'm') =>
-      s.residents.find((r) => r.sex === sex && !r.dead && !r.waiting && !isChild(s, r) && !r.pregnancy && r.roomId !== door?.id && r.roomId !== quarters.id);
+      s.residents.find(
+        (r) =>
+          r.sex === sex && !r.dead && !r.waiting && !isAway(r) && !isChild(s, r) && !r.pregnancy && r.roomId !== door?.id && r.roomId !== quarters.id &&
+          !inside.some((o) => closelyRelated(s, o, r)),
+      );
     for (const sex of ['f', 'm'] as const) {
       if (inside.some((r) => r.sex === sex)) continue;
       const who = pick(sex);

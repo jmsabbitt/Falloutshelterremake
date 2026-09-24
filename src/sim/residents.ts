@@ -52,10 +52,15 @@ export function topStats(stats: Stats): StatKey[] {
 }
 
 /** Average damage per second in vault fights: weapon average, fists = 1. */
+/**
+ * Damage per second against incidents: the weapon's average (fists 1), plus a
+ * little per level, so seasoned residents keep up with incidents that scale
+ * with the homestead's average level.
+ */
 export function combatDamage(content: Content, r: Resident): number {
-  if (!r.weapon) return 1;
-  const w = content.weapons[r.weapon];
-  return w ? (w.min + w.max) / 2 : 1;
+  const w = r.weapon ? content.weapons[r.weapon] : undefined;
+  const base = w ? (w.min + w.max) / 2 : 1;
+  return base + content.balance.incidents.damagePerLevel * (r.level - 1);
 }
 
 export function isChild(state: GameState, r: Resident): boolean {
