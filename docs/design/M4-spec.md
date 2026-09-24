@@ -115,7 +115,7 @@ All of it happens inside `tickQuests`.
 
 ### Contracts
 
-- Contracts unlock once `act1_1` is done (`tuning.contracts.unlockedBy`), then refresh every 24 h of sim time. Three are offered each time.
+- Contracts unlock once `act1_1` is done (`tuning.contracts.unlockedBy`), then refresh every 6 h of sim time (so dedicated players always have work). Three are offered each time.
 - Each offer rolls a template, a place, a level (around the average of the top three residents' levels), a travel time and a **named bounty** (GDD §15). A rare bounty is a whole item. A legendary bounty is 1–2 fragments of a named legendary, since legendaries never drop whole.
 
 ### Useful helpers

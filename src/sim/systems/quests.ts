@@ -1091,7 +1091,7 @@ export function refreshContracts(state: GameState, content: Content): void {
   state.events.push({ type: 'contractsRefreshed' });
 }
 
-/** Contracts open up after the questline's first quest; then refresh every day. */
+/** Contracts open up after the questline's first quest, then refresh every few hours (tuning.contracts.refreshHours). */
 function tickContracts(state: GameState, content: Content): void {
   const t = tuning(content).contracts;
   if (!state.questsDone.includes(t.unlockedBy)) return;

@@ -25,7 +25,7 @@
     "tauntReduction": 0.5,
     "partyScaleHp": 0.45,
     "partyScaleDamage": 0.6,
-    "contracts": { "offers": 3, "refreshHours": 24, "unlockedBy": "act1_1", "levelSpread": 1 }
+    "contracts": { "offers": 3, "refreshHours": 6, "unlockedBy": "act1_1", "levelSpread": 1 }
   },
   "abilities": {
     "brawn": { "id": "haymaker", "name": "Haymaker", "description": "A huge swing that stuns the target and interrupts a wind-up.", "stat": "brawn", "cooldown": 18, "power": 2.5, "duration": 2.5 },
