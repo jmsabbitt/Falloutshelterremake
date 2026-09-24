@@ -8,7 +8,8 @@
 //   - no incidents start or progress, no courtship, no shortage damage
 
 import type { Content } from './content';
-import { refreshUnlocks } from './economy';
+import { refreshUnlocks, resourceCapacity } from './economy';
+import { roomDef } from './grid';
 import { bonus } from './bonuses';
 import { tickOutposts } from './systems/prestige';
 import { collectRoom } from './systems/production';
@@ -17,7 +18,7 @@ import { tickCrafting } from './systems/crafting';
 import { tickExpeditions } from './systems/exploration';
 import { settle } from './systems/crates';
 import { tickCourtship, tickFamily } from './systems/family';
-import { tickIncidents, tickIncidentTimer } from './systems/incidents';
+import { settleIncidentsOffline, tickIncidents, tickIncidentTimer } from './systems/incidents';
 import { tickNeeds, updatePower } from './systems/needs';
 import { tickProduction } from './systems/production';
 import { tickQuests } from './systems/quests';
@@ -39,6 +40,7 @@ function step(state: GameState, content: Content, dt: number, opts: StepOptions)
   updatePower(state, content);
   tickProduction(state, content, dt);
   tickNeeds(state, content, dt, { consume: opts.consume, harm: !opts.offline });
+  if (opts.offline) settleIncidentsOffline(state, content, dt);
   if (!opts.offline) {
     tickIncidents(state, content, dt);
     tickIncidentTimer(state, content, dt);
@@ -57,7 +59,13 @@ function step(state: GameState, content: Content, dt: number, opts: StepOptions)
   tickMastery(state, content, dt);
   // Conveyor Belts (Legacy): finished batches collect themselves while playing.
   if (!opts.offline && bonus(state, content, 'autoCollect') > 0) {
-    for (const room of state.rooms) if (room.ready) collectRoom(state, content, room);
+    for (const room of state.rooms) {
+      if (!room.ready) continue;
+      // Leave batches banked while storage is full, rather than wasting them.
+      const res = roomDef(content, room).produces?.resource;
+      if (res && state.resources[res] >= resourceCapacity(state, content, res)) continue;
+      collectRoom(state, content, room);
+    }
   }
   refreshUnlocks(state, content);
   settle(state, content, from);

@@ -368,7 +368,11 @@ export function workerMult(state: GameState, content: Content, r: Resident, room
 }
 
 /** Change to a resident's happiness target from traits (can be negative). */
-export function traitHappiness(state: GameState, content: Content, r: Resident): number {
+/**
+ * `occupants` (room id -> living residents in it), when given, saves scanning
+ * every resident for every resident in the happiness tick.
+ */
+export function traitHappiness(state: GameState, content: Content, r: Resident, occupants?: Map<number, Resident[]>): number {
   const t = traitsContent(content).tuning;
   const ix = index(content);
   const room = findRoom(state, r.roomId);
@@ -381,7 +385,7 @@ export function traitHappiness(state: GameState, content: Content, r: Resident):
     // whose traits change the mood of the room.
     let n = 0;
     let holders: Resident[] | null = null;
-    for (const o of state.residents) {
+    for (const o of occupants ? (occupants.get(room.id) ?? []) : state.residents) {
       if (o === r || o.roomId !== room.id || o.dead) continue;
       n++;
       if (hasAny(o, ix.aura)) (holders ??= []).push(o);

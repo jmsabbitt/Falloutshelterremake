@@ -370,7 +370,9 @@ export function deepIncidentChance(state: GameState, content: Content, deepRooms
 /** HP and damage multipliers for a deep incident starting on this floor. */
 export function deepIncidentScale(state: GameState, content: Content, floor: number): { hp: number; dps: number } {
   const t = deepContent(content).tuning.incidents;
-  const depth = 1 + t.perStratum * Math.max(0, stratumOf(content, floor) - 1);
+  // Split the depth factor between HP and damage, so danger (HP × damage)
+  // grows linearly with depth rather than with its square.
+  const depth = Math.sqrt(1 + t.perStratum * Math.max(0, stratumOf(content, floor) - 1));
   const b = braced(state, content);
   return { hp: depth * (b ? t.bracing.hpMult : 1), dps: depth * (b ? t.bracing.dpsMult : 1) };
 }

@@ -45,14 +45,23 @@ interface ResearchNodeLike {
 export function researchValue(state: GameState, content: Content, effect: BonusEffect): number {
   const done = state.research?.done;
   if (!done?.length) return 0;
-  const nodes = (content.research as unknown as { nodes: ResearchNodeLike[] }).nodes;
-  let total = 0;
-  for (const n of nodes) {
-    if (!done.includes(n.id)) continue;
-    for (const e of n.effects ?? []) if (e.effect === effect) total += e.value;
+  // Research only ever grows (or is replaced wholesale on founding), so the
+  // totals are cached per done-list and recomputed when its length changes.
+  let cache = researchCache.get(done);
+  if (!cache || cache.size !== done.length || cache.content !== content) {
+    const totals = new Map<string, number>();
+    const nodes = (content.research as unknown as { nodes: ResearchNodeLike[] }).nodes;
+    for (const n of nodes) {
+      if (!done.includes(n.id)) continue;
+      for (const e of n.effects ?? []) totals.set(e.effect, (totals.get(e.effect) ?? 0) + e.value);
+    }
+    cache = { size: done.length, content, totals };
+    researchCache.set(done, cache);
   }
-  return total;
+  return cache.totals.get(effect) ?? 0;
 }
+
+const researchCache = new WeakMap<string[], { size: number; content: Content; totals: Map<string, number> }>();
 
 /** Everything that grants this effect: Legacy perks plus research. */
 export function bonus(state: GameState, content: Content, effect: BonusEffect): number {

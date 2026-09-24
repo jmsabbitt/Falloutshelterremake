@@ -113,7 +113,14 @@ export function isRightRoom(state: GameState, content: Content, r: Resident): bo
 }
 
 /** `deadRooms`: rooms holding a fallen resident (pass it when calling for everyone, to avoid an O(n²) scan). */
-export function happinessTarget(state: GameState, content: Content, r: Resident, shortage: boolean, deadRooms?: Set<number>): number {
+export function happinessTarget(
+  state: GameState,
+  content: Content,
+  r: Resident,
+  shortage: boolean,
+  deadRooms?: Set<number>,
+  occupants?: Map<number, Resident[]>,
+): number {
   const h = content.balance.happiness;
   let target = h.base;
   if (isRightRoom(state, content, r)) target += h.rightRoomBonus;
@@ -121,16 +128,26 @@ export function happinessTarget(state: GameState, content: Content, r: Resident,
   if (r.hp < effectiveMaxHp(r) * 0.5 || r.taint > r.maxHp * 0.25) target -= h.injuredPenalty;
   const deadHere = r.roomId !== null && (deadRooms ? deadRooms.has(r.roomId) : state.residents.some((o) => o.dead && o.roomId === r.roomId));
   if (deadHere) target -= 30;
-  target += traitHappiness(state, content, r);
+  target += traitHappiness(state, content, r, occupants);
   return Math.max(0, Math.min(100, target));
 }
 
 function tickHappiness(state: GameState, content: Content, dt: number, shortage: boolean): void {
   const step = (content.balance.happiness.changePerMin * dt) / 60;
+  // Index rooms once per step, so per-resident checks don't rescan everyone.
   const deadRooms = new Set<number>();
-  for (const o of state.residents) if (o.dead && o.roomId !== null) deadRooms.add(o.roomId);
+  const occupants = new Map<number, Resident[]>();
+  for (const o of state.residents) {
+    if (o.roomId === null) continue;
+    if (o.dead) deadRooms.add(o.roomId);
+    else {
+      const list = occupants.get(o.roomId);
+      if (list) list.push(o);
+      else occupants.set(o.roomId, [o]);
+    }
+  }
   for (const r of livingResidents(state)) {
-    const target = happinessTarget(state, content, r, shortage, deadRooms);
+    const target = happinessTarget(state, content, r, shortage, deadRooms, occupants);
     if (r.happiness < target) r.happiness = Math.min(target, r.happiness + step);
     else if (r.happiness > target) r.happiness = Math.max(target, r.happiness - step);
   }

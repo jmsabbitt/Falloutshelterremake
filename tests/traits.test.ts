@@ -434,8 +434,8 @@ describe('mastery', () => {
     r.traits = ['hard_case'];
     staff(s, gen, [r]);
     drainEvents(s);
-    catchUp(s, content, T0 + 7 * HOUR * 1000);
-    expect(r.mastery.generator).toBeCloseTo(7 * HOUR, 0);
+    catchUp(s, content, T0 + 49 * HOUR * 1000);
+    expect(r.mastery.generator).toBeCloseTo(49 * HOUR, 0);
     expect(masteryTier(content, r, 'generator')).toBe(1);
     expect(drainEvents(s).some((e) => e.type === 'masteryUp' && e.residentId === r.id)).toBe(true);
 

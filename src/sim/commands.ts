@@ -3,14 +3,14 @@
 
 import type { Content } from './content';
 import { bonus } from './bonuses';
-import { addScrip, buildCost, population, refreshUnlocks, storageCapacity, upgradeCost } from './economy';
+import { addScrip, buildCost, population, refreshUnlocks, resourceCapacity, storageCapacity, upgradeCost } from './economy';
 import { canPlace, connectedRoomIds, mergeFloor, roomDef } from './grid';
 import { bump, effectiveMaxHp, effectiveStat, isAway, isChild, residentsInRoom, reviveCost } from './residents';
 import { claimDaily, openCrate, settle } from './systems/crates';
 import { equip, grantItem, sell, unequip } from './systems/items';
 import { collectExpedition, onResidentRevived, recallExpedition, startExpedition } from './systems/exploration';
 import { cancelCraft, collectCraft, reforge, scrapItem, startCraft } from './systems/crafting';
-import { collectRoom } from './systems/production';
+import { batchOutput, collectRoom } from './systems/production';
 import { buyPerk, collectOutposts } from './systems/prestige';
 import { doResearch } from './systems/research';
 import { startExcavation } from './systems/deep';
@@ -151,9 +151,17 @@ function dispatch(state: GameState, content: Content, cmd: Command): CommandResu
       if (needPop !== undefined && population(state) < needPop) return fail(`needs population ${needPop} to upgrade`);
       if (state.incidents.length) return fail('deal with the incident first');
       if (state.scrip < cost) return fail('not enough scrip');
-      // Batches made at the old level are paid at the old level.
-      if (room.ready) collectRoom(state, content, room);
-      if (room.ready) return fail('storage is full: make room for its finished batches first');
+      // Batches made at the old level are paid at the old level: collect them
+      // first, and refuse (before collecting anything) if they wouldn't all fit.
+      if (room.ready) {
+        const def = roomDef(content, room);
+        const key = def.produces?.resource;
+        const extra = batchOutput(content, room) * (room.banked ?? 0);
+        if (key && extra > 0 && resourceCapacity(state, content, key) - state.resources[key] <= extra) {
+          return fail('storage is full: make room for its finished batches first');
+        }
+        collectRoom(state, content, room);
+      }
       addScrip(state, content, -cost);
       room.level++;
       bump(state, 'upgrades');

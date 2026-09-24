@@ -8,7 +8,7 @@ import type { Content } from '../content';
 import { bonus } from '../bonuses';
 import { refreshUnlocks } from '../economy';
 import { roomDef } from '../grid';
-import { bump, effectiveMaxHp, effectiveStat, grantXp, isAway, workersInRoom } from '../residents';
+import { bump, bumpMax, effectiveMaxHp, effectiveStat, grantXp, isAway, workersInRoom } from '../residents';
 import type { GameState, Resident, Room } from '../types';
 import { autoAssign } from './assign';
 import { workerMult } from './traits';
@@ -105,6 +105,10 @@ export function doResearch(state: GameState, content: Content, nodeId: string): 
   bump(state, 'researchDone');
   bump(state, `researchDone.${node.branch}`);
   bump(state, `researchTier${node.tier}`);
+  // Per-homestead counts, for "in one homestead" achievements.
+  bumpMax(state, 'researchDoneHomestead', state.research.done.length);
+  const inBranch = state.research.done.filter((id) => researchNode(content, id)?.branch === node.branch).length;
+  bumpMax(state, `researchDoneHomestead.${node.branch}`, inBranch);
   refreshUnlocks(state, content);
   return null;
 }
