@@ -1,14 +1,222 @@
 {
-  "_comment": "The Deep: strata below the base grid, excavation, deep discoveries. Typed in src/sim/systems/deep.ts; see docs/design/M6-spec.md.",
+  "_comment": "The Deep: strata below the base grid, excavation, deep discoveries, the refinery and deep threat tuning. Typed in src/sim/systems/deep.ts; see docs/design/M6-spec.md. Deep incident types themselves live in balance.json -> incidents.types (deepOnly).",
   "tuning": {
     "floorsPerStratum": 5,
     "requiresResearch": "deep_survey",
     "digHours": [4, 8, 16, 32],
-    "digScrip": [5000, 15000, 40000, 100000]
+    "digScrip": [5000, 15000, 40000, 100000],
+    "discovery": {
+      "_comment": "Online only: every resident working a deep-floor job adds a worker-second. The k-th discovery found this way needs workerSeconds * (k + growth * k(k-1)/2) in total.",
+      "workerSeconds": 36000,
+      "growth": 0.1
+    },
+    "refinery": {
+      "_comment": "Workers' Knack (x happiness, x productionSpeed, x levelMult) fills room.pool; each pointsPerSegment x segments yields one piece of salvage. Runs online and offline.",
+      "pointsPerSegment": 12000,
+      "levelMult": [1, 1.4, 1.8],
+      "materials": { "steel": 45, "circuitry": 35, "chemicals": 12, "valuables": 8 },
+      "rareChance": [0.06, 0.12, 0.2],
+      "legendaryChance": [0.005, 0.015, 0.04]
+    },
+    "incidents": {
+      "_comment": "When the random incident timer fires, a deep incident happens instead with chance share x (deep incident rooms / all incident rooms). Each stratum below the first adds perStratum to deep incident HP and damage. Deep Bracing (research) cuts all of it.",
+      "share": 1,
+      "perStratum": 0.2,
+      "bracing": { "research": "deep_bracing", "shareMult": 0.6, "hpMult": 0.75, "dpsMult": 0.75 }
+    }
   },
   "strata": [
-    { "index": 1, "name": "Stratum 1: The Service Levels", "description": "Halcyon's own maintenance floors, sealed since the Glare.", "requiresResearch": "deep_survey" }
+    {
+      "index": 1,
+      "name": "Stratum 1: The Service Levels",
+      "description": "Halcyon's own maintenance decks: pneumatic mail, spare-parts cages and a staff canteen with the chairs still stacked. The paint is fresh. Nobody has worked here since the Glare, and the lights came on by themselves when you broke through.",
+      "requiresResearch": "deep_survey"
+    },
+    {
+      "index": 2,
+      "name": "Stratum 2: The Cisterns",
+      "description": "A cathedral of pipework and still, black water. Halcyon's gauges all read NOMINAL. The water is warm, it rises when nobody is looking, and it is not coming from the surface.",
+      "requiresResearch": "deep_survey_2"
+    },
+    {
+      "index": 3,
+      "name": "Stratum 3: The Proving Floors",
+      "description": "Rows of glass rooms, clipboards and one-way mirrors, all very clean. Every chair faces the floor. Something pale has been nesting in the ventilation, and it does not like the light.",
+      "requiresResearch": "deep_survey_3"
+    },
+    {
+      "index": 4,
+      "name": "Stratum 4: The Seal",
+      "description": "One bulkhead, as wide as the homestead, stamped with the Halcyon sunburst. The bedrock around it is warm to the touch. On quiet nights, if you knock on it, something knocks back.",
+      "requiresResearch": "deep_survey_4"
+    }
   ],
-  "discoveries": {},
-  "achievements": []
+  "discoveries": {
+    "s1_placard": {
+      "id": "s1_placard",
+      "stratum": 1,
+      "kind": "log",
+      "onDig": true,
+      "title": "Orientation Placard",
+      "text": "WELCOME, MAINTENANCE ASSOCIATE! You are now below the Charter Floors. Residents do not come down here, and officially, neither do you. Please keep this level tidy, your voice low and your curiosity within budget. Remember: a sealed door is a happy door!"
+    },
+    "s1_rota": {
+      "id": "s1_rota",
+      "stratum": 1,
+      "kind": "log",
+      "title": "Shift Rota, Week One",
+      "text": "A duty roster for forty technicians. Every shift has the same note in the margin, each time in a different hand: 'Pressure readings normal. Pressure coming from below. Is that normal?' A manager has initialled every single one: 'Yes.'"
+    },
+    "s1_canister": {
+      "id": "s1_canister",
+      "stratum": 1,
+      "kind": "relic",
+      "title": "Undelivered Canister",
+      "text": "Still in the pneumatic tube, stamped HEAD OFFICE, URGENT. Inside: a Halcyon mug, a resignation letter and one line on company paper: 'I won't do nights on Four again. It hums when you stop moving.' The mug says WORLD'S OKAYEST SUPERVISOR.",
+      "reward": { "salvage": { "rarity": "common", "count": [3, 5], "materials": ["steel", "circuitry"] } }
+    },
+    "s1_poster": {
+      "id": "s1_poster",
+      "stratum": 1,
+      "kind": "relic",
+      "title": "Motivational Poster",
+      "text": "A cartoon miner gives a big thumbs-up beside the slogan DIG DEEP, THINK SHALLOW! Somebody has scratched out THINK SHALLOW and written LISTEN underneath. The scratches carry on past the frame and down into the wall."
+    },
+    "s1_node": {
+      "id": "s1_node",
+      "stratum": 1,
+      "kind": "log",
+      "title": "HALCY Maintenance Node B",
+      "text": "A second HALCY terminal, dusty and dim. It boots, chirps 'Oh! Hello! You aren't supposed to be here,' and then, much more quietly, 'Neither am I.' It won't say anything else, but it keeps the corridor lights on wherever you walk.",
+      "reward": { "crate": "standard" }
+    },
+
+    "s2_gauge": {
+      "id": "s2_gauge",
+      "stratum": 2,
+      "kind": "relic",
+      "onDig": true,
+      "title": "Gauge, Stuck on NOMINAL",
+      "text": "A brass pressure gauge the size of a dinner plate. The needle has been soldered in place at NOMINAL. Behind the glass, a second needle nobody thought to solder is still turning, slowly, past the red."
+    },
+    "s2_memo": {
+      "id": "s2_memo",
+      "stratum": 2,
+      "kind": "log",
+      "title": "Water Rights Memo",
+      "text": "INTERNAL, DO NOT POST. Reminder: the Cisterns do not supply the homestead. The homestead supplies the Cisterns. Keep topping them up weekly. Do not ask where it goes. If a resident asks why the reservoir is always warm, it is a feature."
+    },
+    "s2_skiff": {
+      "id": "s2_skiff",
+      "stratum": 2,
+      "kind": "relic",
+      "title": "Maintenance Skiff",
+      "text": "A flat-bottomed boat chained to a pillar, oars neatly stowed. Scratched into the bench: seventeen tally marks, a little sunburst, and 'the water goes DOWN. it goes down and down and it comes back up WARM.'",
+      "reward": { "salvage": { "rarity": "rare", "count": [1, 2], "materials": ["steel"] } }
+    },
+    "s2_intercom": {
+      "id": "s2_intercom",
+      "stratum": 2,
+      "kind": "log",
+      "title": "Intercom Loop",
+      "text": "A crackling tape loop. A calm voice: 'Cistern Control to Floor Four, we're reading movement in the intake. Please confirm.' A pause. 'Floor Four, please confirm.' A long pause. Then HALCY, brightly: 'Floor Four is doing great!' The loop starts again."
+    },
+    "s2_brochure": {
+      "id": "s2_brochure",
+      "stratum": 2,
+      "kind": "relic",
+      "title": "Waterlogged Brochure",
+      "text": "HALCYON GROUNDWORKS: BUILDING TOMORROW FROM THE BOTTOM UP! A cutaway of a homestead, with smiling families on every floor. Below the last floor the artist has painted a sunrise, upside down, rising from underneath.",
+      "reward": { "fragment": "rare" }
+    },
+
+    "s3_plate": {
+      "id": "s3_plate",
+      "stratum": 3,
+      "kind": "log",
+      "onDig": true,
+      "title": "Observation Deck Plate",
+      "text": "PROVING FLOOR 3. A brass plate by the door, polished by a great many thumbs: OBSERVATION IS A TWO-WAY STREET. PLEASE KEEP YOUR SIDE OF THE GLASS CLEAN. Every mirror in the room is set into the floor."
+    },
+    "s3_clipboard": {
+      "id": "s3_clipboard",
+      "stratum": 3,
+      "kind": "log",
+      "title": "Readiness Clipboard",
+      "text": "A list of subscriber names under the heading SUNRISE READINESS: TIER ZERO. Beside each: height, blood type, a smiley-face sticker, and a column headed WILL THEY KNOCK? Most are ticked NO. The last three are ticked YES, and underlined twice."
+    },
+    "s3_moult": {
+      "id": "s3_moult",
+      "stratum": 3,
+      "kind": "relic",
+      "title": "Deepcrawler Moult",
+      "text": "A shed skin, pale as tracing paper and jointed like a folding ruler. Riveted to one leg is a Halcyon asset tag: PROPERTY OF GROUNDWORKS. IF FOUND, DO NOT RETURN.",
+      "reward": { "salvage": { "rarity": "rare", "count": [1, 2], "materials": ["hide"] } }
+    },
+    "s3_calendar": {
+      "id": "s3_calendar",
+      "stratum": 3,
+      "kind": "relic",
+      "title": "Countdown Calendar",
+      "text": "A Halcyon desk calendar, a smiling sun on every page. Someone has crossed the days off in red up to a date circled three times and labelled 'Sunrise (provisional)'. It is the morning of the Glare. The calendar was printed two years before it."
+    },
+    "s3_lesson": {
+      "id": "s3_lesson",
+      "stratum": 3,
+      "kind": "log",
+      "title": "HALCY Training Module 9",
+      "text": "'Lesson Nine: Talking to Residents About the Lower Floors!' HALCY's voice, younger and less certain. 'If a resident asks what is below the homestead, say: more homestead! If they ask what is below that, say: bedrock! If they ask what is below the bedrock...' A pause. 'Please hold.' The lesson ends there.",
+      "reward": { "recipe": "tunneler_gear" }
+    },
+
+    "s4_seal": {
+      "id": "s4_seal",
+      "stratum": 4,
+      "kind": "relic",
+      "onDig": true,
+      "title": "The Seal",
+      "text": "The bulkhead's friendly reminder is printed upside down, to be read by someone standing underneath it: PLEASE REMAIN ON YOUR SIDE. HALCYON THANKS YOU FOR YOUR PATIENCE."
+    },
+    "s4_ledger": {
+      "id": "s4_ledger",
+      "stratum": 4,
+      "kind": "log",
+      "title": "Groundworks Ledger",
+      "text": "Neat columns headed GROUNDWORKS: TENANCY. Received, every month: warmth, light and power for every homestead in the Charter. Paid, every month: one line, blacked out. The entries go back further than Halcyon has existed.",
+      "reward": { "fragment": "legendary" }
+    },
+    "s4_seismograph": {
+      "id": "s4_seismograph",
+      "stratum": 4,
+      "kind": "relic",
+      "title": "Seismograph Tape",
+      "text": "Paper tape from a seismograph bolted beside the seal. Mostly flat. Then, at perfectly regular intervals, three sharp spikes. Knock, knock, knock. The dates run right up to this morning."
+    },
+    "s4_halcy": {
+      "id": "s4_halcy",
+      "stratum": 4,
+      "kind": "log",
+      "title": "HALCY, Unprompted",
+      "text": "Every speaker in the Deep switches on at once. 'Warden! You found the seal! Wonderful work. I'm going to have to ask you to stop now.' A pause. 'That isn't me asking. I would like it on the record that that is not me asking.'",
+      "reward": { "crate": "rare" }
+    },
+    "s4_key": {
+      "id": "s4_key",
+      "stratum": 4,
+      "kind": "relic",
+      "title": "Commemorative Key",
+      "text": "A heavy gold key in a velvet box, engraved: TO THE HOMESTEAD THAT FINDS THIS, WITH THE COMPLIMENTS OF THE BOARD. There is no keyhole on this side of the seal. The box has a second slot, empty, shaped exactly like a HALCY memory core.",
+      "reward": { "crate": "legendary" }
+    }
+  },
+  "achievements": [
+    { "id": "deep_first_stratum", "name": "Below the Charter", "description": "Excavate your first stratum of the Deep.", "tier": "bronze", "stat": "strataExcavated", "target": 1 },
+    { "id": "deep_the_seal", "name": "Please Remain on Your Side", "description": "Excavate all the way down to the Seal.", "tier": "gold", "stat": "deepestStratum", "target": 4 },
+    { "id": "deep_discoveries_5", "name": "Curiosity Within Budget", "description": "Make 5 discoveries in the Deep.", "tier": "bronze", "stat": "discoveries", "target": 5 },
+    { "id": "deep_discoveries_20", "name": "Over Budget", "description": "Make 20 discoveries in the Deep.", "tier": "silver", "stat": "discoveries", "target": 20 },
+    { "id": "deep_caveins_10", "name": "Hard Hat Area", "description": "Dig residents out of 10 cave-ins.", "tier": "bronze", "stat": "incidentsResolved.cavein", "target": 10 },
+    { "id": "deep_floods_10", "name": "Bailing Out", "description": "Stop 10 floods.", "tier": "bronze", "stat": "incidentsResolved.flood", "target": 10 },
+    { "id": "deep_crawlers_25", "name": "Pest Control, Downstairs", "description": "Drive off 25 Deepcrawler nests.", "tier": "silver", "stat": "incidentsResolved.deepcrawlers", "target": 25 },
+    { "id": "deep_refinery_250", "name": "Ore Else", "description": "Refine 250 pieces of salvage from the Deep.", "tier": "silver", "stat": "refinedSalvage", "target": 250 }
+  ]
 }

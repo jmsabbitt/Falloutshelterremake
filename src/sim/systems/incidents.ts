@@ -8,14 +8,21 @@
 // - Rustmen raiders break down the door, then move room to room outward from
 //   it, stealing scrip wherever nobody fights back.
 // - Pregnant residents and children take cover instead of fighting.
+// - M6 deep threats (deepOnly) only start in rooms on deep floors, never
+//   leave the Deep, and grow tougher with each stratum. A cave-in is dug out
+//   with Brawn and doesn't spread (left alone, it settles by itself); a flood
+//   is fixed with Knack and spreads sideways; Deepcrawlers come from dirt
+//   edges like Burrowers. Deep Bracing (research) makes all of them rarer and
+//   weaker; see deep.json -> tuning.incidents.
 
 import type { Content } from '../content';
 import { addScrip, population } from '../economy';
 import { connectedRoomIds, floorOccupancy, roomCells, roomDef } from '../grid';
 import { bonus, incidentRate } from '../bonuses';
-import { bump, combatDamage, fleesIncidents, grantXp, livingResidents } from '../residents';
-import { nextInt, pick } from '../rng';
-import type { GameState, Incident, IncidentType, Resident, Room } from '../types';
+import { bump, combatDamage, effectiveStat, fleesIncidents, grantXp, livingResidents } from '../residents';
+import { chance, nextInt, pick } from '../rng';
+import type { GameState, Incident, IncidentType, Resident, Room, StatKey } from '../types';
+import { deepIncidentChance, deepIncidentScale, isDeepFloor, stratumOf } from './deep';
 
 export interface IncidentDef {
   name: string;
@@ -36,6 +43,19 @@ export interface IncidentDef {
   stealScripPerSec?: number;
   lootPerAvgLevel?: number;
   lootBase?: number;
+  /** M6: only starts on deep floors, and never spreads out of the Deep. */
+  deepOnly?: boolean;
+  /** M6: shallowest stratum it appears in. */
+  minStratum?: number;
+  /** M6: residents fight it with this stat (x workPerStat, plus level) instead of weapons. */
+  workStat?: string;
+  workPerStat?: number;
+  /** M6: left unattended this long, it clears by itself (and stops blocking the room). */
+  settleSeconds?: number;
+  /** M6: spreads left and right only. */
+  sideways?: boolean;
+  /** M6: overrides incidents.spreadDelaySeconds. */
+  spreadDelaySeconds?: number;
 }
 
 export function incidentDef(content: Content, type: IncidentType): IncidentDef {
@@ -77,14 +97,15 @@ export function touchesDirt(state: GameState, content: Content, room: Room): boo
 function newIncident(state: GameState, content: Content, type: IncidentType, room: Room, visited: number[]): Incident {
   const def = incidentDef(content, type);
   const scale = levelScale(state, content);
-  const hp = (def.hpPerSegment ?? 30) * room.segments * (1 + (def.hpPerRoomLevel ?? 0) * (room.level - 1)) * scale;
+  const deep = def.deepOnly ? deepIncidentScale(state, content, room.floor) : { hp: 1, dps: 1 };
+  const hp = (def.hpPerSegment ?? 30) * room.segments * (1 + (def.hpPerRoomLevel ?? 0) * (room.level - 1)) * scale * deep.hp;
   const inc: Incident = {
     id: state.nextId++,
     type,
     roomId: room.id,
     hp,
     maxHp: hp,
-    dps: (def.dpsPerSegment ?? 1) * room.segments * scale,
+    dps: (def.dpsPerSegment ?? 1) * room.segments * scale * deep.dps,
     visited: [...visited, room.id],
     emptyFor: 0,
     roomTime: 0,
@@ -151,6 +172,41 @@ export function scheduleIncident(state: GameState, content: Content): void {
   state.nextIncidentAt = nextInt(state.rng, t.minSeconds, t.maxSeconds) / incidentRate(state, content);
 }
 
+/** Incident types that only happen in the Deep. */
+export function deepIncidentTypes(content: Content): IncidentType[] {
+  return (Object.keys(content.balance.incidents.types) as IncidentType[]).filter((t) => incidentDef(content, t).deepOnly);
+}
+
+/** Rooms a deep incident of this type could start in right now. */
+export function deepIncidentRooms(state: GameState, content: Content, type: IncidentType): Room[] {
+  const def = incidentDef(content, type);
+  if (!def.deepOnly || population(state) < def.natural) return [];
+  return incidentRooms(state, content).filter(
+    (r) =>
+      isDeepFloor(content, r.floor) &&
+      stratumOf(content, r.floor) >= (def.minStratum ?? 1) &&
+      (!def.needsDirt || touchesDirt(state, content, r)),
+  );
+}
+
+/**
+ * The timer fired: maybe the Deep acts up instead of the usual roster. Rolls
+ * nothing at all while no incident room is on a deep floor, so homesteads
+ * without a Deep see exactly the incidents they always did.
+ */
+function maybeDeepIncident(state: GameState, content: Content, rooms: Room[]): boolean {
+  const deepRooms = rooms.filter((r) => isDeepFloor(content, r.floor));
+  if (!deepRooms.length) return false;
+  if (!chance(state.rng, deepIncidentChance(state, content, deepRooms.length, rooms.length))) return false;
+  const choices = deepIncidentTypes(content)
+    .map((type) => ({ type, rooms: deepIncidentRooms(state, content, type) }))
+    .filter((c) => c.rooms.length > 0);
+  if (!choices.length) return false;
+  const c = pick(state.rng, choices);
+  startIncident(state, content, c.type, pick(state.rng, c.rooms));
+  return true;
+}
+
 /** Background incident timer (online only). */
 export function tickIncidentTimer(state: GameState, content: Content, dt: number): void {
   if (state.incidents.length > 0) return;
@@ -166,6 +222,7 @@ export function tickIncidentTimer(state: GameState, content: Content, dt: number
     return def.external ? true : rooms.length > 0;
   });
   scheduleIncident(state, content);
+  if (maybeDeepIncident(state, content, rooms)) return;
   if (!options.length) return;
   const type = pick(state.rng, options);
   if (type === 'rustmen') startRaid(state, content);
@@ -173,10 +230,12 @@ export function tickIncidentTimer(state: GameState, content: Content, dt: number
 }
 
 /** Neighbouring rooms an internal incident can spread to (left, right, above, below). */
-function spreadTargets(state: GameState, content: Content, room: Room, visited: number[]): Room[] {
+function spreadTargets(state: GameState, content: Content, room: Room, visited: number[], def: IncidentDef): Room[] {
   const w = roomCells(content, room);
   const eligible = (r: Room) => {
     const cat = roomDef(content, r).category;
+    // Deep threats stay in the Deep.
+    if (def.deepOnly && !isDeepFloor(content, r.floor)) return false;
     return cat !== 'door' && cat !== 'elevator' && !visited.includes(r.id);
   };
   const sameFloor = state.rooms.filter((r) => r.floor === room.floor && r.id !== room.id);
@@ -187,7 +246,8 @@ function spreadTargets(state: GameState, content: Content, room: Room, visited: 
       .filter((r) => r.floor === floor && r.x < room.x + w && r.x + roomCells(content, r) > room.x)
       .sort((a, b) => a.x - b.x)
       .find(eligible);
-  return [left, right, vertical(room.floor - 1), vertical(room.floor + 1)].filter((r): r is Room => !!r && eligible(r));
+  const around = def.sideways ? [left, right] : [left, right, vertical(room.floor - 1), vertical(room.floor + 1)];
+  return around.filter((r): r is Room => !!r && eligible(r));
 }
 
 /** Where raiders go next: the nearest unvisited room, walking out from the door. */
@@ -202,6 +262,12 @@ function nextRaidRoom(state: GameState, content: Content, inc: Incident): Room |
       return da - db;
     });
   return order[0] ?? null;
+}
+
+/** Damage per second a resident does against a stat-worked incident (digging, patching pipes). */
+function workDamage(content: Content, def: IncidentDef, r: Resident): number {
+  const stat = effectiveStat(content, r, def.workStat as StatKey);
+  return stat * (def.workPerStat ?? 0.5) + content.balance.incidents.damagePerLevel * (r.level - 1);
 }
 
 function resolve(state: GameState, content: Content, inc: Incident, room: Room): void {
@@ -244,7 +310,12 @@ export function tickIncidents(state: GameState, content: Content, dt: number): v
 
     if (crew.length > 0) {
       inc.emptyFor = 0;
-      const damage = def.fixedDamage !== undefined ? crew.length * def.fixedDamage : crew.reduce((s, r) => s + combatDamage(content, r), 0);
+      const damage =
+        def.workStat !== undefined
+          ? crew.reduce((s, r) => s + workDamage(content, def, r), 0)
+          : def.fixedDamage !== undefined
+            ? crew.length * def.fixedDamage
+            : crew.reduce((s, r) => s + combatDamage(content, r), 0);
       inc.hp -= damage * dt;
       // Defense research (drills, armour plating) takes the edge off.
       const perResident = (inc.dps * dt * Math.max(0.2, 1 - bonus(state, content, 'incidentDefense'))) / crew.length;
@@ -288,12 +359,18 @@ export function tickIncidents(state: GameState, content: Content, dt: number): v
         inc.visited.push(next.id);
         inc.roomTime = 0;
       }
-    } else if (def.spreads && inc.emptyFor >= spreadDelay) {
+    } else if (def.settleSeconds !== undefined && inc.emptyFor >= def.settleSeconds) {
+      // Nobody came to dig it out; the rubble settles and the room reopens.
+      // Nobody earns XP, and it doesn't count as resolved for achievements.
+      state.incidents = state.incidents.filter((i) => i !== inc);
+      bump(state, 'incidentsSettled');
+      state.events.push({ type: 'incidentResolved', incidentId: inc.id, roomId: room.id, incident: inc.type, loot: 0 });
+    } else if (def.spreads && inc.emptyFor >= (def.spreadDelaySeconds ?? spreadDelay)) {
       // An unattended room burns out and the incident moves into its neighbours.
       state.incidents = state.incidents.filter((i) => i !== inc);
       const visited = [...inc.visited];
       const spawned: Incident[] = [];
-      for (const target of spreadTargets(state, content, room, visited)) {
+      for (const target of spreadTargets(state, content, room, visited, def)) {
         if (state.incidents.some((i) => i.roomId === target.id)) continue;
         spawned.push(newIncident(state, content, inc.type, target, visited));
         visited.push(target.id);
