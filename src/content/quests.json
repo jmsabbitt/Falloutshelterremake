@@ -7,7 +7,7 @@
     "walkSeconds": 3,
     "attackInterval": 1.5,
     "fists": [1, 2],
-    "damagePerLevel": 0.25,
+    "damagePerLevel": 0.35,
     "gritReduction": 0.025,
     "maxReduction": 0.6,
     "enemyHpPerLevel": 0.14,
@@ -23,6 +23,8 @@
     "recoverHp": 0.15,
     "downedXp": 0.5,
     "tauntReduction": 0.5,
+    "partyScaleHp": 0.45,
+    "partyScaleDamage": 0.6,
     "contracts": { "offers": 3, "refreshHours": 24, "unlockedBy": "act1_1", "levelSpread": 1 }
   },
   "abilities": {

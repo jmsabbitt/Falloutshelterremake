@@ -33,6 +33,8 @@ function nextRoom(q: Quest): string | null {
     const room = byId.get(id);
     if (!room) continue;
     if (!room.visited) found.push(id);
+    // Walking into the objective ends the quest, so never path through it.
+    if (room.objective && id !== here.id) continue;
     for (const l of room.links) if (!prev.has(l)) {
       prev.set(l, id);
       queue.push(l);

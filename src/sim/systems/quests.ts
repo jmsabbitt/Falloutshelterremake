@@ -185,6 +185,12 @@ export interface QuestTuning {
   /** Members who were downed get this share of fight XP. */
   downedXp: number;
   tauntReduction: number;
+  /**
+   * Smaller parties face weaker enemies: HP and damage are multiplied by
+   * base + (1 - base) × size / maxParty.
+   */
+  partyScaleHp: number;
+  partyScaleDamage: number;
   contracts: { offers: number; refreshHours: number; unlockedBy: string; levelSpread: number };
 }
 
@@ -534,9 +540,14 @@ function standing(state: GameState, q: Quest) {
   return members(state, q).filter(({ m, r }) => !m.downed && !r.dead && r.hp > 0);
 }
 
+/** Enemy scaling for a smaller party (1 for a full one). */
+function partyScale(content: Content, q: Quest, base: number): number {
+  return base + ((1 - base) * Math.min(q.party.length, tuning(content).maxParty)) / tuning(content).maxParty;
+}
+
 function spawn(state: GameState, content: Content, q: Quest, ids: string[]): void {
   const t = tuning(content);
-  const scale = 1 + t.enemyHpPerLevel * (q.level - 1);
+  const scale = (1 + t.enemyHpPerLevel * (q.level - 1)) * partyScale(content, q, t.partyScaleHp);
   for (const id of ids) {
     const def = enemyDef(content, id);
     const hp = Math.round(def.hp * scale);
@@ -624,9 +635,16 @@ function livingEnemies(q: Quest): QuestEnemy[] {
   return q.enemies.filter((e) => e.hp > 0);
 }
 
-function pickTarget(q: Quest, m: QuestMember): QuestEnemy | undefined {
+/**
+ * The member's chosen target, else the automatic one: adds before a boss,
+ * then whoever is closest to going down.
+ */
+function pickTarget(content: Content, q: Quest, m: QuestMember): QuestEnemy | undefined {
   const alive = livingEnemies(q);
-  return alive.find((e) => e.uid === m.target) ?? alive[0];
+  const chosen = alive.find((e) => e.uid === m.target);
+  if (chosen) return chosen;
+  const boss = (e: QuestEnemy) => (enemyDef(content, e.defId).boss ? 1 : 0);
+  return [...alive].sort((a, b) => boss(a) - boss(b) || a.hp - b.hp || a.uid - b.uid)[0];
 }
 
 function damageEnemy(state: GameState, content: Content, q: Quest, e: QuestEnemy, amount: number, source: number, crit: boolean): void {
@@ -654,7 +672,7 @@ function partyMultiplier(content: Content, q: Quest): number {
 
 function memberAttack(state: GameState, content: Content, q: Quest, m: QuestMember, r: Resident): void {
   const t = tuning(content);
-  const e = pickTarget(q, m);
+  const e = pickTarget(content, q, m);
   if (!e) return;
   damageEnemy(state, content, q, e, hitRoll(state, content, r) * partyMultiplier(content, q), r.id, false);
   m.crit = Math.min(1, m.crit + t.critPerHit + t.critPerHitPerFortune * effectiveStat(content, r, 'fortune'));
@@ -677,7 +695,7 @@ function damageMember(state: GameState, content: Content, q: Quest, m: QuestMemb
 function enemyHit(state: GameState, content: Content, q: Quest, e: QuestEnemy): number {
   const t = tuning(content);
   const def = enemyDef(content, e.defId);
-  const scale = 1 + t.enemyDamagePerLevel * (q.level - 1);
+  const scale = (1 + t.enemyDamagePerLevel * (q.level - 1)) * partyScale(content, q, t.partyScaleDamage);
   return nextInt(state.rng, def.damage[0], def.damage[1]) * scale * (e.enraged > 0 ? e.enrageMult : 1);
 }
 
@@ -805,7 +823,7 @@ export function questCrit(state: GameState, content: Content, questId: number, r
   const r = findResident(state, residentId);
   if (!m || !r || m.downed) return 'they are not standing';
   if (m.crit < 1) return 'crit meter not full';
-  const e = pickTarget(q, m);
+  const e = pickTarget(content, q, m);
   if (!e) return 'nothing to hit';
   m.crit = 0;
   bump(state, 'questCrits');
@@ -826,7 +844,7 @@ export function questAbility(state: GameState, content: Content, questId: number
   if (m.abilityCooldown > 0) return 'not ready yet';
   const a = abilityFor(content, r);
   const fight = inCombat(q);
-  const target = pickTarget(q, m);
+  const target = pickTarget(content, q, m);
   switch (a.stat) {
     case 'brawn':
     case 'sight': {
