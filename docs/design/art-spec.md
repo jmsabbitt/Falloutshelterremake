@@ -1,5 +1,7 @@
 # Character Art Spec
 
+> Making sprites? Start with the short handoff: [`docs/art/SPRITE-HANDOFF.md`](../art/SPRITE-HANDOFF.md).
+
 How to make resident sprite sheets that drop straight into the game. The short version:
 
 1. Generate a sheet in the **reference colours** below, on flat green.
