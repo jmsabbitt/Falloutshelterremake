@@ -142,6 +142,8 @@ function botTurn(): void {
   for (const tier of ['legendary', 'rare', 'standard'] as const) while (s.crates[tier] > 0) applyCommand(s, content, { type: 'openCrate', tier });
   for (const r of s.residents.filter((x) => x.dead)) applyCommand(s, content, { type: 'revive', residentId: r.id });
   for (const r of s.residents.filter((x) => !x.dead && x.hp < x.maxHp * 0.5)) applyCommand(s, content, { type: 'heal', residentId: r.id });
+  // Glare-sickness eats max HP; purge it before it gets people killed.
+  for (const r of s.residents.filter((x) => !x.dead && x.taint > x.maxHp * 0.25)) applyCommand(s, content, { type: 'purge', residentId: r.id });
 
   // Gear: best weapons to the door guards first, then anyone.
   const weapons = s.items.filter((i) => content.items[i.defId]?.kind === 'weapon');
@@ -174,6 +176,7 @@ function botTurn(): void {
   }
   if (turn % 60 === 0) rebalance();
   if (pop >= 14 && !s.rooms.some((r) => r.type === 'clinic')) tryBuild('clinic');
+  if (pop >= 16 && !s.rooms.some((r) => r.type === 'purgelab')) tryBuild('purgelab');
   if (pop >= 20 && s.rooms.filter((r) => r.type === 'radio').length < 1) tryBuild('radio');
   if (pop >= 12 && s.items.length >= storageCapacity(s, content, 'items') - 2) tryBuild('storeroom');
   // Spend spare scrip on upgrades, production and beds first.
@@ -304,6 +307,7 @@ function maybeFound(hour: number): void {
   );
   s = res.state;
   preparing = false;
+  seenEvents = 0;
   foundedAt.push(hour);
   // Population milestones are per homestead.
   for (const k of Object.keys(milestones)) delete milestones[Number(k)];
@@ -367,9 +371,28 @@ const row = (h: number) => {
   );
 };
 
+let seenEvents = 0;
+/** DEBUG_DEATHS=1: print who died where, to diagnose deadly incident balance. */
+function logDeaths(hour: number): void {
+  const evs = s.events.slice(seenEvents);
+  seenEvents = s.events.length;
+  if (evs.some((e) => e.type === 'residentDied')) {
+    const kinds = evs.filter((e) => e.type.startsWith('incident') || e.type.startsWith('quest') || e.type === 'doorBreached').map((e) => ('incident' in e ? `${e.type}:${e.incident}` : e.type));
+    console.log(`DEATH-CONTEXT h${hour.toFixed(1)} ${kinds.join(' ')}`);
+  }
+  for (const ev of evs) {
+    if (ev.type !== 'residentDied') continue;
+    const r = s.residents.find((x) => x.id === ev.residentId);
+    const inc = s.incidents.find((i) => i.roomId === r?.roomId);
+    const room = s.rooms.find((x) => x.id === r?.roomId);
+    const crew = room ? s.residents.filter((x) => x.roomId === room.id && !x.dead).length : 0;
+    console.log(`DEATH h${hour.toFixed(1)} ${r?.firstName} L${r?.level} hp${Math.round(r?.maxHp ?? 0)} taint${Math.round(r?.taint ?? 0)} wpn ${r?.weapon ?? '-'} room ${room?.type ?? '-'}/${room?.segments}x L${room?.level} crew ${crew} inc ${inc?.type ?? '-'} ${Math.round(inc?.hp ?? 0)}/${Math.round(inc?.maxHp ?? 0)} dps ${inc?.dps.toFixed(1)} pop ${population(s)}`);
+  }
+}
 const milestones: Record<number, number> = {};
 for (let minute = 0; minute <= hours * 60; minute++) {
   if (minute % 60 === 0 && (minute / 60) % Math.max(1, Math.floor(hours / 24)) === 0) row(minute / 60);
+  if (process.env.DEBUG_DEATHS) logDeaths(minute / 60);
   if (minute % checkIn === 0) {
     botTurn();
     maybeFound(minute / 60);
