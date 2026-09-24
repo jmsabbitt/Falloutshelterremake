@@ -279,6 +279,9 @@ export function foundHomestead(old: GameState, content: Content, opts: FoundOpti
   state.legacy.statsAtFounding = { ...state.stats };
   state.legacy.achievementsAtFounding = Object.keys(state.achievements).length;
 
+  // Research kept by Legacy perks counts toward the starting bonuses below.
+  carryResearch(src, state, content);
+
   // Legacy and site bonuses at the start. The fresh strangers were made
   // before the perks carried over, so give them Hardy Folk now.
   const hardy = bonus(state, content, 'baseHp');
@@ -297,7 +300,6 @@ export function foundHomestead(old: GameState, content: Content, opts: FoundOpti
       state.rooms.push(room);
     }
   }
-  carryResearch(src, state, content);
   scheduleIncident(state, content); // the site may change how often incidents come
   refreshUnlocks(state, content);
   state.events = [];

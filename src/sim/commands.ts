@@ -139,6 +139,8 @@ function dispatch(state: GameState, content: Content, cmd: Command): CommandResu
       if (state.incidents.length) return fail('deal with the incident first');
       if (state.scrip < cost) return fail('not enough scrip');
       addScrip(state, content, -cost);
+      // Batches made at the old level are paid at the old level.
+      if (room.ready) collectRoom(state, content, room);
       room.level++;
       bump(state, 'upgrades');
       state.events.push({ type: 'roomUpgraded', roomId: room.id, level: room.level });

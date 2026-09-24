@@ -4,6 +4,7 @@
 
 import type { Content } from '../content';
 import { roomDef } from '../grid';
+import { roomCapacity } from '../commands';
 import { effectiveStat, isAway, isChild, residentsInRoom } from '../residents';
 import type { GameState, Resident, Room } from '../types';
 
@@ -12,14 +13,20 @@ export function idleAdults(state: GameState): Resident[] {
   return state.residents.filter((r) => !r.dead && !r.waiting && !isAway(r) && !isChild(state, r) && r.roomId === null);
 }
 
-function freeSlots(state: GameState, content: Content, room: Room): number {
-  const def = roomDef(content, room);
-  return def.capacityPerSegment * room.segments - residentsInRoom(state, room.id).length;
-}
-
-/** Rooms whose job uses a stat (production, radio, research); workshops and the door are left to the player. */
-function jobRooms(state: GameState, content: Content): Room[] {
-  return state.rooms.filter((r) => roomDef(content, r).stat !== null && freeSlots(state, content, r) > 0);
+/**
+ * Jobs auto-assign may fill, with their free slots: production, radio and
+ * research. Quarters (courtship), storerooms, workshops and the door are
+ * left to the player.
+ */
+function jobSlots(state: GameState, content: Content): Map<Room, number> {
+  const slots = new Map<Room, number>();
+  for (const room of state.rooms) {
+    const def = roomDef(content, room);
+    if (!def.stat || !(def.produces || def.category === 'radio' || def.category === 'research')) continue;
+    const free = roomCapacity(content, room) - residentsInRoom(state, room.id).length;
+    if (free > 0) slots.set(room, free);
+  }
+  return slots;
 }
 
 /**
@@ -28,13 +35,12 @@ function jobRooms(state: GameState, content: Content): Room[] {
  */
 export function autoAssign(state: GameState, content: Content): number {
   const idle = idleAdults(state);
+  const slots = jobSlots(state, content);
   let count = 0;
-  while (idle.length) {
-    const rooms = jobRooms(state, content);
-    if (!rooms.length) break;
+  while (idle.length && slots.size) {
     let best: { r: Resident; room: Room; score: number } | null = null;
     for (const r of idle) {
-      for (const room of rooms) {
+      for (const room of slots.keys()) {
         const stat = roomDef(content, room).stat;
         if (!stat) continue;
         const score = effectiveStat(content, r, stat);
@@ -43,6 +49,9 @@ export function autoAssign(state: GameState, content: Content): number {
     }
     if (!best) break;
     best.r.roomId = best.room.id;
+    const left = (slots.get(best.room) as number) - 1;
+    if (left > 0) slots.set(best.room, left);
+    else slots.delete(best.room);
     best.r.courtship = null;
     idle.splice(idle.indexOf(best.r), 1);
     count++;

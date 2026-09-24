@@ -51,6 +51,31 @@ describe('M6 core', () => {
     expect(gen.banked).toBe(0);
   });
 
+  it('collect keeps banked batches that do not fit, and upgrading pays old batches first', () => {
+    const s = game();
+    s.research.done.push('batch_bank_1');
+    const gen = s.rooms.find((x) => x.type === 'generator')!;
+    gen.ready = true;
+    gen.banked = 1;
+    const cap = 50; // starting power storage
+    s.resources.power = cap - 1;
+    applyCommand(s, content, { type: 'collect', roomId: gen.id });
+    expect(gen.ready).toBe(true); // the second batch had nowhere to go
+    expect(gen.banked).toBe(0);
+    s.scrip = 100_000;
+    s.resources.power = 0;
+    applyCommand(s, content, { type: 'upgrade', roomId: gen.id });
+    expect(gen.ready).toBe(false);
+    expect(s.resources.power).toBeGreaterThan(0);
+  });
+
+  it('auto-assign leaves quarters and storerooms alone', () => {
+    const s = game();
+    applyCommand(s, content, { type: 'autoAssign' });
+    const quarters = s.rooms.find((x) => x.type === 'quarters')!;
+    expect(s.residents.some((r) => r.roomId === quarters.id)).toBe(false);
+  });
+
   it('the Deep is closed until excavated', () => {
     const s = game();
     expect(totalFloors(s, content)).toBe(content.balance.grid.floors);

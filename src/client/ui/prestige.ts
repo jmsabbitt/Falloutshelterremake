@@ -14,7 +14,7 @@ import {
   legacyContent,
   outpostTotals,
   perkRank,
-  perkValue,
+  bonus,
   siteDef,
   topStats,
   STAT_KEYS,
@@ -348,7 +348,7 @@ export class LegacyUI {
   }
 
   private outputMult(): number {
-    return 1 + perkValue(this.game.state, this.game.content, 'outpostOutput');
+    return 1 + bonus(this.game.state, this.game.content, 'outpostOutput');
   }
 
   private outpostsTab(): HTMLElement[] {
@@ -383,7 +383,7 @@ export class LegacyUI {
         ),
       );
       for (const o of [...outposts].sort((a, b) => b.cycle - a.cycle)) out.push(this.outpostCard(o));
-      const perk = perkValue(state, this.game.content, 'outpostOutput');
+      const perk = bonus(state, this.game.content, 'outpostOutput');
       out.push(h('p', { class: 'muted small' }, `Outposts store up to ${this.lc.outposts.storageHours} hours of output, online or offline.${perk ? ` Supply Lines: +${Math.round(perk * 100)}% output.` : ' Supply Lines (Network perks) raises their output.'}`));
     }
     out.push(h('h3', { class: 'group' }, 'Homestead history'));
@@ -688,7 +688,7 @@ export class LegacyUI {
         ...this.lc.sites.map((s) => {
           const look = SITE_LOOK[s.id];
           const sel = d.siteId === s.id;
-          const startScrip = content.balance.start.scrip + perkValue(state, content, 'startScrip') + (s.modifiers.startScrip ?? 0);
+          const startScrip = content.balance.start.scrip + bonus(state, content, 'startScrip') + (s.modifiers.startScrip ?? 0);
           return h(
             'button',
             {
@@ -810,7 +810,7 @@ export class LegacyUI {
     const items = d.heirloomIds.map((id) => state.items.find((i) => i.id === id)).map((i) => (i ? content.items[i.defId] : undefined)).filter((x): x is ItemDef => !!x);
     const living = state.residents.filter((r) => !r.dead && !r.waiting).length;
     const stayers = living - party.length;
-    const startScrip = content.balance.start.scrip + perkValue(state, content, 'startScrip') + (site?.modifiers.startScrip ?? 0);
+    const startScrip = content.balance.start.scrip + bonus(state, content, 'startScrip') + (site?.modifiers.startScrip ?? 0);
     const line = (label: string, ...value: (HTMLElement | string)[]) => h('div', { class: 'sum-line' }, h('span', { class: 'muted' }, label), h('span', {}, ...value));
     const backup = d.backup;
     return [

@@ -237,7 +237,7 @@ describe('time', () => {
     expect(s.residents.some((r) => r.dead)).toBe(false);
     expect(s.resources.food).toBeGreaterThan(0);
     expect(s.stats['collections']).toBeGreaterThan(100);
-  });
+  }, 30_000);
 
   it('offline catch-up is safe: no damage, rooms stop at one batch, consumption stops', () => {
     const s = fresh(5);

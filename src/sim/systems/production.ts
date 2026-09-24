@@ -50,17 +50,27 @@ export function tickProduction(state: GameState, content: Content, dt: number): 
   const burning = new Set(state.incidents.map((i) => i.roomId));
   // Holding Tanks (research) let a room keep working past its first finished batch.
   const bank = Math.floor(bonus(state, content, 'batchBank'));
+  // Bonuses are the same for every room of a resource this step; look them up once.
+  const mults = new Map<string, number>();
   for (const room of state.rooms) {
     const def = roomDef(content, room);
     if (!def.produces || !room.powered || burning.has(room.id)) continue;
     if (room.ready && (room.banked ?? 0) >= bank) continue;
-    const rate = roomStatTotal(state, content, room) * happy * productionMult(state, content, def.produces.resource);
+    const res = def.produces.resource;
+    if (!mults.has(res)) mults.set(res, productionMult(state, content, res));
+    const rate = roomStatTotal(state, content, room) * happy * (mults.get(res) as number);
     if (rate <= 0) continue;
     room.pool += rate * dt;
-    if (room.pool >= poolSize(content, room)) {
-      room.pool = 0;
-      if (room.ready) room.banked = (room.banked ?? 0) + 1;
-      else room.ready = true;
+    const size = poolSize(content, room);
+    // Long offline steps can finish more than one batch; keep the overflow.
+    while (room.pool >= size) {
+      room.pool -= size;
+      if (!room.ready) room.ready = true;
+      else if ((room.banked ?? 0) < bank) room.banked = (room.banked ?? 0) + 1;
+      if (room.ready && (room.banked ?? 0) >= bank) {
+        room.pool = 0; // full: the room waits
+        break;
+      }
     }
   }
 }
@@ -81,20 +91,28 @@ export function rollBonusScrip(state: GameState, content: Content, room: Room): 
   return 0;
 }
 
-/** Collect a ready batch. Returns the amount added (0 if nothing was ready). */
+/**
+ * Collect ready batches: the first always, then banked ones while storage has
+ * room (the rest stay banked). Returns the amount actually added.
+ */
 export function collectRoom(state: GameState, content: Content, room: Room): number {
   const def = roomDef(content, room);
   if (!def.produces || !room.ready) return 0;
   const key = def.produces.resource;
   const cap = resourceCapacity(state, content, key);
-  const batches = 1 + (room.banked ?? 0);
-  const amount = batchOutput(content, room) * batches;
+  const out = batchOutput(content, room);
+  const held = 1 + (room.banked ?? 0);
+  const space = Math.max(0, cap - state.resources[key]);
+  const batches = Math.min(held, Math.max(1, Math.ceil(space / Math.max(1, out))));
   const before = state.resources[key];
-  state.resources[key] = Math.min(cap, before + amount);
-  room.ready = false;
-  room.banked = 0;
+  state.resources[key] = Math.min(cap, before + out * batches);
+  const amount = state.resources[key] - before;
+  const left = held - batches;
+  room.ready = left > 0;
+  room.banked = Math.max(0, left - 1);
 
-  const bonusScrip = rollBonusScrip(state, content, room);
+  let bonusScrip = 0;
+  for (let i = 0; i < batches; i++) bonusScrip += rollBonusScrip(state, content, room);
   if (bonusScrip > 0) {
     addScrip(state, content, bonusScrip);
     bump(state, 'bonusScripEvents');
