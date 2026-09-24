@@ -20,6 +20,7 @@ import {
 } from '../../sim';
 import type { QuestView } from '../render/questView';
 import type { VaultView } from '../render/vaultView';
+import { ask } from './confirm';
 import { duration, fmt, h, morph } from './dom';
 import type { Loadout, Loadouts } from './loadouts';
 import { type QuestHost, QuestScreen } from './questScreen';
@@ -187,10 +188,8 @@ export class QuestUI {
           'button',
           {
             class: 'danger',
-            onclick: () => {
-              if (!confirm(`Abandon ${q.title}? The party keeps what it found but gets no reward.`)) return;
-              this.cmd({ type: 'abandonQuest', questId: q.id });
-            },
+            onclick: () =>
+              ask({ title: `Abandon ${q.title}?`, text: 'The party keeps what it found but gets no reward.', ok: 'Abandon', danger: true }, () => this.cmd({ type: 'abandonQuest', questId: q.id })),
           },
           'Abandon',
         ),

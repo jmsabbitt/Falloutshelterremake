@@ -5,6 +5,7 @@
 import { canExplore, MAX_SUPPLIES } from '../../sim';
 import type { Game } from '../game';
 import { readJson, writeJson } from '../storage';
+import { ask, promptModal } from './confirm';
 import { h } from './dom';
 import { nameList } from './qolText';
 
@@ -127,11 +128,11 @@ export class Loadouts {
             class: 'lo-del',
             'aria-label': `Forget ${l.name}`,
             title: 'Forget this loadout',
-            onclick: () => {
-              if (!confirm(`Forget the loadout "${l.name}"?`)) return;
-              this.remove(l.id);
-              o.rerender();
-            },
+            onclick: () =>
+              ask({ title: `Forget "${l.name}"?`, text: 'The saved pick is removed. Nobody is sent anywhere.', ok: 'Forget', danger: true }, () => {
+                this.remove(l.id);
+                o.rerender();
+              }),
           },
           '✕',
         ),
@@ -154,10 +155,12 @@ export class Loadouts {
         onclick: () => {
           const names = this.names(cur.ids);
           const suggestion = o.kind === 'explore' ? `${names[0] ?? 'Explorer'}'s run` : nameList(names, 3);
-          const name = prompt('Name this loadout', suggestion)?.trim().slice(0, 30);
-          if (!name) return;
-          this.save(o.kind, name, cur);
-          o.rerender();
+          void promptModal({ title: 'Save loadout', label: 'Name this pick to reuse it later.', value: suggestion, maxLength: 30 }).then((raw) => {
+            const name = raw?.trim().slice(0, 30);
+            if (!name) return;
+            this.save(o.kind, name, cur);
+            o.rerender();
+          });
         },
       },
       '＋ Save loadout',

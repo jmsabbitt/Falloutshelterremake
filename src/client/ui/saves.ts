@@ -19,6 +19,7 @@ import {
   slotNames,
   writeSave,
 } from '../storage';
+import { ask, promptModal } from './confirm';
 import { fmt, h } from './dom';
 import { plural } from './qolText';
 
@@ -132,13 +133,13 @@ export class SaveSlots {
           {
             class: 'danger',
             'aria-label': `Delete ${title}`,
-            onclick: () => {
-              if (!confirm(`Delete "${title}" from slot ${slot}? This can't be undone.`)) return;
-              clearSave(slot);
-              setSlotName(slot, null);
-              this.host.toast(`Slot ${slot} cleared`);
-              this.host.refresh();
-            },
+            onclick: () =>
+              ask({ title: `Delete "${title}"?`, text: `Slot ${slot} is emptied. This can't be undone.`, ok: 'Delete', danger: true }, () => {
+                clearSave(slot);
+                setSlotName(slot, null);
+                this.host.toast(`Slot ${slot} cleared`);
+                this.host.refresh();
+              }),
           },
           'Delete',
         ),
@@ -164,11 +165,11 @@ export class SaveSlots {
           'button',
           {
             class: 'danger',
-            onclick: () => {
-              if (!confirm(`Delete the backup from cycle ${cycle}? This can't be undone.`)) return;
-              deleteBackup(cycle);
-              this.host.refresh();
-            },
+            onclick: () =>
+              ask({ title: 'Delete this backup?', text: `The backup from cycle ${cycle} is gone for good. This can't be undone.`, ok: 'Delete', danger: true }, () => {
+                deleteBackup(cycle);
+                this.host.refresh();
+              }),
           },
           'Delete',
         ),
@@ -192,11 +193,11 @@ export class SaveSlots {
           'button',
           {
             class: 'danger',
-            onclick: () => {
-              if (!confirm('Delete this undo copy?')) return;
-              clearUndo();
-              this.host.refresh();
-            },
+            onclick: () =>
+              ask({ title: 'Delete the undo copy?', text: 'You will no longer be able to go back to the homestead from before the last load.', ok: 'Delete', danger: true }, () => {
+                clearUndo();
+                this.host.refresh();
+              }),
           },
           'Delete',
         ),
@@ -205,7 +206,7 @@ export class SaveSlots {
   }
 
   /** A button that picks a .json file and hands over its text. */
-  private importButton(label: string, use: (json: string) => void, ask?: string): HTMLElement {
+  private importButton(label: string, use: (json: string) => void, question?: string): HTMLElement {
     const input = h('input', { type: 'file', accept: 'application/json,.json', style: 'display:none' }) as HTMLInputElement;
     input.addEventListener('change', async () => {
       const f = input.files?.[0];
@@ -220,8 +221,8 @@ export class SaveSlots {
         'button',
         {
           onclick: () => {
-            if (ask && !confirm(ask)) return;
-            input.click();
+            if (question) ask({ title: 'Import a save file?', text: question, ok: 'Choose file' }, () => input.click());
+            else input.click();
           },
         },
         label,
@@ -232,7 +233,15 @@ export class SaveSlots {
 
   private saveTo(slot: number, existing: string | null): void {
     const { state } = this.game;
-    if (existing && !confirm(`Overwrite "${existing}" in slot ${slot} with Homestead ${state.homesteadNumber} as it is now?`)) return;
+    if (existing) {
+      ask({ title: `Overwrite "${existing}"?`, text: `Slot ${slot} gets Homestead ${state.homesteadNumber} as it is now. The old save in it is lost.`, ok: 'Overwrite', danger: true }, () => this.writeSlot(slot));
+      return;
+    }
+    this.writeSlot(slot);
+  }
+
+  private writeSlot(slot: number): void {
+    const { state } = this.game;
     if (!this.game.saveToSlot(slot)) {
       this.host.toast("Couldn't save: this browser's storage is full. Delete a slot or backup first.", 'bad');
       return;
@@ -243,11 +252,12 @@ export class SaveSlots {
   }
 
   private rename(slot: number, current: string): void {
-    const next = prompt('Name this save slot', current);
-    if (next === null) return;
-    const name = next.trim().slice(0, 40);
-    setSlotName(slot, name || null);
-    this.host.refresh();
+    void promptModal({ title: 'Rename save slot', label: `A name for slot ${slot}.`, value: current, maxLength: 40, ok: 'Rename' }).then((next) => {
+      if (next === null) return;
+      const name = next.trim().slice(0, 40);
+      setSlotName(slot, name || null);
+      this.host.refresh();
+    });
   }
 
   private importTo(slot: number, json: string): void {
@@ -267,8 +277,11 @@ export class SaveSlots {
     this.host.refresh();
   }
 
-  private load(json: string, what: string, ask: boolean): void {
-    if (ask && !confirm(`Load ${what}? Your current homestead is replaced. A copy of it is kept under Backups as "Before the last load".`)) return;
+  private load(json: string, what: string, askFirst: boolean): void {
+    if (askFirst) {
+      ask({ title: `Load ${what}?`, text: 'Your current homestead is replaced. A copy of it is kept under Backups as "Before the last load".', ok: 'Load' }, () => this.load(json, what, false));
+      return;
+    }
     try {
       this.game.importSave(json);
     } catch (err) {

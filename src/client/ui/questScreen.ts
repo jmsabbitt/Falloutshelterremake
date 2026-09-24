@@ -23,6 +23,7 @@ import {
 import type { Game } from '../game';
 import type { QuestView } from '../render/questView';
 import type { VaultView } from '../render/vaultView';
+import { ask } from './confirm';
 import { duration, h, morph } from './dom';
 import { lootList, STAT_NAMES } from './questText';
 
@@ -323,10 +324,8 @@ export class QuestScreen {
               {
                 class: 'danger qs-retreat',
                 title: 'Retreat: keep what you found, lose the reward',
-                onclick: () => {
-                  if (!confirm('Retreat? The party keeps what it found but gets no reward.')) return;
-                  this.run({ type: 'abandonQuest', questId: q.id });
-                },
+                onclick: () =>
+                  ask({ title: 'Retreat?', text: 'The party keeps what it found but gets no reward.', ok: 'Retreat', danger: true }, () => this.run({ type: 'abandonQuest', questId: q.id })),
               },
               'Retreat',
             )

@@ -6,6 +6,7 @@
 import { deepContent, researchNode, roomDef, type GameEvent, type ResourceKey } from '../../sim';
 import type { AwayReport, Game } from '../game';
 import { readJson, writeJson } from '../storage';
+import { ask } from './confirm';
 import { duration, fmt, h } from './dom';
 import { nameList, plural } from './qolText';
 
@@ -411,11 +412,11 @@ export class NoticeCentre {
           {
             class: 'danger',
             disabled: !log.length && !away,
-            onclick: () => {
-              if (!confirm('Clear the notification log?')) return;
-              this.clear();
-              onChange();
-            },
+            onclick: () =>
+              ask({ title: 'Clear the notification log?', text: 'Every entry is removed from the log.', ok: 'Clear', danger: true }, () => {
+                this.clear();
+                onChange();
+              }),
           },
           'Clear',
         ),

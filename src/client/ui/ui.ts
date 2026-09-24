@@ -72,6 +72,7 @@ import type { Content } from '../../sim';
 import type { Game } from '../game';
 import type { QuestView } from '../render/questView';
 import type { VaultView } from '../render/vaultView';
+import { ask } from './confirm';
 import { duration, fmt, h, morph } from './dom';
 import { LegacyUI } from './prestige';
 import { QolUI } from './qol';
@@ -792,11 +793,11 @@ export class UI {
           'button',
           {
             class: 'danger',
-            onclick: () => {
-              if (!confirm(`Demolish this ${def.name}? No refund.`)) return;
-              const res = this.game.run({ type: 'demolish', roomId: room.id });
-              if (!res.ok) this.toast(res.reason, 'bad');
-            },
+            onclick: () =>
+              ask({ title: `Demolish ${def.name}?`, text: 'The room is torn out for good, with no refund. Its crew goes idle.', ok: 'Demolish', danger: true }, () => {
+                const res = this.game.run({ type: 'demolish', roomId: room.id });
+                if (!res.ok) this.toast(res.reason, 'bad');
+              }),
           },
           'Demolish',
         ),
@@ -953,11 +954,14 @@ export class UI {
           'button',
           {
             class: 'danger',
-            onclick: stop(() => {
-              if (!confirm(`Lay ${r.firstName} to rest? This is permanent. Their gear goes to storage.`)) return;
-              this.game.run({ type: 'layToRest', residentId: r.id });
-              this.residentId = null;
-            }),
+            onclick: stop(() =>
+              ask({ title: `Lay ${r.firstName} to rest?`, text: 'This is permanent. Their gear goes to storage.', ok: 'Lay to rest', danger: true }, () => {
+                this.game.run({ type: 'layToRest', residentId: r.id });
+                this.residentId = null;
+                this.view.selectedResidentId = null;
+                this.renderPanel(true);
+              }),
+            ),
           },
           'Lay to rest',
         ),
@@ -1139,10 +1143,13 @@ export class UI {
                   class: 'close',
                   title: preview ? `Scrap for about: ${preview}` : 'Break down into salvage',
                   onclick: () => {
-                    if (def.rarity !== 'common' && !confirm(`Scrap ${def.name}?${preview ? ` You get about ${preview}.` : ''}`)) return;
-                    const res = this.game.run({ type: 'scrap', itemId: item.id });
-                    if (!res.ok) this.toast(res.reason, 'bad');
-                    this.renderPanel(true);
+                    const scrap = () => {
+                      const res = this.game.run({ type: 'scrap', itemId: item.id });
+                      if (!res.ok) this.toast(res.reason, 'bad');
+                      this.renderPanel(true);
+                    };
+                    if (def.rarity === 'common') scrap();
+                    else ask({ title: `Scrap ${def.name}?`, text: `It is ${def.rarity}.${preview ? ` You get about ${preview}.` : ''}`, ok: 'Scrap', danger: true }, scrap);
                   },
                 },
                 'Scrap',
@@ -1445,13 +1452,12 @@ export class UI {
           'button',
           {
             class: 'danger',
-            onclick: () => {
-              if (confirm('Start a brand new homestead? Your current one is replaced. A copy is kept under Backups until the next load.')) {
+            onclick: () =>
+              ask({ title: 'Start a new homestead?', text: 'Your current one is replaced. A copy is kept under Backups until the next load.', ok: 'Start over', danger: true }, () => {
                 this.game.reset();
                 this.closePanel();
                 this.showWelcome();
-              }
-            },
+              }),
           },
           'New homestead',
         ),
@@ -1553,10 +1559,8 @@ export class UI {
           'button',
           {
             class: 'danger',
-            onclick: () => {
-              if (!confirm(`Bring ${r.firstName}'s body home? Half of what they carried is lost.`)) return;
-              this.expCmd({ type: 'recall', expeditionId: e.id });
-            },
+            onclick: () =>
+              ask({ title: `Bring ${r.firstName}'s body home?`, text: 'Half of what they carried is lost on the way.', ok: 'Recall body', danger: true }, () => this.expCmd({ type: 'recall', expeditionId: e.id })),
           },
           'Recall body',
         ),
@@ -1827,10 +1831,10 @@ export class UI {
                   'button',
                   {
                     class: 'danger close',
-                    onclick: () => {
-                      if (!confirm(`Cancel crafting ${def?.name ?? 'this item'}? Salvage and scrip are refunded.`)) return;
-                      this.craftCmd({ type: 'cancelCraft', roomId: room.id }, 'Job cancelled. Materials refunded.');
-                    },
+                    onclick: () =>
+                      ask({ title: `Cancel crafting ${def?.name ?? 'this item'}?`, text: 'Salvage and scrip are refunded.', ok: 'Cancel the job', cancel: 'Keep crafting', danger: true }, () =>
+                        this.craftCmd({ type: 'cancelCraft', roomId: room.id }, 'Job cancelled. Materials refunded.'),
+                      ),
                   },
                   'Cancel (refund)',
                 ),
