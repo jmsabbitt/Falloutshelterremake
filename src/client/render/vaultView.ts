@@ -153,6 +153,37 @@ export class VaultView {
     game.on((events) => this.onEvents(events));
   }
 
+  /**
+   * The whole homestead was swapped (founding, import, reset): drop every
+   * sprite, walker, float and ghost drawn for the old one, forget selections
+   * and gestures, rebuild the rooms and put the camera back at the door.
+   */
+  resync(): void {
+    for (const sp of this.sprites.values()) sp.root.destroy({ children: true });
+    this.sprites.clear();
+    for (const w of this.walkers.values()) w.root.destroy({ children: true });
+    this.walkers.clear();
+    for (const f of this.floats) f.text.destroy();
+    this.floats = [];
+    this.buildMode = null;
+    this.selectedRoomId = null;
+    this.selectedResidentId = null;
+    this.ghostLayer.removeChildren().forEach((c) => c.destroy({ children: true }));
+    this.overlay.clear();
+    this.pointers.clear();
+    this.gesture = { kind: 'none', startX: 0, startY: 0, t: 0, moved: false };
+    this.suspended = false;
+    this.world.visible = true;
+    this.rebuildStatics();
+    this.zoom = window.innerWidth < 640 ? 0.55 : 0.85;
+    this.centerOn(window.innerWidth < 640 ? 6 * CELL : 9 * CELL, SURFACE_H + FLOOR_H * 0.8);
+  }
+
+  /** For automated UI tests: what is drawn right now. */
+  debugCounts() {
+    return { sprites: this.sprites.size, residentLayer: this.residentLayer.children.length, walkers: this.walkers.size, statics: this.statics.children.length, ghosts: this.ghostLayer.children.length, zoom: this.zoom, x: Math.round(this.world.x), y: Math.round(this.world.y) };
+  }
+
   // ---------------------------------------------------------------- geometry
 
   roomRect(room: Room) {

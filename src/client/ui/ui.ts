@@ -74,9 +74,10 @@ import type { QuestView } from '../render/questView';
 import type { VaultView } from '../render/vaultView';
 import { downloadFile } from '../storage';
 import { duration, fmt, h, morph } from './dom';
+import { LegacyUI } from './prestige';
 import { QuestUI } from './quests';
 
-type PanelKind = 'build' | 'room' | 'residents' | 'storage' | 'crates' | 'explore' | 'quests' | 'achievements' | 'menu' | null;
+type PanelKind = 'build' | 'room' | 'residents' | 'storage' | 'crates' | 'explore' | 'quests' | 'legacy' | 'achievements' | 'menu' | null;
 type StorageTab = 'items' | 'salvage' | 'blueprints';
 
 /** Draft of the send-to-explore modal. */
@@ -160,6 +161,8 @@ export class UI {
   private exploreDraft: ExploreDraft | null = null;
   /** M4: quests panel, party picker and the quest screen. */
   readonly quests: QuestUI;
+  /** M5: Legacy panel, HUD chips and the Found flow. */
+  readonly legacy: LegacyUI;
 
   constructor(
     private game: Game,
@@ -181,8 +184,19 @@ export class UI {
       view,
       this.root,
     );
+    this.legacy = new LegacyUI({
+      game,
+      modalHost: this.modalHost,
+      toast: (text, kind) => this.toast(text, kind),
+      openLegacy: (tab) => {
+        this.legacy.opened(tab);
+        this.openPanel('legacy');
+      },
+      refreshPanel: () => this.renderPanel(true),
+    });
     this.renderToolbar();
     game.on((events) => this.onEvents(events));
+    game.onReplace(() => this.onStateReplaced());
     if (game.lastCatchUp) this.showAwaySummary();
     else if (game.state.time < 5) this.showWelcome();
   }
@@ -261,6 +275,7 @@ export class UI {
     this.renderHint();
     this.renderToolbar();
     this.quests.update();
+    this.legacy.update();
     if (performance.now() - this.lastPanelRender > 500) this.renderPanel();
   }
 
@@ -321,6 +336,7 @@ export class UI {
         ready ? h('b', {}, ` ${ready}`) : null,
       ),
       this.quests.hudChip(),
+      ...this.legacy.hudChips(),
     );
     // The meters change nearly every frame. Patch in place, and keep the buttons
     // in their own part so they are only touched when their own markup changes.
@@ -353,7 +369,7 @@ export class UI {
       text = 'Drag idle residents into rooms to put them to work';
     }
     // On phones an open panel covers the bottom of the screen; the hint would sit on top of it.
-    if (this.panel && window.innerWidth < 640) text = '';
+    if (this.panel && (window.innerWidth < 640 || this.panel === 'legacy')) text = '';
     this.hint.style.display = text ? '' : 'none';
     this.hint.textContent = text;
   }
@@ -366,7 +382,8 @@ export class UI {
     const homeOrFallen = state.expeditions.filter((e) => e.status === 'returned' || e.status === 'dead').length;
     const office = this.quests.hasOffice();
     const questNeed = this.quests.attention();
-    const key = `${this.panel}|${crates}|${state.items.length}|${homeOrFallen}|${window.innerWidth < 640}|${office}|${questNeed}`;
+    const legacyNeed = this.legacy.badge();
+    const key = `${this.panel}|${crates}|${state.items.length}|${homeOrFallen}|${window.innerWidth < 640}|${office}|${questNeed}|${legacyNeed}`;
     if (key === this.lastToolbarKey) return;
     this.lastToolbarKey = key;
     const btn = (label: string, kind: PanelKind, extra = '', badge?: number) =>
@@ -391,6 +408,7 @@ export class UI {
       btn('Crates', 'crates', '', crates),
       btn(phone ? '🧭' : 'Explore', 'explore', '', homeOrFallen),
       ...(office ? [btn('Quests', 'quests', '', questNeed)] : []),
+      btn(phone ? '◆' : 'Legacy', 'legacy', 'legacy-btn', legacyNeed),
       btn(phone ? '🏆' : 'Goals', 'achievements'),
       btn('☰', 'menu'),
     );
@@ -412,6 +430,7 @@ export class UI {
       this.roomId = null;
       this.view.selectedRoomId = null;
     }
+    if (kind === 'legacy') this.legacy.opened();
     this.panel = kind;
     this.renderToolbar();
     this.renderPanel(true);
@@ -449,6 +468,7 @@ export class UI {
       crates: 'Supply Crates',
       explore: 'The Glarelands',
       quests: 'Quests',
+      legacy: 'Legacy',
       achievements: 'Goals',
       menu: 'Menu',
     };
@@ -484,6 +504,9 @@ export class UI {
       case 'quests':
         body = this.quests.panel();
         break;
+      case 'legacy':
+        body = this.legacy.panel();
+        break;
       case 'achievements':
         body = this.achievementsPanel();
         break;
@@ -493,7 +516,7 @@ export class UI {
     }
     const panel = h(
       'div',
-      { class: 'panel' },
+      { class: `panel${this.panel === 'legacy' ? ' panel-wide legacy-panel' : ''}` },
       h('header', {}, h('h2', {}, title), h('button', { class: 'close', onclick: () => this.closePanel() }, '✕')),
       body,
     );
@@ -503,7 +526,7 @@ export class UI {
     if (old && old.outerHTML === panel.outerHTML) return;
     // Same view: patch the live panel in place, which keeps the nodes under the
     // finger and the scroll position. A different view starts fresh at the top.
-    const key = `${this.panel}|${this.roomId}|${this.storageTab}|${this.equipFor ? 'equip' : ''}`;
+    const key = `${this.panel}|${this.roomId}|${this.storageTab}|${this.equipFor ? 'equip' : ''}|${this.panel === 'legacy' ? this.legacy.tab : ''}`;
     if (old && key === this.panelKey) morph(old, panel);
     else this.panelHost.replaceChildren(panel);
     this.panelKey = key;
@@ -1387,7 +1410,7 @@ export class UI {
           'New homestead',
         ),
       ),
-      h('p', { class: 'muted', style: 'margin-top:18px' }, 'Homestead is an early prototype (milestone M4). Placeholder art. Developer console: window.homestead'),
+      h('p', { class: 'muted', style: 'margin-top:18px' }, 'Homestead is an early prototype (milestone M5). Placeholder art. Developer console: window.homestead'),
     );
   }
 
@@ -1844,6 +1867,7 @@ export class UI {
     for (const e of this.game.state.expeditions) this.explorerOf.set(e.id, e.residentId);
     this.journalToasts(events);
     this.quests.onEvents(events);
+    this.legacy.onEvents(events);
     for (const ev of events) {
       if (ev.type === 'expeditionStarted') this.explorerOf.set(ev.expeditionId, ev.residentId);
       switch (ev.type) {
@@ -1984,6 +2008,21 @@ export class UI {
       const tone = entry.kind === 'danger' || entry.kind === 'status' ? 'bad' : entry.kind === 'levelup' || entry.kind === 'find' ? 'gold' : undefined;
       this.toast(`🧭 ${this.explorerName(id)}: ${entry.text}${n > 1 ? ` (+${n - 1} more)` : ''}`, tone);
     }
+  }
+
+  /** game.state was swapped for another homestead: drop every panel, modal and id that pointed into the old one. */
+  private onStateReplaced(): void {
+    if (this.quests.screen.isOpen) this.quests.screen.close();
+    this.legacy.onStateReplaced();
+    this.modalHost.replaceChildren();
+    this.exploreDraft = null;
+    this.explorerOf.clear();
+    this.openJournals.clear();
+    this.equipFor = null;
+    this.reforgeSel = null;
+    this.closePanel();
+    this.lastToolbarKey = '';
+    this.panelKey = '';
   }
 
   toast(text: string, kind?: 'good' | 'bad' | 'gold'): void {

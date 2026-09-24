@@ -37,6 +37,8 @@ async function boot(): Promise<void> {
     onRingResult: (id, quality) => ui?.quests.screen.onRingResult(id, quality),
   });
   ui = new UI(game, view, questView);
+  // Founding, import and reset swap the whole homestead: redraw it from scratch.
+  game.onReplace(() => view.resync());
   // Sprite art streams in after first paint; until then (or without it) residents use drawn placeholders.
   void CharacterArt.load().then((art) => {
     view.setArt(art);
@@ -51,6 +53,8 @@ async function boot(): Promise<void> {
       return view.world.toGlobal({ x: r.x + r.w / 2, y: r.y + r.h / 2 });
     },
     worldToScreen: (x: number, y: number) => view.world.toGlobal({ x, y }),
+    /** What the vault view has drawn (sprites, rooms, camera), to check a re-sync. */
+    counts: () => view.debugCounts(),
     /** Quest screen: open one, and find enemies and rooms on screen. */
     openQuest: (id: number) => ui?.quests.open(id),
     enemyScreen: (uid: number) => questView.enemyScreen(uid),
