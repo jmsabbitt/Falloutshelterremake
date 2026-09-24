@@ -47,7 +47,7 @@ import {
 } from './palette';
 import { drawOffice } from './officeArt';
 import { buildDeepBackground, DEEP_INCIDENT_COLORS, DeepLayer, deepViewKey, drawDeepFrame, drawDeepIncident, drawDepthRoom, labelInk, lampFor, SEAL_H, type DeepGeometry } from './deepArt';
-import { type Action, type CharacterArt, Figure, residentTints } from './sprites';
+import { type Action, type CharacterArt, CreatureFigure, Figure, residentTints } from './sprites';
 
 export const CELL = 44;
 export const FLOOR_H = 132;
@@ -84,6 +84,14 @@ const MAX_WALKERS = 5;
 /** How far right of the door explorers walk before fading into the Glarelands. */
 const WALK_RANGE = 560;
 const WALKER_SCALE = 0.8;
+/** Incidents drawn from creature art when it exists: which look, one per `per` world units of room (at least `min`), and displayed height. */
+const INCIDENT_ART: Record<string, { look: string; per: number; min: number; h: number }> = {
+  skitters: { look: 'skitter', per: 70, min: 2, h: 20 },
+  burrowers: { look: 'burrower', per: 80, min: 2, h: 26 },
+  rustmen: { look: 'rustman', per: Infinity, min: 3, h: 50 },
+  deepcrawlers: { look: 'deepcrawler', per: 70, min: 2, h: 24 },
+};
+
 /** Room categories where a resident standing still is shown at work. */
 const WORK_ROOMS = new Set(['production', 'workshop', 'research', 'radio', 'office']);
 
@@ -130,6 +138,10 @@ export class VaultView {
   private residentLayer = new Container();
   private walkerLayer = new Container();
   private fxLayer = new Container();
+  /** Incident creatures drawn from sprite art, by incident id (drawOverlay keeps them in step). */
+  private incidentLayer = new Container();
+  private incidentFigs = new Map<number, CreatureFigure[]>();
+  private incidentsShown = new Set<number>();
   /** M6: animated deep-room bits and the dig site (deepArt.ts). */
   private deep = new DeepLayer(() => this.deepGeometry());
   /** What the background and room frames were drawn for (strata, bracing). */
@@ -173,7 +185,7 @@ export class VaultView {
     private game: Game,
     private cb: ViewCallbacks,
   ) {
-    this.world.addChild(this.bg, this.statics, this.overlay, this.fitLayer, this.deep.root, this.ghostLayer, this.residentLayer, this.walkerLayer, this.fxLayer);
+    this.world.addChild(this.bg, this.statics, this.overlay, this.fitLayer, this.deep.root, this.ghostLayer, this.incidentLayer, this.residentLayer, this.walkerLayer, this.fxLayer);
     this.fitLayer.eventMode = 'none';
     app.stage.addChild(this.world);
     this.drawBackground();
@@ -190,6 +202,8 @@ export class VaultView {
   resync(): void {
     for (const sp of this.sprites.values()) sp.root.destroy({ children: true });
     this.sprites.clear();
+    for (const figs of this.incidentFigs.values()) for (const f of figs) f.destroy();
+    this.incidentFigs.clear();
     for (const w of this.walkers.values()) w.root.destroy({ children: true });
     this.walkers.clear();
     for (const f of this.floats) f.text.destroy();
@@ -535,6 +549,7 @@ export class VaultView {
     g.clear();
     const { state, content } = this.game;
     const burning = new Map(state.incidents.map((i) => [i.roomId, i]));
+    this.incidentsShown.clear();
     for (const room of state.rooms) {
       const r = this.roomRect(room);
       // Rustmen at the door stand on the surface, so the door is always drawn.
@@ -590,6 +605,13 @@ export class VaultView {
         const pulse = 0.6 + 0.4 * Math.sin(this.time * 5);
         g.rect(r.x + 1, r.y + 1, r.w - 2, r.h - 2).stroke({ width: 3, color: 0xf2a541, alpha: pulse });
       }
+    }
+    // Incident creatures: hide those whose room is off screen, drop those whose incident ended.
+    for (const [id, figs] of this.incidentFigs) {
+      if (!state.incidents.some((i) => i.id === id)) {
+        for (const f of figs) f.destroy();
+        this.incidentFigs.delete(id);
+      } else for (const f of figs) f.visible = this.incidentsShown.has(id);
     }
     // Hearts above courting couples.
     for (const res of state.residents) {
@@ -656,10 +678,59 @@ export class VaultView {
     }
   }
 
+  /**
+   * Incident creatures from sprite art: they pace the room and strike now and
+   * then; raiders breaking in hammer on the door from the surface. Returns
+   * false when there's no art, so the drawn version is used.
+   */
+  private drawIncidentArt(inc: Incident, r: { x: number; y: number; w: number; h: number }): boolean {
+    const spec = INCIDENT_ART[inc.type];
+    const creature = spec ? this.art?.forLook(spec.look) : undefined;
+    if (!spec || !creature) return false;
+    const n = Math.max(spec.min, Math.round(r.w / spec.per));
+    let figs = this.incidentFigs.get(inc.id);
+    if (!figs || figs.length !== n) {
+      for (const f of figs ?? []) f.destroy();
+      figs = Array.from({ length: n }, () => this.incidentLayer.addChild(new CreatureFigure(creature, spec.h)));
+      this.incidentFigs.set(inc.id, figs);
+    }
+    this.incidentsShown.add(inc.id);
+    const t = this.time;
+    const breaking = inc.type === 'rustmen' && inc.doorHp > 0;
+    figs.forEach((f, i) => {
+      const strike = f.duration('attack');
+      let x: number;
+      let y = r.y + r.h - 10;
+      let right = false;
+      if (breaking) {
+        // On the surface above the door, facing it, hammering away.
+        x = r.x + r.w * 0.2 + i * 36;
+        y = SURFACE_H - 10;
+        f.play('attack', (t + i * 0.3) % Math.max(0.1, strike));
+      } else {
+        // Back and forth across the room, each at its own pace.
+        const phase = (t * (0.06 + (i % 3) * 0.025) + i * 0.37) % 1;
+        right = phase < 0.5;
+        const along = right ? phase * 2 : 2 - phase * 2;
+        x = r.x + 18 + along * (r.w - 36);
+        const cycle = (t + i * 0.9) % 2.4;
+        if (cycle < strike) f.play('attack', cycle);
+        else f.play('idle', t + i);
+      }
+      f.position.set(x, y);
+      // Sheets face left; mirror to face right.
+      f.scale.x = Math.abs(f.scale.x) * (right ? -1 : 1);
+    });
+    return true;
+  }
+
   private drawIncident(g: Graphics, inc: Incident, r: { x: number; y: number; w: number; h: number }): void {
     const floorY = r.y + r.h - 10;
     const t = this.time;
-    switch (inc.type) {
+    const art = this.drawIncidentArt(inc, r);
+    switch (art && inc.type !== 'rustmen' ? 'art' : inc.type) {
+      case 'art':
+        break;
       case 'fire':
         for (let i = 0; i < Math.ceil(r.w / 22); i++) {
           const fx = r.x + 10 + i * 22 + Math.sin(t * 9 + i) * 3;
@@ -691,7 +762,7 @@ export class VaultView {
       case 'rustmen': {
         // Three raiders in rust-red scrap armour; at the door they hammer on it.
         const breaking = inc.doorHp > 0;
-        for (let i = 0; i < 3; i++) {
+        for (let i = 0; i < (art ? 0 : 3); i++) {
           // While breaking in they stand on the surface above the door.
           const rx = breaking ? r.x + r.w * 0.2 + i * 26 : r.x + r.w * (0.3 + i * 0.22) + Math.sin(t * 2 + i) * 6;
           const ry = breaking ? SURFACE_H - 10 : floorY;
