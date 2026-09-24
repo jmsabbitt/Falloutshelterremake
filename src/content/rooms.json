@@ -520,6 +520,36 @@
     "usesPower": true
   },
   {
+    "id": "office",
+    "name": "Command Office",
+    "levelNames": [
+      "Command Office",
+      "Command Center",
+      "Command Bureau"
+    ],
+    "category": "office",
+    "stat": null,
+    "unlockPop": 18,
+    "buildable": true,
+    "maxBuilt": 1,
+    "cost": {
+      "base": 1000,
+      "perBuilt": 0
+    },
+    "upgrade": [
+      4000,
+      15000
+    ],
+    "upgradePop": [
+      35,
+      60
+    ],
+    "cells": 6,
+    "maxSegments": 1,
+    "capacityPerSegment": 0,
+    "usesPower": true
+  },
+  {
     "id": "radio",
     "name": "Radio Room",
     "levelNames": [

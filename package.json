@@ -11,7 +11,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "sim": "vite-node scripts/simulate.ts",
-    "sprites": "python3 tools/sprites/build.py"
+    "sprites": "python3 tools/sprites/build.py",
+    "quest-balance": "vite-node scripts/questBalance.ts"
   },
   "devDependencies": {
     "@types/node": "^26.6.2",

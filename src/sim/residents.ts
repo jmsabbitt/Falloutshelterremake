@@ -67,7 +67,7 @@ export function fleesIncidents(state: GameState, r: Resident): boolean {
 }
 
 export function canWork(state: GameState, r: Resident): boolean {
-  return !r.dead && !r.waiting && r.expedition === null && !isChild(state, r);
+  return !r.dead && !r.waiting && !isAway(r) && !isChild(state, r);
 }
 
 function ancestors(state: GameState, r: Resident, depth: number): Set<number> {
@@ -140,6 +140,7 @@ export function createResident(state: GameState, content: Content, opts: CreateO
     weapon: null,
     outfit: null,
     expedition: null,
+    quest: null,
   };
 }
 
@@ -223,11 +224,12 @@ export function bumpMax(state: GameState, key: string, value: number): void {
 
 /** Living residents inside the homestead (not waiting outside, not away exploring). */
 export function livingResidents(state: GameState): Resident[] {
-  return state.residents.filter((r) => !r.dead && !r.waiting && r.expedition === null);
+  return state.residents.filter((r) => !r.dead && !r.waiting && !isAway(r));
 }
 
+/** Out exploring or on a quest: not in the homestead. */
 export function isAway(r: Resident): boolean {
-  return r.expedition !== null;
+  return r.expedition !== null || r.quest !== null;
 }
 
 export function residentsInRoom(state: GameState, roomId: number): Resident[] {

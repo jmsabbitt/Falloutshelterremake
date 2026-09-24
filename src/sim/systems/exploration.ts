@@ -634,6 +634,7 @@ export function canExplore(state: GameState, content: Content, r: Resident): str
   if (r.dead) return 'fallen residents cannot explore';
   if (r.waiting) return 'let them in first';
   if (r.expedition !== null) return 'already out exploring';
+  if (r.quest !== null) return 'away on a quest';
   if (isChild(state, r)) return 'children are too young to explore';
   if (r.pregnancy !== null) return 'too risky while expecting';
   if (state.expeditions.length >= MAX_EXPLORERS) return `no more than ${MAX_EXPLORERS} explorers at once`;

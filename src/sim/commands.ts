@@ -4,12 +4,13 @@
 import type { Content } from './content';
 import { addScrip, buildCost, population, refreshUnlocks, storageCapacity, upgradeCost } from './economy';
 import { canPlace, connectedRoomIds, mergeFloor, roomDef } from './grid';
-import { bump, effectiveMaxHp, effectiveStat, isChild, residentsInRoom, reviveCost } from './residents';
+import { bump, effectiveMaxHp, effectiveStat, isAway, isChild, residentsInRoom, reviveCost } from './residents';
 import { claimDaily, openCrate, settle } from './systems/crates';
 import { equip, grantItem, sell, unequip } from './systems/items';
 import { collectExpedition, onResidentRevived, recallExpedition, startExpedition } from './systems/exploration';
 import { cancelCraft, collectCraft, reforge, scrapItem, startCraft } from './systems/crafting';
 import { collectRoom } from './systems/production';
+import { abandonQuest, collectQuest, questAbility, questChoose, questCrit, questHeal, questMove, questTarget, startQuest } from './systems/quests';
 import { performRush } from './systems/rush';
 import type { CrateTier, GameState, Resident, Room } from './types';
 
@@ -40,7 +41,18 @@ export type Command =
   | { type: 'collectCraft'; roomId: number }
   | { type: 'cancelCraft'; roomId: number }
   | { type: 'scrap'; itemId: number }
-  | { type: 'reforge'; itemIds: number[] };
+  | { type: 'reforge'; itemIds: number[] }
+  // M4
+  | { type: 'startQuest'; questId: string; residentIds: number[]; medpatch: number }
+  | { type: 'startContract'; contractId: number; residentIds: number[]; medpatch: number }
+  | { type: 'questMove'; questId: number; roomId: string }
+  | { type: 'questTarget'; questId: number; enemyUid: number; residentId?: number }
+  | { type: 'questCrit'; questId: number; residentId: number; quality: number }
+  | { type: 'questAbility'; questId: number; residentId: number }
+  | { type: 'questHeal'; questId: number; residentId: number }
+  | { type: 'questChoose'; questId: number; option: number }
+  | { type: 'abandonQuest'; questId: number }
+  | { type: 'collectQuest'; questId: number };
 
 export type CommandResult = { ok: true; detail?: string } | { ok: false; reason: string };
 
@@ -76,6 +88,9 @@ function dispatch(state: GameState, content: Content, cmd: Command): CommandResu
       const def = content.rooms[cmd.roomType];
       if (!def || !def.buildable) return fail('cannot build that');
       if (!state.unlockedRooms.includes(def.id)) return fail(`unlocks at population ${def.unlockPop}`);
+      if (def.maxBuilt !== undefined && state.rooms.filter((r) => r.type === def.id).length >= def.maxBuilt) {
+        return fail(`only ${def.maxBuilt} allowed`);
+      }
       const place = canPlace(state, content, def.id, cmd.floor, cmd.x);
       if (!place.ok) return place;
       const cost = buildCost(state, content, def.id);
@@ -144,7 +159,7 @@ function dispatch(state: GameState, content: Content, cmd: Command): CommandResu
       if (!res || res.dead) return fail('no such resident');
       if (res.waiting) return fail('let them in first');
       if (isChild(state, res)) return fail('children are too young to work');
-      if (res.expedition !== null) return fail('they are out exploring');
+      if (isAway(res)) return fail(res.quest !== null ? 'they are away on a quest' : 'they are out exploring');
       if (cmd.roomId === null) {
         res.roomId = null;
         res.courtship = null;
@@ -242,6 +257,7 @@ function dispatch(state: GameState, content: Content, cmd: Command): CommandResu
       const res = findResident(state, cmd.residentId);
       if (!res || !res.dead) return fail('only the fallen can be laid to rest');
       if (res.expedition !== null) return fail('recall their body from the Glarelands first');
+      if (res.quest !== null) return fail('they are still away on a quest');
       for (const slot of ['weapon', 'outfit'] as const) {
         const item = res[slot];
         if (item) grantItem(state, content, item);
@@ -255,7 +271,7 @@ function dispatch(state: GameState, content: Content, cmd: Command): CommandResu
     case 'heal': {
       const res = findResident(state, cmd.residentId);
       if (!res || res.dead) return fail('no such resident');
-      if (res.expedition !== null) return fail('they are out exploring');
+      if (isAway(res)) return fail('they are away from the homestead');
       if (res.hp >= effectiveMaxHp(res) - 0.5) return fail('already at full health');
       if (state.resources.medpatch < 1) return fail('no Med-Patches: build a Clinic');
       state.resources.medpatch -= 1;
@@ -267,7 +283,7 @@ function dispatch(state: GameState, content: Content, cmd: Command): CommandResu
     case 'purge': {
       const res = findResident(state, cmd.residentId);
       if (!res || res.dead) return fail('no such resident');
-      if (res.expedition !== null) return fail('they are out exploring');
+      if (isAway(res)) return fail('they are away from the homestead');
       if (res.taint <= 0) return fail('no Glare-sickness to purge');
       if (state.resources.purge < 1) return fail('no Purge: build a Purge Lab');
       state.resources.purge -= 1;
@@ -279,6 +295,7 @@ function dispatch(state: GameState, content: Content, cmd: Command): CommandResu
     case 'equip': {
       const res = findResident(state, cmd.residentId);
       if (!res || res.dead) return fail('no such resident');
+      if (isAway(res)) return fail('they are away from the homestead');
       const err = equip(state, content, res, cmd.itemId);
       return err ? fail(err) : { ok: true };
     }
@@ -286,6 +303,7 @@ function dispatch(state: GameState, content: Content, cmd: Command): CommandResu
     case 'unequip': {
       const res = findResident(state, cmd.residentId);
       if (!res) return fail('no such resident');
+      if (isAway(res)) return fail('they are away from the homestead');
       const err = unequip(state, content, res, cmd.slot);
       return err ? fail(err) : { ok: true };
     }
@@ -322,6 +340,26 @@ function dispatch(state: GameState, content: Content, cmd: Command): CommandResu
       return result(scrapItem(state, content, cmd.itemId));
     case 'reforge':
       return result(reforge(state, content, cmd.itemIds));
+    case 'startQuest':
+      return result(startQuest(state, content, { questId: cmd.questId }, cmd));
+    case 'startContract':
+      return result(startQuest(state, content, { contractId: cmd.contractId }, cmd));
+    case 'questMove':
+      return result(questMove(state, content, cmd.questId, cmd.roomId));
+    case 'questTarget':
+      return result(questTarget(state, content, cmd.questId, cmd.enemyUid, cmd.residentId));
+    case 'questCrit':
+      return result(questCrit(state, content, cmd.questId, cmd.residentId, cmd.quality));
+    case 'questAbility':
+      return result(questAbility(state, content, cmd.questId, cmd.residentId));
+    case 'questHeal':
+      return result(questHeal(state, content, cmd.questId, cmd.residentId));
+    case 'questChoose':
+      return result(questChoose(state, content, cmd.questId, cmd.option));
+    case 'abandonQuest':
+      return result(abandonQuest(state, content, cmd.questId));
+    case 'collectQuest':
+      return result(collectQuest(state, content, cmd.questId));
   }
 }
 

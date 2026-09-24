@@ -1,0 +1,117 @@
+{
+  "_comment": "Quests, combat tuning, quest enemies, events, the story questlines and contract templates. Typed in src/sim/systems/quests.ts; see docs/design/M4-spec.md.",
+  "tuning": {
+    "maxParty": 3,
+    "officeSlots": [1, 2, 3],
+    "maxSupplies": 10,
+    "walkSeconds": 3,
+    "attackInterval": 1.5,
+    "fists": [1, 2],
+    "damagePerLevel": 0.25,
+    "gritReduction": 0.025,
+    "maxReduction": 0.6,
+    "enemyHpPerLevel": 0.14,
+    "enemyDamagePerLevel": 0.08,
+    "critPerHit": 0.06,
+    "critPerHitPerFortune": 0.012,
+    "critMin": 1.5,
+    "critMax": 4,
+    "critRingBase": 1.5,
+    "critRingPerSight": 0.08,
+    "critRingMin": 0.45,
+    "medpatchHeal": 0.5,
+    "recoverHp": 0.15,
+    "downedXp": 0.5,
+    "tauntReduction": 0.5,
+    "contracts": { "offers": 3, "refreshHours": 24, "unlockedBy": "act1_1", "levelSpread": 1 }
+  },
+  "abilities": {
+    "brawn": { "id": "haymaker", "name": "Haymaker", "description": "A huge swing that stuns the target and interrupts a wind-up.", "stat": "brawn", "cooldown": 18, "power": 2.5, "duration": 2.5 },
+    "sight": { "id": "deadeye", "name": "Deadeye", "description": "One carefully aimed shot for heavy damage.", "stat": "sight", "cooldown": 20, "power": 4, "duration": 0 },
+    "grit": { "id": "hold_the_line", "name": "Hold the Line", "description": "Draws every enemy's attacks and halves the damage taken.", "stat": "grit", "cooldown": 22, "power": 1, "duration": 6 },
+    "charm": { "id": "rally", "name": "Rally", "description": "The whole party hits harder for a while.", "stat": "charm", "cooldown": 24, "power": 1.4, "duration": 8 },
+    "wits": { "id": "field_dressing", "name": "Field Dressing", "description": "Patches up the whole party, even someone who is down.", "stat": "wits", "cooldown": 25, "power": 0.25, "duration": 0 },
+    "knack": { "id": "rigged_charge", "name": "Rigged Charge", "description": "A home-made charge that hits every enemy.", "stat": "knack", "cooldown": 22, "power": 2, "duration": 0 },
+    "fortune": { "id": "lucky_break", "name": "Lucky Break", "description": "Fills every crit meter in the party.", "stat": "fortune", "cooldown": 30, "power": 1, "duration": 0 }
+  },
+  "enemies": {
+    "skitter": { "id": "skitter", "name": "Skitter", "look": "skitter", "hp": 14, "damage": [2, 3], "interval": 1.6, "xp": 8 },
+    "rust_scrapper": { "id": "rust_scrapper", "name": "Rustman Scrapper", "look": "rustman", "hp": 26, "damage": [3, 5], "interval": 2.0, "xp": 14, "drop": { "scrip": [5, 15] } },
+    "rust_brute": {
+      "id": "rust_brute", "name": "Rustman Brute", "look": "rustman_brute", "hp": 60, "damage": [5, 8], "interval": 2.6, "xp": 30,
+      "abilities": [{ "id": "overhead", "name": "Overhead Smash", "every": 10, "windup": 2, "effect": "heavy", "power": 2.5 }]
+    },
+    "relay_boss": {
+      "id": "relay_boss", "name": "Skitter Broodmother", "look": "skitter_queen", "hp": 220, "damage": [4, 6], "interval": 1.8, "xp": 120, "boss": true,
+      "abilities": [
+        { "id": "screech", "name": "Screech", "every": 12, "windup": 2.5, "effect": "slam", "power": 1.2 },
+        { "id": "brood", "name": "Call the Brood", "every": 20, "windup": 3, "effect": "summon", "adds": ["skitter", "skitter"] }
+      ],
+      "drop": { "salvage": { "rarity": "rare", "count": [1, 2] } }
+    }
+  },
+  "pools": {
+    "skitters": [["skitter", "skitter"], ["skitter", "skitter", "skitter"]],
+    "rustmen": [["rust_scrapper"], ["rust_scrapper", "rust_scrapper"], ["rust_brute"]]
+  },
+  "events": {
+    "relay_panel": {
+      "id": "relay_panel",
+      "text": "A relay cabinet hums behind a rusted panel. A sticker reads: HALCY SAYS: DO NOT TOUCH (PLEASE).",
+      "options": [
+        {
+          "label": "Rewire it (Knack)", "stat": "knack", "difficulty": 6,
+          "success": { "text": "The relay coughs back to life. Somewhere, HALCY sounds briefly smug.", "reward": { "scrip": [40, 80] } },
+          "failure": { "text": "It bites back. Everyone's hair stands up for an hour.", "damage": 0.1 }
+        },
+        { "label": "Leave it", "success": { "text": "You respect the sticker." } }
+      ]
+    }
+  },
+  "questlines": [
+    { "id": "act1", "name": "Act 1: The Silent Neighbour", "quests": ["act1_1"] }
+  ],
+  "quests": [
+    {
+      "id": "act1_1",
+      "line": "act1",
+      "order": 1,
+      "title": "Welcome Wagon",
+      "giver": "HALCY",
+      "brief": "Good news, Warden! Halcyon's signal relay on the ridge has gone quiet, and something is nesting in it. Please take a small team, evict the tenants, and bring back anything shiny.",
+      "debrief": "Relay online! And listen: there's a faint ping on it from Homestead 212. They haven't answered in months. That's probably fine.",
+      "requires": { "quests": [] },
+      "level": 2,
+      "travelMinutes": 2,
+      "map": {
+        "rooms": [
+          { "id": "a", "floor": 0, "col": 0, "links": ["b"], "kind": "start" },
+          { "id": "b", "floor": 0, "col": 1, "links": ["c", "d"], "kind": "fight", "pool": "skitters" },
+          { "id": "c", "floor": 0, "col": 2, "links": [], "kind": "loot", "loot": { "scrip": [30, 60], "item": { "chance": 0.5, "rarity": "common" } } },
+          { "id": "d", "floor": 1, "col": 1, "links": ["e"], "kind": "event", "event": "relay_panel" },
+          { "id": "e", "floor": 1, "col": 2, "links": [], "kind": "boss", "enemies": ["relay_boss"], "objective": true }
+        ],
+        "shuffle": ["c", "d"]
+      },
+      "rewards": { "scrip": 250, "xp": 120, "crates": { "standard": 1 }, "medpatch": 2 }
+    }
+  ],
+  "contracts": [
+    {
+      "id": "c_pest_control",
+      "title": "Pest Control: {place}",
+      "brief": "Skitters have moved into {place}. The bounty is posted; the skitters have not read it.",
+      "places": ["the Old Cannery", "the Drive-In", "Pylon Row"],
+      "travelMinutes": [3, 6],
+      "map": {
+        "rooms": [
+          { "id": "a", "floor": 0, "col": 0, "links": ["b"], "kind": "start" },
+          { "id": "b", "floor": 0, "col": 1, "links": ["c"], "kind": "fight", "pool": "skitters" },
+          { "id": "c", "floor": 0, "col": 2, "links": [], "kind": "fight", "pool": "rustmen", "objective": true }
+        ]
+      },
+      "bounty": { "rarity": "rare", "scrip": [150, 300] }
+    }
+  ],
+  "achievements": []
+}

@@ -2,7 +2,8 @@
 // fast-forwards over time spent away, under the "safe offline" rules:
 //   - timers continue: production (each room still stops at one batch),
 //     pregnancies, children growing up, radio and wanderer arrivals,
-//     expeditions (explorers keep exploring) and crafting jobs
+//     expeditions (explorers keep exploring), crafting jobs and quest travel
+//   - nothing happens on a quest site: parties never fight offline
 //   - consumption only runs for the first few minutes of an absence
 //   - no incidents start or progress, no courtship, no shortage damage
 
@@ -16,6 +17,7 @@ import { tickCourtship, tickFamily } from './systems/family';
 import { tickIncidents, tickIncidentTimer } from './systems/incidents';
 import { tickNeeds, updatePower } from './systems/needs';
 import { tickProduction } from './systems/production';
+import { tickQuests } from './systems/quests';
 import { tickRushStrain } from './systems/rush';
 import type { GameState } from './types';
 
@@ -42,6 +44,7 @@ function step(state: GameState, content: Content, dt: number, opts: StepOptions)
   tickArrivals(state, content, dt);
   tickExpeditions(state, content, dt);
   tickCrafting(state, content, dt);
+  tickQuests(state, content, dt, opts.offline);
   refreshUnlocks(state, content);
   settle(state, content, from);
 }

@@ -3,7 +3,7 @@
 
 import type { GameState } from './types';
 
-export const SAVE_VERSION = 3;
+export const SAVE_VERSION = 4;
 
 interface SaveFile {
   format: 'homestead-save';
@@ -69,6 +69,14 @@ const migrations: Record<number, Migration> = {
     reforgePity: 0,
     expeditions: [],
     regionsUnlocked: ['dustbowl'],
+  }),
+  // v3 (M3) -> v4 (M4): quests and contracts.
+  3: (s) => ({
+    ...s,
+    residents: (s['residents'] as Record<string, unknown>[]).map((r) => ({ ...r, quest: null })),
+    quests: [],
+    questsDone: [],
+    contracts: { offers: [], refreshAt: 0 },
   }),
 };
 

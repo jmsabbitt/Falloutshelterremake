@@ -9,9 +9,10 @@ import itemsJson from '../content/items.json';
 import salvageJson from '../content/salvage.json';
 import explorationJson from '../content/exploration.json';
 import craftingJson from '../content/crafting.json';
+import questsJson from '../content/quests.json';
 import type { Rarity, ResourceKey, StatKey, Stats } from './types';
 
-export type RoomCategory = 'door' | 'elevator' | 'living' | 'production' | 'storage' | 'radio' | 'workshop';
+export type RoomCategory = 'door' | 'elevator' | 'living' | 'production' | 'storage' | 'radio' | 'workshop' | 'office';
 export type StorageKind = ResourceKey | 'population' | 'items';
 
 /** Tables indexed [level - 1][segments - 1]. */
@@ -39,6 +40,8 @@ export interface RoomDef {
   doorHp?: number[];
   /** Population needed for each upgrade (to level 2, level 3). */
   upgradePop?: number[];
+  /** At most this many can be built (the Command Office is unique). */
+  maxBuilt?: number;
 }
 
 export interface WeaponDef {
@@ -101,6 +104,8 @@ export interface Content {
   exploration: typeof explorationJson;
   /** Crafting content and tuning (owned by systems/crafting.ts). */
   crafting: typeof craftingJson;
+  /** Quest content and combat tuning (typed in systems/quests.ts). */
+  quests: typeof questsJson;
 }
 
 function validate(content: Content): Content {
@@ -134,6 +139,7 @@ export function loadContent(): Content {
       ...(achievementsJson as AchievementDef[]),
       ...((explorationJson as { achievements?: AchievementDef[] }).achievements ?? []),
       ...((craftingJson as { achievements?: AchievementDef[] }).achievements ?? []),
+      ...((questsJson as { achievements?: AchievementDef[] }).achievements ?? []),
     ],
     weapons: Object.fromEntries(weapons.map((w) => [w.id, w])),
     outfits: Object.fromEntries(outfits.map((o) => [o.id, o])),
@@ -143,6 +149,7 @@ export function loadContent(): Content {
     salvageList: salvageJson as SalvageDef[],
     exploration: explorationJson,
     crafting: craftingJson,
+    quests: questsJson,
   });
 }
 

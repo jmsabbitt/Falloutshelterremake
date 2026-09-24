@@ -62,6 +62,8 @@ export interface Resident {
   outfit: string | null;
   /** Expedition id while out in the Glarelands; away residents are not in the homestead. */
   expedition: number | null;
+  /** M4: quest instance id while away on a quest. */
+  quest: number | null;
 }
 
 // ------------------------------------------------------------------ M3: Glarelands
@@ -171,6 +173,127 @@ export type CrateCard =
   | { kind: 'item'; defId: string; rarity: Rarity; sold: number }
   | { kind: 'resident'; residentId: number; rarity: Rarity };
 
+// ------------------------------------------------------------------ M4: quests
+
+/** A reward bundle (quest room loot, event outcomes, completion rewards, contract bounties). */
+export interface QuestReward {
+  scrip?: number | [number, number];
+  xp?: number;
+  /** Whole items by definition id. */
+  items?: string[];
+  /** A random item roll. */
+  item?: { chance: number; rarity: 'common' | 'rare'; kind?: 'weapon' | 'outfit' };
+  salvage?: { rarity: Rarity; count: [number, number]; materials?: string[] };
+  /** Named fragments, item definition id -> count. */
+  fragments?: Record<string, number>;
+  /** A random fragment roll toward a recipe not yet known. */
+  fragment?: { chance: number; rarity: 'rare' | 'legendary' };
+  recipes?: string[];
+  crates?: Partial<Record<CrateTier, number>>;
+  medpatch?: number;
+  purge?: number;
+  /** Exploration regions unlocked. */
+  regions?: string[];
+}
+
+export type QuestRoomKind = 'start' | 'empty' | 'fight' | 'loot' | 'event' | 'boss';
+
+export interface QuestRoom {
+  id: string;
+  floor: number;
+  col: number;
+  links: string[];
+  kind: QuestRoomKind;
+  /** Enemy definition ids that spawn on entry (resolved from pools when the quest starts). */
+  enemies: string[];
+  loot: QuestReward | null;
+  event: string | null;
+  /** Clearing this room completes the quest. */
+  objective: boolean;
+  visited: boolean;
+  cleared: boolean;
+}
+
+export interface QuestMember {
+  residentId: number;
+  /** Knocked out in this fight; stands back up when the room is cleared. */
+  downed: boolean;
+  /** Enemy uid this member attacks; null = automatic. */
+  target: number | null;
+  /** Seconds to the next attack. */
+  attackTimer: number;
+  /** Crit meter, 0..1. At 1 the player can land a critical hit. */
+  crit: number;
+  /** Seconds until the resident's ability is ready again. */
+  abilityCooldown: number;
+  /** Seconds left drawing every enemy's attacks (Hold the Line). */
+  taunt: number;
+}
+
+export interface QuestEnemy {
+  uid: number;
+  defId: string;
+  hp: number;
+  maxHp: number;
+  attackTimer: number;
+  /** Resident id being attacked; null = pick one. */
+  target: number | null;
+  /** Seconds until each of the enemy's abilities (by index) starts winding up. */
+  abilityTimers: number[];
+  /** A telegraphed attack being wound up; a stun cancels it. */
+  windup: { index: number; remaining: number } | null;
+  stunned: number;
+  /** Seconds left on an enrage (damage multiplier from the ability). */
+  enraged: number;
+  enrageMult: number;
+}
+
+export interface ContractOffer {
+  id: number;
+  templateId: string;
+  title: string;
+  brief: string;
+  level: number;
+  travelSeconds: number;
+  /** The named reward, shown up front (GDD §15: bounty contracts). */
+  bounty: QuestReward;
+  /** Sim time the offer disappears. */
+  expiresAt: number;
+}
+
+export type QuestStatus = 'travelling' | 'onsite' | 'returning' | 'returned';
+export type QuestOutcome = 'success' | 'failed' | 'abandoned';
+
+export interface Quest {
+  id: number;
+  /** Story quest definition id, or contract template id. */
+  defId: string;
+  /** Set for contracts: the offer taken (its bounty is paid on success). */
+  contract: ContractOffer | null;
+  title: string;
+  level: number;
+  status: QuestStatus;
+  outcome: QuestOutcome | null;
+  travelTotal: number;
+  travelRemaining: number;
+  party: QuestMember[];
+  rooms: QuestRoom[];
+  /** Room the party is in (or walking from). */
+  roomId: string;
+  moving: { to: string; remaining: number } | null;
+  /** Enemies in the current room. */
+  enemies: QuestEnemy[];
+  /** Event waiting for the player's choice. */
+  pendingEvent: string | null;
+  /** Short narrative lines (event outcomes, finds), newest last. */
+  log: string[];
+  loot: ExpeditionLoot & { crates: Partial<Record<CrateTier, number>>; medpatch: number; purge: number; xp: number };
+  supplies: { medpatch: number };
+  /** Seconds left on the party-wide damage buff (Rally). */
+  rally: number;
+  onsiteTime: number;
+}
+
 export type GameEvent =
   | { type: 'collected'; roomId: number; resource: ResourceKey; amount: number; bonusScrip: number }
   | { type: 'rushSucceeded'; roomId: number }
@@ -209,7 +332,26 @@ export type GameEvent =
   | { type: 'craftFinished'; roomId: number; defId: string }
   | { type: 'craftCollected'; roomId: number; defId: string }
   | { type: 'itemScrapped'; defId: string; salvage: Record<string, number> }
-  | { type: 'reforged'; inputs: string[]; result: string; upgraded: boolean };
+  | { type: 'reforged'; inputs: string[]; result: string; upgraded: boolean }
+  // M4
+  | { type: 'questStarted'; questId: number }
+  | { type: 'questArrived'; questId: number }
+  | { type: 'questRoomEntered'; questId: number; roomId: string }
+  | { type: 'questCombat'; questId: number; roomId: string }
+  | { type: 'questHit'; questId: number; from: 'party' | 'enemy'; source: number; target: number; amount: number; crit: boolean }
+  | { type: 'questAbility'; questId: number; residentId: number; ability: string }
+  | { type: 'questWindup'; questId: number; enemyUid: number; ability: string; seconds: number }
+  | { type: 'questInterrupted'; questId: number; enemyUid: number }
+  | { type: 'questEnemyDown'; questId: number; enemyUid: number }
+  | { type: 'questMemberDown'; questId: number; residentId: number }
+  | { type: 'questRoomCleared'; questId: number; roomId: string }
+  | { type: 'questLoot'; questId: number; text: string }
+  | { type: 'questEventPrompt'; questId: number; eventId: string }
+  | { type: 'questEventResolved'; questId: number; eventId: string; success: boolean; text: string }
+  | { type: 'questFinished'; questId: number; outcome: QuestOutcome }
+  | { type: 'questReturned'; questId: number }
+  | { type: 'questCollected'; questId: number; outcome: QuestOutcome; defId: string }
+  | { type: 'contractsRefreshed' };
 
 /** Lifetime counters. Feed achievements, the stats screen and balancing. */
 export type LifetimeStats = Record<string, number>;
@@ -241,6 +383,12 @@ export interface GameState {
   expeditions: Expedition[];
   /** M3: region ids the player can send explorers to. */
   regionsUnlocked: string[];
+  /** M4: quests in progress (and back home awaiting collection). */
+  quests: Quest[];
+  /** M4: story quest ids completed. */
+  questsDone: string[];
+  /** M4: repeatable contracts on offer, refreshed daily (sim time). */
+  contracts: { offers: ContractOffer[]; refreshAt: number };
   crates: Record<CrateTier, number>;
   crateTokens: number;
   /** Crates opened since the last legendary card (drives the pity guarantee). */

@@ -48,6 +48,25 @@ export {
   crewCraftStat,
   type Recipe,
 } from './systems/crafting';
+export {
+  abilityFor,
+  availableQuests,
+  canQuest,
+  critMultiplier,
+  critRingSpeed,
+  currentRoom,
+  damageReduction,
+  enemyDef,
+  inCombat,
+  officeSlots,
+  questContent,
+  questDef,
+  questLocked,
+  type AbilityDef,
+  type EnemyDef,
+  type QuestDef,
+  type QuestEventDef,
+} from './systems/quests';
 export { knowsRecipe, fragmentsNeeded, salvageCount, SALVAGE_CAP } from './systems/inventory';
 export {
   residentsInRoom,
