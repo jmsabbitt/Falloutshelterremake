@@ -112,13 +112,14 @@ export function isRightRoom(state: GameState, content: Content, r: Resident): bo
   return stat !== null && topStats(effectiveStats(content, r)).includes(stat);
 }
 
-export function happinessTarget(state: GameState, content: Content, r: Resident, shortage: boolean): number {
+/** `deadRooms`: rooms holding a fallen resident (pass it when calling for everyone, to avoid an O(n²) scan). */
+export function happinessTarget(state: GameState, content: Content, r: Resident, shortage: boolean, deadRooms?: Set<number>): number {
   const h = content.balance.happiness;
   let target = h.base;
   if (isRightRoom(state, content, r)) target += h.rightRoomBonus;
   if (shortage) target -= content.balance.shortage.happinessPenalty;
   if (r.hp < effectiveMaxHp(r) * 0.5 || r.taint > r.maxHp * 0.25) target -= h.injuredPenalty;
-  const deadHere = r.roomId !== null && state.residents.some((o) => o.dead && o.roomId === r.roomId);
+  const deadHere = r.roomId !== null && (deadRooms ? deadRooms.has(r.roomId) : state.residents.some((o) => o.dead && o.roomId === r.roomId));
   if (deadHere) target -= 30;
   target += traitHappiness(state, content, r);
   return Math.max(0, Math.min(100, target));
@@ -126,8 +127,10 @@ export function happinessTarget(state: GameState, content: Content, r: Resident,
 
 function tickHappiness(state: GameState, content: Content, dt: number, shortage: boolean): void {
   const step = (content.balance.happiness.changePerMin * dt) / 60;
+  const deadRooms = new Set<number>();
+  for (const o of state.residents) if (o.dead && o.roomId !== null) deadRooms.add(o.roomId);
   for (const r of livingResidents(state)) {
-    const target = happinessTarget(state, content, r, shortage);
+    const target = happinessTarget(state, content, r, shortage, deadRooms);
     if (r.happiness < target) r.happiness = Math.min(target, r.happiness + step);
     else if (r.happiness > target) r.happiness = Math.max(target, r.happiness - step);
   }
