@@ -65,7 +65,7 @@
     {"id": "research_all", "name": "Halcyon Fellowship", "description": "Complete all 46 research projects in one homestead.", "tier": "gold", "stat": "researchDoneHomestead", "target": 46},
     {"id": "research_tier4", "name": "Blue-Sky Thinking", "description": "Complete a tier 4 research project.", "tier": "gold", "stat": "researchTier4", "target": 1},
     {"id": "research_points", "name": "Brain Trust", "description": "Produce 25,000 research points.", "tier": "silver", "stat": "researchPoints", "target": 25000},
-    {"id": "research_deep", "name": "Below the Charter", "description": "Complete every Deep Works project in one homestead.", "tier": "gold", "stat": "researchDoneHomestead.deep", "target": 8},
+    {"id": "research_deep", "name": "Deep Works Diploma", "description": "Complete every Deep Works project in one homestead.", "tier": "gold", "stat": "researchDoneHomestead.deep", "target": 8},
     {"id": "research_bots", "name": "Bedside Manner", "description": "Have supply bots treat 100 residents.", "tier": "silver", "stat": "supplyBotTreatments", "target": 100},
     {"id": "research_office", "name": "Human Resources", "description": "Have the Personnel Office assign 50 residents.", "tier": "bronze", "stat": "officeAssignments", "target": 50}
   ]

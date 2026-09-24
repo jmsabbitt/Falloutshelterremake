@@ -21,7 +21,7 @@ export { canPlace, connectedRoomIds, floorOccupancy, roomCells, roomDef } from '
 export { buildCost, upgradeCost, storageCapacity, resourceCapacity, population } from './economy';
 export { cycleSeconds, poolSize, batchOutput, vaultHappiness, roomStatTotal } from './systems/production';
 export { rushFailChance } from './systems/rush';
-export { powerDemandPerMin, foodDemandPerMin, waterDemandPerMin, shortageThreshold, isRightRoom } from './systems/needs';
+export { powerDemandPerMin, foodDemandPerMin, waterDemandPerMin, shortageThreshold, shortageLine, isRightRoom } from './systems/needs';
 export { achievementProgress } from './systems/achievements';
 export { incidentDef, defenders, touchesDirt, deepIncidentTypes } from './systems/incidents';
 export { itemCapacity, sellValue, itemDef } from './systems/items';

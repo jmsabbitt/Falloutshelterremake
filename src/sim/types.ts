@@ -68,6 +68,8 @@ export interface Resident {
   traits: string[];
   /** M6: seconds worked per room type; builds mastery tiers. */
   mastery: Record<string, number>;
+  /** The job held before leaving on a trip, to go back to on return. */
+  homeRoomId?: number | null;
 }
 
 // ------------------------------------------------------------------ M3: Glarelands
@@ -174,7 +176,7 @@ export type CrateTier = 'standard' | 'rare' | 'legendary';
 
 export type CrateCard =
   | { kind: 'scrip'; amount: number }
-  | { kind: 'resource'; resource: ResourceKey; amount: number }
+  | { kind: 'resource'; resource: ResourceKey; amount: number; /** Scrip paid for what didn't fit in storage. */ refund?: number }
   | { kind: 'tokens'; amount: number }
   | { kind: 'item'; defId: string; rarity: Rarity; sold: number }
   | { kind: 'resident'; residentId: number; rarity: Rarity };

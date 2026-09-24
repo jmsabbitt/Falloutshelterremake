@@ -8,6 +8,22 @@ import { roomCapacity } from '../commands';
 import { effectiveStat, isAway, isChild, residentsInRoom } from '../residents';
 import type { GameState, Resident, Room } from '../types';
 
+/** Remember a resident's job as they leave the homestead for a trip. */
+export function leaveJob(r: Resident): void {
+  r.homeRoomId = r.roomId;
+  r.roomId = null;
+}
+
+/** Back from a trip: return to the old job if it still exists and has room. */
+export function returnToJob(state: GameState, content: Content, r: Resident): void {
+  const home = r.homeRoomId;
+  r.homeRoomId = null;
+  r.roomId = null;
+  if (home === null || home === undefined || r.dead || isChild(state, r)) return;
+  const room = state.rooms.find((x) => x.id === home);
+  if (room && residentsInRoom(state, room.id).length < roomCapacity(content, room)) r.roomId = room.id;
+}
+
 /** Adults inside with no job, who can be given one. */
 export function idleAdults(state: GameState): Resident[] {
   return state.residents.filter((r) => !r.dead && !r.waiting && !isAway(r) && !isChild(state, r) && r.roomId === null);

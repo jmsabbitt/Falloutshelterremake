@@ -62,9 +62,13 @@ function cardFrom(state: GameState, content: Content, entry: CardEntry): CrateCa
   if (entry.resource) {
     const key = entry.resource as ResourceKey;
     const amount = entry.amount ?? 0;
-    // Crates may overfill storage a little; the cap reasserts on the next tick.
-    state.resources[key] = Math.min(resourceCapacity(state, content, key) + amount, state.resources[key] + amount);
-    return { kind: 'resource', resource: key, amount };
+    // What doesn't fit in storage is sold on for scrip instead of vanishing.
+    const space = Math.max(0, resourceCapacity(state, content, key) - state.resources[key]);
+    const kept = Math.min(space, amount);
+    state.resources[key] += kept;
+    const refund = Math.round((amount - kept) * content.balance.crates.overflowScripPerUnit);
+    if (refund > 0) addScrip(state, content, refund);
+    return { kind: 'resource', resource: key, amount, ...(refund > 0 ? { refund } : {}) };
   }
   const rarity = (entry.rarity ?? 'common') as Rarity;
   if (entry.kind === 'resident') {

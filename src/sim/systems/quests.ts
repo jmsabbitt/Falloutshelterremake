@@ -32,6 +32,7 @@ import {
 } from '../types';
 import { earnCrate } from './crates';
 import { addFragment, addSalvage, fragmentsNeeded, knowsRecipe, unlockRecipe } from './inventory';
+import { leaveJob, returnToJob } from './assign';
 import { grantItem, randomItemOf } from './items';
 
 // ------------------------------------------------------------------ content types
@@ -444,7 +445,7 @@ export function startQuest(
   };
   for (const r of party) {
     r.quest = quest.id;
-    r.roomId = null;
+    leaveJob(r);
     r.courtship = null;
   }
   state.quests.push(quest);
@@ -1048,7 +1049,7 @@ export function collectQuest(state: GameState, content: Content, questId: number
   }
   for (const { r } of party) {
     r.quest = null;
-    r.roomId = null;
+    returnToJob(state, content, r);
   }
   state.quests = state.quests.filter((x) => x !== q);
 

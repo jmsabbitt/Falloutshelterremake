@@ -13,7 +13,7 @@ import { cancelCraft, collectCraft, reforge, scrapItem, startCraft } from './sys
 import { batchOutput, collectRoom } from './systems/production';
 import { buyPerk, collectOutposts } from './systems/prestige';
 import { doResearch } from './systems/research';
-import { startExcavation } from './systems/deep';
+import { startExcavation, totalFloors } from './systems/deep';
 import { autoAssign, idleAdults } from './systems/assign';
 import { abandonQuest, collectQuest, questAbility, questChoose, questCrit, questHeal, questMove, questTarget, startQuest } from './systems/quests';
 import { performRush } from './systems/rush';
@@ -64,7 +64,9 @@ export type Command =
   // M6
   | { type: 'research'; nodeId: string }
   | { type: 'excavate' }
-  | { type: 'autoAssign' };
+  | { type: 'autoAssign' }
+  /** Build elevators straight down from the deepest shaft, as far as scrip allows (or to `floor`). */
+  | { type: 'extendShaft'; floor?: number };
 
 export type CommandResult = { ok: true; detail?: string } | { ok: false; reason: string };
 
@@ -409,6 +411,22 @@ function dispatch(state: GameState, content: Content, cmd: Command): CommandResu
       return result(doResearch(state, content, cmd.nodeId));
     case 'excavate':
       return result(startExcavation(state, content));
+    case 'extendShaft': {
+      const target = Math.min(cmd.floor ?? totalFloors(state, content) - 1, totalFloors(state, content) - 1);
+      let built = 0;
+      for (;;) {
+        const deepest = state.rooms.filter((r) => r.type === 'elevator').sort((a, b) => b.floor - a.floor || a.x - b.x)[0];
+        if (!deepest || deepest.floor >= target) break;
+        const res = dispatch(state, content, { type: 'build', roomType: 'elevator', floor: deepest.floor + 1, x: deepest.x });
+        if (!res.ok) {
+          if (!built) return res;
+          break;
+        }
+        built++;
+      }
+      return built ? { ok: true, detail: `${built} elevator${built > 1 ? 's' : ''} built` } : fail('the shaft already reaches that floor');
+    }
+
     case 'autoAssign': {
       if (!idleAdults(state).length) return fail('nobody is idle');
       const n = autoAssign(state, content);

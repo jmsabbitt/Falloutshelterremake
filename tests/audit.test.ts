@@ -1,6 +1,7 @@
 // Regression tests for issues found in the M6 sim audit.
 import { describe, expect, it } from 'vitest';
 import { advance, applyCommand, catchUp, livingResidents, loadContent, newGame, type GameState } from '../src/sim';
+import { shortageLine } from '../src/sim/systems/needs';
 import { createResident } from '../src/sim/residents';
 
 const content = loadContent();
@@ -86,5 +87,40 @@ describe('audit fixes', () => {
     expect(applyCommand(s, content, { type: 'claimDaily', day: Number.NaN }).ok).toBe(false);
     expect(applyCommand(s, content, { type: 'questCrit', questId: 1, residentId: 1, quality: Number.NaN }).ok).toBe(false);
     expect(Number.isFinite(s.resources.medpatch)).toBe(true);
+  });
+});
+
+describe('playtest fixes', () => {
+  it('explorers go back to their old job when collected', () => {
+    const s = game();
+    const gen = s.rooms.find((r) => r.type === 'generator')!;
+    const r = livingResidents(s)[0]!;
+    applyCommand(s, content, { type: 'assign', residentId: r.id, roomId: gen.id });
+    applyCommand(s, content, { type: 'explore', residentId: r.id, regionId: 'dustbowl', medpatch: 0, purge: 0 });
+    expect(r.roomId).toBeNull();
+    const e = s.expeditions[0]!;
+    applyCommand(s, content, { type: 'recall', expeditionId: e.id });
+    advance(s, content, 3600);
+    applyCommand(s, content, { type: 'collectExpedition', expeditionId: e.id });
+    expect(r.roomId).toBe(gen.id);
+  });
+
+  it('extendShaft builds elevators down as far as scrip allows', () => {
+    const s = game();
+    s.scrip = 100_000;
+    const r = applyCommand(s, content, { type: 'extendShaft', floor: 8 });
+    expect(r.ok).toBe(true);
+    expect(Math.max(...s.rooms.filter((x) => x.type === 'elevator').map((x) => x.floor))).toBe(8);
+  });
+
+  it('the shortage line never sits above a third of storage', () => {
+    const s = game();
+    for (let i = 0; i < 40; i++) {
+      const x = createResident(s, content);
+      x.waiting = false;
+      s.residents.push(x);
+    }
+    const line = shortageLine(s, content, 'water');
+    expect(line).toBeLessThanOrEqual(0.35 * 50 + 1e-9);
   });
 });

@@ -39,7 +39,8 @@
         3.76
       ]
     ],
-    "shortageThresholdMinutes": 13.5
+    "shortageThresholdMinutes": 13.5,
+    "shortageMaxFraction": 0.35
   },
   "shortage": {
     "foodHpLossPerMin": 1,
@@ -64,6 +65,7 @@
     "failHappiness": -5
   },
   "bonusScrip": {
+    "basePerSegment": 3,
     "chancePerFortune": 0.05,
     "maxChance": 0.5,
     "tiers": [
@@ -138,8 +140,8 @@
   },
   "incidents": {
     "timer": {
-      "minSeconds": 900,
-      "maxSeconds": 2700
+      "minSeconds": 1200,
+      "maxSeconds": 3600
     },
     "spreadDelaySeconds": 12,
     "hpPerAvgLevel": 0.08,
@@ -271,6 +273,7 @@
     "purgeRemove": 0.5
   },
   "crates": {
+    "overflowScripPerUnit": 3,
     "tokensPerCrate": 10,
     "pityThreshold": 10,
     "tokenChance": {

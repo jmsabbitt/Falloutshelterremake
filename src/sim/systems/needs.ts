@@ -30,8 +30,16 @@ export function waterDemandPerMin(state: GameState, content: Content): number {
 }
 
 /** The "tick mark" on each resource bar: below it, a shortage begins. */
-export function shortageThreshold(demandPerMin: number, content: Content): number {
-  return demandPerMin * content.balance.consumption.shortageThresholdMinutes;
+export function shortageThreshold(demandPerMin: number, content: Content, capacity?: number): number {
+  const line = demandPerMin * content.balance.consumption.shortageThresholdMinutes;
+  // Never above a share of storage: a bar that looks mostly full is not a shortage.
+  return capacity === undefined ? line : Math.min(line, capacity * content.balance.consumption.shortageMaxFraction);
+}
+
+/** The shortage line for a resource, as the HUD should show it. */
+export function shortageLine(state: GameState, content: Content, key: 'power' | 'food' | 'water'): number {
+  const demand = key === 'power' ? powerDemandPerMin(state, content) : key === 'food' ? foodDemandPerMin(state, content) : waterDemandPerMin(state, content);
+  return shortageThreshold(demand, content, resourceCapacity(state, content, key));
 }
 
 function distance(a: Room, b: Room): number {
@@ -46,7 +54,7 @@ export function updatePower(state: GameState, content: Content): void {
   const users = state.rooms.filter((r) => roomDef(content, r).usesPower);
   for (const r of state.rooms) r.powered = true;
   if (users.length === 0) return;
-  const threshold = shortageThreshold(powerDemandPerMin(state, content), content);
+  const threshold = shortageLine(state, content, 'power');
   if (state.resources.power >= threshold) return;
   const frac = threshold > 0 ? state.resources.power / threshold : 1;
   const keep = Math.floor(users.length * frac);
@@ -78,8 +86,8 @@ export function tickNeeds(state: GameState, content: Content, dt: number, opts: 
     state.resources[key] = Math.min(state.resources[key], resourceCapacity(state, content, key));
   }
 
-  const foodShort = shortageFraction(state.resources.food, shortageThreshold(foodDemandPerMin(state, content), content));
-  const waterShort = shortageFraction(state.resources.water, shortageThreshold(waterDemandPerMin(state, content), content));
+  const foodShort = shortageFraction(state.resources.food, shortageLine(state, content, 'food'));
+  const waterShort = shortageFraction(state.resources.water, shortageLine(state, content, 'water'));
   const sh = content.balance.shortage;
   const regen = content.balance.resident.regenPerMin;
 

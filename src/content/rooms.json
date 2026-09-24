@@ -19,9 +19,9 @@
     "capacityPerSegment": 2,
     "usesPower": false,
     "doorHp": [
-      40,
       90,
-      180
+      200,
+      400
     ]
   },
   {

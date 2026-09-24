@@ -17,6 +17,7 @@ import { bonus } from '../bonuses';
 import { chance, nextFloat, nextInt, pick } from '../rng';
 import type { Expedition, ExpeditionLoot, GameState, JournalEntry, JournalKind, Rarity, Resident, StatKey } from '../types';
 import { addFragment, addSalvage, fragmentsNeeded, knowsRecipe, unlockRecipe } from './inventory';
+import { leaveJob, returnToJob } from './assign';
 import { grantItem, randomItemOf } from './items';
 import { traitCheckBonus, traitExplorerScripMult, traitExplorerTaintMult } from './traits';
 
@@ -692,7 +693,7 @@ export function startExpedition(
   state.expeditions.push(e);
 
   r.expedition = e.id;
-  r.roomId = null;
+  leaveJob(r);
   r.courtship = null;
   for (const other of state.residents) if (other.courtship?.partnerId === r.id) other.courtship = null;
 
@@ -741,7 +742,7 @@ export function collectExpedition(state: GameState, content: Content, expedition
   const r = findResident(state, e.residentId);
   if (r) {
     r.expedition = null;
-    r.roomId = null;
+    returnToJob(state, content, r);
   }
   state.expeditions = state.expeditions.filter((x) => x !== e);
 
