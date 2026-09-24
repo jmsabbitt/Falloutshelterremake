@@ -129,7 +129,7 @@ export class Game {
    * undone), then replaces the state. The old state is left untouched on failure.
    */
   found(opts: Omit<FoundOptions, 'now'>): FoundResult {
-    this.state.lastRealTime = Date.now();
+    this.stampClock();
     const backup = serialize(this.state);
     const old = this.state;
     const backedUp = writeBackup(old.legacy.cycle, backup);
@@ -142,7 +142,7 @@ export class Game {
 
   /** M5: write a backup of the current save now (the Found flow does this before confirming). */
   backupNow(): { json: string; ok: boolean } {
-    this.state.lastRealTime = Date.now();
+    this.stampClock();
     const json = serialize(this.state);
     return { json, ok: writeBackup(this.state.legacy.cycle, json) };
   }
@@ -155,7 +155,7 @@ export class Game {
       return;
     }
     advance(this.state, this.content, dtSeconds);
-    this.state.lastRealTime = now;
+    this.stampClock(now);
     this.flush();
     if (now - this.lastSave > AUTOSAVE_MS) this.save();
   }
@@ -201,8 +201,17 @@ export class Game {
     return result;
   }
 
+  /**
+   * Record the wall clock as the last simulated moment. It never moves
+   * backwards, so winding the device clock back and forward again can't
+   * replay the same offline time.
+   */
+  private stampClock(now = Date.now()): void {
+    this.state.lastRealTime = Math.max(this.state.lastRealTime, now);
+  }
+
   save(): void {
-    this.state.lastRealTime = Date.now();
+    this.stampClock();
     writeSave(serialize(this.state));
     this.lastSave = Date.now();
   }
@@ -213,13 +222,13 @@ export class Game {
 
   /** M6: write the current homestead to a save slot (1–3). */
   saveToSlot(slot: number): boolean {
-    this.state.lastRealTime = Date.now();
+    this.stampClock();
     return writeSave(serialize(this.state), slot);
   }
 
   /** Keep the live save as one step of undo before it is replaced. */
   private keepUndo(): void {
-    this.state.lastRealTime = Date.now();
+    this.stampClock();
     writeUndo(serialize(this.state));
   }
 
