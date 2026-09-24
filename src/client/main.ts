@@ -1,6 +1,7 @@
 import { Application } from 'pixi.js';
 import { Game } from './game';
 import { CharacterArt } from './render/sprites';
+import { QuestView } from './render/questView';
 import { VaultView } from './render/vaultView';
 import { UI } from './ui/ui';
 import './style.css';
@@ -30,9 +31,17 @@ async function boot(): Promise<void> {
     onBuildAt: (floor, x) => ui?.onBuildAt(floor, x),
     onExplorerTap: () => ui?.openPanel('explore'),
   });
-  ui = new UI(game, view);
+  const questView = new QuestView(app, game, {
+    onRoomTap: (id) => ui?.quests.screen.onRoomTap(id),
+    onEnemyTap: (uid) => ui?.quests.screen.onEnemyTap(uid),
+    onRingResult: (id, quality) => ui?.quests.screen.onRingResult(id, quality),
+  });
+  ui = new UI(game, view, questView);
   // Sprite art streams in after first paint; until then (or without it) residents use drawn placeholders.
-  void CharacterArt.load().then((art) => view.setArt(art));
+  void CharacterArt.load().then((art) => {
+    view.setArt(art);
+    questView.setArt(art);
+  });
   (window as unknown as Record<string, unknown>).homesteadView = {
     /** Screen position of a room's centre; for automated UI tests. */
     roomScreen: (id: number) => {
@@ -42,12 +51,18 @@ async function boot(): Promise<void> {
       return view.world.toGlobal({ x: r.x + r.w / 2, y: r.y + r.h / 2 });
     },
     worldToScreen: (x: number, y: number) => view.world.toGlobal({ x, y }),
+    /** Quest screen: open one, and find enemies and rooms on screen. */
+    openQuest: (id: number) => ui?.quests.open(id),
+    enemyScreen: (uid: number) => questView.enemyScreen(uid),
+    questRoomScreen: (roomId: string) => questView.roomScreen(roomId),
+    questDoorScreen: (roomId: string) => questView.doorScreen(roomId),
   };
 
   app.ticker.add((ticker) => {
     const dt = ticker.deltaMS / 1000;
     game.update(dt);
     view.update(Math.min(dt, 0.1));
+    questView.update(Math.min(dt, 0.1));
     ui?.update();
   });
 }

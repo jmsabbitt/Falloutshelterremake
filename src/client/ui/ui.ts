@@ -70,11 +70,13 @@ import {
 } from '../../sim';
 import type { Content } from '../../sim';
 import type { Game } from '../game';
+import type { QuestView } from '../render/questView';
 import type { VaultView } from '../render/vaultView';
 import { downloadFile } from '../storage';
 import { duration, fmt, h, morph } from './dom';
+import { QuestUI } from './quests';
 
-type PanelKind = 'build' | 'room' | 'residents' | 'storage' | 'crates' | 'explore' | 'achievements' | 'menu' | null;
+type PanelKind = 'build' | 'room' | 'residents' | 'storage' | 'crates' | 'explore' | 'quests' | 'achievements' | 'menu' | null;
 type StorageTab = 'items' | 'salvage' | 'blueprints';
 
 /** Draft of the send-to-explore modal. */
@@ -156,13 +158,29 @@ export class UI {
   /** Expedition id -> resident id, kept after an expedition is removed so late events can name them. */
   private explorerOf = new Map<number, number>();
   private exploreDraft: ExploreDraft | null = null;
+  /** M4: quests panel, party picker and the quest screen. */
+  readonly quests: QuestUI;
 
   constructor(
     private game: Game,
     private view: VaultView,
+    questView: QuestView,
   ) {
     this.root = document.getElementById('ui') as HTMLElement;
     this.root.append(this.hud, this.toasts, this.panelHost, this.hint, this.toolbar, this.modalHost);
+    this.quests = new QuestUI(
+      {
+        game,
+        modalHost: this.modalHost,
+        toast: (text, kind) => this.toast(text, kind),
+        openQuests: () => this.openPanel('quests'),
+        refreshPanel: () => this.renderPanel(true),
+        openBuild: () => this.openPanel('build'),
+      },
+      questView,
+      view,
+      this.root,
+    );
     this.renderToolbar();
     game.on((events) => this.onEvents(events));
     if (game.lastCatchUp) this.showAwaySummary();
@@ -242,6 +260,7 @@ export class UI {
     this.renderHud();
     this.renderHint();
     this.renderToolbar();
+    this.quests.update();
     if (performance.now() - this.lastPanelRender > 500) this.renderPanel();
   }
 
@@ -301,6 +320,7 @@ export class UI {
         '⤓ Collect',
         ready ? h('b', {}, ` ${ready}`) : null,
       ),
+      this.quests.hudChip(),
     );
     // The meters change nearly every frame. Patch in place, and keep the buttons
     // in their own part so they are only touched when their own markup changes.
@@ -344,7 +364,9 @@ export class UI {
     const { state } = this.game;
     const crates = state.crates.standard + state.crates.rare + state.crates.legendary;
     const homeOrFallen = state.expeditions.filter((e) => e.status === 'returned' || e.status === 'dead').length;
-    const key = `${this.panel}|${crates}|${state.items.length}|${homeOrFallen}|${window.innerWidth < 640}`;
+    const office = this.quests.hasOffice();
+    const questNeed = this.quests.attention();
+    const key = `${this.panel}|${crates}|${state.items.length}|${homeOrFallen}|${window.innerWidth < 640}|${office}|${questNeed}`;
     if (key === this.lastToolbarKey) return;
     this.lastToolbarKey = key;
     const btn = (label: string, kind: PanelKind, extra = '', badge?: number) =>
@@ -366,6 +388,7 @@ export class UI {
       btn('Storage', 'storage'),
       btn('Crates', 'crates', '', crates),
       btn('Explore', 'explore', '', homeOrFallen),
+      ...(office ? [btn('Quests', 'quests', '', questNeed)] : []),
       btn('Goals', 'achievements'),
       btn('☰', 'menu'),
     );
@@ -423,6 +446,7 @@ export class UI {
       storage: 'Storage',
       crates: 'Supply Crates',
       explore: 'The Glarelands',
+      quests: 'Quests',
       achievements: 'Goals',
       menu: 'Menu',
     };
@@ -454,6 +478,9 @@ export class UI {
         break;
       case 'explore':
         body = this.explorePanel();
+        break;
+      case 'quests':
+        body = this.quests.panel();
         break;
       case 'achievements':
         body = this.achievementsPanel();
@@ -569,6 +596,7 @@ export class UI {
     }
 
     if (def.category === 'workshop') parts.push(...this.workshopSection(room));
+    if (def.category === 'office') parts.push(...this.quests.officeSection());
 
     if (cap > 0) {
       parts.push(h('h3', { style: 'margin:12px 0 4px;font-size:14px' }, `${def.category === 'door' ? 'Guards' : 'Crew'} ${crew.length}/${cap}`));
@@ -675,7 +703,7 @@ export class UI {
     const room = r.roomId !== null ? state.rooms.find((x) => x.id === r.roomId) : undefined;
     const child = isChild(state, r);
     const away = isAway(r);
-    const where = away ? (r.dead ? '☠ Fallen outside' : '🧭 Glarelands') : r.dead ? '☠ Fallen' : r.waiting ? 'At the door' : child ? 'Child' : room ? roomDef(content, room).name : 'Idle';
+    const where = away ? (r.quest !== null ? '⚔ On a quest' : r.dead ? '☠ Fallen outside' : '🧭 Glarelands') : r.dead ? '☠ Fallen' : r.waiting ? 'At the door' : child ? 'Child' : room ? roomDef(content, room).name : 'Idle';
     const eff = effectiveStats(content, r);
     const top = topStats(eff);
     const max = r.maxHp;
@@ -775,7 +803,8 @@ export class UI {
     const actions: HTMLElement[] = [];
     if (away) {
       // Out in the Glarelands: everything is managed from the expedition card.
-      actions.push(h('button', { class: 'primary', onclick: stop(() => this.openPanel('explore')) }, 'View expedition'));
+      if (r.quest !== null) actions.push(h('button', { class: 'primary', onclick: stop(() => this.openPanel('quests')) }, 'View quest'));
+      else actions.push(h('button', { class: 'primary', onclick: stop(() => this.openPanel('explore')) }, 'View expedition'));
     } else if (r.dead) {
       actions.push(
         h(
@@ -1356,7 +1385,7 @@ export class UI {
           'New homestead',
         ),
       ),
-      h('p', { class: 'muted', style: 'margin-top:18px' }, 'Homestead is an early prototype (milestone M3). Placeholder art. Developer console: window.homestead'),
+      h('p', { class: 'muted', style: 'margin-top:18px' }, 'Homestead is an early prototype (milestone M4). Placeholder art. Developer console: window.homestead'),
     );
   }
 
@@ -1812,6 +1841,7 @@ export class UI {
     // Remember who is on which expedition, so events after collection can still name them.
     for (const e of this.game.state.expeditions) this.explorerOf.set(e.id, e.residentId);
     this.journalToasts(events);
+    this.quests.onEvents(events);
     for (const ev of events) {
       if (ev.type === 'expeditionStarted') this.explorerOf.set(ev.expeditionId, ev.residentId);
       switch (ev.type) {

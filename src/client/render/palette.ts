@@ -38,6 +38,7 @@ const LOOKS: Record<string, RoomLook> = {
   purgelab: { wall: 0xe6e0f0, trim: 0x7c6ca8, accent: 0xb18cf2, floor: 0x7f7890 },
   radio: { wall: 0xe2c9a6, trim: 0x8a5a44, accent: 0xd9645b, floor: 0x6d4f3b },
   weaponshop: { wall: 0xd3c4a2, trim: 0x5f5446, accent: 0xe4572e, floor: 0x5b4a37 },
+  office: { wall: 0xd9cfb4, trim: 0x4a5a3a, accent: 0xc0392b, floor: 0x5e4a36 },
   outfitshop: { wall: 0xecdcd2, trim: 0x8e3b5e, accent: 0xe08fb0, floor: 0x7a5a52 },
 };
 

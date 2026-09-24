@@ -35,6 +35,7 @@ import {
   roomLook,
   shade,
 } from './palette';
+import { drawOffice } from './officeArt';
 import { type CharacterArt, Figure, residentTints } from './sprites';
 
 export const CELL = 44;
@@ -43,9 +44,9 @@ export const SURFACE_H = 300;
 const DEPTH_X = 16; // horizontal inset of the back wall (perspective)
 const DEPTH_Y = 12; // vertical inset of the back wall
 const MARGIN_CELLS = 4;
-const RESIDENT_H = 46;
+export const RESIDENT_H = 46;
 /** Displayed height of sprite-art adults; a touch taller than the placeholder, which has no neck. */
-const SPRITE_H = RESIDENT_H * 1.1;
+export const SPRITE_H = RESIDENT_H * 1.1;
 
 export interface ViewCallbacks {
   onRoomTap(room: Room): void;
@@ -125,6 +126,8 @@ export class VaultView {
   buildMode: string | null = null;
   selectedRoomId: number | null = null;
   selectedResidentId: number | null = null;
+  /** True while a full-screen scene (the quest screen) sits on top: ignore input. */
+  suspended = false;
 
   // camera / input
   private zoom = window.innerWidth < 640 ? 0.55 : 0.85;
@@ -687,6 +690,7 @@ export class VaultView {
     stage.hitArea = this.app.screen;
 
     stage.on('pointerdown', (e: FederatedPointerEvent) => {
+      if (this.suspended) return;
       this.pointers.set(e.pointerId, { x: e.global.x, y: e.global.y });
       if (this.pointers.size === 2) {
         const [a, b] = [...this.pointers.values()] as [{ x: number; y: number }, { x: number; y: number }];
@@ -726,6 +730,10 @@ export class VaultView {
 
     const end = (e: FederatedPointerEvent) => {
       this.pointers.delete(e.pointerId);
+      if (this.suspended) {
+        this.gesture = { kind: 'none', startX: 0, startY: 0, t: 0, moved: false };
+        return;
+      }
       const g = this.gesture;
       if (this.pointers.size > 0 && g.kind === 'pinch') return;
       const local = this.world.toLocal(e.global);
@@ -752,6 +760,7 @@ export class VaultView {
       'wheel',
       (ev) => {
         ev.preventDefault();
+        if (this.suspended) return;
         this.zoomAt(ev.offsetX, ev.offsetY, ev.deltaY < 0 ? 1.1 : 1 / 1.1);
       },
       { passive: false },
@@ -971,6 +980,9 @@ function drawRoomBox(g: Graphics, type: string, w: number, h: number, level: num
       break;
     case 'outfitshop':
       drawOutfitshop(g, look, bx, by, bw, bh);
+      break;
+    case 'office':
+      drawOffice(g, look, bx, by, bw, bh);
       break;
     default: {
       for (let s = 0; s < segments * 2; s++) {
@@ -1212,7 +1224,7 @@ function drawHeart(g: Graphics, x: number, y: number, s: number): void {
   g.poly([x - s, y + s * 0.15, x + s, y + s * 0.15, x, y + s * 1.2]).fill(0xe4576e);
 }
 
-function drawResident(g: Graphics, res: Resident, content: Content, child: boolean): void {
+export function drawResident(g: Graphics, res: Resident, content: Content, child: boolean): void {
   const skin = SKIN[res.appearance.skin % SKIN.length] ?? 0xf1c9a5;
   const hair = HAIR[res.appearance.hair % HAIR.length] ?? 0x2b1e16;
   const outfit = res.outfit ? content.outfits[res.outfit] : undefined;
@@ -1262,7 +1274,7 @@ function drawRarityPip(g: Graphics, res: Resident, y: number): void {
  * the side, an expecting marker, and the rarity pip. Replace these as the
  * art gains held-weapon poses.
  */
-function drawOverlays(g: Graphics, res: Resident, content: Content): void {
+export function drawOverlays(g: Graphics, res: Resident, content: Content): void {
   const top = -SPRITE_H;
   drawWeapon(g, res, content, 4, top + SPRITE_H * 0.5);
   if (res.pregnancy) drawHeart(g, 11, top + 4, 3);
