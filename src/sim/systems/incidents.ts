@@ -23,6 +23,7 @@ import { bump, combatDamage, effectiveStat, fleesIncidents, grantXp, livingResid
 import { chance, nextInt, pick } from '../rng';
 import type { GameState, Incident, IncidentType, Resident, Room, StatKey } from '../types';
 import { deepIncidentChance, deepIncidentScale, isDeepFloor, stratumOf } from './deep';
+import { traitDamageTakenMult } from './traits';
 
 export interface IncidentDef {
   name: string;
@@ -320,7 +321,7 @@ export function tickIncidents(state: GameState, content: Content, dt: number): v
       // Defense research (drills, armour plating) takes the edge off.
       const perResident = (inc.dps * dt * Math.max(0.2, 1 - bonus(state, content, 'incidentDefense'))) / crew.length;
       for (const r of crew) {
-        r.hp -= perResident;
+        r.hp -= perResident * traitDamageTakenMult(content, r);
         if (r.hp <= 0) {
           r.hp = 0;
           r.dead = true;

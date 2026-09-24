@@ -9,6 +9,7 @@ import { population, storageCapacity } from '../economy';
 import { roomDef } from '../grid';
 import { bump, closelyRelated, createChild, effectiveStat, isAway, isChild } from '../residents';
 import type { GameState, Resident } from '../types';
+import { traitCourtshipMult } from './traits';
 
 function eligible(state: GameState, r: Resident): boolean {
   return !r.dead && !r.waiting && !isChild(state, r);
@@ -17,7 +18,7 @@ function eligible(state: GameState, r: Resident): boolean {
 export function courtshipSeconds(content: Content, a: Resident, b: Resident): number {
   const fam = content.balance.family;
   const charm = effectiveStat(content, a, 'charm') + effectiveStat(content, b, 'charm');
-  return fam.courtshipBaseSeconds / (1 + charm / fam.courtshipCharmDivisor);
+  return fam.courtshipBaseSeconds / (1 + charm / fam.courtshipCharmDivisor) / traitCourtshipMult(content, a, b);
 }
 
 /** Pair people up in Quarters and advance courtships. Online only. */

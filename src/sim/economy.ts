@@ -69,7 +69,7 @@ export function refreshUnlocks(state: GameState, content: Content): void {
     if (!def.buildable) continue;
     if (!state.unlockedRooms.includes(def.id) && isUnlocked(state, def)) {
       state.unlockedRooms.push(def.id);
-      if (def.unlockPop > 0) state.events.push({ type: 'roomUnlocked', roomType: def.id });
+      if (def.unlockPop > 0 || def.requiresResearch) state.events.push({ type: 'roomUnlocked', roomType: def.id });
     }
   }
 }

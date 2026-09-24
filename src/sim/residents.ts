@@ -1,7 +1,7 @@
 import type { Content } from './content';
 import { bonus } from './bonuses';
 import { chance, nextFloat, nextInt, pick } from './rng';
-import { inheritTraits, rollTraits, traitCombatMult } from './systems/traits';
+import { inheritTraits, rollTraits, traitCombatMult, traitXpMult } from './systems/traits';
 import { STAT_KEYS, type GameState, type Rarity, type Resident, type Sex, type StatKey, type Stats } from './types';
 
 export const SKIN_TONES = 6;
@@ -208,7 +208,7 @@ export function grantXp(state: GameState, content: Content, resident: Resident, 
   if (resident.dead) return 0;
   const maxLvl = content.balance.resident.maxLevel;
   if (resident.level >= maxLvl) return 0;
-  resident.xp += amount * (1 + bonus(state, content, 'xpBonus'));
+  resident.xp += amount * (1 + bonus(state, content, 'xpBonus')) * traitXpMult(content, resident);
   let gained = 0;
   while (resident.level < maxLvl && resident.xp >= xpToNext(content, resident.level)) {
     resident.xp -= xpToNext(content, resident.level);

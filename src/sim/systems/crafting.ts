@@ -21,6 +21,7 @@ import { chance, nextFloat, pick } from '../rng';
 import type { GameState, Item, Rarity, Room } from '../types';
 import { addFragment, addSalvage, knowsRecipe, salvageCount, spendSalvage, SALVAGE_CAP } from './inventory';
 import { grantItem, itemCapacity } from './items';
+import { workerMult } from './traits';
 
 export interface Recipe {
   defId: string;
@@ -90,7 +91,8 @@ function hasIncident(state: GameState, room: Room): boolean {
 export function crewCraftStat(state: GameState, content: Content, room: Room, defId: string): number {
   const def = content.items[defId];
   if (!def) return 0;
-  return workersInRoom(state, room.id).reduce((s, r) => s + effectiveStat(content, r, def.craftStat), 0);
+  // Traits (Tinkerer) scale each crafter's contribution.
+  return workersInRoom(state, room.id).reduce((s, r) => s + effectiveStat(content, r, def.craftStat) * workerMult(state, content, r, room), 0);
 }
 
 /** Real seconds for `base` base-seconds with this crew; Infinity with nobody working. */

@@ -102,6 +102,12 @@ export {
   researchContent,
   researchNode,
   researchRate,
+  labRate,
+  nodeStatus,
+  keptResearch,
+  doResearch,
+  AUTO_ASSIGN_SECONDS,
+  AUTO_MEDIC_SECONDS,
   type ResearchNodeDef,
 } from './systems/research';
 export {
@@ -125,7 +131,20 @@ export {
   type DiscoveryDef,
   type StratumDef,
 } from './systems/deep';
-export { masteryTier } from './systems/traits';
+export {
+  currentShift,
+  homesteadHour,
+  masteryProgress,
+  masteryTier,
+  masteryTierName,
+  professionTitle,
+  traitDef,
+  traitDefs,
+  traitHappiness,
+  traitsContent,
+  workerMult,
+  type TraitDef,
+} from './systems/traits';
 export { autoAssign, idleAdults } from './systems/assign';
 export { knowsRecipe, fragmentsNeeded, salvageCount, SALVAGE_CAP } from './systems/inventory';
 export {

@@ -8,7 +8,7 @@ import type { Content } from '../content';
 import { bonus } from '../bonuses';
 import { refreshUnlocks } from '../economy';
 import { roomDef } from '../grid';
-import { bump, effectiveMaxHp, effectiveStat, isAway, workersInRoom } from '../residents';
+import { bump, effectiveMaxHp, effectiveStat, grantXp, isAway, workersInRoom } from '../residents';
 import type { GameState, Resident, Room } from '../types';
 import { autoAssign } from './assign';
 import { workerMult } from './traits';
@@ -29,7 +29,7 @@ export interface ResearchNodeDef {
 }
 
 export interface ResearchContent {
-  tuning: { pointsPerWitsHour: number; levelMult: number[] };
+  tuning: { pointsPerWitsHour: number; levelMult: number[]; xpPerWorkerHour?: number };
   branches: { id: string; name: string; description: string }[];
   nodes: ResearchNodeDef[];
 }
@@ -163,6 +163,15 @@ export function tickResearch(state: GameState, content: Content, dt: number, off
     bump(state, 'researchPoints', earned);
   }
   if (offline) return;
+  // Lab work teaches too: a steady XP trickle, like collecting does in production rooms (online only).
+  const xpRate = researchContent(content).tuning.xpPerWorkerHour ?? 0;
+  if (xpRate > 0) {
+    for (const room of state.rooms) {
+      if (roomDef(content, room).category !== 'research' || !room.powered) continue;
+      const mult = researchContent(content).tuning.levelMult[room.level - 1] ?? 1;
+      for (const r of workersInRoom(state, room.id)) grantXp(state, content, r, (xpRate * mult * dt) / 3600);
+    }
+  }
   if (bonus(state, content, 'autoAssign') > 0 && crossed(state, dt, AUTO_ASSIGN_SECONDS)) {
     const n = autoAssign(state, content);
     if (n) bump(state, 'officeAssignments', n);

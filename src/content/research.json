@@ -1,6 +1,7 @@
 {
   "_comment": "Research: research point tuning and the tech tree (the Lab room is in rooms.json). Typed in src/sim/systems/research.ts; see docs/design/M6-spec.md. Effects use the keys in src/sim/bonuses.ts (BonusEffect). A Lab makes (sum of worker Wits) x pointsPerWitsHour x levelMult[level] x (1 + researchSpeed) points per hour. Deep rooms are gated by their own requiresResearch; unlocks.rooms here is for display.",
-  "tuning": {"pointsPerWitsHour": 6, "levelMult": [1, 1.5, 2]},
+  "tuning": {
+    "xpPerWorkerHour": 120,"pointsPerWitsHour": 6, "levelMult": [1, 1.5, 2]},
   "branches": [
     {"id": "industry", "name": "Industry", "description": "More power, food and water from the same tired residents."},
     {"id": "medicine", "name": "Medicine", "description": "Stronger patches, better cures and hardier residents."},
