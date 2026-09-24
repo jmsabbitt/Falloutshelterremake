@@ -6,6 +6,7 @@
 
 import { Application, Container, Graphics, Text, type FederatedPointerEvent } from 'pixi.js';
 import {
+  critRingSpeed,
   currentRoom,
   effectiveMaxHp,
   enemyDef,
@@ -18,7 +19,6 @@ import {
   type QuestRoom,
   type Resident,
 } from '../../sim';
-import { critRingSpeed } from '../../sim';
 import type { Game } from '../game';
 import { drawEnemy, lookSize } from './enemyArt';
 import { SKY_BOTTOM, shade } from './palette';
@@ -109,6 +109,8 @@ interface EnemySprite {
   tx: number;
   ty: number;
   scale: number;
+  /** Drawn scale: the look's scale, shrunk when the room is crowded and for back rows. */
+  fit: number;
   hurt: number;
   lunge: number;
   /** Seconds since it fell; -1 while alive. */
@@ -163,6 +165,8 @@ interface Ring {
   residentId: number;
   start: number;
   speed: number;
+  /** Frame time the ring has been shown; the timeout uses this, so a hitch can't eat it. */
+  age: number;
 }
 
 export function roomOrigin(room: { floor: number; col: number }) {
@@ -208,6 +212,7 @@ export class QuestView {
   private cam = { x: 0, y: 0 };
   private zoom = 1;
   private manualUntil = 0;
+  private zoomInit = false;
   private skySize = '';
   private ring: Ring | null = null;
   /** Doorway chevrons drawn this frame (tap one to go that way; world coords). */
@@ -219,7 +224,11 @@ export class QuestView {
     private game: Game,
     private cb: QuestViewCallbacks,
   ) {
-    this.world.addChild(this.earth, this.links, this.rooms, this.fog, this.marks, this.highlight, this.actors, this.overlay, this.labels, this.fx, this.floatLayer);
+    // The map art only changes when a room is revealed. As its own render group
+    // it is not re-batched every frame along with the fighters and effects.
+    const statics = new Container({ isRenderGroup: true });
+    statics.addChild(this.earth, this.links, this.rooms, this.fog, this.marks);
+    this.world.addChild(statics, this.highlight, this.actors, this.overlay, this.labels, this.fx, this.floatLayer);
     this.actors.sortableChildren = true;
     this.ringText = new Text({ text: '', style: { fontFamily: 'Bungee, sans-serif', fontSize: 16, fill: 0xf4ecd8, stroke: { color: 0x14100d, width: 4 } } });
     this.ringText.anchor.set(0.5);
@@ -265,6 +274,7 @@ export class QuestView {
 
   private reset(): void {
     this.staticKey = '';
+    this.zoomInit = false;
     for (const m of this.members.values()) m.root.destroy({ children: true });
     for (const e of this.enemies.values()) e.root.destroy({ children: true });
     this.members.clear();
@@ -297,7 +307,7 @@ export class QuestView {
     const q = this.quest();
     const r = this.resident(residentId);
     if (!q || !r || !inCombat(q)) return false;
-    this.ring = { residentId, start: performance.now(), speed: critRingSpeed(this.game.content, r) };
+    this.ring = { residentId, start: performance.now(), speed: critRingSpeed(this.game.content, r), age: 0 };
     return true;
   }
 
@@ -331,7 +341,7 @@ export class QuestView {
     const sp = target ? this.enemies.get(target.uid) : undefined;
     if (sp) {
       const size = lookSize(sp.def.look);
-      return { x: sp.x, y: sp.y - (size.h * sp.scale) / 2 };
+      return { x: sp.x, y: sp.y - (size.h * sp.fit) / 2 };
     }
     const room = q ? currentRoom(q) : undefined;
     const o = room ? roomOrigin(room) : { x: 0, y: 0 };
@@ -382,8 +392,8 @@ export class QuestView {
     for (const sp of this.enemies.values()) {
       if (sp.dead >= 0) continue;
       const size = lookSize(sp.def.look);
-      const w = Math.max(size.w * sp.scale, pad);
-      const h = Math.max(size.h * sp.scale, pad);
+      const w = Math.max(size.w * sp.fit, pad);
+      const h = Math.max(size.h * sp.fit, pad);
       const cx = sp.x;
       const cy = sp.y - h / 2;
       if (Math.abs(p.x - cx) <= w / 2 + 6 && Math.abs(p.y - cy) <= h / 2 + 10) {
@@ -422,7 +432,7 @@ export class QuestView {
     const sp = this.enemies.get(uid);
     if (!sp) return null;
     const size = lookSize(sp.def.look);
-    return this.world.toGlobal({ x: sp.x, y: sp.y - (size.h * sp.scale) / 2 });
+    return this.world.toGlobal({ x: sp.x, y: sp.y - (size.h * sp.fit) / 2 });
   }
 
   /** The doorway chevron toward a linked room, if one is showing. */
@@ -457,19 +467,27 @@ export class QuestView {
     this.drawOverlay(q);
     this.drawFx(dt);
     this.updateFloats(dt);
+    if (this.ring) this.ring.age += dt;
     this.drawRing(q);
   }
 
-  private computeZoom(): number {
+  private computeZoom(fight: boolean): number {
     const W = this.app.screen.width;
     const H = Math.max(200, this.app.screen.height - this.insets.top - this.insets.bottom);
     if (W < 700) return Math.max(0.6, Math.min((W - 18) / RW, H / (RH * 1.3)));
-    // Wide screens show the neighbouring rooms too, so the way on is visible.
-    return Math.max(0.8, Math.min(1.6, W / ((RW + GX) * 2.5), H / ((RH + GY) * 1.9)));
+    // Wide screens show the neighbouring rooms too, so the way on is visible;
+    // in a fight the camera moves in on the room.
+    const base = Math.max(0.8, Math.min(1.6, W / ((RW + GX) * 2.5), H / ((RH + GY) * 1.9)));
+    return fight ? Math.max(base, Math.min(base * 1.4, (W * 0.8) / RW, H / (RH * 1.2))) : base;
   }
 
   private updateCamera(q: Quest, dt: number): void {
-    this.zoom = this.computeZoom();
+    const want = this.computeZoom(inCombat(q) || this.enemies.size > 0);
+    if (!this.zoomInit) {
+      this.zoom = want;
+      this.zoomInit = true;
+    }
+    this.zoom += (want - this.zoom) * (1 - Math.exp(-dt * 3));
     if (this.time > this.manualUntil) {
       let tx: number;
       let ty: number;
@@ -791,8 +809,9 @@ export class QuestView {
         this.labels.addChild(wind);
         let plate: Text | null = null;
         if (def.boss) {
-          plate = new Text({ text: def.name.toUpperCase(), style: { fontFamily: 'Bungee, sans-serif', fontSize: 13, fill: 0xf2a541, stroke: { color: 0x14100d, width: 4 } } });
-          plate.anchor.set(0.5, 1);
+          // A plaque at the boss's feet, clear of the telegraphs above.
+          plate = new Text({ text: def.name.toUpperCase(), style: { fontFamily: 'Bungee, sans-serif', fontSize: 11, fill: 0xf2a541, stroke: { color: 0x14100d, width: 4 } } });
+          plate.anchor.set(0.5, 0);
           this.labels.addChild(plate);
         }
         const o = room ? roomOrigin(room) : { x: 0, y: 0 };
@@ -810,6 +829,7 @@ export class QuestView {
           tx: 0,
           ty: 0,
           scale: def.boss ? 1.12 : 1,
+          fit: def.boss ? 1.12 : 1,
           hurt: 0,
           lunge: 0,
           dead: -1,
@@ -848,7 +868,7 @@ export class QuestView {
       sp.g.clear();
       drawEnemy(sp.g, sp.def.look, { t: this.time + sp.uid * 0.37, windup, stunned: e.stunned > 0, attack: sp.lunge });
       const shakeX = (sp.hurt > 0 ? Math.sin(this.time * 90) * 3 * sp.hurt : 0) + (windup !== null ? Math.sin(this.time * 60) * (0.6 + windup * 1.6) : 0);
-      const s = sp.scale * (1 - sp.row * 0.08);
+      const s = sp.fit;
       sp.root.position.set(sp.x + shakeX, sp.y);
       sp.root.scale.set(s);
       sp.root.zIndex = 10 - sp.row;
@@ -863,24 +883,35 @@ export class QuestView {
     }
   }
 
+  /**
+   * Line the enemies up from the right wall toward the party. A crowded room
+   * shrinks them a little, then overlaps them evenly in two staggered rows,
+   * so nobody spills into the party's half of the room.
+   */
   private layoutEnemies(room: QuestRoom): void {
     const o = roomOrigin(room);
-    const right = o.x + RW - DEPTH_X - 16;
-    const left = o.x + RW * 0.46;
+    const right = o.x + RW - DEPTH_X - 14;
+    const left = o.x + RW * 0.45;
+    const zone = right - left;
+    const gap = 10;
     const list = [...this.enemies.values()].sort((a, b) => a.slot - b.slot);
-    let row = 0;
-    let x = right;
-    for (const sp of list) {
-      const w = lookSize(sp.def.look).w * sp.scale * (1 - row * 0.08);
-      if (x - w < left && x < right) {
-        row = Math.min(2, row + 1);
-        x = right - row * 20;
-      }
+    if (!list.length) return;
+    const base = list.map((sp) => lookSize(sp.def.look).w * sp.scale);
+    const total = base.reduce((a, b) => a + b, 0) + gap * (list.length - 1);
+    const shrink = total > zone ? Math.max(0.72, Math.sqrt(zone / total)) : 1;
+    const ws = base.map((w) => w * shrink);
+    const packed = ws.reduce((a, b) => a + b, 0) + gap * (list.length - 1);
+    const k = packed > zone ? zone / packed : 1;
+    let used = 0;
+    list.forEach((sp, i) => {
+      const w = ws[i]!;
+      const row = k < 1 ? i % 2 : 0;
       sp.row = row;
-      sp.tx = x - w / 2;
-      sp.ty = o.y + FLOOR_Y - row * 12;
-      x -= w + 6;
-    }
+      sp.fit = sp.scale * shrink * (1 - row * 0.06);
+      sp.tx = right - (used + w / 2) * k;
+      sp.ty = o.y + FLOOR_Y - row * 10;
+      used += w + gap;
+    });
   }
 
   /** A wind-up that ended without an interrupt has landed: show it. */
@@ -892,7 +923,7 @@ export class QuestView {
     const ab = sp.def.abilities?.[was];
     if (!ab) return;
     const size = lookSize(sp.def.look);
-    const top = sp.y - size.h * sp.scale;
+    const top = sp.y - size.h * sp.fit;
     sp.lunge = 1;
     switch (ab.effect) {
       case 'slam': {
@@ -973,17 +1004,17 @@ export class QuestView {
         g.ellipse(sp.x, sp.y - PARTY_H / 2, 30, PARTY_H * 0.62).stroke({ width: 3, color: 0xf2a541, alpha: 0.5 + 0.3 * Math.sin(this.time * 6) });
         shield(g, sp.x + 18, sp.y - PARTY_H - 4, 0xf2a541);
       }
-      const bw = 46;
-      const bx = sp.x - bw / 2 + 8;
+      const bw = 36;
+      const bx = sp.x - bw / 2 + 6;
       const by = down ? sp.y - 22 : sp.y - PARTY_H - 16;
       const max = Math.max(1, effectiveMaxHp(res));
       const frac = Math.max(0, Math.min(1, res.hp / max));
       g.roundRect(bx - 1, by - 1, bw + 2, 8, 3).fill(0x14100d);
       g.roundRect(bx, by, bw * frac, 6, 2).fill(frac > 0.5 ? 0x8fc93a : frac > 0.25 ? 0xf2c14e : 0xe4572e);
       // Crit meter ring, just left of the bar; full = pulsing gold.
-      const rx = bx - 10;
+      const rx = bx - 8;
       const ry = by + 3;
-      g.circle(rx, ry, 8).fill(0x14100d);
+      g.circle(rx, ry, 7).fill({ color: 0x14100d, alpha: 0.75 }).stroke({ width: 1.5, color: 0xf2a541, alpha: 0.45 });
       if (m.crit >= 1 && fight && !down) {
         const p = 0.5 + 0.5 * Math.sin(this.time * 10);
         g.circle(rx, ry, 11 + p * 3).fill({ color: 0xffd23f, alpha: 0.25 + p * 0.25 });
@@ -991,13 +1022,17 @@ export class QuestView {
         g.rect(rx - 1, ry - 4, 2, 5).fill(0x14100d);
         g.rect(rx - 1, ry + 2, 2, 2).fill(0x14100d);
       } else if (m.crit > 0) {
-        g.moveTo(rx, ry).arc(rx, ry, 7, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * m.crit).lineTo(rx, ry).fill(0xf2a541);
+        g.moveTo(rx, ry).arc(rx, ry, 6, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * m.crit).lineTo(rx, ry).fill(0xf2a541);
       }
       if (down) {
         g.roundRect(sp.x - 22, sp.y - 42, 44, 14, 4).fill({ color: 0x5a1208, alpha: 0.9 });
       }
-      sp.name.text = down ? (res.dead ? 'FALLEN' : 'DOWN') : res.firstName;
-      sp.name.style.fill = down ? 0xff8a7a : 0xf4ecd8;
+      // Only touch the text when it changes: a restyle re-rasterises it.
+      const label = down ? (res.dead ? 'FALLEN' : 'DOWN') : res.firstName;
+      if (sp.name.text !== label) {
+        sp.name.text = label;
+        sp.name.style.fill = down ? 0xff8a7a : 0xf4ecd8;
+      }
     });
 
     // Enemies: target reticle, HP bars, wind-up telegraphs, stun stars.
@@ -1011,18 +1046,18 @@ export class QuestView {
     for (const sp of this.enemies.values()) {
       const e = sp.last;
       const size = lookSize(sp.def.look);
-      const s = sp.scale * (1 - sp.row * 0.08);
+      const s = sp.fit;
       const h = size.h * s;
       const w = size.w * s;
       const top = sp.y - h;
       sp.wind.visible = false;
       if (sp.plate) {
         sp.plate.visible = sp.dead < 0;
-        sp.plate.position.set(sp.x, top - 22);
+        sp.plate.position.set(sp.x, sp.y + 2);
       }
       if (sp.dead >= 0) continue;
       if (targets.has(sp.uid) && fight) reticle(g, sp.x, sp.y - h / 2, Math.max(w, 36) / 2 + 8, h / 2 + 8, explicit.has(sp.uid) ? 0xf2a541 : 0xf4ecd8, explicit.has(sp.uid) ? 0.95 : 0.35, this.time);
-      const bw = Math.max(40, Math.min(sp.def.boss ? 120 : 64, w));
+      const bw = Math.max(36, Math.min(sp.def.boss ? 120 : 56, w * 0.8));
       const bx = sp.x - bw / 2;
       const by = top - 12;
       const frac = Math.max(0, Math.min(1, e.hp / Math.max(1, e.maxHp)));
@@ -1041,16 +1076,19 @@ export class QuestView {
       // a warning glyph, and a marker on what it will hit.
       const p = Math.max(0, Math.min(1, 1 - e.windup.remaining / Math.max(0.01, ab.windup)));
       const flash = 0.5 + 0.5 * Math.sin(this.time * (10 + p * 20));
-      const tw = sp.def.boss ? 130 : 92;
+      const tw = Math.max(64, Math.min(sp.def.boss ? 130 : 84, w + 10));
       const tx = sp.x - tw / 2;
-      const ty = by - (sp.def.boss ? 36 : 22);
+      // Neighbours winding up at once stack their telegraphs instead of overlapping.
+      const stagger = [...this.enemies.values()].some((o) => o !== sp && o.dead < 0 && o.last.windup && Math.abs(o.x - sp.x) < (tw + 20) && o.slot < sp.slot) ? 34 : 0;
+      const ty = by - (sp.def.boss ? 36 : 22) - stagger;
       g.ellipse(sp.x, sp.y, w * 0.7, 9).fill({ color: 0xff3b1f, alpha: 0.2 + flash * 0.3 });
       g.roundRect(tx - 3, ty - 3, tw + 6, 14, 5).fill({ color: 0xff3b1f, alpha: 0.35 + flash * 0.5 });
       g.roundRect(tx, ty, tw, 8, 3).fill(0x14100d);
       g.roundRect(tx, ty, tw * p, 8, 3).fill(lerp(0xffd23f, 0xff3b1f, p));
       warning(g, tx - 14, ty + 4, 11, flash);
       sp.wind.visible = true;
-      sp.wind.text = ab.name.toUpperCase();
+      const wname = ab.name.toUpperCase();
+      if (sp.wind.text !== wname) sp.wind.text = wname;
       sp.wind.position.set(sp.x, ty - 4);
       sp.wind.scale.set(1 + flash * 0.06);
       const room = currentRoom(q);
@@ -1086,7 +1124,7 @@ export class QuestView {
           const sp = this.enemies.get(ev.enemyUid);
           if (sp) {
             const size = lookSize(sp.def.look);
-            this.float('!', sp.x + 20, sp.y - size.h * sp.scale - 30, 0xff3b1f, 34, 0.7);
+            this.float('!', sp.x + 20, sp.y - size.h * sp.fit - 30, 0xff3b1f, 34, 0.7);
           }
           break;
         }
@@ -1096,7 +1134,7 @@ export class QuestView {
             sp.interrupted = 0.8;
             sp.winding = null;
             const size = lookSize(sp.def.look);
-            const top = sp.y - size.h * sp.scale;
+            const top = sp.y - size.h * sp.fit;
             this.float('INTERRUPTED!', sp.x, top - 30, 0x7fe0c0, 22, 1.3);
             this.burst(sp.x, top + 10, 0x7fe0c0, 20, 200);
             this.shake = 8;
@@ -1157,7 +1195,7 @@ export class QuestView {
       if (!sp) return;
       const size = lookSize(sp.def.look);
       const cx = sp.x;
-      const cy = sp.y - (size.h * sp.scale) / 2;
+      const cy = sp.y - (size.h * sp.fit) / 2;
       sp.hurt = 1;
       if (m) {
         m.lunge = 1;
@@ -1179,7 +1217,7 @@ export class QuestView {
       if (!m) return;
       m.hurt = 1;
       const jitter = (Math.random() - 0.5) * 16;
-      this.float(`-${ev.amount}`, m.x + jitter, m.y - PARTY_H - 26, 0xff6a5a, 17, 0.9);
+      this.float(`-${ev.amount}`, m.x + jitter, m.y - PARTY_H * 0.55, 0xff6a5a, 17, 0.9);
       this.burst(m.x, m.y - PARTY_H * 0.5, 0xff5a3a, 5, 110);
     }
     void q;
@@ -1302,7 +1340,7 @@ export class QuestView {
       return;
     }
     const elapsed = (performance.now() - ring.start) / 1000;
-    if (elapsed * ring.speed > RING_TIMEOUT_SWEEPS) {
+    if (ring.age * ring.speed > RING_TIMEOUT_SWEEPS) {
       this.cancelRing();
       return;
     }
@@ -1328,7 +1366,8 @@ export class QuestView {
     g.circle(at.x, at.y, 3 / z).fill(0xf4ecd8);
     const res = this.resident(ring.residentId);
     this.ringText.visible = true;
-    this.ringText.text = `${res?.firstName ?? ''}: TAP ON GOLD!`;
+    const label = `${res?.firstName ?? ''}: TAP ON GOLD!`;
+    if (this.ringText.text !== label) this.ringText.text = label;
     this.ringText.scale.set(1 / z);
     this.ringText.position.set(at.x, at.y + (RING_MAX + 20) / z);
   }

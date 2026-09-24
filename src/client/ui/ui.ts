@@ -382,14 +382,16 @@ export class UI {
         label,
         badge ? h('span', { class: 'badge' }, badge) : null,
       );
+    // Phones get short labels so all eight buttons fit at 390 px.
+    const phone = window.innerWidth < 640;
     this.toolbar.replaceChildren(
       btn('Build', 'build', 'primary'),
-      btn(window.innerWidth < 640 ? 'People' : 'Residents', 'residents'),
-      btn('Storage', 'storage'),
+      btn(phone ? 'People' : 'Residents', 'residents'),
+      btn(phone ? 'Items' : 'Storage', 'storage'),
       btn('Crates', 'crates', '', crates),
-      btn('Explore', 'explore', '', homeOrFallen),
+      btn(phone ? '🧭' : 'Explore', 'explore', '', homeOrFallen),
       ...(office ? [btn('Quests', 'quests', '', questNeed)] : []),
-      btn('Goals', 'achievements'),
+      btn(phone ? '🏆' : 'Goals', 'achievements'),
       btn('☰', 'menu'),
     );
   }
