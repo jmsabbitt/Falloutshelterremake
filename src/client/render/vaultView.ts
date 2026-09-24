@@ -414,20 +414,42 @@ export class VaultView {
       this.rebuildStatics();
       this.clampCamera();
     } else if (this.builtLayout !== this.game.layoutVersion) this.rebuildStatics();
-    this.drawOverlay();
-    this.deep.update(state, content, this.time, (room) => this.roomRect(room));
+    // M6: with up to 45 floors, only rooms near the camera are drawn.
+    const vb = this.viewBounds();
+    this.cull(vb);
+    this.drawOverlay(vb);
+    this.deep.update(state, content, this.time, (room) => this.roomRect(room), vb);
     this.updateResidents(dt);
     this.updateWalkers();
     this.updateFloats(dt);
   }
 
-  private drawOverlay(): void {
+  /** World rows in view, plus a floor of margin either side. */
+  private viewBounds(): { y0: number; y1: number } {
+    const z = this.world.scale.y || 1;
+    return { y0: -this.world.y / z - FLOOR_H, y1: (this.app.screen.height - this.world.y) / z + FLOOR_H };
+  }
+
+  private cullKey = '';
+  /** Hide static room art and residents that are off screen (they cost draw calls at 45 floors). */
+  private cull(vb: { y0: number; y1: number }): void {
+    const key = `${Math.round(vb.y0)}|${Math.round(vb.y1)}|${this.statics.children.length}|${this.builtLayout}`;
+    if (key !== this.cullKey) {
+      this.cullKey = key;
+      for (const c of this.statics.children) c.visible = c.y + FLOOR_H >= vb.y0 && c.y <= vb.y1;
+    }
+    for (const c of this.residentLayer.children) c.visible = c.y >= vb.y0 && c.y - FLOOR_H <= vb.y1;
+  }
+
+  private drawOverlay(vb: { y0: number; y1: number }): void {
     const g = this.overlay;
     g.clear();
     const { state, content } = this.game;
     const burning = new Map(state.incidents.map((i) => [i.roomId, i]));
     for (const room of state.rooms) {
       const r = this.roomRect(room);
+      // Rustmen at the door stand on the surface, so the door is always drawn.
+      if ((r.y + r.h < vb.y0 || r.y > vb.y1) && room.type !== 'door') continue;
       const def = roomDef(content, room);
       // interior lamp glow / brownout
       if (!room.powered) {

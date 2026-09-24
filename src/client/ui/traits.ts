@@ -87,8 +87,55 @@ export class TraitsUI {
     );
   }
 
-  /** The one chip shown in the compact resident list: the trait that matters where they are. */
+  /** The one chip for a compact card: the trait that matters where they are. Tap opens it. */
   topChip(r: Resident): HTMLElement | null {
+    const pick = this.relevant(r);
+    if (!pick) return null;
+    const key = `${r.id}:${pick.def.id}`;
+    return h(
+      'button',
+      {
+        class: `trait-chip mini ${toneOf(pick.def)}${this.open === key ? ' open' : ''}`,
+        title: `${pick.def.name}: ${pick.def.summary}`,
+        onclick: (e: Event) => {
+          e.stopPropagation();
+          this.open = this.open === key ? null : key;
+          this.host.refreshPanel();
+        },
+      },
+      pick.def.name,
+      pick.more ? h('span', { class: 'more' }, ` +${pick.more}`) : null,
+    );
+  }
+
+  /** A passive tag (hover for the summary) for rows that are one tap target, like the resident list. */
+  tag(r: Resident): HTMLElement | null {
+    const pick = this.relevant(r);
+    if (!pick) return null;
+    return h('span', { class: `trait-chip mini tag ${toneOf(pick.def)}`, title: `${pick.def.name}: ${pick.def.summary}` }, pick.def.name, pick.more ? h('span', { class: 'more' }, ` +${pick.more}`) : null);
+  }
+
+  /** For the bulk room picker: how many of a group the room's place suits, and how many it doesn't. */
+  groupFit(rs: Resident[], room: Room): HTMLElement | null {
+    const { state, content } = this.game;
+    let up = 0;
+    let down = 0;
+    for (const r of rs) {
+      const f = traitFit(state, content, r, room);
+      const score = f.prod * 100 + f.mood * 0.6;
+      if (score > 0.5) up++;
+      else if (score < -0.5) down++;
+    }
+    if (!up && !down) return null;
+    return h(
+      'span',
+      { class: 'fit-group', title: 'Residents whose traits help (▲) or hurt (▼) here' },
+      up ? h('span', { class: 'fit good' }, `▲${up}`) : null,
+      down ? h('span', { class: 'fit bad' }, `▼${down}`) : null,
+    );
+  }
+
+  private relevant(r: Resident): { def: TraitDef; more: number } | null {
     const { state, content } = this.game;
     const defs = traitDefs(content, r);
     if (!defs.length) return null;
@@ -96,23 +143,7 @@ export class TraitsUI {
     const res = room ? content.rooms[room.type]?.produces?.resource : undefined;
     const cat = room ? content.rooms[room.type]?.category : undefined;
     const here = defs.find((d) => d.effects.some((e) => e.kind === 'production' && ((res && e.resources?.includes(res)) || (cat && e.categories?.includes(cat)))));
-    const pick = here ?? defs[0];
-    if (!pick) return null;
-    const key = `${r.id}:${pick.id}`;
-    return h(
-      'button',
-      {
-        class: `trait-chip mini ${toneOf(pick)}${this.open === key ? ' open' : ''}`,
-        title: `${pick.name}: ${pick.summary}${defs.length > 1 ? ` (+${defs.length - 1} more)` : ''}`,
-        onclick: (e: Event) => {
-          e.stopPropagation();
-          this.open = this.open === key ? null : key;
-          this.host.refreshPanel();
-        },
-      },
-      pick.name,
-      defs.length > 1 ? h('span', { class: 'more' }, ` +${defs.length - 1}`) : null,
-    );
+    return { def: here ?? (defs[0] as TraitDef), more: defs.length - 1 };
   }
 
   /** The opened chip's summary and flavour text, if it belongs to this resident. */
@@ -209,8 +240,10 @@ export class TraitsUI {
     for (const ev of ups) {
       const r = state.residents.find((x) => x.id === ev.residentId);
       const job = content.rooms[ev.roomType]?.name ?? ev.roomType;
-      const title = r ? professionTitle(content, r) : null;
-      this.host.toast(`⭐ ${r?.firstName ?? 'Someone'} is now ${masteryTierName(content, ev.tier)} at the ${job}${title ? ` (${title})` : ''}.`, 'gold');
+      const trade = traitsContent(content).tuning.professions[ev.roomType];
+      const tier = masteryTierName(content, ev.tier);
+      const who = r?.firstName ?? 'Someone';
+      this.host.toast(trade ? `⭐ ${who} is now a ${tier} ${trade} (${job}).` : `⭐ ${who} is now ${tier} at the ${job}.`, 'gold');
     }
   }
 }

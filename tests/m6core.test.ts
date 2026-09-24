@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { advance, applyCommand, bonus, canPlace, deserialize, idleAdults, loadContent, newGame, serialize, totalFloors } from '../src/sim';
+import { advance, applyCommand, bonus, canPlace, deserialize, idleAdults, loadContent, newGame, serialize, threatRating, totalFloors } from '../src/sim';
 
 const content = loadContent();
 const T0 = 1_700_000_000_000;
@@ -74,6 +74,16 @@ describe('M6 core', () => {
     applyCommand(s, content, { type: 'autoAssign' });
     const quarters = s.rooms.find((x) => x.type === 'quarters')!;
     expect(s.residents.some((r) => r.roomId === quarters.id)).toBe(false);
+  });
+
+  it('threat rating rises with level and falls with defense research', () => {
+    const s = game();
+    const calm = threatRating(s, content).score;
+    for (const r of s.residents) r.level = 30;
+    const high = threatRating(s, content);
+    expect(high.score).toBeGreaterThan(calm);
+    s.research.done.push('hazard_certification', 'fire_drills');
+    expect(threatRating(s, content).score).toBeLessThan(high.score);
   });
 
   it('the Deep is closed until excavated', () => {

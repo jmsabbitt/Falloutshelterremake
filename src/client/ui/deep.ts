@@ -174,7 +174,7 @@ export class DeepUI {
           h(
             'div',
             { class: 'row', style: 'justify-content:flex-start;margin-bottom:0' },
-            h('button', { class: 'close', onclick: () => this.showFloor(totalFloors(state, content) - 1, shaft?.x) }, 'Show dig site'),
+            h('button', { class: 'close', onclick: () => this.showFloor(totalFloors(state, content) - 0.4, shaft?.x) }, 'Show dig site'),
           ),
         ),
       );

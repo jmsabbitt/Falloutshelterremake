@@ -14,7 +14,7 @@ import { collectRoom } from './systems/production';
 import { buyPerk, collectOutposts } from './systems/prestige';
 import { doResearch } from './systems/research';
 import { startExcavation } from './systems/deep';
-import { autoAssign } from './systems/assign';
+import { autoAssign, idleAdults } from './systems/assign';
 import { abandonQuest, collectQuest, questAbility, questChoose, questCrit, questHeal, questMove, questTarget, startQuest } from './systems/quests';
 import { performRush } from './systems/rush';
 import type { CrateTier, GameState, Resident, Room } from './types';
@@ -402,8 +402,9 @@ function dispatch(state: GameState, content: Content, cmd: Command): CommandResu
     case 'excavate':
       return result(startExcavation(state, content));
     case 'autoAssign': {
+      if (!idleAdults(state).length) return fail('nobody is idle');
       const n = autoAssign(state, content);
-      return n > 0 ? { ok: true, detail: `${n} assigned` } : fail('nobody idle, or no free jobs');
+      return n > 0 ? { ok: true, detail: `${n} assigned` } : fail('no free job slots');
     }
   }
 }

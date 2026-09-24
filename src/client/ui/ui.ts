@@ -72,15 +72,17 @@ import type { Content } from '../../sim';
 import type { Game } from '../game';
 import type { QuestView } from '../render/questView';
 import type { VaultView } from '../render/vaultView';
-import { downloadFile } from '../storage';
 import { duration, fmt, h, morph } from './dom';
 import { LegacyUI } from './prestige';
+import { QolUI } from './qol';
 import { QuestUI } from './quests';
 import { DeepUI, type DeepTab } from './deep';
 import { buildInfo, ResearchUI } from './research';
+import { syncHudHeight } from './layout';
+import { ThreatUI } from './threat';
 import { TraitsUI } from './traits';
 
-type PanelKind = 'build' | 'room' | 'residents' | 'storage' | 'crates' | 'explore' | 'quests' | 'legacy' | 'achievements' | 'menu' | 'research' | 'deep' | null;
+type PanelKind = 'build' | 'room' | 'residents' | 'storage' | 'crates' | 'explore' | 'quests' | 'legacy' | 'achievements' | 'menu' | 'notices' | 'research' | 'deep' | null;
 type StorageTab = 'items' | 'salvage' | 'blueprints';
 
 /** Draft of the send-to-explore modal. */
@@ -152,7 +154,6 @@ export class UI {
   private residentId: number | null = null;
   /** When set, the storage panel is picking gear for this resident. */
   private equipFor: { residentId: number; slot: 'weapon' | 'outfit' } | null = null;
-  private sortBy: 'level' | StatKey | 'name' = 'level';
   private lastPanelRender = 0;
   private lastToolbarKey = '';
   /** What the open panel is showing; a change means a fresh render rather than a patch. */
@@ -173,6 +174,9 @@ export class UI {
   readonly research: ResearchUI;
   readonly deep: DeepUI;
   readonly traits: TraitsUI;
+  private threat: ThreatUI;
+  /** M6: resident list, notification centre, save slots, loadouts, stats overlay. */
+  readonly qol: QolUI;
 
   constructor(
     private game: Game,
@@ -181,9 +185,29 @@ export class UI {
   ) {
     this.root = document.getElementById('ui') as HTMLElement;
     this.root.append(this.hud, this.toasts, this.panelHost, this.hint, this.toolbar, this.modalHost);
+    this.qol = new QolUI({
+      game,
+      view,
+      hud: this.hud,
+      modalHost: this.modalHost,
+      toast: (text, kind) => this.toast(text, kind),
+      refresh: () => this.renderPanel(true),
+      openNotices: () => this.openPanel('notices'),
+      closePanel: () => this.closePanel(),
+      panel: () => this.panel,
+      selectedId: () => this.residentId,
+      select: (id) => {
+        this.residentId = id;
+        this.view.selectedResidentId = id;
+      },
+      detailCard: (r) => this.residentCard(r, true),
+      traitTag: (r) => this.traits.tag(r),
+      groupFit: (rs, room) => this.traits.groupFit(rs, room),
+    });
     this.quests = new QuestUI(
       {
         game,
+        loadouts: this.qol.loadouts,
         modalHost: this.modalHost,
         toast: (text, kind) => this.toast(text, kind),
         openQuests: () => this.openPanel('quests'),
@@ -221,6 +245,7 @@ export class UI {
       refreshPanel: () => this.renderPanel(true),
       closePanel: () => this.closePanel(),
     });
+    this.threat = new ThreatUI(game, this.modalHost);
     this.traits = new TraitsUI({ game, toast: (text, kind) => this.toast(text, kind), refreshPanel: () => this.renderPanel(true) });
     this.renderToolbar();
     game.on((events) => this.onEvents(events));
@@ -233,6 +258,10 @@ export class UI {
 
   onRoomTap(room: Room): void {
     const { state } = this.game;
+    if (this.panel === 'residents' && this.qol.people.bulkCount()) {
+      this.qol.people.assignPicked(room);
+      return;
+    }
     if (this.residentId !== null && this.panel === 'residents') {
       this.assign(this.residentId, room);
       return;
@@ -263,10 +292,15 @@ export class UI {
   }
 
   onResidentTap(res: Resident): void {
+    if (this.panel === 'residents' && this.qol.people.bulk) {
+      this.qol.people.togglePick(res.id);
+      return;
+    }
     this.openPanel('residents');
     this.residentId = res.id;
     this.view.selectedResidentId = res.id;
     this.renderPanel(true);
+    this.qol.people.toTop();
   }
 
   onResidentDrop(residentId: number, room: Room | null): void {
@@ -300,11 +334,13 @@ export class UI {
   update(): void {
     if (this.game.lastCatchUp) this.showAwaySummary();
     this.renderHud();
+    syncHudHeight(this.hud);
     this.renderHint();
     this.renderToolbar();
     this.quests.update();
     this.legacy.update();
     this.deep.update();
+    this.qol.update();
     if (performance.now() - this.lastPanelRender > 500) this.renderPanel();
   }
 
@@ -368,6 +404,7 @@ export class UI {
       this.quests.hudChip(),
       this.research.hudChip(),
       this.deep.hudChip(),
+      this.threat.hudChip(),
       ...this.legacy.hudChips(),
     );
     // The meters change nearly every frame. Patch in place, and keep the buttons
@@ -388,6 +425,8 @@ export class UI {
       text = `Tap a green slot to build ${def?.name ?? ''} (${buildCost(state, this.game.content, this.view.buildMode)} scrip)`;
     } else if (this.equipFor) {
       text = 'Pick an item from storage to equip';
+    } else if (this.panel === 'residents' && this.qol.people.bulkCount()) {
+      text = `Tap a room to send the ${this.qol.people.bulkCount()} selected there`;
     } else if (this.residentId !== null && this.panel === 'residents') {
       const r = state.residents.find((x) => x.id === this.residentId);
       if (r && !r.dead && !isChild(state, r)) text = `Tap a room (or drag ${r.firstName}) to assign`;
@@ -401,7 +440,7 @@ export class UI {
       text = 'Drag idle residents into rooms to put them to work';
     }
     // On phones an open panel covers the bottom of the screen; the hint would sit on top of it.
-    if (this.panel && (window.innerWidth < 640 || this.panel === 'legacy')) text = '';
+    if (this.panel && (window.innerWidth < 640 || this.panel === 'legacy' || this.panel === 'research')) text = '';
     this.hint.style.display = text ? '' : 'none';
     this.hint.textContent = text;
   }
@@ -466,6 +505,7 @@ export class UI {
     }
     if (kind === 'legacy') this.legacy.opened();
     if (kind === 'deep') this.deep.opened();
+    if (kind === 'notices') this.qol.notices.opened();
     this.panel = kind;
     this.renderToolbar();
     this.renderPanel(true);
@@ -514,6 +554,7 @@ export class UI {
       menu: 'Menu',
       research: 'Research',
       deep: 'The Deep',
+      notices: 'Notifications',
     };
     let body: HTMLElement;
     let title = titles[this.panel];
@@ -533,7 +574,10 @@ export class UI {
         break;
       }
       case 'residents':
-        body = this.residentsPanel();
+        body = this.qol.people.panel();
+        break;
+      case 'notices':
+        body = this.qol.notices.panel(() => this.renderPanel(true));
         break;
       case 'storage':
         body = this.storagePanel();
@@ -631,7 +675,7 @@ export class UI {
     const cap = roomCapacity(content, room);
     const parts: (HTMLElement | string)[] = [];
 
-    parts.push(h('div', { class: 'row muted' }, `Level ${room.level}/${maxLevel(def)} · ${room.segments} wide`, def.stat ? `Needs ${STAT_NAME[def.stat]}` : ''));
+    parts.push(h('div', { class: 'row muted' }, h('span', {}, `Level ${room.level}/${maxLevel(def)} · ${room.segments} wide`), h('span', {}, def.stat ? `Needs ${STAT_NAME[def.stat]}` : '')));
     if (!room.powered) parts.push(h('div', { class: 'row', style: 'color:var(--danger)' }, '⚡ No power: this room is shut down'));
     const inc = state.incidents.find((i) => i.roomId === room.id);
     if (inc) parts.push(h('div', { class: 'row', style: 'color:var(--danger)' }, `${INCIDENT_TOAST[inc.type] ?? 'Incident!'}`));
@@ -943,48 +987,6 @@ export class UI {
     const res = this.game.run(cmd);
     this.toast(res.ok ? okText : res.reason, res.ok ? 'good' : 'bad');
     this.renderPanel(true);
-  }
-
-  private residentsPanel(): HTMLElement {
-    const { state, content } = this.game;
-    const list = state.residents.filter((r) => !r.waiting);
-    const key = this.sortBy;
-    list.sort((a, b) => {
-      if (key === 'name') return a.firstName.localeCompare(b.firstName);
-      if (key === 'level') return b.level - a.level || a.id - b.id;
-      return effectiveStats(content, b)[key] - effectiveStats(content, a)[key] || a.id - b.id;
-    });
-    const tabs = h(
-      'div',
-      { class: 'tabs' },
-      ...(['level', 'name', ...STAT_KEYS] as const).map((k) =>
-        h(
-          'button',
-          {
-            class: this.sortBy === k ? 'active' : '',
-            onclick: () => {
-              this.sortBy = k;
-              this.renderPanel(true);
-            },
-          },
-          k === 'level' ? 'Level' : k === 'name' ? 'Name' : STAT_LABEL[k],
-        ),
-      ),
-    );
-    const idle = list.filter((r) => !r.dead && !isAway(r) && r.roomId === null && !isChild(state, r)).length;
-    const exploring = list.filter((r) => isAway(r)).length;
-    const kids = list.filter((r) => isChild(state, r)).length;
-    // Selected resident first, expanded.
-    const selected = list.find((r) => r.id === this.residentId);
-    const rest = list.filter((r) => r.id !== this.residentId);
-    return h(
-      'div',
-      { class: 'body' },
-      h('div', { class: 'muted', style: 'margin-bottom:6px' }, `${list.length} residents · ${idle} idle${exploring ? ` · ${exploring} exploring` : ''}${kids ? ` · ${kids} children` : ''}. Select one, then tap a room.`),
-      tabs,
-      selected ? this.residentCard(selected, true) : null,
-      ...rest.map((r) => this.residentCard(r, false)),
-    );
   }
 
   // ---------------------------------------------------------------- storage
@@ -1431,29 +1433,11 @@ export class UI {
   }
 
   private menuPanel(): HTMLElement {
-    const fileInput = h('input', { type: 'file', accept: 'application/json,.json', style: 'display:none' }) as HTMLInputElement;
-    fileInput.addEventListener('change', async () => {
-      const f = fileInput.files?.[0];
-      if (!f) return;
-      try {
-        this.game.importSave(await f.text());
-        this.toast('Save imported', 'good');
-      } catch (err) {
-        this.toast(`Import failed: ${(err as Error).message}`, 'bad');
-      }
-    });
     return h(
       'div',
       { class: 'body' },
-      h('p', { class: 'muted' }, 'The game saves automatically in this browser.'),
-      h(
-        'div',
-        { class: 'row', style: 'flex-wrap:wrap;justify-content:flex-start' },
-        h('button', { onclick: () => (this.game.save(), this.toast('Saved', 'good')) }, 'Save now'),
-        h('button', { onclick: () => downloadFile(`homestead-${this.game.state.homesteadNumber}.json`, this.game.exportSave()) }, 'Export save'),
-        h('button', { onclick: () => fileInput.click() }, 'Import save'),
-        fileInput,
-      ),
+      h('p', { class: 'muted', style: 'margin-top:0' }, 'The game saves automatically in this browser. Keep copies in the slots below, or export them to a file.'),
+      this.qol.saves.section(),
       h(
         'div',
         { class: 'row', style: 'margin-top:18px' },
@@ -1462,7 +1446,7 @@ export class UI {
           {
             class: 'danger',
             onclick: () => {
-              if (confirm('Start a brand new homestead? Your current save will be erased.')) {
+              if (confirm('Start a brand new homestead? Your current one is replaced. A copy is kept under Backups until the next load.')) {
                 this.game.reset();
                 this.closePanel();
                 this.showWelcome();
@@ -1472,7 +1456,7 @@ export class UI {
           'New homestead',
         ),
       ),
-      h('p', { class: 'muted', style: 'margin-top:18px' }, 'Homestead is an early prototype (milestone M5). Placeholder art. Developer console: window.homestead'),
+      h('p', { class: 'muted', style: 'margin-top:18px' }, 'Homestead is an early prototype (milestone M6). Placeholder art. Developer console: window.homestead'),
     );
   }
 
@@ -1764,6 +1748,17 @@ export class UI {
       this.openPanel('explore');
     };
 
+    const loadouts = this.qol.loadouts.bar({
+      kind: 'explore',
+      current: () => ({ ids: d.residentId !== null ? [d.residentId] : [], medpatch: d.medpatch, purge: d.purge, regionId: d.regionId }),
+      apply: (l) => {
+        const note = this.qol.loadouts.applyExplore(l, d, pickResident);
+        if (note) this.toast(note, 'bad');
+        again();
+      },
+      rerender: again,
+    });
+
     this.modalHost.replaceChildren(
       h(
         'div',
@@ -1772,6 +1767,7 @@ export class UI {
           'div',
           { class: 'modal explore-modal' },
           h('h2', {}, 'Into the Glarelands'),
+          loadouts,
           picker,
           summary,
           h('h3', { class: 'group' }, 'Region'),
@@ -1933,6 +1929,7 @@ export class UI {
     this.research.onEvents(events);
     this.deep.onEvents(events);
     this.traits.onEvents(events);
+    this.qol.onEvents(events);
     for (const ev of events) {
       if (ev.type === 'expeditionStarted') this.explorerOf.set(ev.expeditionId, ev.residentId);
       switch (ev.type) {
@@ -2081,6 +2078,7 @@ export class UI {
     if (this.quests.screen.isOpen) this.quests.screen.close();
     this.legacy.onStateReplaced();
     this.deep.onStateReplaced();
+    this.qol.onStateReplaced();
     this.modalHost.replaceChildren();
     this.exploreDraft = null;
     this.explorerOf.clear();

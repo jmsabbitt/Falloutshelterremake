@@ -27,7 +27,8 @@ import type { CrateTier, IncidentType } from '../sim';
 import { deepConsole, researchConsole } from './depthDev';
 import { prestigeConsole } from './prestigeDev';
 import { questConsole } from './questDev';
-import { clearSave, readSave, writeBackup, writeSave } from './storage';
+import { qolConsole } from './qolDev';
+import { clearSave, readSave, writeBackup, writeSave, writeUndo } from './storage';
 
 type Listener = (events: GameEvent[]) => void;
 
@@ -40,6 +41,14 @@ export interface AwaySummary extends CatchUpSummary {
   explorersHome: number[];
   /** Resident ids of explorers who fell during the absence. */
   explorersFallen: number[];
+}
+
+/** M6: an absence as the notification centre keeps it: the summary and every event it raised. */
+export interface AwayReport {
+  summary: AwaySummary;
+  events: GameEvent[];
+  /** Wall-clock ms when the player came back. */
+  at: number;
 }
 
 const AUTOSAVE_MS = 20_000;
@@ -55,6 +64,12 @@ export class Game {
   /** Told when game.state is swapped for a different homestead (found, import, reset). */
   private replaceListeners = new Set<() => void>();
   private lastSave = 0;
+  /** M6: the latest absence, kept (unlike lastCatchUp) until the homestead is replaced. */
+  lastAway: AwayReport | null = null;
+  /** M6: true while flush() is handing out the events raised during an offline catch-up. */
+  flushingAway = false;
+  /** Catch-up summary whose events have not been flushed yet. */
+  private awayPending: AwaySummary | null = null;
   /** Bumped whenever rooms change shape, so the renderer can rebuild static art. */
   layoutVersion = 0;
 
@@ -101,6 +116,8 @@ export class Game {
   replaceState(next: GameState): void {
     this.state = next;
     this.lastCatchUp = null;
+    this.lastAway = null;
+    this.awayPending = null;
     drainEvents(this.state);
     this.layoutVersion++;
     this.save();
@@ -113,7 +130,7 @@ export class Game {
    * undone), then replaces the state. The old state is left untouched on failure.
    */
   found(opts: Omit<FoundOptions, 'now'>): FoundResult {
-    this.state.lastRealTime = Date.now();
+    this.stampClock();
     const backup = serialize(this.state);
     const old = this.state;
     const backedUp = writeBackup(old.legacy.cycle, backup);
@@ -126,7 +143,7 @@ export class Game {
 
   /** M5: write a backup of the current save now (the Found flow does this before confirming). */
   backupNow(): { json: string; ok: boolean } {
-    this.state.lastRealTime = Date.now();
+    this.stampClock();
     const json = serialize(this.state);
     return { json, ok: writeBackup(this.state.legacy.cycle, json) };
   }
@@ -139,7 +156,7 @@ export class Game {
       return;
     }
     advance(this.state, this.content, dtSeconds);
-    this.state.lastRealTime = now;
+    this.stampClock(now);
     this.flush();
     if (now - this.lastSave > AUTOSAVE_MS) this.save();
   }
@@ -165,6 +182,7 @@ export class Game {
       else if (e.status === 'dead') explorersFallen.push(e.residentId);
     }
     this.lastCatchUp = { ...summary, explorersHome, explorersFallen };
+    this.awayPending = this.lastCatchUp;
   }
 
   /** Local calendar day number, so the daily crate resets at local midnight. */
@@ -184,8 +202,17 @@ export class Game {
     return result;
   }
 
+  /**
+   * Record the wall clock as the last simulated moment. It never moves
+   * backwards, so winding the device clock back and forward again can't
+   * replay the same offline time.
+   */
+  private stampClock(now = Date.now()): void {
+    this.state.lastRealTime = Math.max(this.state.lastRealTime, now);
+  }
+
   save(): void {
-    this.state.lastRealTime = Date.now();
+    this.stampClock();
     writeSave(serialize(this.state));
     this.lastSave = Date.now();
   }
@@ -194,13 +221,28 @@ export class Game {
     return serialize(this.state);
   }
 
+  /** M6: write the current homestead to a save slot (1–3). */
+  saveToSlot(slot: number): boolean {
+    this.stampClock();
+    return writeSave(serialize(this.state), slot);
+  }
+
+  /** Keep the live save as one step of undo before it is replaced. */
+  private keepUndo(): void {
+    this.stampClock();
+    writeUndo(serialize(this.state));
+  }
+
+  /** Load a save (a file, a slot or a backup) in place of the current homestead. Throws if it can't be read. */
   importSave(json: string): void {
     const next = deserialize(json);
+    this.keepUndo();
     catchUp(next, this.content, Date.now());
     this.replaceState(next);
   }
 
   reset(): void {
+    this.keepUndo();
     clearSave();
     this.replaceState(newGame(this.content));
     this.claimDaily();
@@ -211,7 +253,16 @@ export class Game {
   flush(): void {
     const events = drainEvents(this.state);
     if (events.some((e) => e.type === 'roomsMerged')) this.layoutVersion++;
-    for (const fn of this.listeners) fn(events);
+    // The first flush after a catch-up carries what happened while away.
+    const away = this.awayPending;
+    this.awayPending = null;
+    if (away) this.lastAway = { summary: away, events, at: Date.now() };
+    this.flushingAway = !!away;
+    try {
+      for (const fn of this.listeners) fn(events);
+    } finally {
+      this.flushingAway = false;
+    }
   }
 
   /**
@@ -294,6 +345,8 @@ export class Game {
       /** M6 helpers: research.points(n), research.all(); deep.dig(), deep.open(n), deep.discover(id?). */
       research: researchConsole(game),
       deep: deepConsole(game),
+      /** M6 quality-of-life helpers: bigVault(pop), away(hours). */
+      qol: qolConsole(game),
     };
     console.info('%cHomestead dev console: window.homestead', 'color:#f2a541');
   }

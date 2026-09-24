@@ -44,6 +44,7 @@ async function boot(): Promise<void> {
     view.setArt(art);
     questView.setArt(art);
   });
+  const cost = { n: 0, sim: 0, view: 0, ui: 0 };
   (window as unknown as Record<string, unknown>).homesteadView = {
     /** Screen position of a room's centre; for automated UI tests. */
     roomScreen: (id: number) => {
@@ -60,14 +61,29 @@ async function boot(): Promise<void> {
     enemyScreen: (uid: number) => questView.enemyScreen(uid),
     questRoomScreen: (roomId: string) => questView.roomScreen(roomId),
     questDoorScreen: (roomId: string) => questView.doorScreen(roomId),
+    /** M6: centre the camera on a floor, and the average JS cost of a frame (ms) since the last call. */
+    focusFloor: (floor: number) => view.focusFloor(floor),
+    frameCost: () => {
+      const out = { frames: cost.n, sim: cost.sim / Math.max(1, cost.n), view: cost.view / Math.max(1, cost.n), ui: cost.ui / Math.max(1, cost.n) };
+      cost.n = cost.sim = cost.view = cost.ui = 0;
+      return out;
+    },
   };
 
   app.ticker.add((ticker) => {
     const dt = ticker.deltaMS / 1000;
+    const t0 = performance.now();
     game.update(dt);
+    const t1 = performance.now();
     view.update(Math.min(dt, 0.1));
     questView.update(Math.min(dt, 0.1));
+    const t2 = performance.now();
     ui?.update();
+    const t3 = performance.now();
+    cost.n++;
+    cost.sim += t1 - t0;
+    cost.view += t2 - t1;
+    cost.ui += t3 - t2;
   });
 }
 

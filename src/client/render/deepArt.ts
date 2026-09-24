@@ -84,7 +84,7 @@ export function labelInk(wall: number): number {
   const r = (wall >> 16) & 0xff;
   const g = (wall >> 8) & 0xff;
   const b = wall & 0xff;
-  return 0.299 * r + 0.587 * g + 0.114 * b < 120 ? 0xf4ecd8 : 0x1b1b1b;
+  return 0.299 * r + 0.587 * g + 0.114 * b < 145 ? 0xf4ecd8 : 0x1b1b1b;
 }
 
 // -------------------------------------------------------------------- background
@@ -306,15 +306,15 @@ function drawTheSeal(root: Container, g: Graphics, geo: DeepGeometry, left: numb
   const cy = y + h - 10;
   for (let k = 0; k < 13; k++) {
     const a = Math.PI + (Math.PI * (k + 0.5)) / 13;
-    g.poly([cx, cy, cx + Math.cos(a - 0.07) * 110, cy + Math.sin(a - 0.07) * 110, cx + Math.cos(a + 0.07) * 110, cy + Math.sin(a + 0.07) * 110]).fill(0xb08d3f);
+    g.poly([cx, cy, cx + Math.cos(a - 0.07) * 88, cy + Math.sin(a - 0.07) * 88, cx + Math.cos(a + 0.07) * 88, cy + Math.sin(a + 0.07) * 88]).fill(0xb08d3f);
   }
   g.circle(cx, cy, 46).fill(0xd9b25a);
   g.rect(cx - 60, cy, 120, 12).fill(0x3a3430);
   g.moveTo(x0, y + 2).lineTo(x0 + w, y + 2).stroke({ width: 2, color: 0xff8a5a, alpha: 0.5 });
   const t = new Text({ text: 'THE SEAL', style: { fontFamily: 'Bungee, sans-serif', fontSize: 22, fill: 0xf2c14e, letterSpacing: 4 } });
   t.alpha = 0.75;
-  t.anchor.set(0.5, 1);
-  t.position.set(cx, cy - 52);
+  t.anchor.set(0.5, 0);
+  t.position.set(cx - 250, y + 12);
   const sub = new Text({
     text: 'PLEASE DO NOT KNOCK',
     style: { fontFamily: 'Work Sans, sans-serif', fontWeight: '700', fontSize: 11, fill: 0x1b1b1b, letterSpacing: 2 },
@@ -446,7 +446,7 @@ function geothermalSegment(g: Graphics, look: RoomLook, x: number, by: number, w
   g.rect(cx - 26, by + bh * 0.3 + 4, 52, 4).fill(look.accent);
   for (let k = 0; k < 5; k++) g.rect(cx - 24 + k * 10, by + bh * 0.3 + 12, 6, 20).fill(shade(look.trim, -0.4));
   // pressure gauges
-  const gx = s % 2 === 0 ? x + 14 : x + w - 14;
+  const gx = s % 2 === 0 ? x + w - 14 : x + 14;
   for (let k = 0; k < 2; k++) {
     const gy = by + 18 + k * 22;
     g.circle(gx, gy, 8).fill(0x2b2f33);
@@ -495,8 +495,8 @@ function refinerySegment(g: Graphics, look: RoomLook, x: number, by: number, w: 
     g.rect(fx, by + 16, fw, 6).fill(look.trim);
     for (let y = by + 28; y < floorY; y += 12) for (let k = 0; k < fw / 14; k++) g.rect(fx + k * 14 + ((y / 12) % 2) * 7, y, 12, 1.5).fill(0x3a302a);
     g.roundRect(fx + fw / 2 - 16, floorY - 34, 32, 30, 14).fill(0x1a0e08);
-    // chimney
-    g.rect(fx + fw / 2 - 8, by, 16, 16).fill(STEEL_DARK);
+    // extraction hood over the mouth
+    g.poly([fx + fw / 2 - 22, floorY - 40, fx + fw / 2 + 22, floorY - 40, fx + fw / 2 + 14, floorY - 48, fx + fw / 2 - 14, floorY - 48]).fill(STEEL_DARK);
     // crucible on a gantry
     const cx = fx + fw + 20;
     g.rect(cx - 14, by + 6, 28, 3).fill(STEEL_DARK);
@@ -549,106 +549,137 @@ function aquiferSegment(g: Graphics, look: RoomLook, x: number, by: number, w: n
 
 /** Draw a deep incident; returns false for other types. */
 export function drawDeepIncident(g: Graphics, inc: Incident, r: { x: number; y: number; w: number; h: number }, t: number): boolean {
-  const floorY = r.y + r.h - 10;
+  const floorY = r.y + r.h - 8;
   switch (inc.type) {
     case 'cavein': {
-      const heap = 0.4 + 0.6 * Math.max(0, inc.hp / Math.max(1, inc.maxHp));
-      // rubble heaps on the floor, bigger while there is more to dig
-      const heaps = Math.max(2, Math.floor(r.w / 60));
+      const heap = 0.45 + 0.55 * Math.max(0, inc.hp / Math.max(1, inc.maxHp));
+      // a haze of dust over everything
+      g.rect(r.x + 3, r.y + 3, r.w - 6, r.h - 6).fill({ color: 0xb8a58c, alpha: 0.18 });
+      // rubble heaps, bigger while there is more to dig
+      const heaps = Math.max(2, Math.round(r.w / 55));
       for (let i = 0; i < heaps; i++) {
-        const hx = r.x + 20 + (i + 0.5) * ((r.w - 40) / heaps);
-        const hw = 26 + (i % 2) * 10;
-        const hh = (18 + (i % 3) * 6) * heap;
-        g.poly([hx - hw, floorY + 4, hx - hw * 0.4, floorY - hh, hx + hw * 0.3, floorY - hh * 0.8, hx + hw, floorY + 4]).fill(0x5b4c40);
-        g.poly([hx - hw * 0.6, floorY + 4, hx - hw * 0.2, floorY - hh * 0.6, hx + hw * 0.5, floorY + 4]).fill(0x75655a);
-        g.rect(hx - 4, floorY - hh * 0.5, 8, 5).fill(0x3e342c);
+        const hx = r.x + 14 + (i + 0.5) * ((r.w - 28) / heaps);
+        const hw = 30 + (i % 2) * 12;
+        const hh = (34 + (i % 3) * 10) * heap;
+        g.poly([hx - hw, floorY + 5, hx - hw * 0.45, floorY - hh, hx + hw * 0.25, floorY - hh * 0.85, hx + hw, floorY + 5]).fill(0x7a6a5a);
+        g.poly([hx - hw * 0.7, floorY + 5, hx - hw * 0.25, floorY - hh * 0.62, hx + hw * 0.55, floorY + 5]).fill(0x9a8a76);
+        g.poly([hx - 8, floorY - hh * 0.55, hx + 2, floorY - hh * 0.75, hx + 12, floorY - hh * 0.5, hx + 4, floorY - hh * 0.35]).fill(0xc2b29a);
+        g.poly([hx - hw, floorY + 5, hx - hw * 0.45, floorY - hh, hx + hw * 0.25, floorY - hh * 0.85, hx + hw, floorY + 5]).stroke({ width: 1.5, color: 0x2a221c });
+        g.rect(hx - hw * 0.6, floorY - hh * 0.4, 16, 4).fill(0x5d6a68); // a bent strut in the pile
       }
       // falling rocks, each on its own loop
-      for (let i = 0; i < Math.ceil(r.w / 30); i++) {
-        const period = 0.9 + (i % 4) * 0.25;
+      for (let i = 0; i < Math.ceil(r.w / 24); i++) {
+        const period = 0.8 + (i % 4) * 0.22;
         const p = ((t + i * 0.37) % period) / period;
-        const rx = r.x + 16 + ((i * 53) % Math.max(1, r.w - 32));
-        const ry = r.y + 14 + p * p * (r.h - 30);
-        const s = 3 + (i % 3) * 2;
-        g.poly([rx - s, ry, rx, ry - s, rx + s, ry - 1, rx + 1, ry + s]).fill(0x8a7a6a);
+        const rx = r.x + 14 + ((i * 53) % Math.max(1, r.w - 28));
+        const ry = r.y + 12 + p * p * (r.h - 40);
+        const sz = 4 + (i % 3) * 2.5;
+        g.poly([rx - sz, ry, rx, ry - sz, rx + sz, ry - 1, rx + 1, ry + sz]).fill(0x9a8a78);
       }
       // cracks in the ceiling
-      g.moveTo(r.x + r.w * 0.3, r.y + 4).lineTo(r.x + r.w * 0.34, r.y + 14).lineTo(r.x + r.w * 0.31, r.y + 22).stroke({ width: 2, color: 0x14100d });
-      g.moveTo(r.x + r.w * 0.7, r.y + 4).lineTo(r.x + r.w * 0.66, r.y + 12).lineTo(r.x + r.w * 0.69, r.y + 20).stroke({ width: 2, color: 0x14100d });
-      // dust hanging in the air
-      for (let i = 0; i < 6; i++) {
-        const dx = r.x + r.w * (0.1 + i * 0.16) + Math.sin(t * 0.7 + i) * 10;
-        const dy = r.y + r.h * 0.45 + Math.cos(t * 0.5 + i * 2) * 12;
-        g.circle(dx, dy, 22 + (i % 3) * 8).fill({ color: 0xc8b8a0, alpha: 0.13 });
+      for (const f of [0.28, 0.55, 0.78]) {
+        const cx = r.x + r.w * f;
+        g.moveTo(cx, r.y + 3).lineTo(cx + 5, r.y + 16).lineTo(cx - 2, r.y + 26).lineTo(cx + 4, r.y + 34).stroke({ width: 2.5, color: 0x14100d });
       }
+      // billowing dust
+      for (let i = 0; i < 8; i++) {
+        const dx = r.x + r.w * (0.08 + i * 0.12) + Math.sin(t * 0.7 + i) * 10;
+        const dy = r.y + r.h * 0.5 + Math.cos(t * 0.5 + i * 2) * 16;
+        g.circle(dx, dy, 18 + (i % 3) * 9).fill({ color: 0xd8c8b0, alpha: 0.2 });
+      }
+      beacon(g, r, t, 0xf2a541);
       return true;
     }
     case 'flood': {
       // water rising while it goes unfixed, with a moving surface
-      const rise = Math.min(1, 0.25 + inc.roomTime / 60);
-      const level = r.y + r.h - 6 - rise * (r.h * 0.55) * (0.5 + 0.5 * Math.max(0, inc.hp / Math.max(1, inc.maxHp)));
+      const rise = Math.min(1, 0.45 + inc.roomTime / 40);
+      const level = r.y + r.h - 6 - rise * (r.h * 0.62) * (0.55 + 0.45 * Math.max(0, inc.hp / Math.max(1, inc.maxHp)));
       const pts: number[] = [r.x + 3, r.y + r.h - 3];
-      for (let x = r.x + 3; x <= r.x + r.w - 3; x += 10) pts.push(x, level + Math.sin(t * 3 + x * 0.05) * 3);
+      for (let x = r.x + 3; x <= r.x + r.w - 3; x += 8) pts.push(x, level + Math.sin(t * 3 + x * 0.06) * 3.5);
       pts.push(r.x + r.w - 3, r.y + r.h - 3);
-      g.poly(pts).fill({ color: 0x1f6f8f, alpha: 0.62 });
-      g.rect(r.x + 3, level + 4, r.w - 6, 2).fill({ color: 0x9fd8e8, alpha: 0.45 });
+      g.poly(pts).fill({ color: 0x1a6a8a, alpha: 0.72 });
+      g.rect(r.x + 3, level + 8, r.w - 6, r.y + r.h - level - 12).fill({ color: 0x0a3a52, alpha: 0.35 });
+      for (let x = r.x + 6; x < r.x + r.w - 10; x += 26) g.rect(x + Math.sin(t * 2 + x) * 4, level + 1 + Math.sin(t * 3 + x * 0.06) * 3, 12, 2).fill({ color: 0xcfeef7, alpha: 0.7 });
       // bubbles
-      for (let i = 0; i < Math.ceil(r.w / 40); i++) {
+      for (let i = 0; i < Math.ceil(r.w / 30); i++) {
         const p = (t * 0.6 + i * 0.29) % 1;
         const bx = r.x + 14 + ((i * 47) % Math.max(1, r.w - 28));
-        g.circle(bx, r.y + r.h - 8 - p * (r.y + r.h - 8 - level), 2 + (i % 2)).stroke({ width: 1, color: 0xcfeef7, alpha: 0.7 });
+        g.circle(bx, r.y + r.h - 8 - p * (r.y + r.h - 8 - level), 2.5 + (i % 2)).stroke({ width: 1.2, color: 0xcfeef7, alpha: 0.8 });
       }
       // spray from a burst pipe on the wall
-      const sx = r.x + r.w - 24;
-      for (let i = 0; i < 6; i++) {
-        const p = (t * 1.6 + i / 6) % 1;
-        g.circle(sx - p * 30, r.y + 24 + p * p * 50, 2).fill({ color: 0x9fd8e8, alpha: 1 - p });
+      const sx = r.x + r.w - 26;
+      for (let i = 0; i < 10; i++) {
+        const p = (t * 1.6 + i / 10) % 1;
+        g.circle(sx - p * 40, r.y + 26 + p * p * 60, 2.5).fill({ color: 0x9fd8e8, alpha: 1 - p });
       }
-      g.rect(sx, r.y + 18, 18, 7).fill(0x2d4a55);
+      g.rect(sx, r.y + 18, 20, 8).fill(0x2d4a55);
+      g.rect(sx - 3, r.y + 16, 4, 12).fill(0x5d6a68);
+      beacon(g, r, t, 0x4fb3e9);
       return true;
     }
     case 'deepcrawlers': {
       // Pale, jointed like a folding ruler, too many legs, faint green eyes.
-      const n = Math.max(2, Math.floor(r.w / 70));
+      const n = Math.max(3, Math.round(r.w / 50));
+      const segs = r.w < 200 ? 4 : 6;
+      const body = segs * 12 + 10;
       for (let i = 0; i < n; i++) {
         const dir = i % 2 === 0 ? 1 : -1;
-        const phase = (t * (0.12 + (i % 3) * 0.03) + i * 0.41) % 1;
-        const cx = r.x + 30 + (dir > 0 ? phase : 1 - phase) * (r.w - 60);
+        const phase = (t * (0.1 + (i % 3) * 0.03) + i * 0.41) % 1;
+        // Keep the whole body inside the room: the head leads, the body trails behind it.
+        const lo = r.x + 12 + (dir > 0 ? body : 20);
+        const hi = r.x + r.w - 12 - (dir > 0 ? 20 : body);
+        const cx = lo + (dir > 0 ? phase : 1 - phase) * Math.max(0, hi - lo);
         const onCeiling = i % 3 === 2;
-        const baseY = onCeiling ? r.y + 20 : floorY - 3;
-        drawCrawler(g, cx, baseY, dir, onCeiling, t + i);
+        const baseY = onCeiling ? r.y + 18 : floorY - 2;
+        drawCrawler(g, cx, baseY, dir, onCeiling, t + i, segs);
       }
+      // a hole they came out of
+      g.ellipse(r.x + 14, floorY - 16, 9, 18).fill(0x0a0706);
+      g.ellipse(r.x + r.w - 14, r.y + r.h * 0.45, 8, 16).fill(0x0a0706);
+      beacon(g, r, t, 0x9cf0c0);
       return true;
     }
   }
   return false;
 }
 
-function drawCrawler(g: Graphics, x: number, y: number, dir: number, flipped: boolean, t: number): void {
+/** A flashing warning lamp on the ceiling of a room with a deep incident. */
+function beacon(g: Graphics, r: { x: number; y: number; w: number; h: number }, t: number, color: number): void {
+  const on = Math.sin(t * 8) > 0;
+  const x = r.x + r.w - 20;
+  const y = r.y + 22;
+  g.rect(x - 5, y - 8, 10, 4).fill(0x2b2f33);
+  g.circle(x, y, 5).fill(on ? 0xff5a3a : 0x5a2418);
+  if (on) g.circle(x, y, 14).fill({ color: 0xff5a3a, alpha: 0.25 });
+  g.rect(r.x + 3, r.y + 3, r.w - 6, 3).fill({ color, alpha: on ? 0.8 : 0.3 });
+}
+
+function drawCrawler(g: Graphics, x: number, y: number, dir: number, flipped: boolean, t: number, segs: number): void {
   const up = flipped ? 1 : -1;
-  const segs = 5;
-  const len = 9;
+  const len = 12;
   for (let k = 0; k < segs; k++) {
     const sx = x - dir * k * len;
-    const sy = y + up * (6 + Math.sin(t * 6 + k) * 1.5);
+    const sy = y + up * (9 + Math.sin(t * 6 + k) * 2);
     // legs: two thin jointed pairs per segment
     const swing = Math.sin(t * 14 + k * 1.3) * 3;
     for (const side of [-1, 1]) {
       g.moveTo(sx, sy)
-        .lineTo(sx + side * 4 + swing, sy + up * -7)
-        .lineTo(sx + side * 7 + swing, y)
-        .stroke({ width: 1.2, color: 0xcfc9b2 });
+        .lineTo(sx + side * 6 + swing, sy + up * -10)
+        .lineTo(sx + side * 10 + swing, y)
+        .stroke({ width: 1.6, color: 0xcfc9b2 });
     }
-    g.roundRect(sx - len / 2 - 1, sy - 3.5, len + 2, 7, 3).fill(k === 0 ? 0xf0ecdc : 0xe0dac6);
-    g.rect(sx - len / 2 + 1, sy - 3.5, 1, 7).fill(0x9a9480);
+    g.roundRect(sx - len / 2 - 1, sy - 5, len + 2, 10, 4).fill(k === 0 ? 0xf0ecdc : 0xe0dac6);
+    g.rect(sx - len / 2 + 1, sy - 5, 1.5, 10).fill(0x9a9480);
   }
   // head with feelers and eyes
-  const hx = x + dir * 6;
-  const hy = y + up * 6;
-  g.moveTo(hx, hy).lineTo(hx + dir * 12, hy + up * 8).stroke({ width: 1, color: 0xcfc9b2 });
-  g.moveTo(hx, hy).lineTo(hx + dir * 14, hy + up * 2).stroke({ width: 1, color: 0xcfc9b2 });
-  g.circle(hx + dir * 2, hy - 1, 1.6).fill(0x9cf0c0);
-  g.circle(hx + dir * 2, hy + 2, 1.2).fill(0x9cf0c0);
+  const hx = x + dir * 9;
+  const hy = y + up * 9;
+  g.ellipse(hx, hy, 7, 6).fill(0xf6f2e4);
+  g.moveTo(hx, hy).lineTo(hx + dir * 18, hy + up * 12).stroke({ width: 1.3, color: 0xcfc9b2 });
+  g.moveTo(hx, hy).lineTo(hx + dir * 20, hy + up * 2).stroke({ width: 1.3, color: 0xcfc9b2 });
+  g.circle(hx + dir * 3, hy - 2, 4).fill({ color: 0x9cf0c0, alpha: 0.3 });
+  g.circle(hx + dir * 3, hy - 2, 1.8).fill(0x9cf0c0);
+  g.circle(hx + dir * 3, hy + 2, 1.4).fill(0x9cf0c0);
 }
 
 export const DEEP_INCIDENT_COLORS: Record<string, number> = { cavein: 0xb8a58c, flood: 0x4fb3e9, deepcrawlers: 0xe8e4d0 };
@@ -667,12 +698,12 @@ export class DeepLayer {
   private lastDigText = '';
 
   constructor(private geo: () => DeepGeometry) {
-    this.digText.anchor.set(0, 0.5);
+    this.digText.anchor.set(1, 0.5);
     this.digText.visible = false;
     this.root.addChild(this.g, this.digText);
   }
 
-  update(state: GameState, content: Content, time: number, rectOf: (room: Room) => { x: number; y: number; w: number; h: number }): void {
+  update(state: GameState, content: Content, time: number, rectOf: (room: Room) => { x: number; y: number; w: number; h: number }, view: { y0: number; y1: number }): void {
     const g = this.g;
     g.clear();
     const geo = this.geo();
@@ -681,13 +712,15 @@ export class DeepLayer {
       if (t !== 'lab' && t !== 'geothermal' && t !== 'fungalfarm' && t !== 'refinery' && t !== 'aquifer') continue;
       if (!room.powered && content.rooms[t]?.usesPower) continue;
       const r = rectOf(room);
+      if (r.y + r.h < view.y0 || r.y > view.y1) continue;
       const bx = r.x + 3 + geo.depthX;
       const by = r.y + 3 + geo.depthY;
       const bw = r.w - 2 * (3 + geo.depthX);
       const bh = r.h - 2 * (3 + geo.depthY);
       const seg = bw / room.segments;
       const burning = state.incidents.some((i) => i.roomId === room.id);
-      for (let s = 0; s < room.segments; s++) roomFx(g, t, bx + seg * s, by, seg, bh, s, time + room.id * 1.7, burning);
+      // An incident stops the work, and its art needs the room to itself.
+      if (!burning) for (let s = 0; s < room.segments; s++) roomFx(g, t, bx + seg * s, by, seg, bh, s, time + room.id * 1.7);
       if (t === 'refinery') {
         const p = Math.min(1, room.pool / Math.max(1, refineryBatch(content, room)));
         g.rect(r.x + 6, r.y + r.h - 7, r.w - 12, 3).fill({ color: 0x000000, alpha: 0.35 });
@@ -708,53 +741,66 @@ export class DeepLayer {
     const r = shaft ? rectOf(shaft) : { x: geo.width / 2 - geo.cell / 2, y: geo.surfaceH + (geo.baseFloors + state.deep.strata * geo.floorsPerStratum - 1) * geo.floorH, w: geo.cell, h: geo.floorH };
     const progress = dig.total > 0 ? Math.max(0, Math.min(1, 1 - dig.remaining / dig.total)) : 0;
     const top = r.y + r.h;
-    const depth = 24 + progress * (SEAL_H - 60);
+    const depth = 40 + progress * (SEAL_H - 50);
     const cx = r.x + r.w / 2;
     const g = this.g;
+    // work light spilling into the rock
+    g.circle(cx, top + depth - 10, 70).fill({ color: 0xf2a541, alpha: 0.07 });
+    g.circle(cx, top + depth - 10, 40).fill({ color: 0xf2a541, alpha: 0.08 });
     // the shaft being cut, lined with timber rings
-    g.rect(cx - 16, top, 32, depth).fill(0x080504);
-    for (let y = top + 6; y < top + depth - 6; y += 14) g.rect(cx - 18, y, 36, 3).fill(0x5e452c);
+    g.rect(cx - 20, top, 40, depth).fill(0x080504);
+    for (let y = top + 6; y < top + depth - 10; y += 14) {
+      g.rect(cx - 22, y, 44, 3).fill(0x6e5334);
+      g.rect(cx - 22, y, 3, 8).fill(0x4e3a24);
+      g.rect(cx + 19, y, 3, 8).fill(0x4e3a24);
+    }
     // cable
-    g.rect(cx - 1, top - 10, 2, depth - 10).fill(0x1b1b1b);
-    // derrick over the shaft mouth, in the elevator car
-    g.poly([cx - 18, top, cx - 3, top - 44, cx + 3, top - 44, cx + 18, top]).stroke({ width: 3, color: 0xf2a541 });
-    g.rect(cx - 12, top - 22, 24, 3).fill(0xf2a541);
+    g.rect(cx - 1.5, top - 60, 3, depth + 30).fill(0x1b1b1b);
+    // derrick over the shaft mouth, standing in the elevator car
+    g.poly([cx - 20, top, cx - 4, top - 68, cx + 4, top - 68, cx + 20, top]).stroke({ width: 3, color: 0xf2a541 });
+    for (const y of [top - 22, top - 44]) {
+      const half = 20 - ((top - y) / 68) * 16;
+      g.rect(cx - half, y, half * 2, 3).fill(0xf2a541);
+    }
+    g.circle(cx, top - 66, 5).fill(0x3b3f3a);
     // the drill head, spiral bands turning
-    const hy = top + depth - 24;
-    g.poly([cx - 15, hy, cx + 15, hy, cx, hy + 26]).fill(0x8c8c8c);
+    const hy = top + depth - 34;
+    const bw = 18;
+    g.poly([cx - bw, hy, cx + bw, hy, cx, hy + 34]).fill(0x9a9a9a);
     const spin = (time * 3) % 1;
-    for (let k = 0; k < 4; k++) {
-      const f = (k + spin) / 4;
-      const yy = hy + f * 22;
-      const half = 15 * (1 - f);
-      g.poly([cx - half, yy, cx + half, yy - 3, cx + half, yy, cx - half, yy + 3]).fill(0x3b3f3a);
+    for (let k = 0; k < 5; k++) {
+      const f = (k + spin) / 5;
+      const yy = hy + f * 30;
+      const half = bw * (1 - f);
+      g.poly([cx - half, yy, cx + half, yy - 4, cx + half, yy, cx - half, yy + 4]).fill(0x3b3f3a);
     }
-    g.rect(cx - 17, hy - 8, 34, 8).fill(0xf2a541);
-    g.rect(cx - 17, hy - 8, 34, 2).fill(0xffd27f);
+    g.rect(cx - bw - 3, hy - 12, (bw + 3) * 2, 12).fill(0xf2a541);
+    g.rect(cx - bw - 3, hy - 12, (bw + 3) * 2, 3).fill(0xffd27f);
+    for (let k = 0; k < 4; k++) g.rect(cx - bw + k * 11, hy - 8, 5, 5).fill(0x1b1b1b);
     // debris kicked up around the bit
-    for (let i = 0; i < 9; i++) {
-      const p = (time * 1.8 + i / 9) % 1;
+    for (let i = 0; i < 12; i++) {
+      const p = (time * 1.8 + i / 12) % 1;
       const side = i % 2 ? 1 : -1;
-      const dx = cx + side * (6 + p * 22);
-      const dy = hy + 20 - Math.sin(p * Math.PI) * 26;
-      g.rect(dx, dy, 3, 3).fill({ color: 0xa08c74, alpha: 1 - p });
+      const dx = cx + side * (8 + p * 28);
+      const dy = hy + 30 - Math.sin(p * Math.PI) * 34;
+      g.rect(dx, dy, 3 + (i % 3), 3).fill({ color: 0xa08c74, alpha: 1 - p });
     }
-    g.circle(cx, hy + 18, 20 + Math.sin(time * 5) * 3).fill({ color: 0xc8b8a0, alpha: 0.12 });
+    g.circle(cx, hy + 26, 24 + Math.sin(time * 5) * 4).fill({ color: 0xc8b8a0, alpha: 0.14 });
     // a work lamp that flashes amber
     const flash = 0.5 + 0.5 * Math.sin(time * 6);
-    g.circle(cx + 22, top - 36, 9).fill({ color: 0xf2a541, alpha: 0.15 + 0.2 * flash });
-    g.circle(cx + 22, top - 36, 3.5).fill({ color: 0xffd27f, alpha: 0.5 + 0.5 * flash });
+    g.circle(cx + 26, top - 52, 12).fill({ color: 0xf2a541, alpha: 0.15 + 0.2 * flash });
+    g.circle(cx + 26, top - 52, 4.5).fill({ color: 0xffd27f, alpha: 0.5 + 0.5 * flash });
     const label = `DIGGING STRATUM ${dig.stratum} · ${Math.floor(progress * 100)}%`;
     if (label !== this.lastDigText) {
       this.digText.text = label;
       this.lastDigText = label;
     }
     this.digText.visible = true;
-    this.digText.position.set(cx + 26, top + depth / 2 + 4);
+    this.digText.position.set(cx - 30, top + depth - 20);
   }
 }
 
-function roomFx(g: Graphics, type: string, x: number, by: number, w: number, bh: number, s: number, t: number, burning: boolean): void {
+function roomFx(g: Graphics, type: string, x: number, by: number, w: number, bh: number, s: number, t: number): void {
   const floorY = by + bh;
   switch (type) {
     case 'lab': {
@@ -804,11 +850,9 @@ function roomFx(g: Graphics, type: string, x: number, by: number, w: number, bh:
         g.poly([cx - 9, by + 30, cx + 9, by + 30, cx + 7, by + 42, cx - 7, by + 42]).fill({ color: 0xffa23a, alpha: f });
         const p = (t * 1.2) % 1;
         g.circle(cx, by + 46 + p * 30, 2).fill({ color: 0xffd23f, alpha: 1 - p });
-        if (!burning) {
-          for (let k = 0; k < 3; k++) {
-            const sp = (t * 2 + k / 3) % 1;
-            g.rect(mx + (k - 1) * 8 + sp * (k - 1) * 10, floorY - 34 - sp * 20, 2, 2).fill({ color: 0xffd23f, alpha: 1 - sp });
-          }
+        for (let k = 0; k < 3; k++) {
+          const sp = (t * 2 + k / 3) % 1;
+          g.rect(mx + (k - 1) * 8 + sp * (k - 1) * 10, floorY - 34 - sp * 20, 2, 2).fill({ color: 0xffd23f, alpha: 1 - sp });
         }
       }
       // ore riding the belt

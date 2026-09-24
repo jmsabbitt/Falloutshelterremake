@@ -6,6 +6,7 @@
 
 import {
   canResearch,
+  deepContent,
   labRate,
   nodeStatus,
   researchContent,
@@ -97,7 +98,11 @@ export function buildInfo(state: GameState, content: Content, def: RoomDef): { w
   const out: { what?: string; lock?: string } = {};
   if (def.category === 'research') out.what = `Makes research points · uses Wits`;
   if (def.id === 'refinery') out.what = 'Refines rock into salvage · uses Knack';
-  if (def.minFloor !== undefined) out.what = `${out.what ?? (def.produces ? `Makes ${def.produces.resource} · uses ${def.stat ?? '—'}` : '')} · deep floors only`;
+  if (def.minFloor !== undefined) {
+    const stat = def.stat ? def.stat.charAt(0).toUpperCase() + def.stat.slice(1) : '—';
+    const where = def.minFloor > content.balance.grid.floors ? `floor ${def.minFloor + 1} and deeper` : 'deep floors only';
+    out.what = `${out.what ?? (def.produces ? `Makes ${def.produces.resource} · uses ${stat}` : '')} · ${where}`;
+  }
   if (def.requiresResearch && !state.research.done.includes(def.requiresResearch)) {
     out.lock = `🔒 ${researchNode(content, def.requiresResearch)?.name ?? 'research'}`;
   }
@@ -119,6 +124,12 @@ export class ResearchUI {
   visible(): boolean {
     const { state, content } = this.game;
     return state.research.points > 0 || state.research.done.length > 0 || state.rooms.some((r) => content.rooms[r.type]?.category === 'research') || state.unlockedRooms.includes('lab');
+  }
+
+  /** True once the first survey is done (the Deep panel has something to show). */
+  private deepOpen(): boolean {
+    const { state } = this.game;
+    return state.deep.strata > 0 || !!state.deep.dig || state.research.done.includes(deepContent(this.game.content).tuning.requiresResearch);
   }
 
   /** Nodes that can be researched right now. */
@@ -233,7 +244,15 @@ export class ResearchUI {
         return h(
           'div',
           { class: `research-branch ${b.id}` },
-          h('header', {}, h('b', {}, `${BRANCH_ICON[b.id] ?? ''} ${b.name}`), h('span', { class: 'muted small' }, `${got}/${nodes.length}`), h('span', { class: 'muted small desc' }, b.description)),
+          h(
+            'header',
+            {},
+            h('b', {}, `${BRANCH_ICON[b.id] ?? ''} ${b.name}`),
+            h('span', { class: 'muted small' }, `${got}/${nodes.length}`),
+            // The Deep Works branch leads to the dig itself.
+            b.id === 'deep' && this.deepOpen() ? h('button', { class: 'close dig-link', onclick: () => this.host.openDeep() }, '⛏ Excavation') : null,
+            h('span', { class: 'muted small desc' }, b.description),
+          ),
           ...col,
         );
       }),
@@ -291,11 +310,12 @@ export class ResearchUI {
     const all = researchRate(state, content);
     const crew = workersInRoom(state, room.id).length;
     const why = !room.powered ? 'No power' : state.incidents.some((i) => i.roomId === room.id) ? 'Stopped by the incident' : crew === 0 ? 'Needs a crew' : '';
-    const mult = researchContent(content).tuning.levelMult;
+    const tuning = researchContent(content).tuning;
+    const mult = tuning.levelMult[room.level - 1] ?? 1;
     return [
       h('div', { class: 'row' }, h('span', {}, '🔬 Research'), h('b', {}, rate > 0 ? `${rate.toFixed(1)} RP/h` : why)),
       h('div', { class: 'row muted small' }, h('span', {}, `All Labs ${all.toFixed(1)} RP/h`), h('span', {}, `${fmt(state.research.points)} RP banked`)),
-      h('div', { class: 'muted small' }, `Crew Wits × ${mult[room.level - 1] ?? 1} for this level. Lab work also earns XP.`),
+      h('div', { class: 'muted small' }, `Each point of crew Wits makes ${tuning.pointsPerWitsHour} RP an hour${mult !== 1 ? `, ×${mult} at this level` : ''}. Lab work also earns XP.`),
       h('div', { class: 'row', style: 'justify-content:flex-start' }, h('button', { class: 'close', onclick: () => this.host.openResearch() }, 'Open Research')),
     ];
   }
