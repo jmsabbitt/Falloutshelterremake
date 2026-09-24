@@ -7,13 +7,15 @@
 import type { Content } from '../content';
 import { addScrip, refreshUnlocks } from '../economy';
 import { canPlace } from '../grid';
-import { legacyContent, perkDef, perkRank, perkValue, siteDef, type CharterDef } from '../legacy';
+import { bonus } from '../bonuses';
+import { legacyContent, perkDef, perkRank, siteDef, type CharterDef } from '../legacy';
 import { bump, isAway, isChild } from '../residents';
 import { chance, nextFloat, nextInt, pick } from '../rng';
 import { newGame } from '../state';
 import type { GameState, Item, Outpost, Resident, Room } from '../types';
 import { earnCrate } from './crates';
 import { scheduleIncident } from './incidents';
+import { carryResearch } from './research';
 import { addSalvage } from './inventory';
 
 // ------------------------------------------------------------------ charter
@@ -116,8 +118,8 @@ export function buyPerk(state: GameState, content: Content, perkId: string): str
 export function foundingLimits(state: GameState, content: Content): { party: number; heirlooms: number } {
   const f = legacyContent(content).founding;
   return {
-    party: f.partyBase + perkValue(state, content, 'foundingParty'),
-    heirlooms: f.heirloomBase + perkValue(state, content, 'heirlooms'),
+    party: f.partyBase + bonus(state, content, 'foundingParty'),
+    heirlooms: f.heirloomBase + bonus(state, content, 'heirlooms'),
   };
 }
 
@@ -279,7 +281,7 @@ export function foundHomestead(old: GameState, content: Content, opts: FoundOpti
 
   // Legacy and site bonuses at the start. The fresh strangers were made
   // before the perks carried over, so give them Hardy Folk now.
-  const hardy = perkValue(state, content, 'baseHp');
+  const hardy = bonus(state, content, 'baseHp');
   const founders = new Set(ids.values());
   for (const r of state.residents) {
     if (founders.has(r.id)) continue;
@@ -287,14 +289,15 @@ export function foundHomestead(old: GameState, content: Content, opts: FoundOpti
     r.hp = r.maxHp;
   }
   state.scrip = 0;
-  addScrip(state, content, content.balance.start.scrip + perkValue(state, content, 'startScrip') + (site.modifiers.startScrip ?? 0));
-  if (perkValue(state, content, 'prefabRooms') > 0) {
+  addScrip(state, content, content.balance.start.scrip + bonus(state, content, 'startScrip') + (site.modifiers.startScrip ?? 0));
+  if (bonus(state, content, 'prefabRooms') > 0) {
     for (const p of PREFAB) {
       if (!canPlace(state, content, p.type, p.floor, p.x).ok) continue;
-      const room: Room = { id: state.nextId++, type: p.type, floor: p.floor, x: p.x, segments: 1, level: 1, pool: 0, ready: false, powered: true, timer: 0, job: null };
+      const room: Room = { id: state.nextId++, type: p.type, floor: p.floor, x: p.x, segments: 1, level: 1, pool: 0, ready: false, powered: true, timer: 0, job: null, banked: 0 };
       state.rooms.push(room);
     }
   }
+  carryResearch(src, state, content);
   scheduleIncident(state, content); // the site may change how often incidents come
   refreshUnlocks(state, content);
   state.events = [];
@@ -309,7 +312,7 @@ export function tickOutposts(state: GameState, content: Content, dt: number): vo
   const outposts = state.legacy?.outposts;
   if (!outposts?.length) return;
   const cap = legacyContent(content).outposts.storageHours;
-  const mult = 1 + perkValue(state, content, 'outpostOutput');
+  const mult = 1 + bonus(state, content, 'outpostOutput');
   const hours = dt / 3600;
   for (const o of outposts) {
     const add = (have: number, rate: number) => Math.min(rate * mult * cap, have + rate * mult * hours);

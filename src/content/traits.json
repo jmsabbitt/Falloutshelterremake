@@ -1,0 +1,11 @@
+{
+  "_comment": "Resident traits and job mastery. Typed in src/sim/systems/traits.ts; see docs/design/M6-spec.md.",
+  "tuning": {
+    "traitsPerResident": [1, 3],
+    "inheritChance": 0.5,
+    "masteryTierSeconds": [0, 14400, 43200],
+    "masteryTierNames": ["Apprentice", "Journeyman", "Master"]
+  },
+  "traits": [],
+  "achievements": []
+}

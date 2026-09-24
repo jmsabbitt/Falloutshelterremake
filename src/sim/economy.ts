@@ -2,7 +2,7 @@
 
 import { maxLevel, tableValue, type Content, type RoomDef, type StorageKind } from './content';
 import { roomDef } from './grid';
-import { costMult } from './legacy';
+import { costMult } from './bonuses';
 import { livingResidents } from './residents';
 import type { GameState, ResourceKey, Room } from './types';
 
@@ -56,6 +56,7 @@ export function upgradeCost(content: Content, room: Room, state?: GameState): nu
 }
 
 export function isUnlocked(state: GameState, def: RoomDef): boolean {
+  if (def.requiresResearch && !state.research?.done.includes(def.requiresResearch)) return false;
   return state.peakPopulation >= def.unlockPop;
 }
 

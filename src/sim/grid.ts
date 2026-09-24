@@ -7,6 +7,7 @@
 // directly above/below a connected elevator.
 
 import type { Content, RoomDef } from './content';
+import { totalFloors } from './systems/deep';
 import type { GameState, Room } from './types';
 
 export function roomDef(content: Content, room: Room): RoomDef {
@@ -78,9 +79,10 @@ export type PlacementCheck = { ok: true } | { ok: false; reason: string };
 export function canPlace(state: GameState, content: Content, type: string, floor: number, x: number): PlacementCheck {
   const def = content.rooms[type];
   if (!def) return { ok: false, reason: 'unknown room type' };
-  const { floors, cellsPerFloor } = content.balance.grid;
-  if (floor < 0 || floor >= floors) return { ok: false, reason: 'out of bounds' };
+  const { cellsPerFloor } = content.balance.grid;
+  if (floor < 0 || floor >= totalFloors(state, content)) return { ok: false, reason: floor >= content.balance.grid.floors ? 'excavate deeper first' : 'out of bounds' };
   if (x < 0 || x + def.cells > cellsPerFloor) return { ok: false, reason: 'out of bounds' };
+  if (def.minFloor !== undefined && floor < def.minFloor) return { ok: false, reason: 'only in the Deep' };
 
   const occ = floorOccupancy(state, content, floor);
   for (let i = 0; i < def.cells; i++) {
@@ -89,7 +91,7 @@ export function canPlace(state: GameState, content: Content, type: string, floor
 
   // Must attach to the connected network.
   const connected = connectedRoomIds(state, content);
-  const probe: Room = { id: -1, type, floor, x, segments: 1, level: 1, pool: 0, ready: false, powered: true, timer: 0, job: null };
+  const probe: Room = { id: -1, type, floor, x, segments: 1, level: 1, pool: 0, ready: false, powered: true, timer: 0, job: null, banked: 0 };
   const attaches = neighbours(state, content, probe).some((n) => connected.has(n.id));
   if (!attaches) {
     return {

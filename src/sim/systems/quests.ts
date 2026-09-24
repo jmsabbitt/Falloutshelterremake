@@ -10,7 +10,7 @@
 
 import type { Content } from '../content';
 import { addScrip, resourceCapacity } from '../economy';
-import { perkValue } from '../legacy';
+import { bonus } from '../bonuses';
 import { bump, bumpMax, effectiveMaxHp, effectiveStat, grantXp, isAway, isChild } from '../residents';
 import { chance, nextFloat, nextInt, pick } from '../rng';
 import {
@@ -230,7 +230,7 @@ const findQuest = (state: GameState, id: number) => state.quests.find((q) => q.i
 /** Concurrent quests the Command Office allows (0 without one). */
 export function officeSlots(state: GameState, content: Content): number {
   const office = state.rooms.find((r) => r.type === 'office');
-  return office ? (tuning(content).officeSlots[office.level - 1] ?? 1) + perkValue(state, content, 'questSlots') : 0;
+  return office ? (tuning(content).officeSlots[office.level - 1] ?? 1) + bonus(state, content, 'questSlots') : 0;
 }
 
 /** Why a resident can't join a party, or null if they can. */
@@ -797,7 +797,7 @@ function endFight(state: GameState, content: Content, q: Quest): void {
     m.target = null;
     if (m.downed) {
       m.downed = false;
-      r.hp = Math.max(r.hp, Math.ceil(effectiveMaxHp(r) * t.recoverHp * (1 + perkValue(state, content, 'questHeal'))));
+      r.hp = Math.max(r.hp, Math.ceil(effectiveMaxHp(r) * t.recoverHp * (1 + bonus(state, content, 'questHeal'))));
     }
   }
   const room = currentRoom(q);
@@ -906,7 +906,7 @@ export function questHeal(state: GameState, content: Content, questId: number, r
   if (q.supplies.medpatch < 1) return 'no Med-Patches left';
   if (r.hp >= effectiveMaxHp(r) - 0.5) return 'already at full health';
   q.supplies.medpatch--;
-  r.hp = Math.min(effectiveMaxHp(r), r.hp + r.maxHp * tuning(content).medpatchHeal * (1 + perkValue(state, content, 'questHeal')));
+  r.hp = Math.min(effectiveMaxHp(r), r.hp + r.maxHp * tuning(content).medpatchHeal * (1 + bonus(state, content, 'questHeal')));
   bump(state, 'medpatchesUsed');
   return null;
 }
@@ -1074,7 +1074,7 @@ export function refreshContracts(state: GameState, content: Content): void {
   const templates = questContent(content).contracts;
   state.contracts.offers = [];
   if (!templates.length) return;
-  const offers = t.offers + perkValue(state, content, 'contractOffers');
+  const offers = t.offers + bonus(state, content, 'contractOffers');
   for (let i = 0; i < offers; i++) {
     const tpl = pick(state.rng, templates);
     const place = tpl.places.length ? pick(state.rng, tpl.places) : '';

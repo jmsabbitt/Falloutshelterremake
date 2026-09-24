@@ -5,6 +5,8 @@
 import type { Content } from './content';
 import type { GameState, LegacyState, ResourceKey } from './types';
 
+// Bonus lookups that combine perks with research live in bonuses.ts.
+
 export type PerkEffect =
   | 'startScrip'
   | 'buildDiscount'
@@ -120,22 +122,4 @@ export function perkValue(state: GameState, content: Content, effect: PerkEffect
 
 export function siteDef(content: Content, id: string): SiteDef | undefined {
   return legacyContent(content).sites.find((s) => s.id === id);
-}
-
-/** Production multiplier for a resource: the site's modifier times Overtime. */
-export function productionMult(state: GameState, content: Content, resource: ResourceKey | undefined): number {
-  const site = siteDef(content, state.legacy?.siteId ?? 'plot7');
-  const siteMult = resource ? (site?.modifiers.production?.[resource] ?? 1) : 1;
-  return siteMult * (1 + perkValue(state, content, 'productionSpeed'));
-}
-
-/** How much more often random incidents happen at this site. */
-export function incidentRate(state: GameState, content: Content): number {
-  return siteDef(content, state.legacy?.siteId ?? 'plot7')?.modifiers.incidentRate ?? 1;
-}
-
-/** Build and upgrade cost multiplier (Union Rates). */
-export function costMult(state: GameState | undefined, content: Content): number {
-  if (!state) return 1;
-  return Math.max(0.2, 1 - perkValue(state, content, 'buildDiscount'));
 }

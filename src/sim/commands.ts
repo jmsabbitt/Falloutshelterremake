@@ -2,6 +2,7 @@
 // console, replays and tests) only changes the game through applyCommand.
 
 import type { Content } from './content';
+import { bonus } from './bonuses';
 import { addScrip, buildCost, population, refreshUnlocks, storageCapacity, upgradeCost } from './economy';
 import { canPlace, connectedRoomIds, mergeFloor, roomDef } from './grid';
 import { bump, effectiveMaxHp, effectiveStat, isAway, isChild, residentsInRoom, reviveCost } from './residents';
@@ -11,6 +12,9 @@ import { collectExpedition, onResidentRevived, recallExpedition, startExpedition
 import { cancelCraft, collectCraft, reforge, scrapItem, startCraft } from './systems/crafting';
 import { collectRoom } from './systems/production';
 import { buyPerk, collectOutposts } from './systems/prestige';
+import { doResearch } from './systems/research';
+import { startExcavation } from './systems/deep';
+import { autoAssign } from './systems/assign';
 import { abandonQuest, collectQuest, questAbility, questChoose, questCrit, questHeal, questMove, questTarget, startQuest } from './systems/quests';
 import { performRush } from './systems/rush';
 import type { CrateTier, GameState, Resident, Room } from './types';
@@ -56,7 +60,11 @@ export type Command =
   | { type: 'collectQuest'; questId: number }
   // M5
   | { type: 'buyPerk'; perkId: string }
-  | { type: 'collectOutposts' };
+  | { type: 'collectOutposts' }
+  // M6
+  | { type: 'research'; nodeId: string }
+  | { type: 'excavate' }
+  | { type: 'autoAssign' };
 
 export type CommandResult = { ok: true; detail?: string } | { ok: false; reason: string };
 
@@ -91,6 +99,7 @@ function dispatch(state: GameState, content: Content, cmd: Command): CommandResu
     case 'build': {
       const def = content.rooms[cmd.roomType];
       if (!def || !def.buildable) return fail('cannot build that');
+      if (def.requiresResearch && !state.research.done.includes(def.requiresResearch)) return fail('needs research first');
       if (!state.unlockedRooms.includes(def.id)) return fail(`unlocks at population ${def.unlockPop}`);
       if (def.maxBuilt !== undefined && state.rooms.filter((r) => r.type === def.id).length >= def.maxBuilt) {
         return fail(`only ${def.maxBuilt} allowed`);
@@ -111,7 +120,7 @@ function dispatch(state: GameState, content: Content, cmd: Command): CommandResu
         ready: false,
         powered: true,
         timer: 0,
-        job: null,
+        job: null, banked: 0,
       };
       state.rooms.push(room);
       bump(state, 'roomsBuilt');
@@ -279,7 +288,7 @@ function dispatch(state: GameState, content: Content, cmd: Command): CommandResu
       if (res.hp >= effectiveMaxHp(res) - 0.5) return fail('already at full health');
       if (state.resources.medpatch < 1) return fail('no Med-Patches: build a Clinic');
       state.resources.medpatch -= 1;
-      res.hp = Math.min(effectiveMaxHp(res), res.hp + res.maxHp * content.balance.medical.medpatchHeal);
+      res.hp = Math.min(effectiveMaxHp(res), res.hp + res.maxHp * content.balance.medical.medpatchHeal * (1 + bonus(state, content, 'medicine')));
       bump(state, 'medpatchesUsed');
       return { ok: true };
     }
@@ -291,7 +300,7 @@ function dispatch(state: GameState, content: Content, cmd: Command): CommandResu
       if (res.taint <= 0) return fail('no Glare-sickness to purge');
       if (state.resources.purge < 1) return fail('no Purge: build a Purge Lab');
       state.resources.purge -= 1;
-      res.taint = Math.max(0, res.taint - res.maxHp * content.balance.medical.purgeRemove);
+      res.taint = Math.max(0, res.taint - res.maxHp * content.balance.medical.purgeRemove * (1 + bonus(state, content, 'medicine')));
       bump(state, 'purgesUsed');
       return { ok: true };
     }
@@ -368,6 +377,14 @@ function dispatch(state: GameState, content: Content, cmd: Command): CommandResu
       return result(buyPerk(state, content, cmd.perkId));
     case 'collectOutposts':
       return result(collectOutposts(state, content));
+    case 'research':
+      return result(doResearch(state, content, cmd.nodeId));
+    case 'excavate':
+      return result(startExcavation(state, content));
+    case 'autoAssign': {
+      const n = autoAssign(state, content);
+      return n > 0 ? { ok: true, detail: `${n} assigned` } : fail('nobody idle, or no free jobs');
+    }
   }
 }
 

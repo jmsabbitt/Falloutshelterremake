@@ -38,6 +38,8 @@ export function newGame(content: Content, opts: NewGameOptions = {}): GameState 
     questsDone: [],
     contracts: { offers: [], refreshAt: 0 },
     legacy: newLegacy(),
+    research: { points: 0, done: [] },
+    deep: { strata: 0, dig: null, discoveries: [] },
     crates: { ...start.crates },
     crateTokens: 0,
     pity: 0,
@@ -57,7 +59,7 @@ export function newGame(content: Content, opts: NewGameOptions = {}): GameState 
   state.homesteadNumber = opts.homesteadNumber ?? nextInt(state.rng, 100, 999);
 
   const place = (type: string, floor: number, x: number): Room => {
-    const room: Room = { id: state.nextId++, type, floor, x, segments: 1, level: 1, pool: 0, ready: false, powered: true, timer: 0, job: null };
+    const room: Room = { id: state.nextId++, type, floor, x, segments: 1, level: 1, pool: 0, ready: false, powered: true, timer: 0, job: null, banked: 0 };
     state.rooms.push(room);
     return room;
   };

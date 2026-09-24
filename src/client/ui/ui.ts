@@ -1889,7 +1889,7 @@ export class UI {
           break;
         case 'incidentResolved':
           if (ev.incident === 'rustmen') this.toast(ev.loot > 0 ? `Raiders repelled! Recovered ${ev.loot} scrip.` : 'The raiders got away with their loot.', ev.loot > 0 ? 'good' : 'bad');
-          else if (!this.game.state.incidents.some((i) => i.type === ev.incident)) this.toast(`${content.balance.incidents.types[ev.incident].name} dealt with.`, 'good');
+          else if (!this.game.state.incidents.some((i) => i.type === ev.incident)) this.toast(`${(content.balance.incidents.types as Record<string, { name: string }>)[ev.incident]?.name ?? 'Incident'} dealt with.`, 'good');
           break;
         case 'residentDied':
           // A wiped quest party gets its own toast, and can't be revived until it is home.

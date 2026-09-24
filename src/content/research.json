@@ -1,0 +1,21 @@
+{
+  "_comment": "Research: the Lab room, research point tuning and the tech tree. Typed in src/sim/systems/research.ts; see docs/design/M6-spec.md. Effects use the keys in src/sim/bonuses.ts (BonusEffect).",
+  "tuning": {
+    "pointsPerWitsHour": 4,
+    "levelMult": [1, 1.5, 2.2]
+  },
+  "branches": [
+    { "id": "industry", "name": "Industry", "description": "Better production and a sturdier power grid." },
+    { "id": "medicine", "name": "Medicine", "description": "Faster healing and cures." },
+    { "id": "defense", "name": "Defense", "description": "Doors, drills and turrets." },
+    { "id": "automation", "name": "Automation", "description": "The homestead looks after itself." },
+    { "id": "expeditions", "name": "Expeditions", "description": "Further, safer, richer trips." },
+    { "id": "deep", "name": "Deep Works", "description": "Digging below the charter floors." }
+  ],
+  "nodes": [
+    { "id": "deep_survey", "branch": "deep", "tier": 1, "name": "Deep Survey", "description": "Unlocks excavation of the first stratum below the homestead.", "cost": 150, "requires": [] },
+    { "id": "batch_bank_1", "branch": "automation", "tier": 1, "name": "Holding Tanks", "description": "Production rooms can hold one extra finished batch.", "cost": 120, "requires": [], "effects": [{ "effect": "batchBank", "value": 1 }] },
+    { "id": "personnel_office", "branch": "automation", "tier": 2, "name": "Personnel Office", "description": "Idle residents are assigned to their best free job.", "cost": 250, "requires": ["batch_bank_1"], "effects": [{ "effect": "autoAssign", "value": 1 }] }
+  ],
+  "achievements": []
+}

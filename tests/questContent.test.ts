@@ -220,7 +220,7 @@ describe('Act 1', () => {
       s.nextWandererAt = 1e12;
       s.resources.medpatch = 10;
       s.peakPopulation = 100;
-      s.rooms.push({ id: s.nextId++, type: 'office', floor: 0, x: 13, segments: 1, level: 1, pool: 0, ready: false, powered: true, timer: 0, job: null });
+      s.rooms.push({ id: s.nextId++, type: 'office', floor: 0, x: 13, segments: 1, level: 1, pool: 0, ready: false, powered: true, timer: 0, job: null, banked: 0 });
       const party = s.residents.slice(0, 3);
       for (const r of party) {
         r.level = 20;
@@ -274,7 +274,7 @@ describe('contracts and events', () => {
       s.nextIncidentAt = 1e12;
       s.nextWandererAt = 1e12;
       s.resources.medpatch = 10;
-      s.rooms.push({ id: s.nextId++, type: 'office', floor: 0, x: 13, segments: 1, level: 1, pool: 0, ready: false, powered: true, timer: 0, job: null });
+      s.rooms.push({ id: s.nextId++, type: 'office', floor: 0, x: 13, segments: 1, level: 1, pool: 0, ready: false, powered: true, timer: 0, job: null, banked: 0 });
       const party = s.residents.slice(0, 3);
       for (const r of party) {
         r.level = 12;

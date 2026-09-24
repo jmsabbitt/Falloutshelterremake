@@ -95,6 +95,18 @@ export {
   type PerkEffect,
   type SiteDef,
 } from './legacy';
+export { bonus, researchValue, productionMult, costMult, type BonusEffect, type ResearchEffect } from './bonuses';
+export {
+  canResearch,
+  hasResearch,
+  researchContent,
+  researchNode,
+  researchRate,
+  type ResearchNodeDef,
+} from './systems/research';
+export { canExcavate, deepContent, isDeepFloor, stratumOf, totalFloors, type StratumDef } from './systems/deep';
+export { masteryTier } from './systems/traits';
+export { autoAssign, idleAdults } from './systems/assign';
 export { knowsRecipe, fragmentsNeeded, salvageCount, SALVAGE_CAP } from './systems/inventory';
 export {
   residentsInRoom,

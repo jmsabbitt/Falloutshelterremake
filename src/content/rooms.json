@@ -550,6 +550,31 @@
     "usesPower": true
   },
   {
+    "id": "lab",
+    "name": "Research Lab",
+    "levelNames": [
+      "Research Lab",
+      "Research Institute",
+      "Halcyon Think Tank"
+    ],
+    "category": "research",
+    "stat": "wits",
+    "unlockPop": 25,
+    "buildable": true,
+    "cost": {
+      "base": 1200,
+      "perBuilt": 400
+    },
+    "upgrade": [
+      3000,
+      9000
+    ],
+    "cells": 3,
+    "maxSegments": 3,
+    "capacityPerSegment": 2,
+    "usesPower": true
+  },
+  {
     "id": "radio",
     "name": "Radio Room",
     "levelNames": [

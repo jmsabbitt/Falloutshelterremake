@@ -12,7 +12,7 @@
 import type { Content } from '../content';
 import { addScrip, population } from '../economy';
 import { connectedRoomIds, floorOccupancy, roomCells, roomDef } from '../grid';
-import { incidentRate } from '../legacy';
+import { bonus, incidentRate } from '../bonuses';
 import { bump, combatDamage, fleesIncidents, grantXp, livingResidents } from '../residents';
 import { nextInt, pick } from '../rng';
 import type { GameState, Incident, IncidentType, Resident, Room } from '../types';
@@ -112,7 +112,7 @@ export function startRaid(state: GameState, content: Content): Incident | null {
   if (!door) return null;
   const def = incidentDef(content, 'rustmen');
   const scale = 1 + (def.hpPerAvgLevel ?? 0) * (averageLevel(state) - 1);
-  const doorHp = roomDef(content, door).doorHp?.[door.level - 1] ?? 0;
+  const doorHp = (roomDef(content, door).doorHp?.[door.level - 1] ?? 0) * (1 + bonus(state, content, 'doorHp'));
   const hp = (def.hp ?? 90) * scale;
   const inc: Incident = {
     id: state.nextId++,
@@ -246,7 +246,8 @@ export function tickIncidents(state: GameState, content: Content, dt: number): v
       inc.emptyFor = 0;
       const damage = def.fixedDamage !== undefined ? crew.length * def.fixedDamage : crew.reduce((s, r) => s + combatDamage(content, r), 0);
       inc.hp -= damage * dt;
-      const perResident = (inc.dps * dt) / crew.length;
+      // Defense research (drills, armour plating) takes the edge off.
+      const perResident = (inc.dps * dt * Math.max(0.2, 1 - bonus(state, content, 'incidentDefense'))) / crew.length;
       for (const r of crew) {
         r.hp -= perResident;
         if (r.hp <= 0) {

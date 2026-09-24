@@ -1,0 +1,14 @@
+{
+  "_comment": "The Deep: strata below the base grid, excavation, deep discoveries. Typed in src/sim/systems/deep.ts; see docs/design/M6-spec.md.",
+  "tuning": {
+    "floorsPerStratum": 5,
+    "requiresResearch": "deep_survey",
+    "digHours": [4, 8, 16, 32],
+    "digScrip": [5000, 15000, 40000, 100000]
+  },
+  "strata": [
+    { "index": 1, "name": "Stratum 1: The Service Levels", "description": "Halcyon's own maintenance floors, sealed since the Glare.", "requiresResearch": "deep_survey" }
+  ],
+  "discoveries": {},
+  "achievements": []
+}

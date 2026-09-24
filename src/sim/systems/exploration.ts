@@ -13,7 +13,7 @@
 import type { Content, SalvageMaterial } from '../content';
 import { addScrip, resourceCapacity } from '../economy';
 import { bump, bumpMax, effectiveMaxHp, effectiveStat, grantXp, isChild } from '../residents';
-import { perkValue } from '../legacy';
+import { bonus } from '../bonuses';
 import { chance, nextFloat, nextInt, pick } from '../rng';
 import type { Expedition, ExpeditionLoot, GameState, JournalEntry, JournalKind, Rarity, Resident, StatKey } from '../types';
 import { addFragment, addSalvage, fragmentsNeeded, knowsRecipe, unlockRecipe } from './inventory';
@@ -346,21 +346,21 @@ function taintImmune(content: Content, r: Resident): boolean {
 }
 
 /** Glare exposure between two moments of the trip (exact integral of a linearly rising rate). */
-function accrueTaint(content: Content, e: Expedition, r: Resident, until: number): void {
+function accrueTaint(state: GameState, content: Content, e: Expedition, r: Resident, until: number): void {
   if (until <= e.elapsed || taintImmune(content, r)) return;
   const t = data(content).tuning;
   const danger = regionDef(content, e.regionId)?.danger ?? 1;
   const h0 = e.elapsed / 3600;
   const h1 = until / 3600;
   const amount = t.taintPerHour * danger * (h1 - h0 + (t.taintGrowthPerHour * (h1 * h1 - h0 * h0)) / 2);
-  r.taint = Math.min(r.maxHp, r.taint + amount);
+  r.taint = Math.min(r.maxHp, r.taint + amount * Math.max(0, 1 - bonus(state, content, 'explorerTaint')));
 }
 
 // ------------------------------------------------------------------ loot
 
 /** How much an explorer can carry before heading home (Pack Mules raises it). */
 export function carryLimit(state: GameState, content: Content): number {
-  return CARRY_LIMIT + perkValue(state, content, 'carryLimit');
+  return CARRY_LIMIT + bonus(state, content, 'carryLimit');
 }
 
 function remainingCarry(state: GameState, content: Content, e: Expedition): number {
@@ -586,7 +586,7 @@ function doScripFind(state: GameState, content: Content, e: Expedition, r: Resid
   // Scales linearly with Fortune (research 03 §4.2), and a little with time out.
   const fortune = Math.max(1, effectiveStat(content, r, 'fortune'));
   const base = nextInt(state.rng, t.scripPerFortune[0], t.scripPerFortune[1]);
-  giveScrip(state, content, e, base * fortune * (1 + t.scripGrowthPerHour * hours(e)) * (1 + perkValue(state, content, 'explorerScrip')), true);
+  giveScrip(state, content, e, base * fortune * (1 + t.scripGrowthPerHour * hours(e)) * (1 + bonus(state, content, 'explorerScrip')), true);
 }
 
 function fire(state: GameState, content: Content, e: Expedition, r: Resident, region: RegionDef, key: EventTimer): void {
@@ -780,7 +780,7 @@ function explore(state: GameState, content: Content, e: Expedition, r: Resident,
   for (;;) {
     const [key, at] = nextTimer(e);
     if (at > end) break;
-    accrueTaint(content, e, r, at);
+    accrueTaint(state, content, e, r, at);
     e.elapsed = Math.max(e.elapsed, at);
     if (!checkHealth(state, content, e, r)) break;
     schedule(state, t, e, key, at);
@@ -792,7 +792,7 @@ function explore(state: GameState, content: Content, e: Expedition, r: Resident,
     }
   }
   if (e.status === 'exploring') {
-    accrueTaint(content, e, r, end);
+    accrueTaint(state, content, e, r, end);
     e.elapsed = end;
     checkHealth(state, content, e, r);
   }

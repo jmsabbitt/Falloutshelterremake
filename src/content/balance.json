@@ -188,6 +188,36 @@
         "stealScripPerSec": 2,
         "lootPerAvgLevel": 15,
         "lootBase": 60
+      },
+      "cavein": {
+        "name": "Cave-in",
+        "natural": 9999,
+        "rush": null,
+        "hpPerSegment": 40,
+        "hpPerRoomLevel": 0.3,
+        "dpsPerSegment": 1.2,
+        "spreads": false,
+        "deepOnly": true
+      },
+      "flood": {
+        "name": "Flood",
+        "natural": 9999,
+        "rush": null,
+        "hpPerSegment": 45,
+        "hpPerRoomLevel": 0.3,
+        "dpsPerSegment": 0.8,
+        "spreads": true,
+        "deepOnly": true
+      },
+      "deepcrawlers": {
+        "name": "Deepcrawlers",
+        "natural": 9999,
+        "rush": null,
+        "hpPerSegment": 70,
+        "hpPerRoomLevel": 0.6,
+        "dpsPerSegment": 2,
+        "spreads": true,
+        "deepOnly": true
       }
     }
   },

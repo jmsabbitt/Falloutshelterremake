@@ -64,6 +64,10 @@ export interface Resident {
   expedition: number | null;
   /** M4: quest instance id while away on a quest. */
   quest: number | null;
+  /** M6: trait ids (1–3), rolled at creation, partly inherited. */
+  traits: string[];
+  /** M6: seconds worked per room type; builds mastery tiers. */
+  mastery: Record<string, number>;
 }
 
 // ------------------------------------------------------------------ M3: Glarelands
@@ -135,9 +139,11 @@ export interface Room {
   timer: number;
   /** Workshops only: the current crafting job. */
   job: CraftJob | null;
+  /** M6: extra ready batches held beyond the first (research: batch banking). */
+  banked: number;
 }
 
-export type IncidentType = 'fire' | 'skitters' | 'burrowers' | 'rustmen';
+export type IncidentType = 'fire' | 'skitters' | 'burrowers' | 'rustmen' | 'cavein' | 'flood' | 'deepcrawlers';
 
 export interface Incident {
   id: number;
@@ -339,6 +345,31 @@ export interface LegacyState {
   outposts: Outpost[];
 }
 
+// ------------------------------------------------------------------ M6: depth
+
+export interface ResearchState {
+  /** Unspent research points. */
+  points: number;
+  /** Completed research node ids. */
+  done: string[];
+}
+
+export interface DigJob {
+  /** Stratum being excavated (1 = the first below the base grid). */
+  stratum: number;
+  /** Seconds left. */
+  remaining: number;
+  total: number;
+}
+
+export interface DeepState {
+  /** Strata excavated so far (each opens more floors below the base grid). */
+  strata: number;
+  dig: DigJob | null;
+  /** Discovery ids found (logs, relics...). */
+  discoveries: string[];
+}
+
 export type GameEvent =
   | { type: 'collected'; roomId: number; resource: ResourceKey; amount: number; bonusScrip: number }
   | { type: 'rushSucceeded'; roomId: number }
@@ -400,7 +431,14 @@ export type GameEvent =
   // M5
   | { type: 'charterReached'; cycle: number }
   | { type: 'perkBought'; perkId: string; rank: number }
-  | { type: 'outpostsCollected'; scrip: number; salvage: number; crates: number };
+  | { type: 'outpostsCollected'; scrip: number; salvage: number; crates: number }
+  // M6
+  | { type: 'researchDone'; nodeId: string }
+  | { type: 'digStarted'; stratum: number }
+  | { type: 'digFinished'; stratum: number }
+  | { type: 'discovery'; discoveryId: string }
+  | { type: 'masteryUp'; residentId: number; roomType: string; tier: number }
+  | { type: 'autoAssigned'; count: number };
 
 /** Lifetime counters. Feed achievements, the stats screen and balancing. */
 export type LifetimeStats = Record<string, number>;
@@ -440,6 +478,10 @@ export interface GameState {
   contracts: { offers: ContractOffer[]; refreshAt: number };
   /** M5: prestige progress carried from homestead to homestead. */
   legacy: LegacyState;
+  /** M6: research points and the tech tree. */
+  research: ResearchState;
+  /** M6: excavation of the Deep. */
+  deep: DeepState;
   crates: Record<CrateTier, number>;
   crateTokens: number;
   /** Crates opened since the last legendary card (drives the pity guarantee). */

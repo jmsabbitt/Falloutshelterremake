@@ -4,7 +4,7 @@
 
 import type { Content } from '../content';
 import { addScrip, resourceCapacity } from '../economy';
-import { perkValue } from '../legacy';
+import { bonus } from '../bonuses';
 import { bump, bumpMax, createResident } from '../residents';
 import { chance, nextFloat } from '../rng';
 import type { CrateCard, CrateTier, GameEvent, GameState, Rarity, ResourceKey } from '../types';
@@ -136,7 +136,7 @@ function processRewards(state: GameState, content: Content, events: GameEvent[])
   for (const ev of events) {
     switch (ev.type) {
       case 'collected':
-        if (chance(state.rng, c.tokenChance.collect * (1 + perkValue(state, content, 'crateLuck')))) addTokens(state, content, 1);
+        if (chance(state.rng, c.tokenChance.collect * (1 + bonus(state, content, 'crateLuck')))) addTokens(state, content, 1);
         break;
       case 'rushSucceeded':
         addTokens(state, content, c.tokens.rushSuccess);

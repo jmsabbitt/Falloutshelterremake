@@ -4,7 +4,7 @@
 import { newLegacy } from './legacy';
 import type { GameState } from './types';
 
-export const SAVE_VERSION = 5;
+export const SAVE_VERSION = 6;
 
 interface SaveFile {
   format: 'homestead-save';
@@ -81,6 +81,14 @@ const migrations: Record<number, Migration> = {
   }),
   // v4 (M4) -> v5 (M5): prestige. Existing homesteads are the first in their chain.
   4: (s) => ({ ...s, legacy: newLegacy() }),
+  // v5 (M5) -> v6 (M6): research, the Deep, traits and mastery, banked batches.
+  5: (s) => ({
+    ...s,
+    residents: (s['residents'] as Record<string, unknown>[]).map((r) => ({ ...r, traits: [], mastery: {} })),
+    rooms: (s['rooms'] as Record<string, unknown>[]).map((r) => ({ ...r, banked: 0 })),
+    research: { points: 0, done: [] },
+    deep: { strata: 0, dig: null, discoveries: [] },
+  }),
 };
 
 export function serialize(state: GameState, now = Date.now()): string {

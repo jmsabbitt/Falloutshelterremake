@@ -6,10 +6,11 @@
 import { tableValue, type Content } from '../content';
 import { addScrip, resourceCapacity } from '../economy';
 import { roomDef } from '../grid';
-import { productionMult } from '../legacy';
+import { bonus, productionMult } from '../bonuses';
 import { bump, effectiveStat, grantXp, workersInRoom } from '../residents';
 import { chance, nextFloat } from '../rng';
 import type { GameState, Room } from '../types';
+import { workerMult } from './traits';
 
 export function vaultHappiness(state: GameState): number {
   const living = state.residents.filter((r) => !r.dead && !r.waiting);
@@ -25,7 +26,7 @@ export function roomStatTotal(state: GameState, content: Content, room: Room): n
   const def = roomDef(content, room);
   if (!def.stat) return 0;
   const stat = def.stat;
-  return workersInRoom(state, room.id).reduce((s, r) => s + effectiveStat(content, r, stat), 0);
+  return workersInRoom(state, room.id).reduce((s, r) => s + effectiveStat(content, r, stat) * workerMult(state, content, r, room), 0);
 }
 
 export function poolSize(content: Content, room: Room): number {
@@ -45,17 +46,21 @@ export function batchOutput(content: Content, room: Room): number {
 }
 
 export function tickProduction(state: GameState, content: Content, dt: number): void {
-  const bonus = 1 + happinessBonus(state, content);
+  const happy = 1 + happinessBonus(state, content);
   const burning = new Set(state.incidents.map((i) => i.roomId));
+  // Holding Tanks (research) let a room keep working past its first finished batch.
+  const bank = Math.floor(bonus(state, content, 'batchBank'));
   for (const room of state.rooms) {
     const def = roomDef(content, room);
-    if (!def.produces || room.ready || !room.powered || burning.has(room.id)) continue;
-    const rate = roomStatTotal(state, content, room) * bonus * productionMult(state, content, def.produces.resource);
+    if (!def.produces || !room.powered || burning.has(room.id)) continue;
+    if (room.ready && (room.banked ?? 0) >= bank) continue;
+    const rate = roomStatTotal(state, content, room) * happy * productionMult(state, content, def.produces.resource);
     if (rate <= 0) continue;
     room.pool += rate * dt;
     if (room.pool >= poolSize(content, room)) {
       room.pool = 0;
-      room.ready = true;
+      if (room.ready) room.banked = (room.banked ?? 0) + 1;
+      else room.ready = true;
     }
   }
 }
@@ -82,10 +87,12 @@ export function collectRoom(state: GameState, content: Content, room: Room): num
   if (!def.produces || !room.ready) return 0;
   const key = def.produces.resource;
   const cap = resourceCapacity(state, content, key);
-  const amount = batchOutput(content, room);
+  const batches = 1 + (room.banked ?? 0);
+  const amount = batchOutput(content, room) * batches;
   const before = state.resources[key];
   state.resources[key] = Math.min(cap, before + amount);
   room.ready = false;
+  room.banked = 0;
 
   const bonusScrip = rollBonusScrip(state, content, room);
   if (bonusScrip > 0) {
@@ -94,7 +101,7 @@ export function collectRoom(state: GameState, content: Content, room: Room): num
     bump(state, 'bonusScripTotal', bonusScrip);
   }
 
-  const xp = content.balance.resident.xpPerCollectPerSegment * room.segments * (1 + 0.25 * (room.level - 1));
+  const xp = content.balance.resident.xpPerCollectPerSegment * room.segments * (1 + 0.25 * (room.level - 1)) * batches;
   for (const r of workersInRoom(state, room.id)) grantXp(state, content, r, xp);
 
   bump(state, 'collections');

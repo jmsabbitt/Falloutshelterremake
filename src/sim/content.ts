@@ -11,9 +11,12 @@ import explorationJson from '../content/exploration.json';
 import craftingJson from '../content/crafting.json';
 import questsJson from '../content/quests.json';
 import legacyJson from '../content/legacy.json';
+import researchJson from '../content/research.json';
+import deepJson from '../content/deep.json';
+import traitsJson from '../content/traits.json';
 import type { Rarity, ResourceKey, StatKey, Stats } from './types';
 
-export type RoomCategory = 'door' | 'elevator' | 'living' | 'production' | 'storage' | 'radio' | 'workshop' | 'office';
+export type RoomCategory = 'door' | 'elevator' | 'living' | 'production' | 'storage' | 'radio' | 'workshop' | 'office' | 'research';
 export type StorageKind = ResourceKey | 'population' | 'items';
 
 /** Tables indexed [level - 1][segments - 1]. */
@@ -43,6 +46,10 @@ export interface RoomDef {
   upgradePop?: number[];
   /** At most this many can be built (the Command Office is unique). */
   maxBuilt?: number;
+  /** M6: research node needed before it can be built. */
+  requiresResearch?: string;
+  /** M6: lowest floor it can go on (deep-only rooms). */
+  minFloor?: number;
 }
 
 export interface WeaponDef {
@@ -109,6 +116,10 @@ export interface Content {
   quests: typeof questsJson;
   /** Prestige content (typed in legacy.ts). */
   legacy: typeof legacyJson;
+  /** M6 (typed in systems/research.ts, deep.ts, traits.ts). */
+  research: typeof researchJson;
+  deep: typeof deepJson;
+  traits: typeof traitsJson;
 }
 
 function validate(content: Content): Content {
@@ -144,6 +155,9 @@ export function loadContent(): Content {
       ...((craftingJson as { achievements?: AchievementDef[] }).achievements ?? []),
       ...((questsJson as { achievements?: AchievementDef[] }).achievements ?? []),
       ...((legacyJson as { achievements?: AchievementDef[] }).achievements ?? []),
+      ...((researchJson as { achievements?: AchievementDef[] }).achievements ?? []),
+      ...((deepJson as { achievements?: AchievementDef[] }).achievements ?? []),
+      ...((traitsJson as { achievements?: AchievementDef[] }).achievements ?? []),
     ],
     weapons: Object.fromEntries(weapons.map((w) => [w.id, w])),
     outfits: Object.fromEntries(outfits.map((o) => [o.id, o])),
@@ -155,6 +169,9 @@ export function loadContent(): Content {
     crafting: craftingJson,
     quests: questsJson,
     legacy: legacyJson,
+    research: researchJson,
+    deep: deepJson,
+    traits: traitsJson,
   });
 }
 

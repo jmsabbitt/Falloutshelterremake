@@ -39,7 +39,7 @@ function calm(seed = 21): GameState {
 
 /** Add a workshop on a free floor (connectivity doesn't matter to the crafting sim). */
 function workshop(s: GameState, type: 'weaponshop' | 'outfitshop', level = 1): Room {
-  const room: Room = { id: s.nextId++, type, floor: 5, x: 0, segments: 1, level, pool: 0, ready: false, powered: true, timer: 0, job: null };
+  const room: Room = { id: s.nextId++, type, floor: 5, x: 0, segments: 1, level, pool: 0, ready: false, powered: true, timer: 0, job: null, banked: 0 };
   s.rooms.push(room);
   return room;
 }

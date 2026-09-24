@@ -9,7 +9,7 @@
 
 import type { Content } from './content';
 import { refreshUnlocks } from './economy';
-import { perkValue } from './legacy';
+import { bonus } from './bonuses';
 import { tickOutposts } from './systems/prestige';
 import { collectRoom } from './systems/production';
 import { tickArrivals } from './systems/arrivals';
@@ -21,6 +21,9 @@ import { tickIncidents, tickIncidentTimer } from './systems/incidents';
 import { tickNeeds, updatePower } from './systems/needs';
 import { tickProduction } from './systems/production';
 import { tickQuests } from './systems/quests';
+import { tickResearch } from './systems/research';
+import { tickDeep } from './systems/deep';
+import { tickMastery } from './systems/traits';
 import { tickRushStrain } from './systems/rush';
 import type { GameState } from './types';
 
@@ -49,8 +52,11 @@ function step(state: GameState, content: Content, dt: number, opts: StepOptions)
   tickCrafting(state, content, dt);
   tickQuests(state, content, dt, opts.offline);
   tickOutposts(state, content, dt);
+  tickResearch(state, content, dt, opts.offline);
+  tickDeep(state, content, dt, opts.offline);
+  tickMastery(state, content, dt);
   // Conveyor Belts (Legacy): finished batches collect themselves while playing.
-  if (!opts.offline && perkValue(state, content, 'autoCollect') > 0) {
+  if (!opts.offline && bonus(state, content, 'autoCollect') > 0) {
     for (const room of state.rooms) if (room.ready) collectRoom(state, content, room);
   }
   refreshUnlocks(state, content);
@@ -78,7 +84,7 @@ export interface CatchUpSummary {
 /** Fast-forward from state.lastRealTime to `nowMs`. */
 export function catchUp(state: GameState, content: Content, nowMs: number): CatchUpSummary {
   const off = content.balance.offline;
-  const maxSeconds = (off.maxCatchUpHours + perkValue(state, content, 'offlineHours')) * 3600;
+  const maxSeconds = (off.maxCatchUpHours + bonus(state, content, 'offlineHours')) * 3600;
   const raw = Math.max(0, (nowMs - state.lastRealTime) / 1000);
   const seconds = Math.min(raw, maxSeconds);
   const consumeWindow = off.consumptionMinutes * 60;

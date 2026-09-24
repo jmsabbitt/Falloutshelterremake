@@ -494,7 +494,7 @@ export class VaultView {
         break;
       }
     }
-    const colour = { fire: 0xff7a1a, skitters: 0xb7f36a, burrowers: 0xc79a82, rustmen: 0xe4572e }[inc.type];
+    const colour = ({ fire: 0xff7a1a, skitters: 0xb7f36a, burrowers: 0xc79a82, rustmen: 0xe4572e } as Record<string, number>)[inc.type] ?? 0xd0c080;
     g.rect(r.x + 10, r.y + 8, r.w - 20, 6).fill(0x14100d);
     g.rect(r.x + 10, r.y + 8, (r.w - 20) * Math.max(0, inc.hp / inc.maxHp), 6).fill(colour);
   }

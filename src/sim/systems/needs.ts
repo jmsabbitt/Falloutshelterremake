@@ -5,6 +5,7 @@ import { resourceCapacity } from '../economy';
 import { roomDef } from '../grid';
 import { effectiveMaxHp, effectiveStats, livingResidents, topStats } from '../residents';
 import type { GameState, Resident, Room } from '../types';
+import { traitHappiness } from './traits';
 
 export function powerDemandPerMin(state: GameState, content: Content): number {
   const table = content.balance.consumption.powerPerRoomPerMin;
@@ -119,6 +120,7 @@ export function happinessTarget(state: GameState, content: Content, r: Resident,
   if (r.hp < effectiveMaxHp(r) * 0.5 || r.taint > r.maxHp * 0.25) target -= h.injuredPenalty;
   const deadHere = r.roomId !== null && state.residents.some((o) => o.dead && o.roomId === r.roomId);
   if (deadHere) target -= 30;
+  target += traitHappiness(state, content, r);
   return Math.max(0, Math.min(100, target));
 }
 
