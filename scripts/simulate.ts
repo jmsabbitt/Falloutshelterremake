@@ -14,6 +14,13 @@ import {
   effectiveStat,
   foodDemandPerMin,
   availableQuests,
+  canBuyPerk,
+  canFound,
+  charterStatus,
+  foundHomestead,
+  foundingLimits,
+  legacyBreakdown,
+  outpostTotals,
   canQuest,
   isAway,
   isChild,
@@ -40,7 +47,7 @@ const hours = Number(process.argv[2] ?? 48);
 const seed = Number(process.argv[3] ?? 3);
 const checkIn = Number(process.argv[4] ?? 1); // minutes between bot actions
 
-const s: GameState = newGame(content, { seed, now: 0 });
+let s: GameState = newGame(content, { seed, now: 0 });
 
 function slots(type: string): { floor: number; x: number }[] {
   const def = content.rooms[type];
@@ -258,6 +265,45 @@ function botTurn(): void {
   }
 }
 
+/** Perks the bot buys, in order, whenever it can afford the next rank. */
+const PERK_PLAN = ['overtime', 'union_rates', 'endowment', 'quick_studies', 'auto_collect', 'bounty_board', 'chain_of_command', 'hardy_folk', 'supply_lines', 'prefab_kit', 'big_families', 'good_stock', 'field_medicine', 'heirlooms', 'lucky_charter', 'pack_mules', 'scouts_luck', 'long_absence'];
+
+/** Prestige: found a new homestead as soon as the Charter allows, taking the strongest. */
+function maybeFound(hour: number): void {
+  if (outpostTotals(s).scrip > 0 && turn % 60 === 0) applyCommand(s, content, { type: 'collectOutposts' });
+  for (const id of PERK_PLAN) while (canBuyPerk(s, content, id) === null) applyCommand(s, content, { type: 'buyPerk', perkId: id });
+  if (!charterStatus(s, content).ready) return;
+  // Recall everyone first.
+  for (const e of s.expeditions) if (e.status === 'exploring') applyCommand(s, content, { type: 'recall', expeditionId: e.id });
+  for (const e of s.expeditions) if (e.status === 'returned') applyCommand(s, content, { type: 'collectExpedition', expeditionId: e.id });
+  for (const q of s.quests) if (q.status === 'returned') applyCommand(s, content, { type: 'collectQuest', questId: q.id });
+  if (s.expeditions.length || s.quests.length) return;
+  const lim = foundingLimits(s, content);
+  const party = s.residents
+    .filter((r) => canFound(s, r) === null)
+    .sort((a, b) => b.level - a.level)
+    .slice(0, lim.party)
+    .map((r) => r.id);
+  const heirlooms = [...s.items]
+    .sort((a, b) => (content.items[b.defId]?.rarity === 'legendary' ? 2 : content.items[b.defId]?.rarity === 'rare' ? 1 : 0) - (content.items[a.defId]?.rarity === 'legendary' ? 2 : content.items[a.defId]?.rarity === 'rare' ? 1 : 0))
+    .slice(0, lim.heirlooms)
+    .map((i) => i.id);
+  const breakdown = legacyBreakdown(s, content);
+  const res = foundHomestead(s, content, { siteId: 'plot7', partyIds: party, heirloomIds: heirlooms, now: 0 });
+  if (!res.ok) return;
+  console.log(
+    `\n*** h${hour.toFixed(1)} founded homestead ${res.state.legacy.cycle} (${res.state.homesteadNumber}) after ${(s.time / 3600).toFixed(1)}h here: +${res.legacy} Legacy — ` +
+      breakdown.lines.filter((l) => l.points).map((l) => `${l.label}: ${l.points}`).join(', ') + '\n',
+  );
+  s = res.state;
+  foundedAt.push(hour);
+  // Population milestones are per homestead.
+  for (const k of Object.keys(milestones)) delete milestones[Number(k)];
+  for (const id of PERK_PLAN) while (canBuyPerk(s, content, id) === null) applyCommand(s, content, { type: 'buyPerk', perkId: id });
+  console.log(`perks: ${JSON.stringify(s.legacy.perks)} · unspent ${s.legacy.points}`);
+}
+const foundedAt: number[] = [];
+
 /**
  * Quests: build the Command Office at 18, send the three strongest on the
  * next story quest once they are near its level, otherwise take a contract.
@@ -314,11 +360,15 @@ const row = (h: number) => {
 const milestones: Record<number, number> = {};
 for (let minute = 0; minute <= hours * 60; minute++) {
   if (minute % 60 === 0 && (minute / 60) % Math.max(1, Math.floor(hours / 24)) === 0) row(minute / 60);
-  if (minute % checkIn === 0) botTurn();
-  for (const m of [10, 20, 30, 40, 50]) if (population(s) >= m && milestones[m] === undefined) milestones[m] = minute / 60;
+  if (minute % checkIn === 0) {
+    botTurn();
+    maybeFound(minute / 60);
+  }
+  for (const m of [10, 20, 30, 40, 50, 75, 100]) if (population(s) >= m && milestones[m] === undefined) milestones[m] = minute / 60;
   advance(s, content, 60);
 }
-console.log('\nhours to reach population:', Object.entries(milestones).map(([p, h]) => `${p}: ${h.toFixed(1)}h`).join('  '));
+console.log(`\nhomesteads founded at hours: ${foundedAt.map((h) => h.toFixed(1)).join(', ') || 'none'} · cycle ${s.legacy.cycle} · outposts ${s.legacy.outposts.length} · charter: ${charterStatus(s, content).requirements.map((r) => `${r.label} ${r.have}/${r.need}`).join(', ')}`);
+console.log('\nhours to reach population (this homestead):', Object.entries(milestones).map(([p, h]) => `${p}: ${h.toFixed(1)}h`).join('  '));
 console.log('crates earned', s.stats['cratesEarned'] ?? 0, 'opened', s.stats['cratesOpened'] ?? 0, '· legendary items', s.stats['legendaryItems'] ?? 0, '· raids repelled', s.stats['incidentsResolved.rustmen'] ?? 0, 'escaped', s.stats['raidsEscaped'] ?? 0);
 console.log('crate sources:', Object.entries(s.stats).filter(([k]) => k.startsWith('cratesFrom.')).map(([k, v]) => `${k.slice(11)} ${v}`).join(', '));
 console.log('pregnancies', s.stats['pregnancies'] ?? 0, 'still pregnant', s.residents.filter((r) => r.pregnancy).length, 'overdue', s.residents.filter((r) => r.pregnancy && r.pregnancy.dueAt < s.time).length);
