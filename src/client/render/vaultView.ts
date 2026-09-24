@@ -25,7 +25,6 @@ import {
   totalFloors,
   deepContent,
   effectiveStats,
-  residentsInRoom,
   roomCapacity,
   topStats,
   type StatKey,
@@ -606,7 +605,11 @@ export class VaultView {
     const res = id === null ? undefined : state.residents.find((r) => r.id === id);
     const rooms = res ? state.rooms.filter((room) => roomDef(content, room).stat && roomCapacity(content, room) > 0) : [];
     const top = res ? topStats(effectiveStats(content, res)) : [];
-    const key = res ? `${res.id}|${top.join(',')}|${this.builtLayout}|${rooms.map((room) => `${room.id}:${residentsInRoom(state, room.id).length >= roomCapacity(content, room) ? 1 : 0}`).join(',')}` : '';
+    // Full rooms say so (unless it's the one they already work in). One pass over the residents.
+    const crew = new Map<number, number>();
+    if (res) for (const r of state.residents) if (r.roomId !== null && !r.dead) crew.set(r.roomId, (crew.get(r.roomId) ?? 0) + 1);
+    const isFull = (room: Room) => (crew.get(room.id) ?? 0) >= roomCapacity(content, room) && res?.roomId !== room.id;
+    const key = res ? `${res.id}|${top.join(',')}|${this.builtLayout}|${rooms.map((room) => `${room.id}:${isFull(room) ? 1 : 0}`).join(',')}` : '';
     if (key !== this.fitKey) {
       this.fitKey = key;
       this.fitLayer.removeChildren().forEach((c) => c.destroy({ children: true }));
@@ -614,7 +617,7 @@ export class VaultView {
         const def = roomDef(content, room);
         const stat = def.stat as StatKey;
         const good = top.includes(stat);
-        const full = residentsInRoom(state, room.id).length >= roomCapacity(content, room) && res?.roomId !== room.id;
+        const full = isFull(room);
         const r = this.roomRect(room);
         const label = new Text({
           text: `${STAT_LETTERS[stat]}${full ? ' · FULL' : ''}`,

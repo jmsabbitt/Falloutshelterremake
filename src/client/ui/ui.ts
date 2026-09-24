@@ -163,6 +163,8 @@ export class UI {
   private sheetOpen = false;
   /** Rooms built since the current room type was picked: the bar offers Done rather than Cancel. */
   private builtInMode = 0;
+  /** When the camera's DOM insets were last measured. */
+  private insetsAt = 0;
   private roomId: number | null = null;
   private residentId: number | null = null;
   /** When set, the storage panel is picking gear for this resident. */
@@ -349,7 +351,12 @@ export class UI {
 
   update(): void {
     if (this.game.lastCatchUp) this.showAwaySummary();
-    this.view.insets = this.viewInsets();
+    // Measuring the DOM forces a layout: a few times a second is plenty for the camera bounds.
+    const now = performance.now();
+    if (now - this.insetsAt > 250) {
+      this.insetsAt = now;
+      this.view.insets = this.viewInsets();
+    }
     this.view.fitResidentId = this.assignee()?.id ?? null;
     this.renderHud();
     syncHudHeight(this.hud);
@@ -715,7 +722,7 @@ export class UI {
         'div',
         { class: 'sb-text' },
         h('b', {}, r ? `${r.firstName} ${r.lastName}` : 'Assign'),
-        h('span', { class: 'muted small' }, `Tap a room to assign. Green rooms use ${top.map((k) => STAT_NAME[k]).join(' or ')}.`),
+        h('span', { class: 'muted small' }, `Tap a room to assign. Green rooms use ${orList(top.map((k) => STAT_NAME[k]))}.`),
       ),
       h(
         'div',
@@ -2439,6 +2446,11 @@ export class UI {
       home || fallen ? h('div', { class: 'row', style: 'justify-content:flex-start' }, h('button', { onclick: () => (this.modalHost.replaceChildren(), this.openPanel('explore')) }, 'Open the Glarelands')) : '',
     );
   }
+}
+
+/** "Wits, Knack or Fortune". */
+function orList(words: string[]): string {
+  return words.length > 1 ? `${words.slice(0, -1).join(', ')} or ${words[words.length - 1]}` : (words[0] ?? '');
 }
 
 /** A resource amount for display: whole numbers, or one decimal below 1 so a trickle isn't shown as 0. */

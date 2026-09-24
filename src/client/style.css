@@ -955,7 +955,8 @@ button.pulse { animation: ready 0.6s infinite alternate; }
 .threat-active { background: #3a140c; border: 1px solid var(--danger); border-radius: 8px; padding: 6px 10px; font-size: 13px; margin-bottom: 8px; }
 .threat-total { border-top: 1px solid #45625f; padding-top: 5px; }
 .threat-sum { font-variant-numeric: tabular-nums; }
-.req-buttons { display: inline-flex; flex-wrap: wrap; gap: 4px; justify-content: flex-end; }
+.req-fix { justify-content: flex-end; margin: 0 0 6px; }
+.req-fix:empty { display: none; }
 
 /* Phones: build and assign sheets shrink to a bar so the homestead stays usable. */
 .panel.sheet-bar { top: auto; bottom: calc(74px + env(safe-area-inset-bottom, 0)); height: auto; flex-direction: row; align-items: center; gap: 8px; padding: 8px 10px; border-color: var(--accent); }

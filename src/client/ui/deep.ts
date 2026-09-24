@@ -198,7 +198,8 @@ export class DeepUI {
           h('div', { class: 'muted small stratum-desc' }, next.description),
           h('h3', { class: 'group' }, 'To dig'),
           req(researched, `Research ${researchNode(content, research)?.name ?? research}`, researched ? null : h('button', { class: 'close', onclick: () => this.host.openResearch() }, 'Research')),
-          req(!!shaft, `An elevator on the bottom floor (${bottom + 1})`, shaft ? null : h('span', { class: 'req-buttons' }, this.extendButton(), h('button', { class: 'close', onclick: () => this.showFloor(bottom) }, 'Show'))),
+          req(!!shaft, `An elevator on the bottom floor (${bottom + 1})`, shaft ? null : h('button', { class: 'close', onclick: () => this.showFloor(bottom) }, 'Show')),
+          shaft ? null : h('div', { class: 'row req-fix' }, this.extendButton()),
           req(state.scrip >= cost, `${fmt(cost)} scrip (you have ${fmt(state.scrip)})`),
           h('div', { class: 'row' }, h('span', {}, `Takes ${duration(secs)}`), h('span', { class: 'muted small' }, `Opens floors ${floors + 1}–${floors + dc.tuning.floorsPerStratum}`)),
           h(
