@@ -112,8 +112,8 @@ export function collectRoom(state: GameState, content: Content, room: Room): num
   room.banked = Math.max(0, left - 1);
 
   // A little scrip for every batch, so income isn't only lucky rolls; bonus rolls come on top.
-  const base = content.balance.bonusScrip.basePerSegment * room.segments * batches;
-  if (workersInRoom(state, room.id).length) addScrip(state, content, base);
+  const base = workersInRoom(state, room.id).length ? content.balance.bonusScrip.basePerSegment * room.segments * batches : 0;
+  if (base) addScrip(state, content, base);
   let bonusScrip = 0;
   for (let i = 0; i < batches; i++) bonusScrip += rollBonusScrip(state, content, room);
   if (bonusScrip > 0) {
@@ -127,6 +127,6 @@ export function collectRoom(state: GameState, content: Content, room: Room): num
 
   bump(state, 'collections');
   bump(state, `produced.${key}`, amount);
-  state.events.push({ type: 'collected', roomId: room.id, resource: key, amount, bonusScrip });
+  state.events.push({ type: 'collected', roomId: room.id, resource: key, amount, bonusScrip, baseScrip: base });
   return amount;
 }

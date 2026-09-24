@@ -1015,7 +1015,8 @@ export class VaultView {
         if (!room) continue;
         const r = this.roomRect(room);
         this.float(`+${floatAmount(ev.amount)}`, r.x + r.w / 2, r.y + 30, RESOURCE_COLORS[ev.resource] ?? 0xffffff);
-        if (ev.bonusScrip > 0) this.float(`+${Math.round(ev.bonusScrip)} scrip`, r.x + r.w / 2, r.y + 54, 0xf2a541);
+        const scrip = Math.round(ev.bonusScrip + (ev.baseScrip ?? 0));
+        if (scrip > 0) this.float(`+${scrip} scrip${ev.bonusScrip > 0 ? '!' : ''}`, r.x + r.w / 2, r.y + 54, 0xf2a541);
       } else if (ev.type === 'residentLeveled') {
         const sp = this.sprites.get(ev.residentId);
         if (sp) this.float(`LEVEL ${ev.level}`, sp.x, sp.root.y - RESIDENT_H - 10, 0xf4ecd8);

@@ -375,7 +375,7 @@ export interface DeepState {
 }
 
 export type GameEvent =
-  | { type: 'collected'; roomId: number; resource: ResourceKey; amount: number; bonusScrip: number }
+  | { type: 'collected'; roomId: number; resource: ResourceKey; amount: number; bonusScrip: number; /** Steady scrip paid per batch. */ baseScrip?: number }
   | { type: 'rushSucceeded'; roomId: number }
   | { type: 'rushFailed'; roomId: number; incidentId: number }
   | { type: 'incidentStarted'; incidentId: number; roomId: number; incident: IncidentType }
