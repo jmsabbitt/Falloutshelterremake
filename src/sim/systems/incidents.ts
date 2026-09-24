@@ -77,6 +77,23 @@ export function defenders(state: GameState, room: Room): Resident[] {
   return state.residents.filter((r) => r.roomId === room.id && !r.dead && !r.waiting && !fleesIncidents(state, r));
 }
 
+/**
+ * Offline, incidents are frozen (no harm), except ones that clear themselves
+ * when left alone (cave-ins): their settle timer keeps running, so a room
+ * isn't blocked for a whole absence.
+ */
+export function settleIncidentsOffline(state: GameState, content: Content, dt: number): void {
+  for (const inc of [...state.incidents]) {
+    const def = incidentDef(content, inc.type);
+    if (def.settleSeconds === undefined) continue;
+    inc.emptyFor += dt;
+    if (inc.emptyFor < def.settleSeconds) continue;
+    state.incidents = state.incidents.filter((i) => i !== inc);
+    bump(state, 'incidentsSettled');
+    state.events.push({ type: 'incidentResolved', incidentId: inc.id, roomId: inc.roomId, incident: inc.type, loot: 0 });
+  }
+}
+
 /** Rooms that can host incidents: not the door, not elevators. */
 function incidentRooms(state: GameState, content: Content): Room[] {
   return state.rooms.filter((r) => {

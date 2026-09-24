@@ -22,7 +22,7 @@ function jobSlots(state: GameState, content: Content): Map<Room, number> {
   const slots = new Map<Room, number>();
   for (const room of state.rooms) {
     const def = roomDef(content, room);
-    if (!def.stat || !(def.produces || def.category === 'radio' || def.category === 'research')) continue;
+    if (!def.stat || !(def.category === 'production' || def.category === 'radio' || def.category === 'research')) continue;
     const free = roomCapacity(content, room) - residentsInRoom(state, room.id).length;
     if (free > 0) slots.set(room, free);
   }

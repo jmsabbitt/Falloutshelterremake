@@ -15,8 +15,8 @@
       "pointsPerSegment": 12000,
       "levelMult": [1, 1.4, 1.8],
       "materials": { "steel": 45, "circuitry": 35, "chemicals": 12, "valuables": 8 },
-      "rareChance": [0.06, 0.12, 0.2],
-      "legendaryChance": [0.005, 0.015, 0.04]
+      "rareChance": [0.05, 0.09, 0.14],
+      "legendaryChance": [0, 0.004, 0.01]
     },
     "incidents": {
       "_comment": "When the random incident timer fires, a deep incident happens instead with chance share x (deep incident rooms / all incident rooms). Each stratum below the first adds perStratum to deep incident HP and damage. Deep Bracing (research) cuts all of it.",

@@ -331,7 +331,7 @@ function checkHealth(state: GameState, content: Content, e: Expedition, r: Resid
 function hurt(state: GameState, content: Content, e: Expedition, r: Resident, damage: number, taint = 0): boolean {
   r.hp -= damage;
   // M6 trait hook (Glare-Hardened): less taint from hazards.
-  if (taint > 0 && !taintImmune(content, r)) r.taint = Math.min(r.maxHp, r.taint + scaledDamage(state, content, e, taint) * traitExplorerTaintMult(content, r));
+  if (taint > 0 && !taintImmune(content, r)) r.taint = Math.min(r.maxHp, r.taint + scaledDamage(state, content, e, taint) * traitExplorerTaintMult(content, r) * Math.max(0, 1 - bonus(state, content, 'explorerTaint')));
   return checkHealth(state, content, e, r);
 }
 

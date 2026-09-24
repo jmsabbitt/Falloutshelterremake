@@ -516,8 +516,9 @@ describe('deep threats', () => {
     const deeper = addRoom(s, 'geothermal', BASE + 5, 7);
     const a = startIncident(s, content, 'cavein', shallow);
     const b = startIncident(s, content, 'cavein', deeper);
-    expect(b.maxHp).toBeGreaterThan(a.maxHp * 1.1);
-    expect(b.dps).toBeGreaterThan(a.dps * 1.1);
+    // Depth is split between HP and damage (sqrt each), so danger grows linearly.
+    expect(b.maxHp).toBeGreaterThan(a.maxHp * 1.05);
+    expect(b.dps).toBeGreaterThan(a.dps * 1.05);
 
     research(s, 'deep_bracing');
     const c = startIncident(s, content, 'cavein', shallow);
