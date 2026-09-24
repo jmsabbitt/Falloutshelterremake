@@ -304,16 +304,37 @@ export class QuestUI {
     const eligible = this.candidates().filter((r) => canQuest(state, r) === null);
     const stock = Math.floor(state.resources.medpatch);
     const max = Math.min(questContent(content).tuning.maxSupplies, stock);
-    this.draft = { target, ids: eligible.slice(0, questContent(content).tuning.maxParty).map((r) => r.id), medpatch: Math.min(3, max) };
+    // Auto-pick by combat readiness: armed first, and nobody below half health.
+    const ready = eligible.filter((r) => !injured(r));
+    this.draft = { target, ids: ready.slice(0, questContent(content).tuning.maxParty).map((r) => r.id), medpatch: Math.min(3, max) };
     this.renderPicker();
   }
 
-  /** Everyone who could be asked, eligible first, then by level. */
+  /** How ready someone is for a fight: their damage per hit counts most, then health, then level. */
+  private readiness(r: Resident): number {
+    const { content } = this.game;
+    const t = questContent(content).tuning;
+    const w = r.weapon ? content.weapons[r.weapon] : undefined;
+    const [lo, hi] = w ? [w.min, w.max] : t.fists;
+    const dmg = (lo + hi) / 2 + t.damagePerLevel * r.level;
+    return dmg * 10 + Math.max(0, r.hp) * 0.25 + r.level * 2;
+  }
+
+  /** Everyone who could be asked: eligible first, then healthy, then armed, then the most ready. */
   private candidates(): Resident[] {
     const { state } = this.game;
+    const score = new Map(state.residents.map((r) => [r.id, this.readiness(r)]));
     return state.residents
       .filter((r) => !r.waiting && !r.dead)
-      .sort((a, b) => Number(canQuest(state, a) !== null) - Number(canQuest(state, b) !== null) || b.level - a.level || a.id - b.id);
+      .sort((a, b) => {
+        const elig = Number(canQuest(state, a) !== null) - Number(canQuest(state, b) !== null);
+        if (elig) return elig;
+        const hurt = Number(injured(a)) - Number(injured(b));
+        if (hurt) return hurt;
+        const armed = Number(!a.weapon) - Number(!b.weapon);
+        if (armed) return armed;
+        return (score.get(b.id) ?? 0) - (score.get(a.id) ?? 0) || a.id - b.id;
+      });
   }
 
   private closePicker(): void {
@@ -363,7 +384,7 @@ export class QuestUI {
           'div',
           { class: 'row', style: 'margin:0' },
           h('b', {}, h('span', { class: 'pick-box' }, sel ? '✓' : ''), r.rarity !== 'common' ? h('span', { class: `rarity ${r.rarity}` }, r.rarity === 'legendary' ? ' ★' : ' ◆') : null, ` ${r.firstName} ${r.lastName}`),
-          h('span', { class: 'muted small nowrap' }, `L${r.level} · HP ${Math.ceil(r.hp)}/${Math.ceil(effectiveMaxHp(r))}`),
+          h('span', { class: `small nowrap${injured(r) ? ' short' : ' muted'}` }, `L${r.level} · HP ${Math.ceil(r.hp)}/${Math.ceil(effectiveMaxHp(r))}${injured(r) ? ' · hurt' : ''}`),
         ),
         h('div', { class: 'muted small' }, `${w ? w.name : 'Fists'} ${fmt1(lo + bonus)}–${fmt1(hi + bonus)} dmg · ${o ? o.name : 'Halcyon jumpsuit'}`),
         abilityLine(a),
@@ -525,6 +546,11 @@ export class QuestUI {
     }
     this.screen.onEvents(events);
   }
+}
+
+/** Below half health: left out of the auto-picked party. */
+function injured(r: Resident): boolean {
+  return r.hp < effectiveMaxHp(r) * 0.5;
 }
 
 function order(q: Quest): number {

@@ -26,10 +26,11 @@ import type { VaultView } from '../render/vaultView';
 import { ask } from './confirm';
 import { duration, h, morph } from './dom';
 import { lootList, STAT_NAMES } from './questText';
+import type { ToastFn } from './toasts';
 
 export interface QuestHost {
   game: Game;
-  toast(text: string, kind?: 'good' | 'bad' | 'gold'): void;
+  toast: ToastFn;
   /** Open the quests panel. */
   openQuests(): void;
 }

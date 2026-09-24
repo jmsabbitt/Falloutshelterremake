@@ -13,13 +13,14 @@ import { Loadouts } from './loadouts';
 import { NoticeCentre } from './notices';
 import { ResidentList } from './residentList';
 import { SaveSlots } from './saves';
+import type { ToastFn } from './toasts';
 
 export interface QolHost {
   game: Game;
   view: VaultView;
   hud: HTMLElement;
   modalHost: HTMLElement;
-  toast(text: string, kind?: 'good' | 'bad' | 'gold'): void;
+  toast: ToastFn;
   /** Re-render the open side panel now. */
   refresh(): void;
   openNotices(): void;
@@ -51,7 +52,7 @@ export class QolUI {
     this.people = new ResidentList({
       game,
       modalHost: host.modalHost,
-      toast: (t, k) => host.toast(t, k),
+      toast: (t, k, o) => host.toast(t, k, o),
       refresh: () => host.refresh(),
       selectedId: () => host.selectedId(),
       select: (id) => host.select(id),
@@ -60,7 +61,7 @@ export class QolUI {
       groupFit: (rs, room) => host.groupFit?.(rs, room) ?? null,
     });
     this.notices = new NoticeCentre(game);
-    this.saves = new SaveSlots({ game, toast: (t, k) => host.toast(t, k), refresh: () => host.refresh(), loaded: () => host.closePanel() });
+    this.saves = new SaveSlots({ game, toast: (t, k, o) => host.toast(t, k, o), refresh: () => host.refresh(), loaded: () => host.closePanel() });
     this.loadouts = new Loadouts(game);
     this.stats = new StatsOverlay(game, host.view);
     this.stats.visible = readJson<{ stats?: boolean }>(PREFS)?.stats ?? false;

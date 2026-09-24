@@ -25,10 +25,11 @@ import {
 } from '../../sim';
 import type { Game } from '../game';
 import { h } from './dom';
+import type { ToastFn } from './toasts';
 
 export interface TraitsHost {
   game: Game;
-  toast(text: string, kind?: 'good' | 'bad' | 'gold'): void;
+  toast: ToastFn;
   refreshPanel(): void;
 }
 
@@ -104,7 +105,7 @@ export class TraitsUI {
         },
       },
       pick.def.name,
-      pick.more ? h('span', { class: 'more' }, ` +${pick.more}`) : null,
+      pick.more ? h('span', { class: 'more' }, ` +${pick.more} more trait${pick.more === 1 ? '' : 's'}`) : null,
     );
   }
 
@@ -112,7 +113,7 @@ export class TraitsUI {
   tag(r: Resident): HTMLElement | null {
     const pick = this.relevant(r);
     if (!pick) return null;
-    return h('span', { class: `trait-chip mini tag ${toneOf(pick.def)}`, title: `${pick.def.name}: ${pick.def.summary}` }, pick.def.name, pick.more ? h('span', { class: 'more' }, ` +${pick.more}`) : null);
+    return h('span', { class: `trait-chip mini tag ${toneOf(pick.def)}`, title: `${pick.def.name}: ${pick.def.summary}` }, pick.def.name, pick.more ? h('span', { class: 'more' }, ` +${pick.more} more trait${pick.more === 1 ? '' : 's'}`) : null);
   }
 
   /** For the bulk room picker: how many of a group the room's place suits, and how many it doesn't. */
@@ -234,7 +235,7 @@ export class TraitsUI {
     const ups = events.filter((e): e is Extract<GameEvent, { type: 'masteryUp' }> => e.type === 'masteryUp');
     if (ups.length > 3) {
       const masters = ups.filter((e) => e.tier >= traitsContent(content).tuning.masteryTierSeconds.length - 1).length;
-      this.host.toast(`⭐ ${ups.length} residents grew in their trades${masters ? `, ${masters} to Master` : ''}.`, 'gold');
+      this.host.toast(`⭐ ${ups.length} residents grew in their trades${masters ? `, ${masters} to Master` : ''}.`, 'gold', { fold: 'mastery', low: true });
       return;
     }
     for (const ev of ups) {
@@ -243,7 +244,7 @@ export class TraitsUI {
       const trade = traitsContent(content).tuning.professions[ev.roomType];
       const tier = masteryTierName(content, ev.tier);
       const who = r?.firstName ?? 'Someone';
-      this.host.toast(trade ? `⭐ ${who} is now a ${tier} ${trade} (${job}).` : `⭐ ${who} is now ${tier} at the ${job}.`, 'gold');
+      this.host.toast(trade ? `⭐ ${who} is now a ${tier} ${trade} (${job}).` : `⭐ ${who} is now ${tier} at the ${job}.`, 'gold', { fold: 'mastery', low: true });
     }
   }
 }

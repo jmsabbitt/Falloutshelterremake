@@ -20,6 +20,7 @@ import {
 import type { Game } from '../game';
 import { h } from './dom';
 import { plural, roomName, STAT_FULL, STAT_SHORT } from './qolText';
+import type { ToastFn } from './toasts';
 
 export type SortKey = 'level' | 'name' | 'mood' | 'hp' | 'room' | StatKey;
 export type FilterKey = 'all' | 'idle' | 'working' | 'away' | 'injured' | 'children' | 'rare' | 'fallen';
@@ -27,7 +28,7 @@ export type FilterKey = 'all' | 'idle' | 'working' | 'away' | 'injured' | 'child
 export interface ResidentListHost {
   game: Game;
   modalHost: HTMLElement;
-  toast(text: string, kind?: 'good' | 'bad' | 'gold'): void;
+  toast: ToastFn;
   /** Re-render the open panel now. */
   refresh(): void;
   /** The resident picked for tap-a-room assignment (single select). */
@@ -92,6 +93,12 @@ export class ResidentList {
 
   private get game() {
     return this.host.game;
+  }
+
+  /** The panel was opened afresh: start from the whole list, not a filter or search left from last time. */
+  opened(): void {
+    this.filter = 'all';
+    this.query = '';
   }
 
   /** The homestead was replaced: nothing picked points anywhere now. */
@@ -301,9 +308,36 @@ export class ResidentList {
       chips,
       this.bulk ? this.bulkBar(rows) : null,
       selected ? this.host.detailCard(selected) : null,
-      rows.length ? this.list(rows) : h('p', { class: 'muted rl-empty' }, this.query ? `Nobody called "${this.query.trim()}" here.` : 'Nobody here right now.'),
+      rows.length ? this.list(rows) : this.empty(),
     );
     return body;
+  }
+
+  /** Nobody matches: say which filter and search are hiding everyone, with a way out. */
+  private empty(): HTMLElement {
+    const filtered = this.filter !== 'all';
+    const q = this.query.trim();
+    const what = [filtered ? `the ${FILTERS.find((f) => f.key === this.filter)?.label ?? this.filter} filter` : '', q ? `the search "${q}"` : ''].filter(Boolean).join(' and ');
+    return h(
+      'div',
+      { class: 'rl-empty' },
+      h('p', { class: 'muted', style: 'margin:0 0 8px' }, q && !filtered ? `Nobody called "${q}" here.` : 'Nobody here right now.'),
+      what ? h('p', { class: 'small', style: 'margin:0 0 8px' }, `Hidden by ${what}.`) : null,
+      what
+        ? h(
+            'button',
+            {
+              class: 'primary',
+              onclick: () => {
+                this.opened();
+                this.host.refresh();
+                this.toTop();
+              },
+            },
+            '✕ Clear filters',
+          )
+        : null,
+    );
   }
 
   /** The windowed list: a tall box with only the rows in view placed inside it. */

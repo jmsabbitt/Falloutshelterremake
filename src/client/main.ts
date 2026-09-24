@@ -62,7 +62,10 @@ async function boot(): Promise<void> {
     questRoomScreen: (roomId: string) => questView.roomScreen(roomId),
     questDoorScreen: (roomId: string) => questView.doorScreen(roomId),
     /** M6: centre the camera on a floor, and the average JS cost of a frame (ms) since the last call. */
-    focusFloor: (floor: number) => view.focusFloor(floor),
+    focusFloor: (floor: number, cellX?: number) => view.focusFloor(floor, cellX),
+    /** Raise a toast, and the stats overlay's plates on screen; for automated UI tests. */
+    toast: (...args: Parameters<UI['toast']>) => ui?.toast(...args),
+    statPlates: () => ui?.qol.stats.plateBounds() ?? [],
     frameCost: () => {
       const out = { frames: cost.n, sim: cost.sim / Math.max(1, cost.n), view: cost.view / Math.max(1, cost.n), ui: cost.ui / Math.max(1, cost.n) };
       cost.n = cost.sim = cost.view = cost.ui = 0;

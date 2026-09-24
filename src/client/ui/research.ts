@@ -24,10 +24,11 @@ import {
 } from '../../sim';
 import type { Game } from '../game';
 import { duration, fmt, h } from './dom';
+import type { ToastFn } from './toasts';
 
 export interface ResearchHost {
   game: Game;
-  toast(text: string, kind?: 'good' | 'bad' | 'gold'): void;
+  toast: ToastFn;
   openResearch(): void;
   /** Open the Deep panel (excavation). */
   openDeep(): void;
@@ -195,8 +196,8 @@ export class ResearchUI {
           rate > 0
             ? `+${rate.toFixed(1)} per hour from ${producing} Lab${producing === 1 ? '' : 's'} · ${done}/${total} researched`
             : labs.length
-              ? `Your Labs are idle: staff them with high-Wits residents and keep the power on. ${done}/${total} researched`
-              : `Build a Research Lab (population 25) and staff it with high-Wits residents. ${done}/${total} researched`,
+              ? `No research coming in: ${this.labProblem()}. ${done}/${total} researched`
+              : `Build a Research Lab (population ${content.rooms.lab?.unlockPop ?? 25}) and staff it with high-Wits residents. ${done}/${total} researched`,
         ),
       ),
       h(
@@ -267,7 +268,7 @@ export class ResearchUI {
     const missing = n.requires.filter((id) => !state.research.done.includes(id));
     const short = Math.max(0, n.cost - state.research.points);
     const just = this.justDone && this.justDone.id === n.id && performance.now() < this.justDone.until;
-    const eta = status === 'open' ? (rate > 0 ? `~${duration((short / rate) * 3600)}` : 'needs a Lab') : '';
+    const eta = status === 'open' ? (rate > 0 ? `~${duration((short / rate) * 3600)}` : this.labProblem(true)) : '';
     return h(
       'div',
       { class: `rnode ${status}${just ? ' just-done' : ''}` },
@@ -297,6 +298,21 @@ export class ResearchUI {
             ),
           ),
     );
+  }
+
+  /** Why no research points come in: "needs a Lab", or which of staffed and powered the Labs lack. */
+  labProblem(short = false): string {
+    const { state, content } = this.game;
+    const labs = state.rooms.filter((r) => content.rooms[r.type]?.category === 'research');
+    if (!labs.length) return 'needs a Lab';
+    const staffed = labs.some((r) => workersInRoom(state, r.id).length > 0);
+    const powered = labs.some((r) => r.powered);
+    const both = labs.some((r) => r.powered && workersInRoom(state, r.id).length > 0);
+    if (both) return state.incidents.some((i) => labs.some((l) => l.id === i.roomId)) ? 'the Lab is stopped by an incident' : 'the Lab is warming up';
+    if (!staffed && !powered) return 'needs a staffed, powered Lab';
+    if (!staffed) return short ? 'needs a staffed Lab' : 'needs a staffed Lab (put high-Wits residents in it)';
+    if (!powered) return short ? 'needs a powered Lab' : 'needs a powered Lab (it has no power)';
+    return 'needs a staffed, powered Lab';
   }
 
   // ---------------------------------------------------------------- room panel
@@ -340,7 +356,8 @@ export class ResearchUI {
         const def = content.rooms[ev.roomType];
         if (!def?.requiresResearch) continue;
         this.host.toast(`🏗 New room unlocked: ${def.name}${def.minFloor !== undefined ? '. Build it on the deep floors.' : ''}`, 'gold');
-      } else if (ev.type === 'autoAssigned') {
+      } else if (ev.type === 'autoAssigned' && this.game.running !== 'autoAssign') {
+        // A press of Auto-assign gets its own, fuller toast (residentList.ts); this is the research automation.
         this.host.toast(`📋 ${ev.count} idle resident${ev.count === 1 ? '' : 's'} assigned to jobs.`, 'good');
       }
     }

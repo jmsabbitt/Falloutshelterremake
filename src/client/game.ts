@@ -72,6 +72,8 @@ export class Game {
   private awayPending: AwaySummary | null = null;
   /** Bumped whenever rooms change shape, so the renderer can rebuild static art. */
   layoutVersion = 0;
+  /** The command whose events are being handed out right now, or null (events from the clock). */
+  running: Command['type'] | null = null;
 
   constructor() {
     const saved = readSave();
@@ -197,8 +199,13 @@ export class Game {
 
   run(cmd: Command): CommandResult {
     const result = applyCommand(this.state, this.content, cmd);
-    if (result.ok && ['build', 'upgrade', 'demolish'].includes(cmd.type)) this.layoutVersion++;
-    this.flush();
+    if (result.ok && ['build', 'upgrade', 'demolish', 'extendShaft'].includes(cmd.type)) this.layoutVersion++;
+    this.running = cmd.type;
+    try {
+      this.flush();
+    } finally {
+      this.running = null;
+    }
     return result;
   }
 

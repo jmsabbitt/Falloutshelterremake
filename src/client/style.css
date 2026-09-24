@@ -922,3 +922,55 @@ button.pulse { animation: ready 0.6s infinite alternate; }
 .confirm-text { font-size: 14px; line-height: 1.45; margin: 4px 0 0; }
 .confirm-input { width: 100%; margin-top: 8px; }
 .confirm-buttons { justify-content: flex-end; gap: 8px; margin: 14px 0 0; }
+
+/* The hint pill and the toasts are read, not touched: taps go through to the homestead behind. */
+#ui > .hint, #ui > .toasts { pointer-events: none; }
+#ui > .hint button, #ui > .hint a { pointer-events: auto; }
+
+/* Shortages: a red pulse along the HUD and a red hint on top of the others. */
+.hud.hud-short { border-bottom-color: var(--danger); animation: hud-alarm 0.9s infinite alternate; }
+@keyframes hud-alarm { from { box-shadow: 0 2px 0 rgba(228, 87, 46, 0); } to { box-shadow: 0 2px 16px rgba(228, 87, 46, 0.85); } }
+.meter { cursor: pointer; }
+.meter.short .icon { box-shadow: 0 0 0 2px var(--danger); }
+.meter.short .num { color: #ffb3a3; }
+.hint.warn { background: rgba(200, 50, 29, 0.96); color: #fff; animation: pulse 0.9s infinite alternate; }
+.hint.raised { bottom: calc(150px + env(safe-area-inset-bottom, 0)); }
+.toast.low { opacity: 0.94; }
+
+/* Build list: the stat a room uses, as a small letter badge. */
+.stat-badge { display: inline-block; margin-left: 6px; font-size: 10.5px; font-weight: 700; padding: 1px 6px; border-radius: 8px; background: #0b1113; border: 1px solid #45625f; color: var(--ink-dim); letter-spacing: 0.5px; vertical-align: 1px; }
+.welcome-steps { margin: 6px 0 0; padding-left: 22px; line-height: 1.45; }
+.welcome-steps li { margin: 3px 0; }
+.panel header .header-actions { display: flex; gap: 6px; }
+
+/* Found flow: rare gear that would stay at the outpost, each with a one-tap fix. */
+.ff-left { background: #3a1d0c; border-color: #ff8a4a; }
+.ff-left-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 5px 0; border-top: 1px solid rgba(255, 138, 74, 0.3); font-size: 13px; }
+.ff-left-row button { min-height: 34px; flex: none; }
+
+/* Threat: an incident under way shows on the chip; the modal shows the sum behind the score. */
+.threat-chip.incident { border-color: var(--danger); animation: pulse 0.9s infinite alternate; }
+.threat-alert { color: #ff8a6a; font-weight: 700; }
+.threat-now { color: #ff8a6a; font-weight: 700; }
+.threat-active { background: #3a140c; border: 1px solid var(--danger); border-radius: 8px; padding: 6px 10px; font-size: 13px; margin-bottom: 8px; }
+.threat-total { border-top: 1px solid #45625f; padding-top: 5px; }
+.threat-sum { font-variant-numeric: tabular-nums; }
+.req-buttons { display: inline-flex; flex-wrap: wrap; gap: 4px; justify-content: flex-end; }
+
+/* Phones: build and assign sheets shrink to a bar so the homestead stays usable. */
+.panel.sheet-bar { top: auto; bottom: calc(74px + env(safe-area-inset-bottom, 0)); height: auto; flex-direction: row; align-items: center; gap: 8px; padding: 8px 10px; border-color: var(--accent); }
+.sb-text { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.sb-text b { font-size: 14px; display: flex; align-items: center; }
+.sb-text span { line-height: 1.3; }
+.sb-actions { display: flex; gap: 6px; flex: none; }
+.panel.sheet-bar .sb-actions button { min-height: 40px; padding: 6px 10px; }
+
+@media (max-width: 640px) {
+  /* Icon buttons keep a usable width; badges sit inside the button edge so they don't collide. */
+  .toolbar button.icon { flex: 0 0 auto; min-width: 34px; padding: 6px 4px; font-size: 15px; }
+  .toolbar .badge { top: -7px; right: -3px; font-size: 10px; line-height: 16px; min-width: 16px; padding: 0 4px; z-index: 1; }
+  /* Meter values sit inside the bar (tap a meter for the full line). */
+  .meter { position: relative; }
+  .meter .bar { height: 14px; border-radius: 7px; }
+  .meter .num { display: block; position: absolute; left: 28px; right: 0; top: 50%; transform: translateY(-50%); min-width: 0; text-align: center; font-size: 10px; font-weight: 700; color: #fff; text-shadow: 0 1px 2px #000, 0 0 3px #000; pointer-events: none; }
+}

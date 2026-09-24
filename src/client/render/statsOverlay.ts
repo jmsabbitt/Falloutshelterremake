@@ -48,6 +48,7 @@ export class StatsOverlay {
   private plates = new Map<number, Plate>();
   private since = REFRESH_S;
   private lastZoom = 0;
+  private lastX = 0;
   private on = false;
 
   constructor(
@@ -75,9 +76,12 @@ export class StatsOverlay {
     if (this.layer.parent !== this.view.world) this.view.world.addChild(this.layer);
     this.since += dt;
     const zoom = this.view.world.scale.x || 1;
-    if (this.since < REFRESH_S && zoom === this.lastZoom) return;
+    // Panning moves plates too: they are kept inside the screen.
+    const x = Math.round(this.view.world.x);
+    if (this.since < REFRESH_S && zoom === this.lastZoom && x === this.lastX) return;
     this.since = 0;
     this.lastZoom = zoom;
+    this.lastX = x;
     this.refresh(zoom);
   }
 
@@ -101,13 +105,38 @@ export class StatsOverlay {
       const hgt = plate.bg.height * fit;
       plate.root.scale.set(fit);
       // Centre on the room; drop below the ready bubble when the room is tall enough on screen.
-      plate.root.position.set(Math.round(r.x + (r.w - w) / 2), Math.round(r.y + Math.max(8, Math.min(r.h - hgt - 6, r.h * 0.5 - hgt / 2 + 10))));
+      // A room cut off by the screen edge keeps its plate on the part that shows.
+      const wx = this.view.world.x;
+      const edgeL = (4 - wx) / zoom;
+      const edgeR = (this.screenW() - 4 - wx) / zoom - w;
+      const lo = Math.max(r.x + 3, edgeL);
+      const hi = Math.min(r.x + r.w - w - 3, edgeR);
+      const centred = r.x + (r.w - w) / 2;
+      // Too little of the room shows to hold its plate: hide it rather than let it spill onto a neighbour.
+      plate.root.visible = lo <= hi;
+      const px = Math.min(hi, Math.max(lo, centred));
+      plate.root.position.set(Math.round(px), Math.round(r.y + Math.max(8, Math.min(r.h - hgt - 6, r.h * 0.5 - hgt / 2 + 10))));
     }
     for (const [id, plate] of this.plates) {
       if (alive.has(id)) continue;
       plate.root.destroy({ children: true });
       this.plates.delete(id);
     }
+  }
+
+  /** Screen rectangles of the plates in view; for automated UI tests. */
+  plateBounds(): { x: number; y: number; w: number; h: number }[] {
+    const out: { x: number; y: number; w: number; h: number }[] = [];
+    for (const p of this.plates.values()) {
+      if (!p.root.visible) continue;
+      const b = p.root.getBounds();
+      if (b.y + b.height > 0 && b.y < window.innerHeight) out.push({ x: Math.round(b.x), y: Math.round(b.y), w: Math.round(b.width), h: Math.round(b.height) });
+    }
+    return out;
+  }
+
+  private screenW(): number {
+    return window.innerWidth;
   }
 
   private createPlate(id: number): Plate {

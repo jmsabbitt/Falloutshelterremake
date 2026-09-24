@@ -129,6 +129,9 @@ interface Float {
   life: number;
   max: number;
   vy: number;
+  /** Where it was asked to appear, before stacking, so the next one nearby can stack above it. */
+  x: number;
+  y: number;
 }
 
 interface Particle {
@@ -169,6 +172,11 @@ interface Ring {
   speed: number;
   /** Frame time the ring has been shown; the timeout uses this, so a hitch can't eat it. */
   age: number;
+}
+
+/** Damage as a floater: whole numbers, at least 1 for any hit that landed. */
+function hitText(n: number): string {
+  return `${n > 0 ? Math.max(1, Math.round(n)) : 0}`;
 }
 
 export function roomOrigin(room: { floor: number; col: number }) {
@@ -213,7 +221,10 @@ export class QuestView {
   private shake = 0;
   private cam = { x: 0, y: 0 };
   private zoom = 1;
-  private manualUntil = 0;
+  /** The player panned: the camera stays put until the party moves on (see updateCamera). */
+  private manual = false;
+  /** What the party was doing when the player panned: moving, and in which room. */
+  private manualAnchor = '';
   private zoomInit = false;
   private skySize = '';
   private ring: Ring | null = null;
@@ -278,6 +289,7 @@ export class QuestView {
 
   private reset(): void {
     this.staticKey = '';
+    this.manual = false;
     this.zoomInit = false;
     for (const m of this.members.values()) m.root.destroy({ children: true });
     for (const e of this.enemies.values()) e.root.destroy({ children: true });
@@ -374,7 +386,11 @@ export class QuestView {
       if (d.moved) {
         this.cam.x = d.cx - dx / this.zoom;
         this.cam.y = d.cy - dy / this.zoom;
-        this.manualUntil = this.time + 4;
+        if (!this.manual) {
+          const q = this.quest();
+          this.manualAnchor = q ? this.anchor(q) : '';
+        }
+        this.manual = true;
       }
     });
     const up = (e: FederatedPointerEvent) => {
@@ -428,7 +444,36 @@ export class QuestView {
 
   /** Point the camera back at the party (after the player panned away). */
   follow(): void {
-    this.manualUntil = 0;
+    this.manual = false;
+  }
+
+  /** Changes when the party sets off or reaches another room: a manual pan ends then. */
+  private anchor(q: Quest): string {
+    return `${q.moving ? 1 : 0}|${q.roomId}`;
+  }
+
+  /**
+   * Keep the camera over the map. The bottom gets extra room so the lowest
+   * rooms can be pulled up clear of the party bar.
+   */
+  private clampCam(q: Quest): void {
+    if (!q.rooms.length) return;
+    let x0 = Infinity;
+    let y0 = Infinity;
+    let x1 = -Infinity;
+    let y1 = -Infinity;
+    for (const room of q.rooms) {
+      const o = roomOrigin(room);
+      x0 = Math.min(x0, o.x);
+      y0 = Math.min(y0, o.y);
+      x1 = Math.max(x1, o.x + RW);
+      y1 = Math.max(y1, o.y + RH);
+    }
+    // Any room can be brought to the middle of the free view (between the header and the party bar), and a
+    // little past the edges; the bottom gets extra room so the lowest row clears the bar with space to spare.
+    const bottomPad = RH * 0.5 + this.insets.bottom / this.zoom / 2;
+    this.cam.x = Math.min(x1 + RW * 0.5, Math.max(x0 - RW * 0.5, this.cam.x));
+    this.cam.y = Math.min(y1 + bottomPad, Math.max(y0 - RH * 0.5, this.cam.y));
   }
 
   // ---------------------------------------------------------------- test hooks
@@ -493,7 +538,10 @@ export class QuestView {
       this.zoomInit = true;
     }
     this.zoom += (want - this.zoom) * (1 - Math.exp(-dt * 3));
-    if (this.time > this.manualUntil) {
+    // A pan holds until the party moves: it sets off, or arrives somewhere new.
+    if (this.manual && this.anchor(q) !== this.manualAnchor) this.manual = false;
+    if (this.manual) this.clampCam(q);
+    else {
       let tx: number;
       let ty: number;
       const standing = [...this.members.values()];
@@ -1214,11 +1262,11 @@ export class QuestView {
       }
       const jitter = (Math.random() - 0.5) * 20;
       if (ev.crit) {
-        this.float(`${ev.amount}!`, cx + jitter, cy - 30, 0xffd23f, 30, 1.2);
+        this.float(`${hitText(ev.amount)}!`, cx + jitter, cy - 30, 0xffd23f, 30, 1.2);
         this.burst(cx, cy, 0xffd23f, 18, 240);
         this.shake = Math.max(this.shake, 10);
       } else {
-        this.float(`${ev.amount}`, cx + jitter, cy - 24, 0xf4ecd8, 17, 0.9);
+        this.float(hitText(ev.amount), cx + jitter, cy - 24, 0xf4ecd8, 17, 0.9);
         this.burst(cx, cy, 0xffe3a3, 5, 120);
       }
     } else {
@@ -1228,7 +1276,7 @@ export class QuestView {
       if (!m) return;
       m.hurt = 1;
       const jitter = (Math.random() - 0.5) * 16;
-      this.float(`-${ev.amount}`, m.x + jitter, m.y - PARTY_H * 0.55, 0xff6a5a, 17, 0.9);
+      this.float(`-${hitText(ev.amount)}`, m.x + jitter, m.y - PARTY_H * 0.55, 0xff6a5a, 17, 0.9);
       this.burst(m.x, m.y - PARTY_H * 0.5, 0xff5a3a, 5, 110);
     }
     void q;
@@ -1283,9 +1331,13 @@ export class QuestView {
   private float(text: string, x: number, y: number, color: number, size: number, life: number): void {
     const t = new Text({ text, style: { fontFamily: 'Bungee, sans-serif', fontSize: size, fill: color, stroke: { color: 0x14100d, width: Math.max(3, size / 5) } } });
     t.anchor.set(0.5);
-    t.position.set(x, y);
+    // Numbers landing on the same spot in quick succession stack upwards and fan out, instead of overprinting.
+    let n = 0;
+    for (const f of this.floats) if (f.max - f.life < 0.5 && Math.abs(f.x - x) < 46 && Math.abs(f.y - y) < 36) n++;
+    const lift = Math.min(n, 4);
+    t.position.set(x + (n % 2 ? 1 : -1) * lift * 7, y - lift * (size * 0.8 + 4));
     this.floatLayer.addChild(t);
-    this.floats.push({ text: t, life, max: life, vy: -40 });
+    this.floats.push({ text: t, life, max: life, vy: -40, x, y });
     // Keep the scene readable in a big fight.
     while (this.floats.length > 28) this.floats.shift()?.text.destroy();
   }

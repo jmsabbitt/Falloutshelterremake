@@ -30,13 +30,14 @@ import {
 import type { FoundResult, Game } from '../game';
 import { downloadFile } from '../storage';
 import { fmt, h, morph } from './dom';
+import type { ToastFn } from './toasts';
 
 export type LegacyTab = 'charter' | 'perks' | 'outposts';
 
 export interface LegacyHost {
   game: Game;
   modalHost: HTMLElement;
-  toast(text: string, kind?: 'good' | 'bad' | 'gold'): void;
+  toast: ToastFn;
   /** Open the Legacy panel (on a tab). */
   openLegacy(tab?: LegacyTab): void;
   /** Re-render the open side panel. */
@@ -157,12 +158,12 @@ export class LegacyUI {
           'button',
           {
             class: `stat-chip chip-button outpost-chip${full || t.crates ? ' glow' : ''}`,
-            title: `Outposts: ${fmt(t.scrip)} scrip, ${t.salvage} salvage, ${t.crates} crates waiting`,
+            title: `Outposts: ${fmt(t.scrip)} scrip, ${fmt(t.salvage)} salvage, ${fmt(t.crates)} crates waiting`,
             onclick: () => this.host.openLegacy('outposts'),
           },
           '🏚 ',
           h('b', {}, `+${fmt(t.scrip)}`),
-          t.crates ? h('span', {}, ` 📦${t.crates}`) : null,
+          t.crates >= 1 ? h('span', {}, ` 📦${fmt(t.crates)}`) : null,
         ),
       );
     }
@@ -186,7 +187,7 @@ export class LegacyUI {
           break;
         }
         case 'outpostsCollected': {
-          const bits = [ev.scrip ? `${fmt(ev.scrip)} scrip` : '', ev.salvage ? `${ev.salvage} salvage` : '', ev.crates ? `${ev.crates} crate${ev.crates === 1 ? '' : 's'}` : ''].filter(Boolean);
+          const bits = [ev.scrip ? `${fmt(ev.scrip)} scrip` : '', ev.salvage ? `${fmt(ev.salvage)} salvage` : '', ev.crates ? `${ev.crates} crate${ev.crates === 1 ? '' : 's'}` : ''].filter(Boolean);
           this.host.toast(`🏚 The outposts sent ${bits.join(', ')}.`, 'good');
           break;
         }
@@ -366,7 +367,7 @@ export class LegacyUI {
         h(
           'div',
           { class: 'outpost-collect' },
-          h('div', {}, h('div', { class: 'muted small' }, 'Waiting at your outposts'), h('div', { class: 'loot-line' }, h('span', { class: 'loot-chip' }, `💰 ${fmt(t.scrip)}`), h('span', { class: 'loot-chip' }, `⚙ ${t.salvage}`), h('span', { class: 'loot-chip' }, `📦 ${t.crates}`))),
+          h('div', {}, h('div', { class: 'muted small' }, 'Waiting at your outposts'), h('div', { class: 'loot-line' }, h('span', { class: 'loot-chip' }, `💰 ${fmt(t.scrip)}`), h('span', { class: 'loot-chip' }, `⚙ ${fmt(t.salvage)}`), h('span', { class: 'loot-chip' }, `📦 ${fmt(t.crates)}`))),
           h(
             'button',
             {
@@ -427,7 +428,7 @@ export class LegacyUI {
       return h(
         'div',
         { class: `outpost-bar${pct >= 99.5 ? ' full' : ''}` },
-        h('div', { class: 'row small', style: 'margin:0' }, h('span', {}, label), h('span', { class: 'nowrap' }, h('b', {}, `${Math.floor(stored)}`), h('span', { class: 'muted' }, ` / ${fmtNum(max, digits)} · ${fmtNum(rate * mult, rate * mult < 1 ? 2 : 0)}/h`))),
+        h('div', { class: 'row small', style: 'margin:0' }, h('span', {}, label), h('span', { class: 'nowrap' }, h('b', {}, `${Math.floor(stored)}`), h('span', { class: 'muted' }, ` / ${fmt(Math.round(max))} · ${fmtNum(rate * mult, rate * mult < 1 ? 2 : digits)}/h`))),
         h('div', { class: 'progress big' }, h('div', { style: `width:${pct.toFixed(1)}%` })),
       );
     };
@@ -769,6 +770,7 @@ export class LegacyUI {
         }),
       ),
       h('p', { class: 'muted small' }, `Everyone else (${stayers} resident${stayers === 1 ? '' : 's'}) stays behind and keeps Homestead ${state.homesteadNumber} running as an outpost. Strangers fill out the new homestead's first six.`),
+      ...this.leftBehindWarning(d, 'worn'),
       h('div', { class: 'tabs', style: 'margin:0 0 6px' }, h('span', { class: 'muted small', style: 'align-self:center' }, 'Sort:'), sortBtn('level', 'Level'), sortBtn('rarity', 'Rarity')),
       h('div', { class: 'ff-list' }, ...rows),
     ];
@@ -796,6 +798,7 @@ export class LegacyUI {
       h('p', { class: 'halcy-quote' }, h('span', { class: 'giver' }, 'HALCY: '), `Pack the good china! Up to ${max} items from storage can travel as heirlooms. Gear your founders are wearing comes along anyway.`),
       h('div', { class: 'row' }, h('b', {}, `Heirlooms ${d.heirloomIds.length} / ${max}`), h('span', { class: 'muted small' }, `${items.length} in storage`)),
       h('div', { class: 'slot-pips' }, ...Array.from({ length: max }, (_, i) => h('span', { class: i < d.heirloomIds.length ? 'used' : 'free' }))),
+      ...this.leftBehindWarning(d, 'stored'),
       items.length ? h('div', { class: 'ff-list' }, ...rows) : h('p', { class: 'legacy-note' }, 'Storage is empty. Your founders still bring the gear they wear.'),
       items.length ? h('p', { class: 'muted small' }, 'Everything else in storage stays behind.') : null,
     ];
@@ -824,6 +827,7 @@ export class LegacyUI {
         line('Starting scrip', `💰 ${fmt(startScrip)}`),
         line('Left behind', `Homestead ${state.homesteadNumber} becomes an outpost with ${stayers} resident${stayers === 1 ? '' : 's'}`),
       ),
+      ...this.leftBehindWarning(d, 'both'),
       h(
         'div',
         { class: 'ff-warning' },
@@ -838,6 +842,107 @@ export class LegacyUI {
       ),
       h('p', { class: 'muted small', style: 'text-align:center' }, 'Press and hold the button to sign the Charter.'),
     ];
+  }
+
+  /**
+   * Rare and legendary gear that would stay at the outpost: worn by someone not
+   * in the party, or in storage and not packed. Each comes with a one-tap fix
+   * (swap the wearer into the party, pack the item as an heirloom) where the
+   * limits allow it.
+   */
+  private leftBehindWarning(d: FoundDraft, which: 'worn' | 'stored' | 'both'): HTMLElement[] {
+    const { state, content } = this.game;
+    const limits = foundingLimits(state, content);
+    const rows: HTMLElement[] = [];
+    if (which !== 'stored') {
+      for (const r of state.residents) {
+        if (r.dead || r.waiting || d.partyIds.includes(r.id)) continue;
+        for (const defId of [r.weapon, r.outfit]) {
+          const def = defId ? content.items[defId] : undefined;
+          if (!def || def.rarity === 'common') continue;
+          const why = canFound(state, r);
+          const swap = this.swapTarget(d, limits.party);
+          rows.push(
+            h(
+              'div',
+              { class: 'ff-left-row' },
+              h('span', {}, h('span', { class: `rarity ${def.rarity}` }, `${RARITY_MARK[def.rarity]} ${def.name}`), ` · worn by ${r.firstName} ${r.lastName}`),
+              why
+                ? h('span', { class: 'muted small' }, `can't go: ${why}`)
+                : h(
+                    'button',
+                    {
+                      class: 'close',
+                      disabled: swap === null,
+                      title: swap === null ? 'The founding party is full of residents wearing rare gear' : '',
+                      onclick: () => {
+                        const out = this.swapTarget(d, limits.party);
+                        if (out === null) return;
+                        d.partyIds = [...d.partyIds.filter((id) => id !== out), r.id];
+                        this.renderFlow();
+                      },
+                    },
+                    swap === null ? 'Party full' : swap === -1 ? 'Add to party' : `Swap in for ${state.residents.find((x) => x.id === swap)?.firstName ?? 'someone'}`,
+                  ),
+            ),
+          );
+        }
+      }
+    }
+    if (which !== 'worn') {
+      const full = d.heirloomIds.length >= limits.heirlooms;
+      for (const { id, def } of this.storedItems()) {
+        if (def.rarity === 'common' || d.heirloomIds.includes(id)) continue;
+        rows.push(
+          h(
+            'div',
+            { class: 'ff-left-row' },
+            h('span', {}, h('span', { class: `rarity ${def.rarity}` }, `${RARITY_MARK[def.rarity]} ${def.name}`), ' · in storage'),
+            h(
+              'button',
+              {
+                class: 'close',
+                disabled: full,
+                title: full ? 'Every heirloom slot is taken' : '',
+                onclick: () => {
+                  if (d.heirloomIds.length >= limits.heirlooms) return;
+                  d.heirloomIds = [...d.heirloomIds, id];
+                  this.renderFlow();
+                },
+              },
+              full ? 'Heirlooms full' : 'Add as heirloom',
+            ),
+          ),
+        );
+      }
+    }
+    if (!rows.length) return [];
+    const shown = rows.slice(0, 6);
+    return [
+      h(
+        'div',
+        { class: 'ff-warning ff-left' },
+        h('b', {}, `⚠ ${rows.length === 1 ? 'A rare piece of gear stays' : `${rows.length} rare pieces of gear stay`} at the outpost`),
+        h('div', { class: 'small', style: 'margin:2px 0 6px' }, 'Anything not worn by a founder or packed as an heirloom stays behind for good.'),
+        ...shown,
+        rows.length > shown.length ? h('div', { class: 'muted small' }, `and ${rows.length - shown.length} more`) : null,
+      ),
+    ];
+  }
+
+  /**
+   * Who makes way when a rare-gear wearer joins the party: -1 if there is a free
+   * place, else the lowest-level founder not wearing rare gear, else null.
+   */
+  private swapTarget(d: FoundDraft, max: number): number | null {
+    const { state, content } = this.game;
+    if (d.partyIds.length < max) return -1;
+    const rare = (r: Resident) => [r.weapon, r.outfit].some((id) => id && content.items[id] && content.items[id]!.rarity !== 'common');
+    const out = d.partyIds
+      .map((id) => state.residents.find((r) => r.id === id))
+      .filter((r): r is Resident => !!r && !rare(r))
+      .sort((a, b) => a.level - b.level || a.id - b.id)[0];
+    return out?.id ?? null;
   }
 
   private downloadBackup(json: string, homestead: number): void {

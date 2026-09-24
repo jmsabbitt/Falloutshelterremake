@@ -30,12 +30,10 @@ import {
   cycleSeconds,
   effectiveMaxHp,
   effectiveStats,
-  foodDemandPerMin,
   isChild,
   itemCapacity,
   maxLevel,
   population,
-  powerDemandPerMin,
   radioChance,
   radioInterval,
   resourceCapacity,
@@ -45,12 +43,11 @@ import {
   roomDef,
   rushFailChance,
   sellValue,
-  shortageThreshold,
+  shortageLine,
   storageCapacity,
   topStats,
   upgradeCost,
   vaultHappiness,
-  waterDemandPerMin,
   xpToNext,
   STAT_KEYS,
   tableValue,
@@ -81,6 +78,7 @@ import { DeepUI, type DeepTab } from './deep';
 import { buildInfo, ResearchUI } from './research';
 import { syncHudHeight } from './layout';
 import { ThreatUI } from './threat';
+import { Toasts, type ToastKind, type ToastOptions } from './toasts';
 import { TraitsUI } from './traits';
 
 type PanelKind = 'build' | 'room' | 'residents' | 'storage' | 'crates' | 'explore' | 'quests' | 'legacy' | 'achievements' | 'menu' | 'notices' | 'research' | 'deep' | null;
@@ -130,6 +128,15 @@ const STAT_NAME: Record<StatKey, string> = {
   knack: 'Knack',
   fortune: 'Fortune',
 };
+/** Build-list lines for rooms whose job isn't a resource or storage. */
+const ROOM_BLURB: Record<string, string> = {
+  office: 'Sends parties of up to three on story quests and bounty contracts · one per homestead',
+  weaponshop: 'Crafts weapons from salvage and scrip · each recipe is sped up by one crew stat',
+  outfitshop: 'Crafts outfits from salvage and scrip · each recipe is sped up by one crew stat',
+  lab: 'Makes research points for the tech tree · uses Wits',
+};
+type MeterKey = 'power' | 'food' | 'water';
+const METER_NAME: Record<MeterKey, string> = { power: 'Power', food: 'Food', water: 'Water' };
 const TIER_NAME: Record<CrateTier, string> = { standard: 'Supply Crate', rare: 'Rare Crate', legendary: 'Legendary Crate' };
 const INCIDENT_TOAST: Record<string, string> = {
   fire: '🔥 Fire! Keep residents in the room to put it out.',
@@ -147,10 +154,15 @@ export class UI {
   private toolbar = h('div', { class: 'toolbar' });
   private panelHost = h('div');
   private toasts = h('div', { class: 'toasts' });
+  private toastStack = new Toasts(this.toasts);
   private hint = h('div', { class: 'hint', style: 'display:none' });
   private modalHost = h('div');
 
   private panel: PanelKind = null;
+  /** Phones: the build or assign sheet is pulled up to full height (otherwise it sits as a small bar). */
+  private sheetOpen = false;
+  /** Rooms built since the current room type was picked: the bar offers Done rather than Cancel. */
+  private builtInMode = 0;
   private roomId: number | null = null;
   private residentId: number | null = null;
   /** When set, the storage panel is picking gear for this resident. */
@@ -191,13 +203,14 @@ export class UI {
       view,
       hud: this.hud,
       modalHost: this.modalHost,
-      toast: (text, kind) => this.toast(text, kind),
+      toast: (text, kind, opts) => this.toast(text, kind, opts),
       refresh: () => this.renderPanel(true),
       openNotices: () => this.openPanel('notices'),
       closePanel: () => this.closePanel(),
       panel: () => this.panel,
       selectedId: () => this.residentId,
       select: (id) => {
+        if (id !== this.residentId) this.sheetOpen = false;
         this.residentId = id;
         this.view.selectedResidentId = id;
       },
@@ -210,7 +223,7 @@ export class UI {
         game,
         loadouts: this.qol.loadouts,
         modalHost: this.modalHost,
-        toast: (text, kind) => this.toast(text, kind),
+        toast: (text, kind, opts) => this.toast(text, kind, opts),
         openQuests: () => this.openPanel('quests'),
         refreshPanel: () => this.renderPanel(true),
         openBuild: () => this.openPanel('build'),
@@ -222,7 +235,7 @@ export class UI {
     this.legacy = new LegacyUI({
       game,
       modalHost: this.modalHost,
-      toast: (text, kind) => this.toast(text, kind),
+      toast: (text, kind, opts) => this.toast(text, kind, opts),
       openLegacy: (tab) => {
         this.legacy.opened(tab);
         this.openPanel('legacy');
@@ -231,7 +244,7 @@ export class UI {
     });
     this.research = new ResearchUI({
       game,
-      toast: (text, kind) => this.toast(text, kind),
+      toast: (text, kind, opts) => this.toast(text, kind, opts),
       openResearch: () => this.openPanel('research'),
       openDeep: () => this.openDeep(),
       refreshPanel: () => this.renderPanel(true),
@@ -240,14 +253,14 @@ export class UI {
       game,
       view,
       modalHost: this.modalHost,
-      toast: (text, kind) => this.toast(text, kind),
+      toast: (text, kind, opts) => this.toast(text, kind, opts),
       openDeep: (tab) => this.openDeep(tab),
       openResearch: () => this.openPanel('research'),
       refreshPanel: () => this.renderPanel(true),
       closePanel: () => this.closePanel(),
     });
     this.threat = new ThreatUI(game, this.modalHost);
-    this.traits = new TraitsUI({ game, toast: (text, kind) => this.toast(text, kind), refreshPanel: () => this.renderPanel(true) });
+    this.traits = new TraitsUI({ game, toast: (text, kind, opts) => this.toast(text, kind, opts), refreshPanel: () => this.renderPanel(true) });
     this.renderToolbar();
     game.on((events) => this.onEvents(events));
     game.onReplace(() => this.onStateReplaced());
@@ -298,6 +311,7 @@ export class UI {
       return;
     }
     this.openPanel('residents');
+    if (this.residentId !== res.id) this.sheetOpen = false;
     this.residentId = res.id;
     this.view.selectedResidentId = res.id;
     this.renderPanel(true);
@@ -314,6 +328,7 @@ export class UI {
     if (!type) return;
     const res = this.game.run({ type: 'build', roomType: type, floor, x });
     if (!res.ok) this.toast(res.reason, 'bad');
+    else this.builtInMode++;
     this.view.rebuildGhosts();
     this.renderPanel(true);
   }
@@ -334,6 +349,8 @@ export class UI {
 
   update(): void {
     if (this.game.lastCatchUp) this.showAwaySummary();
+    this.view.insets = this.viewInsets();
+    this.view.fitResidentId = this.assignee()?.id ?? null;
     this.renderHud();
     syncHudHeight(this.hud);
     this.renderHint();
@@ -347,18 +364,21 @@ export class UI {
 
   private renderHud(): void {
     const { state, content } = this.game;
-    const meter = (key: 'power' | 'food' | 'water', color: string, glyph: string, demand: number) => {
+    const meter = (key: MeterKey, color: string, glyph: string) => {
       const cap = resourceCapacity(state, content, key);
       const val = state.resources[key];
-      const tick = shortageThreshold(demand, content);
+      const tick = shortageLine(state, content, key);
       const pct = cap > 0 ? Math.min(100, (val / cap) * 100) : 0;
       const tickPct = cap > 0 ? Math.min(100, (tick / cap) * 100) : 0;
+      const short = val < tick;
+      // Tooltips don't exist on touch: a tap says the same thing as a toast.
+      const tip = `${METER_NAME[key]}: ${fmt(val)} / ${fmt(cap)} · shortage below ${fmt(Math.ceil(tick))}`;
       return h(
         'div',
-        { class: `meter${val < tick ? ' short' : ''}`, title: `${key}: ${Math.floor(val)} / ${cap} (shortage below ${Math.ceil(tick)})` },
+        { class: `meter${short ? ' short' : ''}`, title: tip, role: 'button', 'aria-label': tip, onclick: () => this.toast(short ? `${tip}. ${this.shortageFix(key)}` : tip, short ? 'bad' : undefined, { fold: `meter-${key}` }) },
         h('div', { class: 'icon', style: `background:${color}` }, glyph),
         h('div', { class: 'bar' }, h('div', { class: 'fill', style: `width:${pct}%;background:${color}` }), h('div', { class: 'tick', style: `left:${tickPct}%` })),
-        h('div', { class: 'num' }, `${Math.floor(val)}/${cap}`),
+        h('div', { class: 'num' }, `${fmt(val)}/${fmt(cap)}`),
       );
     };
     const pop = population(state);
@@ -369,9 +389,9 @@ export class UI {
       'div',
       { class: 'hud-part' },
       h('div', { class: 'title' }, `HOMESTEAD ${state.homesteadNumber}`),
-      meter('power', 'var(--power)', 'P', powerDemandPerMin(state, content)),
-      meter('food', 'var(--food)', 'F', foodDemandPerMin(state, content)),
-      meter('water', 'var(--water)', 'W', waterDemandPerMin(state, content)),
+      meter('power', 'var(--power)', 'P'),
+      meter('food', 'var(--food)', 'F'),
+      meter('water', 'var(--water)', 'W'),
       h('div', { class: 'stat-chip' }, 'Scrip ', h('b', {}, fmt(state.scrip))),
       h('div', { class: 'stat-chip' }, 'Pop ', h('b', {}, `${pop}/${cap}`)),
       h('div', { class: 'stat-chip' }, 'Mood ', h('b', {}, pop > 0 ? `${Math.round(vaultHappiness(state))}%` : '—')),
@@ -413,7 +433,42 @@ export class UI {
     if (!this.hud.firstChild) this.hud.append(h('div', { class: 'hud-part' }), h('div', { class: 'hud-part' }));
     const [infoHost, buttonHost] = [this.hud.children[0], this.hud.children[1]] as HTMLElement[];
     if (infoHost && infoHost.innerHTML !== info.innerHTML) morph(infoHost, info);
+    this.hud.classList.toggle('hud-short', this.shortages().length > 0);
     if (buttonHost && buttonHost.innerHTML !== buttons.innerHTML) morph(buttonHost, buttons);
+  }
+
+  /** Resources below their shortage line, the worst first. */
+  private shortages(): MeterKey[] {
+    const { state, content } = this.game;
+    return (['power', 'food', 'water'] as const)
+      .map((key) => ({ key, line: shortageLine(state, content, key), have: state.resources[key] }))
+      .filter((x) => x.line > 0 && x.have < x.line)
+      .sort((a, b) => a.have / a.line - b.have / b.line)
+      .map((x) => x.key);
+  }
+
+  /** The room that makes a resource: "Canteen" for food. */
+  private makerName(key: MeterKey): string {
+    const maker = this.game.content.roomList
+      .filter((d) => d.buildable && d.produces?.resource === key && d.minFloor === undefined && !d.requiresResearch)
+      .sort((a, b) => a.unlockPop - b.unlockPop)[0];
+    return maker?.name ?? 'producer';
+  }
+
+  /** What to do about a shortage. */
+  private shortageFix(key: MeterKey): string {
+    return `${key === 'power' ? 'Rooms are shutting down: s' : 'S'}taff or build a ${this.makerName(key)}.`;
+  }
+
+  /** Top-priority hint: "Food shortage: staff or build a Canteen". */
+  private shortageHint(): string | null {
+    const short = this.shortages();
+    const key = short[0];
+    if (!key) return null;
+    const more = short.length > 1 ? ` (and ${short.slice(1).map((k) => METER_NAME[k].toLowerCase()).join(' and ')})` : '';
+    const icon = { power: '⚡', food: '🥫', water: '💧' }[key];
+    const what = key === 'power' ? 'rooms are shutting down. Staff' : 'staff';
+    return `${icon} ${METER_NAME[key]} shortage${more}: ${what} or build a ${this.makerName(key)}`;
   }
 
   private renderHint(): void {
@@ -421,7 +476,10 @@ export class UI {
     let text = '';
     const waiting = state.residents.filter((r) => r.waiting).length;
     const raid = state.incidents.find((i) => i.type === 'rustmen');
-    if (this.view.buildMode) {
+    const shortage = this.shortageHint();
+    if (shortage) {
+      text = shortage;
+    } else if (this.view.buildMode) {
       const def = this.game.content.rooms[this.view.buildMode];
       text = `Tap a green slot to build ${def?.name ?? ''} (${buildCost(state, this.game.content, this.view.buildMode)} scrip)`;
     } else if (this.equipFor) {
@@ -441,9 +499,14 @@ export class UI {
       text = 'Drag idle residents into rooms to put them to work';
     }
     // On phones an open panel covers the bottom of the screen; the hint would sit on top of it.
-    if (this.panel && (window.innerWidth < 640 || this.panel === 'legacy' || this.panel === 'research')) text = '';
+    // A sheet collapsed to its bar leaves room above it, but the bar already says what to do.
+    const phone = window.innerWidth < 640;
+    const bar = this.sheetCollapsed();
+    if (this.panel && (phone ? !bar || !shortage : this.panel === 'legacy' || this.panel === 'research')) text = '';
     this.hint.style.display = text ? '' : 'none';
-    this.hint.textContent = text;
+    this.hint.classList.toggle('warn', !!shortage);
+    this.hint.classList.toggle('raised', bar);
+    if (this.hint.textContent !== text) this.hint.textContent = text;
   }
 
   // ---------------------------------------------------------------- toolbar
@@ -459,11 +522,13 @@ export class UI {
     const key = `${this.panel}|${crates}|${state.items.length}|${homeOrFallen}|${window.innerWidth < 640}|${office}|${questNeed}|${legacyNeed}|${research}`;
     if (key === this.lastToolbarKey) return;
     this.lastToolbarKey = key;
-    const btn = (label: string, kind: PanelKind, extra = '', badge?: number) =>
+    const btn = (label: string, kind: PanelKind, extra = '', badge?: number, title?: string) =>
       h(
         'button',
         {
           class: `${this.panel === kind ? 'active' : ''} ${extra}`,
+          title,
+          'aria-label': title,
           onclick: () => {
             if (this.panel === kind) this.closePanel();
             else this.openPanel(kind);
@@ -472,25 +537,28 @@ export class UI {
         label,
         badge ? h('span', { class: 'badge' }, badge) : null,
       );
-    // Phones get short labels so all eight buttons fit at 390 px.
+    // Phones get short labels and icons so every button fits at 390 px; Goals moves into the ☰ menu.
     const phone = window.innerWidth < 640;
     this.toolbar.replaceChildren(
       btn('Build', 'build', 'primary'),
       btn(phone ? 'People' : 'Residents', 'residents'),
       btn(phone ? 'Items' : 'Storage', 'storage'),
-      btn('Crates', 'crates', '', crates),
-      btn(phone ? '🧭' : 'Explore', 'explore', '', homeOrFallen),
-      ...(office ? [btn('Quests', 'quests', '', questNeed)] : []),
-      ...(research >= 0 ? [btn(phone ? '🔬' : 'Research', 'research', 'research-btn', research)] : []),
-      btn(phone ? '◆' : 'Legacy', 'legacy', 'legacy-btn', legacyNeed),
-      btn(phone ? '🏆' : 'Goals', 'achievements'),
-      btn('☰', 'menu'),
+      btn(phone ? '📦' : 'Crates', 'crates', phone ? 'icon' : '', crates, 'Supply Crates'),
+      btn(phone ? '🧭' : 'Explore', 'explore', phone ? 'icon' : '', homeOrFallen, 'Explore the Glarelands'),
+      ...(office ? [btn(phone ? '⚔' : 'Quests', 'quests', phone ? 'icon' : '', questNeed, 'Quests')] : []),
+      ...(research >= 0 ? [btn(phone ? '🔬' : 'Research', 'research', `research-btn${phone ? ' icon' : ''}`, research, 'Research')] : []),
+      btn(phone ? '◆' : 'Legacy', 'legacy', `legacy-btn${phone ? ' icon' : ''}`, legacyNeed, 'Legacy'),
+      ...(phone ? [] : [btn('Goals', 'achievements')]),
+      btn('☰', 'menu', 'icon', undefined, 'Menu'),
     );
   }
 
   // ---------------------------------------------------------------- panels
 
   openPanel(kind: PanelKind): void {
+    if (kind !== this.panel) this.sheetOpen = false;
+    // A fresh look at the list: no filter or search left over from last time.
+    if (kind === 'residents' && this.panel !== 'residents') this.qol.people.opened();
     if (kind !== 'build') this.setBuildMode(null);
     if (kind !== 'residents') {
       this.residentId = null;
@@ -531,8 +599,152 @@ export class UI {
   }
 
   private setBuildMode(type: string | null): void {
+    if (type !== this.view.buildMode) {
+      this.builtInMode = 0;
+      this.sheetOpen = false;
+    }
     this.view.buildMode = type;
     this.view.rebuildGhosts();
+  }
+
+  private isPhone(): boolean {
+    return window.innerWidth < 640;
+  }
+
+  /** The resident picked for tap-a-room assignment, if they can take a job right now. */
+  private assignee(): Resident | undefined {
+    if (this.panel !== 'residents' || this.residentId === null || this.qol.people.bulk) return undefined;
+    const { state } = this.game;
+    const r = state.residents.find((x) => x.id === this.residentId);
+    return r && !r.dead && !r.waiting && !isAway(r) && !isChild(state, r) ? r : undefined;
+  }
+
+  /** Phones: which sheet can shrink to a bar so the homestead stays usable. */
+  private collapsible(): 'build' | 'assign' | null {
+    if (!this.isPhone()) return null;
+    if (this.panel === 'build' && this.view.buildMode) return 'build';
+    if (this.assignee()) return 'assign';
+    return null;
+  }
+
+  private sheetCollapsed(): boolean {
+    return this.collapsible() !== null && !this.sheetOpen;
+  }
+
+  /** Screen space the DOM covers (HUD, toolbar, the open panel), so the camera can pan things out from under it. */
+  private viewInsets(): { top: number; right: number; bottom: number } {
+    const W = window.innerWidth;
+    const H = window.innerHeight;
+    const top = this.hud.getBoundingClientRect().bottom;
+    let bottom = H - this.toolbar.getBoundingClientRect().top;
+    let right = 0;
+    const p = this.panelHost.firstElementChild?.getBoundingClientRect();
+    if (p && p.width > 0) {
+      // Docked on the right (desktop) or a sheet along the bottom (phones). Wide panels cover it all: ignore.
+      if (p.left > W * 0.4) right = W - p.left;
+      else if (p.top > H * 0.3) bottom = Math.max(bottom, H - p.top);
+    }
+    return { top, right, bottom };
+  }
+
+  /** Just picked a room to build: bring a green slot into view if none is showing. */
+  private revealGhosts(): void {
+    this.view.insets = this.viewInsets();
+    this.view.revealGhosts();
+  }
+
+  /** Why a room type has nowhere to go right now. */
+  private noSlotReason(type: string): string {
+    const { state, content } = this.game;
+    const def = content.rooms[type];
+    if (!def) return 'No free spot.';
+    const built = state.rooms.filter((r) => r.type === type).length;
+    if (def.maxBuilt !== undefined && built >= def.maxBuilt) return `You already have ${def.maxBuilt === 1 ? 'one' : def.maxBuilt}: only ${def.maxBuilt} per homestead.`;
+    const deep = def.minFloor !== undefined ? ` on floor ${def.minFloor + 1} or deeper` : '';
+    if (def.category === 'elevator') return `No free spot: an elevator needs an empty cell above or below another elevator, or beside a room${deep}.`;
+    return `No free spot: needs a ${def.cells}-cell gap next to an elevator or room${deep}. Build an elevator down to open up space.`;
+  }
+
+  /** Phones: the sheet shrunk to a bar with what to do and a way out. */
+  private sheetBar(kind: 'build' | 'assign'): HTMLElement {
+    const { state, content } = this.game;
+    const expand = h('button', { class: 'close', onclick: () => ((this.sheetOpen = true), this.renderPanel(true)) }, kind === 'build' ? '▴ Rooms' : '▴ Card');
+    if (kind === 'build') {
+      const type = this.view.buildMode ?? '';
+      const def = content.rooms[type];
+      const cost = buildCost(state, content, type);
+      const slots = this.view.ghostCount;
+      const done = this.builtInMode > 0;
+      return h(
+        'div',
+        { class: 'panel sheet-bar' },
+        h(
+          'div',
+          { class: 'sb-text' },
+          h('b', {}, `Build ${def?.name ?? type}`, def?.stat ? h('span', { class: 'stat-badge' }, STAT_LABEL[def.stat]) : null),
+          h(
+            'span',
+            { class: `small${slots && state.scrip >= cost ? ' muted' : ' short'}` },
+            !slots ? this.noSlotReason(type) : state.scrip < cost ? `Needs ${fmt(cost)} scrip (you have ${fmt(state.scrip)})` : `Tap a green slot · ${fmt(cost)} scrip${done ? ` · ${this.builtInMode} built` : ''}`,
+          ),
+        ),
+        h(
+          'div',
+          { class: 'sb-actions' },
+          expand,
+          h(
+            'button',
+            {
+              class: done ? 'primary' : '',
+              onclick: () => {
+                this.setBuildMode(null);
+                this.closePanel();
+              },
+            },
+            done ? 'Done' : 'Cancel',
+          ),
+        ),
+      );
+    }
+    const r = this.assignee();
+    const top = r ? topStats(effectiveStats(content, r)) : [];
+    return h(
+      'div',
+      { class: 'panel sheet-bar' },
+      h(
+        'div',
+        { class: 'sb-text' },
+        h('b', {}, r ? `${r.firstName} ${r.lastName}` : 'Assign'),
+        h('span', { class: 'muted small' }, `Tap a room to assign. Green rooms use ${top.map((k) => STAT_NAME[k]).join(' or ')}.`),
+      ),
+      h(
+        'div',
+        { class: 'sb-actions' },
+        expand,
+        h(
+          'button',
+          {
+            class: 'primary',
+            onclick: () => {
+              this.residentId = null;
+              this.view.selectedResidentId = null;
+              this.closePanel();
+            },
+          },
+          'Done',
+        ),
+      ),
+    );
+  }
+
+  /** The panel's ✕: while placing a room on a phone it only shrinks the sheet; Cancel is on the bar. */
+  private headerClose(): void {
+    if (this.collapsible() === 'build') {
+      this.sheetOpen = false;
+      this.renderPanel(true);
+      return;
+    }
+    this.closePanel();
   }
 
   private renderPanel(force = false): void {
@@ -540,6 +752,17 @@ export class UI {
     this.lastPanelRender = performance.now();
     if (!this.panel) {
       this.panelHost.replaceChildren();
+      return;
+    }
+    const bar = this.sheetCollapsed() ? this.collapsible() : null;
+    if (bar) {
+      const next = this.sheetBar(bar);
+      const cur = this.panelHost.firstElementChild;
+      const barKey = `bar|${bar}|${this.view.buildMode}|${this.residentId}`;
+      if (cur && this.panelKey === barKey) {
+        if (cur.outerHTML !== next.outerHTML) morph(cur, next);
+      } else this.panelHost.replaceChildren(next);
+      this.panelKey = barKey;
       return;
     }
     const titles: Record<Exclude<PanelKind, null>, string> = {
@@ -611,7 +834,17 @@ export class UI {
     const panel = h(
       'div',
       { class: `panel${this.panel === 'legacy' ? ' panel-wide legacy-panel' : this.panel === 'research' ? ' panel-wide research-panel' : this.panel === 'deep' ? ' deep-panel' : ''}` },
-      h('header', {}, h('h2', {}, title), h('button', { class: 'close', onclick: () => this.closePanel() }, '✕')),
+      h(
+        'header',
+        {},
+        h('h2', {}, title),
+        h(
+          'span',
+          { class: 'header-actions' },
+          this.collapsible() ? h('button', { class: 'close', title: 'Show the homestead', 'aria-label': 'Shrink the sheet', onclick: () => ((this.sheetOpen = false), this.renderPanel(true)) }, '▾') : null,
+          h('button', { class: 'close', 'aria-label': 'Close', onclick: () => this.headerClose() }, '✕'),
+        ),
+      ),
       body,
     );
     // Only swap the DOM when something visible changed, so elements are not
@@ -636,35 +869,48 @@ export class UI {
         const cost = buildCost(state, content, def.id);
         const selected = this.view.buildMode === def.id;
         const info = buildInfo(state, content, def);
-        const what = info.what ?? (def.produces
-          ? `Makes ${def.produces.resource} · uses ${def.stat ? STAT_NAME[def.stat] : '—'}`
-          : def.storage?.resource === 'population'
-            ? `Houses residents · families start here`
-            : def.category === 'elevator'
-              ? 'Connects floors'
-              : def.category === 'radio'
-                ? 'Broadcasts to attract new residents · uses Charm'
-                : def.storage
-                  ? `Stores ${def.storage.resource}`
-                  : '');
+        const what =
+          ROOM_BLURB[def.id] ??
+          info.what ??
+          (def.produces
+            ? `Makes ${def.produces.resource} · uses ${def.stat ? STAT_NAME[def.stat] : '—'}`
+            : def.storage?.resource === 'population'
+              ? `Houses residents · families start here`
+              : def.category === 'elevator'
+                ? 'Connects floors'
+                : def.category === 'radio'
+                  ? 'Broadcasts to attract new residents · uses Charm'
+                  : def.storage
+                    ? `Stores ${def.storage.resource}`
+                    : '');
+        const size = def.category === 'elevator' ? '' : def.maxSegments > 1 ? '' : ` · ${def.cells} cells, doesn't merge`;
+        const noSlot = selected && this.view.ghostCount === 0;
         return h(
           'div',
           {
-            class: `list-item${selected ? ' selected' : ''}${unlocked ? '' : ' locked'}`,
+            class: `list-item build-item${selected ? ' selected' : ''}${unlocked ? '' : ' locked'}`,
             onclick: () => {
               if (!unlocked) return;
               this.setBuildMode(selected ? null : def.id);
               this.renderPanel(true);
+              if (!selected) this.revealGhosts();
             },
           },
-          h('div', { class: 'row' }, h('b', {}, def.name), h('span', {}, unlocked ? `${fmt(cost)} scrip` : (info.lock ?? `🔒 pop ${def.unlockPop}`))),
-          h('div', { class: 'muted' }, what),
+          h(
+            'div',
+            { class: 'row' },
+            h('b', {}, def.name, def.stat ? h('span', { class: 'stat-badge', title: `Uses ${STAT_NAME[def.stat]}` }, STAT_LABEL[def.stat]) : null),
+            h('span', {}, unlocked ? `${fmt(cost)} scrip` : (info.lock ?? `🔒 pop ${def.unlockPop}`)),
+          ),
+          h('div', { class: 'muted' }, `${what}${size}`),
+          noSlot ? h('div', { class: 'small short', style: 'margin-top:4px' }, this.noSlotReason(def.id)) : null,
+          selected && !noSlot ? h('div', { class: 'small ok-text', style: 'margin-top:4px' }, `Tap a green slot in the homestead (${this.view.ghostCount} free)`) : null,
         );
       });
     return h(
       'div',
       { class: 'body' },
-      h('p', { class: 'muted' }, 'Pick a room, then tap a green slot. Rooms of the same type and level merge up to 3 wide, which is more efficient than separate rooms.'),
+      h('p', { class: 'muted' }, 'Pick a room, then tap a green slot. Rooms of the same type and level merge up to 3 wide, which is more efficient than separate rooms. The letters show which stat a room uses.'),
       ...items,
     );
   }
@@ -676,7 +922,8 @@ export class UI {
     const cap = roomCapacity(content, room);
     const parts: (HTMLElement | string)[] = [];
 
-    parts.push(h('div', { class: 'row muted' }, h('span', {}, `Level ${room.level}/${maxLevel(def)} · ${room.segments} wide`), h('span', {}, def.stat ? `Needs ${STAT_NAME[def.stat]}` : '')));
+    const width = def.category === 'elevator' ? '' : def.maxSegments > 1 ? ` · ${room.segments} of ${def.maxSegments} wide` : ` · ${def.cells} cells, doesn't merge`;
+    parts.push(h('div', { class: 'row muted' }, h('span', {}, `Level ${room.level}/${maxLevel(def)}${width}`), h('span', {}, def.stat ? `Needs ${STAT_NAME[def.stat]}` : '')));
     if (!room.powered) parts.push(h('div', { class: 'row', style: 'color:var(--danger)' }, '⚡ No power: this room is shut down'));
     const inc = state.incidents.find((i) => i.roomId === room.id);
     if (inc) parts.push(h('div', { class: 'row', style: 'color:var(--danger)' }, `${INCIDENT_TOAST[inc.type] ?? 'Incident!'}`));
@@ -684,11 +931,11 @@ export class UI {
     if (def.produces) {
       const secs = cycleSeconds(state, content, room);
       const out = tableValue(def.produces.output, room.level, room.segments);
-      parts.push(h('div', { class: 'row' }, `Makes ${out} ${def.produces.resource} per batch`, h('b', {}, room.ready ? 'READY' : duration(secs))));
+      parts.push(h('div', { class: 'row' }, `Makes ${amount(out)} ${def.produces.resource} per batch`, h('b', {}, room.ready ? 'READY' : duration(secs))));
     }
     if (def.storage) {
       const amt = tableValue(def.storage.amount, room.level, room.segments);
-      parts.push(h('div', { class: 'row muted' }, `Adds ${amt} ${def.storage.resource === 'population' ? 'beds' : `${def.storage.resource} storage`}`));
+      parts.push(h('div', { class: 'row muted' }, `Adds ${amount(amt)} ${def.storage.resource === 'population' ? 'beds' : `${def.storage.resource} storage`}`));
     }
     if (def.category === 'radio') {
       const interval = radioInterval(state, content, room);
@@ -1347,16 +1594,24 @@ export class UI {
     switch (card.kind) {
       case 'scrip':
         icon = '💰';
-        title = `${card.amount} scrip`;
+        title = `${fmt(card.amount)} scrip`;
         rarity = card.amount >= 500 ? 'rare' : 'common';
         break;
-      case 'resource':
+      case 'resource': {
         icon = { power: '⚡', food: '🥫', water: '💧', medpatch: '✚', purge: '☢' }[card.resource];
-        title = `${card.amount} ${card.resource === 'medpatch' ? 'Med-Patch' : card.resource === 'purge' ? 'Purge' : card.resource}`;
+        const n = Math.round(card.amount);
+        title = `+${fmt(n)} ${card.resource === 'medpatch' ? (n === 1 ? 'Med-Patch' : 'Med-Patches') : card.resource === 'purge' ? 'Purge' : card.resource}`;
+        if (card.refund) {
+          // What didn't fit in storage was sold on.
+          const per = content.balance.crates.overflowScripPerUnit || 1;
+          const sold = Math.max(1, Math.round(card.refund / per));
+          sub = `${fmt(sold)} didn't fit: sold for ${fmt(card.refund)} scrip`;
+        }
         break;
+      }
       case 'tokens':
         icon = '🎟';
-        title = `${card.amount} crate tokens`;
+        title = `${fmt(card.amount)} crate tokens`;
         break;
       case 'item': {
         const def = content.items[card.defId];
@@ -1443,6 +1698,8 @@ export class UI {
     return h(
       'div',
       { class: 'body' },
+      // Phones keep the toolbar short: Goals lives here.
+      this.isPhone() ? h('div', { class: 'row', style: 'justify-content:flex-start;margin-top:0' }, h('button', { onclick: () => this.openPanel('achievements') }, '🏆 Goals')) : null,
       h('p', { class: 'muted', style: 'margin-top:0' }, 'The game saves automatically in this browser. Keep copies in the slots below, or export them to a file.'),
       this.qol.saves.section(),
       h(
@@ -1479,7 +1736,8 @@ export class UI {
     const out = state.expeditions.length;
     const regionCards = regions.map((rg) => {
       const open = state.regionsUnlocked.includes(rg.id);
-      const here = state.expeditions.filter((e) => e.regionId === rg.id).length;
+      // Only those still out there: a returned explorer is home, waiting to be collected.
+      const here = state.expeditions.filter((e) => e.regionId === rg.id && (e.status === 'exploring' || e.status === 'returning')).length;
       return h(
         'div',
         { class: `list-item region-card${open ? '' : ' locked'}` },
@@ -1644,15 +1902,33 @@ export class UI {
 
   private showExploreModal(residentId: number | null): void {
     const { state, content } = this.game;
-    const first = residentId ?? state.residents.find((r) => !r.waiting && canExplore(state, content, r) === null)?.id ?? null;
+    // Default to the best-armed healthy resident; the injured only if nobody else can go.
+    const ranked = this.explorerCandidates();
+    const healthy = ranked.find((r) => r.hp >= effectiveMaxHp(r) * 0.5);
+    const first = residentId ?? (healthy ?? ranked[0])?.id ?? null;
     const open = this.regions().filter((rg) => state.regionsUnlocked.includes(rg.id));
+    // Half the stock by default, so there is some left at home.
+    const half = (k: 'medpatch' | 'purge') => Math.min(this.supplyMax(k), Math.floor(Math.floor(state.resources[k]) / 2));
     this.exploreDraft = {
       residentId: first,
       regionId: open[0]?.id ?? state.regionsUnlocked[0] ?? 'dustbowl',
-      medpatch: Math.min(5, this.supplyMax('medpatch')),
-      purge: Math.min(5, this.supplyMax('purge')),
+      medpatch: half('medpatch'),
+      purge: half('purge'),
     };
     this.renderExploreModal(residentId === null);
+  }
+
+  /** Who can explore now, best-armed and healthiest first. */
+  private explorerCandidates(): Resident[] {
+    const { state, content } = this.game;
+    const dmg = (r: Resident) => {
+      const w = r.weapon ? content.weapons[r.weapon] : undefined;
+      return w ? (w.min + w.max) / 2 : 0;
+    };
+    const healthy = (r: Resident) => (r.hp >= effectiveMaxHp(r) * 0.5 ? 1 : 0);
+    return state.residents
+      .filter((r) => !r.waiting && canExplore(state, content, r) === null)
+      .sort((a, b) => healthy(b) - healthy(a) || dmg(b) - dmg(a) || b.hp - a.hp || b.level - a.level || a.id - b.id);
   }
 
   private supplyMax(kind: 'medpatch' | 'purge'): number {
@@ -1673,7 +1949,7 @@ export class UI {
 
     let picker: HTMLElement | null = null;
     if (pickResident) {
-      const eligible = state.residents.filter((r) => !r.waiting && canExplore(state, content, r) === null).sort((a, b) => b.level - a.level || a.id - b.id);
+      const eligible = this.explorerCandidates();
       const select = h(
         'select',
         {
@@ -1683,7 +1959,11 @@ export class UI {
             again();
           },
         },
-        ...eligible.map((r) => h('option', { value: r.id, selected: r.id === d.residentId }, `${r.firstName} ${r.lastName} · L${r.level} · HP ${Math.ceil(r.hp)}`)),
+        ...eligible.map((r) => {
+          const w = r.weapon ? content.weapons[r.weapon] : undefined;
+          const hurt = r.hp < effectiveMaxHp(r) * 0.5 ? ' · hurt' : '';
+          return h('option', { value: r.id, selected: r.id === d.residentId }, `${r.firstName} ${r.lastName} · L${r.level} · HP ${Math.ceil(r.hp)} · ${w ? `${w.min}–${w.max} dmg` : 'unarmed'}${hurt}`);
+        }),
       );
       picker = h('label', { class: 'field' }, h('span', { class: 'muted' }, 'Explorer'), select);
     }
@@ -1730,7 +2010,7 @@ export class UI {
       return h(
         'div',
         { class: 'row stepper-row' },
-        h('span', {}, label, h('span', { class: 'muted small' }, ` · ${Math.floor(state.resources[kind])} in stock`)),
+        h('span', {}, label, h('span', { class: 'muted small' }, ` · ${Math.floor(state.resources[kind])} in stock, ${Math.max(0, Math.floor(state.resources[kind]) - d[kind])} stay home`)),
         h(
           'span',
           { class: 'stepper' },
@@ -1939,7 +2219,7 @@ export class UI {
       switch (ev.type) {
         case 'achievementUnlocked': {
           const a = content.achievements.find((x) => x.id === ev.achievementId);
-          if (a) this.toast(`🏆 ${a.name}: ${a.description}`, 'gold');
+          if (a) this.toast(`🏆 ${a.name}: ${a.description}`, 'gold', { fold: 'achievement', low: true });
           break;
         }
         case 'roomUnlocked': {
@@ -1970,13 +2250,13 @@ export class UI {
           this.toast(`👶 ${this.name(ev.motherId)} had a baby: welcome, ${this.name(ev.childId)}!`, 'gold');
           break;
         case 'grewUp':
-          this.toast(`${this.name(ev.residentId)} is all grown up and ready to work.`, 'good');
+          this.toast(`${this.name(ev.residentId)} is all grown up and ready to work.`, 'good', { fold: true, low: true });
           break;
         case 'residentArrived':
-          if (ev.source !== 'crate') this.toast(ev.source === 'radio' ? `📻 ${this.name(ev.residentId)} heard your broadcast and is at the door.` : `A stranger, ${this.name(ev.residentId)}, is knocking at the door.`);
+          if (ev.source !== 'crate') this.toast(ev.source === 'radio' ? `📻 ${this.name(ev.residentId)} heard your broadcast and is at the door.` : `A stranger, ${this.name(ev.residentId)}, is knocking at the door.`, undefined, { fold: 'arrival' });
           break;
         case 'crateEarned':
-          this.toast(`📦 ${TIER_NAME[ev.tier]} earned (${ev.source})`, ev.tier === 'standard' ? 'good' : 'gold');
+          this.toast(`📦 ${TIER_NAME[ev.tier]} earned (${ev.source})`, ev.tier === 'standard' ? 'good' : 'gold', { fold: `crate-${ev.tier}`, low: true });
           break;
         case 'storageFull': {
           const d = content.items[ev.defId];
@@ -2017,7 +2297,7 @@ export class UI {
         }
         case 'fragmentFound': {
           const d = content.items[ev.defId];
-          this.toast(`📜 Blueprint fragment: ${d?.name ?? ev.defId} (${ev.have}/${ev.need})`, 'good');
+          this.toast(`📜 Blueprint fragment: ${d?.name ?? ev.defId} (${ev.have}/${ev.need})`, 'good', { fold: 'fragment' });
           break;
         }
         case 'craftStarted': {
@@ -2073,7 +2353,7 @@ export class UI {
     }
     for (const [id, { entry, n }] of latest) {
       const tone = entry.kind === 'danger' || entry.kind === 'status' ? 'bad' : entry.kind === 'levelup' || entry.kind === 'find' ? 'gold' : undefined;
-      this.toast(`🧭 ${this.explorerName(id)}: ${entry.text}${n > 1 ? ` (+${n - 1} more)` : ''}`, tone);
+      this.toast(`🧭 ${this.explorerName(id)}: ${entry.text}${n > 1 ? ` (+${n - 1} more)` : ''}`, tone, { low: entry.kind === 'levelup' || entry.kind === 'musing' });
     }
   }
 
@@ -2094,32 +2374,8 @@ export class UI {
     this.panelKey = '';
   }
 
-  /** Open toasts by their "shape" (text without names and numbers), so bursts fold into one line. */
-  private toastGroups = new Map<string, { el: HTMLElement; first: string; extra: number; timer: ReturnType<typeof setTimeout> }>();
-
-  toast(text: string, kind?: 'good' | 'bad' | 'gold'): void {
-    // "Dot is all grown up…" and "Clyde is all grown up…" share a shape.
-    const shape = `${kind ?? ''}|${text.replace(/^[A-Z][\w'’-]*( [A-Z][\w'’-]*)?\s/, '').replace(/[\d,.]+/g, '#')}`;
-    const open = this.toastGroups.get(shape);
-    const life = 4200;
-    if (open && open.el.isConnected) {
-      open.extra++;
-      open.el.textContent = `${open.first} (+${open.extra} more)`;
-      clearTimeout(open.timer);
-      open.timer = setTimeout(() => this.dropToast(shape), life);
-      this.toasts.prepend(open.el);
-      return;
-    }
-    const el = h('div', { class: `toast ${kind ?? ''}` }, text);
-    this.toasts.prepend(el);
-    this.toastGroups.set(shape, { el, first: text, extra: 0, timer: setTimeout(() => this.dropToast(shape), life) });
-    // A short stack: the notification centre keeps the full history.
-    while (this.toasts.children.length > 3) this.toasts.lastElementChild?.remove();
-  }
-
-  private dropToast(shape: string): void {
-    this.toastGroups.get(shape)?.el.remove();
-    this.toastGroups.delete(shape);
+  toast(text: string, kind?: ToastKind, opts?: ToastOptions): void {
+    this.toastStack.show(text, kind, opts);
   }
 
   private modal(title: string, ...content: (HTMLElement | string)[]): void {
@@ -2138,7 +2394,15 @@ export class UI {
     this.modal(
       `Welcome, Warden`,
       h('p', {}, `HALCY here! Congratulations on your appointment as Warden of Halcyon Homestead ${n}. Your founding residents are waiting at the door, and Halcyon has sent a few Supply Crates to get you started.`),
-      h('p', { class: 'muted' }, '1. Tap the door to let them in.  2. Drag residents into rooms that match their best stat (highlighted in green).  3. Tap rooms to collect power, food and water.  4. Open your Supply Crates and arm your residents.  5. Build more rooms to grow.'),
+      h(
+        'ol',
+        { class: 'welcome-steps muted' },
+        h('li', {}, 'Tap the door to let them in.'),
+        h('li', {}, 'Drag residents into rooms that match their best stat. While you drag or pick someone, those rooms light up green.'),
+        h('li', {}, 'Tap rooms to collect power, food and water.'),
+        h('li', {}, 'Open your Supply Crates and arm your residents.'),
+        h('li', {}, 'Build more rooms to grow.'),
+      ),
     );
   }
 
@@ -2177,6 +2441,12 @@ export class UI {
   }
 }
 
+/** A resource amount for display: whole numbers, or one decimal below 1 so a trickle isn't shown as 0. */
+function amount(n: number): string {
+  if (n > 0 && n < 1) return n.toFixed(1);
+  return fmt(Math.round(n));
+}
+
 function bonusText(bonus: Partial<Record<StatKey, number>>): string {
   return Object.entries(bonus)
     .map(([k, v]) => `+${v} ${STAT_NAME[k as StatKey]}`)
@@ -2202,7 +2472,7 @@ function dangerPips(danger: number): HTMLElement {
 function scrapText(content: Content, salvage: Record<string, number>): string {
   return Object.entries(salvage)
     .filter(([, n]) => n > 0)
-    .map(([id, n]) => `${Math.round(n * 10) / 10} ${content.salvage[id]?.name ?? id}`)
+    .map(([id, n]) => `${n < 1 ? 'maybe 1' : Math.round(n)} ${content.salvage[id]?.name ?? id}`)
     .join(', ');
 }
 

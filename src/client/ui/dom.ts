@@ -63,6 +63,8 @@ export function morph(target: Node, source: Node): void {
   for (const a of [...s.attributes]) if (t.getAttribute(a.name) !== a.value) t.setAttribute(a.name, a.value);
   // Form state lives in properties, not attributes.
   if (t instanceof HTMLButtonElement && s instanceof HTMLButtonElement) t.disabled = s.disabled;
+  // A field the player isn't typing in follows the new value (a "Clear filters" empties the search box).
+  if (t instanceof HTMLInputElement && s instanceof HTMLInputElement && t.value !== s.value && document.activeElement !== t) t.value = s.value;
   const oldOn = listeners.get(t) ?? {};
   const newOn = listeners.get(s) ?? {};
   for (const [type, fn] of Object.entries(oldOn)) if (newOn[type] !== fn) t.removeEventListener(type, fn);

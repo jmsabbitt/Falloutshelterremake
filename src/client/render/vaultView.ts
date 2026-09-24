@@ -24,6 +24,11 @@ import {
   stratumOf,
   totalFloors,
   deepContent,
+  effectiveStats,
+  residentsInRoom,
+  roomCapacity,
+  topStats,
+  type StatKey,
 } from '../../sim';
 import type { Game } from '../game';
 import {
@@ -137,6 +142,15 @@ export class VaultView {
   buildMode: string | null = null;
   selectedRoomId: number | null = null;
   selectedResidentId: number | null = null;
+  /** Resident picked for tap-a-room assignment: rooms using their best stats light up green. */
+  fitResidentId: number | null = null;
+  /** Screen space the DOM covers (HUD, toolbar, open panel), so the camera can pan rooms out from under it. */
+  insets = { top: 0, right: 0, bottom: 0 };
+  /** Where the room picked in build mode can go right now. */
+  private ghostSlots: { floor: number; x: number }[] = [];
+  /** Stat badges on rooms while someone is being assigned. */
+  private fitLayer = new Container();
+  private fitKey = '';
   /** True while a full-screen scene (the quest screen) sits on top: ignore input. */
   suspended = false;
 
@@ -156,7 +170,8 @@ export class VaultView {
     private game: Game,
     private cb: ViewCallbacks,
   ) {
-    this.world.addChild(this.bg, this.statics, this.overlay, this.deep.root, this.ghostLayer, this.residentLayer, this.walkerLayer, this.fxLayer);
+    this.world.addChild(this.bg, this.statics, this.overlay, this.fitLayer, this.deep.root, this.ghostLayer, this.residentLayer, this.walkerLayer, this.fxLayer);
+    this.fitLayer.eventMode = 'none';
     app.stage.addChild(this.world);
     this.drawBackground();
     this.installInput();
@@ -250,14 +265,24 @@ export class VaultView {
     this.clampCamera();
   }
 
+  /** The DOM insets, dropped when they would leave too little of the homestead to look at. */
+  private usableInsets(): { top: number; right: number; bottom: number } {
+    const sw = this.app.screen.width;
+    const sh = this.app.screen.height;
+    const { top, right, bottom } = this.insets;
+    return { top, right: sw - right < 240 ? 0 : right, bottom: sh - top - bottom < 160 ? 0 : bottom };
+  }
+
   private clampCamera(): void {
     const { w, h } = this.worldSize();
     const m = MARGIN_CELLS * CELL * this.zoom;
     const sw = this.app.screen.width;
     const sh = this.app.screen.height;
-    const minX = sw - (w * this.zoom + m);
+    const ins = this.usableInsets();
+    // The far right and the deepest floor can be pulled clear of a docked panel or a sheet.
+    const minX = sw - ins.right - (w * this.zoom + m);
     const maxX = m;
-    const minY = sh - (h * this.zoom + 160);
+    const minY = sh - (h * this.zoom + Math.max(160, ins.bottom + 40));
     const maxY = 80;
     this.world.x = minX > maxX ? (minX + maxX) / 2 : Math.min(maxX, Math.max(minX, this.world.x));
     this.world.y = Math.min(maxY, Math.max(minY, this.world.y));
@@ -348,13 +373,62 @@ export class VaultView {
     this.rebuildGhosts();
   }
 
+  /** How many green slots build mode is showing. */
+  get ghostCount(): number {
+    return this.buildMode ? this.ghostSlots.length : 0;
+  }
+
+  /**
+   * Build mode just started: if no green slot is in the part of the screen the
+   * DOM leaves free, pan to the nearest one. Returns how many slots there are.
+   */
+  revealGhosts(): number {
+    const type = this.buildMode;
+    const def = type ? this.game.content.rooms[type] : undefined;
+    const slots = this.ghostSlots;
+    if (!def || !slots.length) return slots.length;
+    const z = this.zoom;
+    const ins = this.usableInsets();
+    const area = { x0: 0, x1: this.app.screen.width - ins.right, y0: ins.top, y1: this.app.screen.height - ins.bottom };
+    const rect = (c: { floor: number; x: number }) => ({
+      x: this.world.x + c.x * CELL * z,
+      y: this.world.y + (SURFACE_H + c.floor * FLOOR_H) * z,
+      w: def.cells * CELL * z,
+      h: FLOOR_H * z,
+    });
+    const inView = slots.some((c) => {
+      const r = rect(c);
+      return r.x >= area.x0 - 2 && r.x + r.w <= area.x1 + 2 && r.y >= area.y0 - 2 && r.y + r.h <= area.y1 + 2;
+    });
+    if (inView) return slots.length;
+    const cx = (area.x0 + area.x1) / 2;
+    const cy = (area.y0 + area.y1) / 2;
+    let best: { dx: number; dy: number; d: number } | null = null;
+    for (const c of slots) {
+      const r = rect(c);
+      const dx = cx - (r.x + r.w / 2);
+      const dy = cy - (r.y + r.h / 2);
+      const d = Math.hypot(dx, dy);
+      if (!best || d < best.d) best = { dx, dy, d };
+    }
+    if (best) {
+      this.world.x += best.dx;
+      this.world.y += best.dy;
+      this.clampCamera();
+    }
+    return slots.length;
+  }
+
   rebuildGhosts(): void {
     this.ghostLayer.removeChildren().forEach((c) => c.destroy({ children: true }));
+    this.ghostSlots = [];
     const type = this.buildMode;
     if (!type) return;
     const { content, state } = this.game;
     const def = content.rooms[type];
     if (!def) return;
+    // One-per-homestead rooms (the Command Office) have nowhere to go once built.
+    if (def.maxBuilt !== undefined && state.rooms.filter((r) => r.type === type).length >= def.maxBuilt) return;
     const seen = new Set<string>();
     const candidates: { floor: number; x: number }[] = [];
     const push = (floor: number, x: number) => {
@@ -372,6 +446,7 @@ export class VaultView {
         push(room.floor - 1, room.x);
       }
     }
+    this.ghostSlots = candidates;
     const cost = buildCost(state, content, type);
     const affordable = state.scrip >= cost;
     for (const c of candidates) {
@@ -418,6 +493,7 @@ export class VaultView {
     const vb = this.viewBounds();
     this.cull(vb);
     this.drawOverlay(vb);
+    this.drawFit();
     this.deep.update(state, content, this.time, (room) => this.roomRect(room), vb);
     this.updateResidents(dt);
     this.updateWalkers();
@@ -511,6 +587,55 @@ export class VaultView {
       const hx = (a.x + b.x) / 2;
       const hy = a.root.y - RESIDENT_H - 16 + Math.sin(this.time * 3) * 3;
       drawHeart(g, hx, hy, 7 + Math.sin(this.time * 6) * 1);
+    }
+  }
+
+  /** Who is being assigned right now: the resident being dragged, or the one picked in Residents. */
+  private fitId(): number | null {
+    if (this.gesture.kind === 'drag' && this.gesture.moved && this.gesture.residentId !== undefined) return this.gesture.residentId;
+    return this.fitResidentId;
+  }
+
+  /**
+   * While someone is being assigned: rooms that use one of their best stats get
+   * a green tint and outline, and every room with a stat shows its letters.
+   */
+  private drawFit(): void {
+    const id = this.fitId();
+    const { state, content } = this.game;
+    const res = id === null ? undefined : state.residents.find((r) => r.id === id);
+    const rooms = res ? state.rooms.filter((room) => roomDef(content, room).stat && roomCapacity(content, room) > 0) : [];
+    const top = res ? topStats(effectiveStats(content, res)) : [];
+    const key = res ? `${res.id}|${top.join(',')}|${this.builtLayout}|${rooms.map((room) => `${room.id}:${residentsInRoom(state, room.id).length >= roomCapacity(content, room) ? 1 : 0}`).join(',')}` : '';
+    if (key !== this.fitKey) {
+      this.fitKey = key;
+      this.fitLayer.removeChildren().forEach((c) => c.destroy({ children: true }));
+      for (const room of rooms) {
+        const def = roomDef(content, room);
+        const stat = def.stat as StatKey;
+        const good = top.includes(stat);
+        const full = residentsInRoom(state, room.id).length >= roomCapacity(content, room) && res?.roomId !== room.id;
+        const r = this.roomRect(room);
+        const label = new Text({
+          text: `${STAT_LETTERS[stat]}${full ? ' · FULL' : ''}`,
+          style: { fontFamily: 'Work Sans, sans-serif', fontWeight: '700', fontSize: 13, fill: good ? 0x14100d : 0xf4ecd8 },
+        });
+        const bw = label.width + 12;
+        const bx = r.x + r.w - DEPTH_X - 6 - bw;
+        const by = r.y + DEPTH_Y + 20; // under the room's name
+        const bg = new Graphics().roundRect(bx, by, bw, 20, 6).fill({ color: good ? 0x8fc93a : 0x14100d, alpha: good ? 0.95 : 0.8 });
+        label.position.set(bx + 6, by + 2);
+        this.fitLayer.addChild(bg, label);
+      }
+    }
+    if (!res) return;
+    const g = this.overlay;
+    const pulse = 0.75 + 0.25 * Math.sin(this.time * 4);
+    for (const room of rooms) {
+      if (!top.includes(roomDef(content, room).stat as StatKey)) continue;
+      const r = this.roomRect(room);
+      g.rect(r.x + 2, r.y + 2, r.w - 4, r.h - 4).fill({ color: 0x8fc93a, alpha: 0.13 });
+      g.rect(r.x + 2, r.y + 2, r.w - 4, r.h - 4).stroke({ width: 3, color: 0x8fc93a, alpha: 0.9 * pulse });
     }
   }
 
@@ -886,8 +1011,8 @@ export class VaultView {
         const room = state.rooms.find((r) => r.id === ev.roomId);
         if (!room) continue;
         const r = this.roomRect(room);
-        this.float(`+${ev.amount}`, r.x + r.w / 2, r.y + 30, RESOURCE_COLORS[ev.resource] ?? 0xffffff);
-        if (ev.bonusScrip > 0) this.float(`+${ev.bonusScrip} scrip`, r.x + r.w / 2, r.y + 54, 0xf2a541);
+        this.float(`+${floatAmount(ev.amount)}`, r.x + r.w / 2, r.y + 30, RESOURCE_COLORS[ev.resource] ?? 0xffffff);
+        if (ev.bonusScrip > 0) this.float(`+${Math.round(ev.bonusScrip)} scrip`, r.x + r.w / 2, r.y + 54, 0xf2a541);
       } else if (ev.type === 'residentLeveled') {
         const sp = this.sprites.get(ev.residentId);
         if (sp) this.float(`LEVEL ${ev.level}`, sp.x, sp.root.y - RESIDENT_H - 10, 0xf4ecd8);
@@ -932,6 +1057,14 @@ export class VaultView {
 }
 
 // -------------------------------------------------------------------- art
+
+/** A collected amount as a floater: whole numbers, one decimal for a trickle under 1. */
+function floatAmount(n: number): string {
+  if (n > 0 && n < 1) return n.toFixed(1);
+  return Math.round(n).toLocaleString();
+}
+
+const STAT_LETTERS: Record<StatKey, string> = { brawn: 'BRN', sight: 'SGT', grit: 'GRT', charm: 'CHR', wits: 'WIT', knack: 'KNK', fortune: 'FOR' };
 
 function lerpColor(a: number, b: number, t: number): number {
   const ar = (a >> 16) & 0xff, ag = (a >> 8) & 0xff, ab = a & 0xff;

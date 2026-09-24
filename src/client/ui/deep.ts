@@ -6,6 +6,7 @@
 
 import {
   braced,
+  buildCost,
   canExcavate,
   deepContent,
   digCost,
@@ -31,6 +32,7 @@ import {
 import type { Game } from '../game';
 import type { VaultView } from '../render/vaultView';
 import { duration, fmt, h } from './dom';
+import type { ToastFn } from './toasts';
 
 export type DeepTab = 'dig' | 'journal';
 
@@ -38,7 +40,7 @@ export interface DeepHost {
   game: Game;
   view: VaultView;
   modalHost: HTMLElement;
-  toast(text: string, kind?: 'good' | 'bad' | 'gold'): void;
+  toast: ToastFn;
   openDeep(tab?: DeepTab): void;
   openResearch(): void;
   refreshPanel(): void;
@@ -196,7 +198,7 @@ export class DeepUI {
           h('div', { class: 'muted small stratum-desc' }, next.description),
           h('h3', { class: 'group' }, 'To dig'),
           req(researched, `Research ${researchNode(content, research)?.name ?? research}`, researched ? null : h('button', { class: 'close', onclick: () => this.host.openResearch() }, 'Research')),
-          req(!!shaft, `An elevator on the bottom floor (${bottom + 1})`, shaft ? null : h('button', { class: 'close', onclick: () => this.showFloor(bottom) }, 'Show')),
+          req(!!shaft, `An elevator on the bottom floor (${bottom + 1})`, shaft ? null : h('span', { class: 'req-buttons' }, this.extendButton(), h('button', { class: 'close', onclick: () => this.showFloor(bottom) }, 'Show'))),
           req(state.scrip >= cost, `${fmt(cost)} scrip (you have ${fmt(state.scrip)})`),
           h('div', { class: 'row' }, h('span', {}, `Takes ${duration(secs)}`), h('span', { class: 'muted small' }, `Opens floors ${floors + 1}–${floors + dc.tuning.floorsPerStratum}`)),
           h(
@@ -375,6 +377,38 @@ export class DeepUI {
   }
 
   /** Extra rows for rooms in the Deep, the refinery and the dig shaft. */
+  /** How far the shaft is from the bottom floor, and roughly what the elevators down there cost. */
+  private shaftPlan(): { n: number; cost: number } | null {
+    const { state, content } = this.game;
+    const bottom = totalFloors(state, content) - 1;
+    const deepest = state.rooms.filter((r) => r.type === 'elevator').sort((a, b) => b.floor - a.floor || a.x - b.x)[0];
+    if (!deepest || deepest.floor >= bottom) return null;
+    const n = bottom - deepest.floor;
+    const first = buildCost(state, content, 'elevator');
+    const step = content.rooms.elevator?.cost.perBuilt ?? 0;
+    return { n, cost: first * n + (step * n * (n - 1)) / 2 };
+  }
+
+  /** "Extend shaft (3 elevators, ~900 scrip)": builds elevators straight down as far as scrip allows. */
+  private extendButton(): HTMLElement | null {
+    const plan = this.shaftPlan();
+    if (!plan) return null;
+    return h(
+      'button',
+      {
+        class: 'close',
+        disabled: this.game.state.scrip < buildCost(this.game.state, this.game.content, 'elevator'),
+        title: 'Build elevators straight down from the deepest shaft, as far as your scrip goes',
+        onclick: () => {
+          const res = this.game.run({ type: 'extendShaft' });
+          this.host.toast(res.ok ? `⛏ Shaft extended: ${res.detail ?? 'done'}.` : `Couldn't extend the shaft: ${res.reason}.`, res.ok ? 'good' : 'bad');
+          this.host.refreshPanel();
+        },
+      },
+      `Extend shaft (${plan.n} elevator${plan.n === 1 ? '' : 's'}, ~${fmt(plan.cost)} scrip)`,
+    );
+  }
+
   roomSection(room: Room): HTMLElement[] {
     const { state, content } = this.game;
     const out: HTMLElement[] = [];
@@ -401,6 +435,11 @@ export class DeepUI {
         ),
         h('div', { class: 'muted small' }, 'Mostly steel and circuitry. Upgrading raises the odds of rare and legendary finds. Salvage goes straight to the bin.'),
       );
+    }
+    if (def.category === 'elevator' && this.visible() && room.floor < totalFloors(state, content) - 1) {
+      // The deepest elevator of all: offer to run the shaft on down to the bottom.
+      const deepest = state.rooms.filter((r) => r.type === 'elevator').sort((a, b) => b.floor - a.floor || a.x - b.x)[0];
+      if (deepest?.id === room.id) out.push(h('div', { class: 'row' }, h('span', { class: 'muted small' }, '⛏ The shaft stops here.'), this.extendButton()));
     }
     if (def.category === 'elevator' && room.floor === totalFloors(state, content) - 1 && this.visible()) {
       out.push(

@@ -22,10 +22,11 @@ import {
 import { ask, promptModal } from './confirm';
 import { fmt, h } from './dom';
 import { plural } from './qolText';
+import type { ToastFn } from './toasts';
 
 export interface SavesHost {
   game: Game;
-  toast(text: string, kind?: 'good' | 'bad' | 'gold'): void;
+  toast: ToastFn;
   /** Re-render the menu. */
   refresh(): void;
   /** A different homestead was loaded: close the menu. */
