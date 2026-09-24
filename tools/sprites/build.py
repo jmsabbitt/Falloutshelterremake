@@ -8,8 +8,8 @@ sheet (green-screen background, frames in rows) is:
 
   1. chroma-keyed (green removed, green spill cleaned off the edges)
   2. cut into frames (frames are found automatically; no grid needed)
-  3. aligned: feet on a shared baseline, body centred on the torso, one scale
-     for the whole character so every animation matches
+  3. aligned: feet on a shared baseline, body centred on the torso, and each
+     animation scaled so the character stands the same height in all of them
   4. split into tintable layers (base, skin, hair, suit, trim) by colour, so the
      game can recolour one sheet into any skin tone, hair colour and outfit
   5. written to public/sprites/<id>/<anim>_<layer>.png as horizontal strips,
@@ -98,6 +98,51 @@ def find_frames(rgba: np.ndarray) -> list[np.ndarray]:
     return frames
 
 
+def find_figures(rgba: np.ndarray) -> list[np.ndarray]:
+    """Frames as separate figures (connected shapes), in reading order.
+
+    For sheets where frames nearly touch (a rifle reaching toward the next
+    figure, a fallen pose under a raised arm), so there is no clean gap to
+    split on. Small specks join the nearest figure.
+    """
+    from scipy import ndimage
+
+    mask = rgba[..., 3] > 128
+    labels, n = ndimage.label(mask)
+    boxes = ndimage.find_objects(labels)
+    areas = ndimage.sum(mask, labels, range(1, n + 1))
+    big = [i for i in range(n) if areas[i] >= max(areas) * 0.08]
+    owner = {i: i for i in big}
+    for i in range(n):
+        # Dust (or a sliver left by "crop") is dropped; larger bits join a figure.
+        if i in owner or areas[i] < max(areas) * 0.005:
+            continue
+        cy = (boxes[i][0].start + boxes[i][0].stop) / 2
+        cx = (boxes[i][1].start + boxes[i][1].stop) / 2
+        owner[i] = min(big, key=lambda j: abs(cx - (boxes[j][1].start + boxes[j][1].stop) / 2) + abs(cy - (boxes[j][0].start + boxes[j][0].stop) / 2))
+    figs = []
+    for j in big:
+        members = [i for i in owner if owner[i] == j]
+        y0 = min(boxes[i][0].start for i in members)
+        y1 = max(boxes[i][0].stop for i in members)
+        x0 = min(boxes[i][1].start for i in members)
+        x1 = max(boxes[i][1].stop for i in members)
+        keep = np.isin(labels[y0:y1, x0:x1], [i + 1 for i in members])
+        f = rgba[y0:y1, x0:x1].copy()
+        f[..., 3] = np.where(keep, f[..., 3], 0)
+        figs.append((y1, x0, y1 - y0, f))
+    # Reading order: group into rows by where the feet are (a lying figure
+    # shares the ground line with the standing ones), then left to right.
+    figs.sort(key=lambda t: t[0])
+    rows: list[list] = []
+    for fig in figs:
+        if rows and abs(fig[0] - np.mean([r[0] for r in rows[-1]])) < max(r[2] for r in rows[-1]) * 0.5:
+            rows[-1].append(fig)
+        else:
+            rows.append([fig])
+    return [f for row in rows for (_, _, _, f) in sorted(row, key=lambda t: t[1])]
+
+
 # ----------------------------------------------------------------- regions
 
 
@@ -135,11 +180,13 @@ def segment(frame: np.ndarray, rules: dict) -> dict[str, np.ndarray]:
     su, ha, tr, bo, sk = (rules[k] for k in ("suit", "hair", "trim", "boots", "skin"))
     m = {
         "suit": op & (h >= su["hue"][0]) & (h < su["hue"][1]) & (s > su["minSat"]) & (v > su["minVal"]),
-        "hair": op & (h >= ha["hue"][0]) & (h < ha["hue"][1]) & (v > ha["minVal"]) & (v < ha["maxVal"]),
+        # aboveFraction keeps hair to the head, so a gunmetal rifle isn't read as hair.
+        "hair": op & (h >= ha["hue"][0]) & (h < ha["hue"][1]) & (v > ha["minVal"]) & (v < ha["maxVal"]) & (rows < ha.get("aboveFraction", 1.0)),
         "trim": op & warm & (s > tr["minSat"]) & (v > tr["minVal"]),
         "boots": op & warm & (rows > bo["belowFraction"]) & (v < bo["maxVal"]),
     }
-    m["skin"] = op & warm & ~m["trim"] & ~m["boots"] & (v > sk["minVal"])
+    # maxSat keeps darker, richer browns (a leather backpack) out of the skin.
+    m["skin"] = op & warm & ~m["trim"] & ~m["boots"] & (v > sk["minVal"]) & (s < sk.get("maxSat", 1.0))
     # The stripe's anti-aliased edge reads as skin; grow the stripe into it.
     for _ in range(2):
         grow = m["skin"] & neighbours(m["trim"]) & (s > 0.5)
@@ -189,12 +236,20 @@ def build_character(folder: Path) -> dict | None:
     target = int(cfg.get("targetHeight", 128))
     ref_anim = cfg.get("referenceAnim", "walk")
 
-    # Load and cut every animation first, so all of them share one scale.
+    # Load and cut every animation first.
     cut: dict[str, list[np.ndarray]] = {}
     for name, a in cfg["anims"].items():
-        frames = find_frames(chroma_key(Image.open(folder / a["file"])))
+        sheet = Image.open(folder / a["file"])
+        # "crop": [x0, y0, x1, y1] uses only part of the sheet (e.g. its first row).
+        if "crop" in a:
+            sheet = sheet.crop(tuple(a["crop"]))
+        keyed = chroma_key(sheet)
+        # "split": "figures" cuts by connected shapes instead of by empty gaps.
+        frames = find_figures(keyed) if a.get("split") == "figures" else find_frames(keyed)
         drop = set(a.get("drop", []))
         frames = [f for i, f in enumerate(frames) if i not in drop]
+        # "flip" mirrors frames (counted after dropping) that face the wrong way.
+        frames = [f[:, ::-1].copy() if i in a.get("flip", []) else f for i, f in enumerate(frames)]
         if not frames:
             print(f"  ! {cid}/{name}: no frames found", file=sys.stderr)
             continue
@@ -203,14 +258,27 @@ def build_character(folder: Path) -> dict | None:
     if not cut:
         return None
     ref = cut.get(ref_anim) or next(iter(cut.values()))
-    scale = target / float(np.median([f.shape[0] for f in ref]))
+    ref_scale = target / float(np.median([f.shape[0] for f in ref]))
 
     out_dir = OUT / cid
     out_dir.mkdir(parents=True, exist_ok=True)
     manifest = {"sex": cfg.get("sex"), "refHeight": target, "anims": {}}
+    lineup = []
     for name, frames in cut.items():
         a = cfg["anims"][name]
-        segs = [segment(f, rules) for f in frames]
+        # Sheets come from separate generations at different sizes, so each
+        # animation is scaled so its figure stands targetHeight tall:
+        # "heightFrom" names a frame to measure for sheets whose figure doesn't
+        # stand throughout (fallen); "fitHeight": false shares the reference scale.
+        if "heightFrom" in a:
+            scale = target / float(frames[int(a["heightFrom"])].shape[0])
+        elif a.get("fitHeight", True):
+            scale = target / float(np.median([f.shape[0] for f in frames]))
+        else:
+            scale = ref_scale
+        # An animation can override the character's colour rules (e.g. the fight sheet's hair).
+        anim_rules = {k: {**rules[k], **v} for k, v in a.get("regions", {}).items()}
+        segs = [segment(f, {**rules, **anim_rules}) for f in frames]
         anchors = [torso_x(f, m) for f, m in zip(frames, segs)]
         left = max(anc for anc in anchors)
         right = max(f.shape[1] - anc for f, anc in zip(frames, anchors))
@@ -245,6 +313,15 @@ def build_character(folder: Path) -> dict | None:
             "files": files,
         }
         preview(cid, name, strips, cw, ch, len(frames))
+        lineup.append((strips["full"], cw, ch, manifest["anims"][name]["anchorX"]))
+    # Line-up: frame 0 of every animation on one ground line, to check they match in size.
+    bg = (233, 217, 182, 255)
+    sheet = Image.new("RGBA", (sum(cw for _, cw, _, _ in lineup) + 8 * len(lineup), max(ch for _, _, ch, _ in lineup)), bg)
+    x = 0
+    for strip, cw, ch, _ in lineup:
+        sheet.alpha_composite(strip.crop((0, 0, cw, ch)), (x, sheet.height - ch))
+        x += cw + 8
+    sheet.save(PREVIEWS / f"{cid}_lineup.png")
     return {cid: manifest}
 
 

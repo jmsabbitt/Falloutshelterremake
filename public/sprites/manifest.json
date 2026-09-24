@@ -22,6 +22,210 @@
             "trim": "resident_f/walk_trim.png",
             "full": "resident_f/walk_full.png"
           }
+        },
+        "work": {
+          "frames": 12,
+          "fps": 8,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 70,
+          "frameH": 131,
+          "anchorX": 0.401,
+          "anchorY": 1.0,
+          "files": {
+            "base": "resident_f/work_base.png",
+            "suit": "resident_f/work_suit.png",
+            "skin": "resident_f/work_skin.png",
+            "hair": "resident_f/work_hair.png",
+            "trim": "resident_f/work_trim.png",
+            "full": "resident_f/work_full.png"
+          }
+        },
+        "fight": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 93,
+          "frameH": 133,
+          "anchorX": 0.3598,
+          "anchorY": 1.0,
+          "files": {
+            "base": "resident_f/fight_base.png",
+            "suit": "resident_f/fight_suit.png",
+            "skin": "resident_f/fight_skin.png",
+            "hair": "resident_f/fight_hair.png",
+            "trim": "resident_f/fight_trim.png",
+            "full": "resident_f/fight_full.png"
+          }
+        },
+        "fallen": {
+          "frames": 4,
+          "fps": 6,
+          "loop": false,
+          "idleFrame": 0,
+          "frameW": 138,
+          "frameH": 130,
+          "anchorX": 0.5615,
+          "anchorY": 1.0,
+          "files": {
+            "base": "resident_f/fallen_base.png",
+            "suit": "resident_f/fallen_suit.png",
+            "skin": "resident_f/fallen_skin.png",
+            "hair": "resident_f/fallen_hair.png",
+            "trim": "resident_f/fallen_trim.png",
+            "full": "resident_f/fallen_full.png"
+          }
+        },
+        "idle": {
+          "frames": 6,
+          "fps": 6,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 56,
+          "frameH": 133,
+          "anchorX": 0.4875,
+          "anchorY": 1.0,
+          "files": {
+            "base": "resident_f/idle_base.png",
+            "suit": "resident_f/idle_suit.png",
+            "skin": "resident_f/idle_skin.png",
+            "hair": "resident_f/idle_hair.png",
+            "trim": "resident_f/idle_trim.png",
+            "full": "resident_f/idle_full.png"
+          }
+        },
+        "carry": {
+          "frames": 12,
+          "fps": 11,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 89,
+          "frameH": 133,
+          "anchorX": 0.4898,
+          "anchorY": 1.0,
+          "files": {
+            "base": "resident_f/carry_base.png",
+            "suit": "resident_f/carry_suit.png",
+            "skin": "resident_f/carry_skin.png",
+            "hair": "resident_f/carry_hair.png",
+            "trim": "resident_f/carry_trim.png",
+            "full": "resident_f/carry_full.png"
+          }
+        }
+      }
+    },
+    "resident_m": {
+      "sex": "m",
+      "refHeight": 128,
+      "anims": {
+        "walk": {
+          "frames": 12,
+          "fps": 11,
+          "loop": true,
+          "idleFrame": 2,
+          "frameW": 86,
+          "frameH": 134,
+          "anchorX": 0.4627,
+          "anchorY": 1.0,
+          "files": {
+            "base": "resident_m/walk_base.png",
+            "suit": "resident_m/walk_suit.png",
+            "skin": "resident_m/walk_skin.png",
+            "hair": "resident_m/walk_hair.png",
+            "trim": "resident_m/walk_trim.png",
+            "full": "resident_m/walk_full.png"
+          }
+        },
+        "work": {
+          "frames": 6,
+          "fps": 8,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 75,
+          "frameH": 131,
+          "anchorX": 0.3253,
+          "anchorY": 1.0,
+          "files": {
+            "base": "resident_m/work_base.png",
+            "suit": "resident_m/work_suit.png",
+            "skin": "resident_m/work_skin.png",
+            "hair": "resident_m/work_hair.png",
+            "trim": "resident_m/work_trim.png",
+            "full": "resident_m/work_full.png"
+          }
+        },
+        "fight": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 97,
+          "frameH": 131,
+          "anchorX": 0.3617,
+          "anchorY": 1.0,
+          "files": {
+            "base": "resident_m/fight_base.png",
+            "suit": "resident_m/fight_suit.png",
+            "skin": "resident_m/fight_skin.png",
+            "hair": "resident_m/fight_hair.png",
+            "trim": "resident_m/fight_trim.png",
+            "full": "resident_m/fight_full.png"
+          }
+        },
+        "fallen": {
+          "frames": 4,
+          "fps": 6,
+          "loop": false,
+          "idleFrame": 0,
+          "frameW": 141,
+          "frameH": 130,
+          "anchorX": 0.5583,
+          "anchorY": 1.0,
+          "files": {
+            "base": "resident_m/fallen_base.png",
+            "suit": "resident_m/fallen_suit.png",
+            "skin": "resident_m/fallen_skin.png",
+            "hair": "resident_m/fallen_hair.png",
+            "trim": "resident_m/fallen_trim.png",
+            "full": "resident_m/fallen_full.png"
+          }
+        },
+        "idle": {
+          "frames": 6,
+          "fps": 6,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 59,
+          "frameH": 137,
+          "anchorX": 0.4686,
+          "anchorY": 1.0,
+          "files": {
+            "base": "resident_m/idle_base.png",
+            "suit": "resident_m/idle_suit.png",
+            "skin": "resident_m/idle_skin.png",
+            "hair": "resident_m/idle_hair.png",
+            "trim": "resident_m/idle_trim.png",
+            "full": "resident_m/idle_full.png"
+          }
+        },
+        "carry": {
+          "frames": 12,
+          "fps": 11,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 88,
+          "frameH": 134,
+          "anchorX": 0.4716,
+          "anchorY": 1.0,
+          "files": {
+            "base": "resident_m/carry_base.png",
+            "suit": "resident_m/carry_suit.png",
+            "skin": "resident_m/carry_skin.png",
+            "hair": "resident_m/carry_hair.png",
+            "trim": "resident_m/carry_trim.png",
+            "full": "resident_m/carry_full.png"
+          }
         }
       }
     }

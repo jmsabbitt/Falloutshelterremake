@@ -60,14 +60,14 @@ The game picks the animation for what a resident is doing (`Figure.play` in `spr
 - **Weapon:** drawn as a small overlay at the hip. It's hidden while `fight` art shows its own weapon.
 - **Explorers:** the walk sheet with a drawn pack. It's hidden when `carry` art exists.
 
-Every animation for one character must use the same character at the same scale. The pipeline scales them all together from `referenceAnim`.
+Every animation for one character must show the same character. The pipeline scales each animation so the figure stands `targetHeight` tall (see the options table in the handoff doc), and writes `art/previews/<id>_lineup.png` to check that they match.
 
 ### Body types needed
 
 | id | sex | Status |
 |---|---|---|
-| `resident_f` | f | **done** (walk) |
-| `resident_m` | m | **needed.** Men use the drawn placeholder until this exists. |
+| `resident_f` | f | **done** (all animations) |
+| `resident_m` | m | **done** (all animations) |
 | child | n/a | Not needed: children use the adult sheet scaled to 62% with the child suit tint |
 
 ## Prompt template
@@ -118,4 +118,5 @@ Before any generated art ships, check the tool's terms. We need commercial use r
 
 | id | Tool | Terms checked |
 |---|---|---|
-| `resident_f` | artlist.io | **to confirm** |
+| `resident_f` | artlist.io (walk); Nano Banana 2 on artlist.io (the rest) | **to confirm** |
+| `resident_m` | Nano Banana 2 on artlist.io | **to confirm** |

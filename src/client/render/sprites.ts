@@ -88,37 +88,37 @@ export class CharacterArt {
     } catch {
       return null;
     }
-    const characters: Character[] = [];
-    for (const [id, c] of Object.entries(manifest.characters ?? {})) {
-      try {
-        const anims: Record<string, Anim> = {};
-        for (const [name, a] of Object.entries(c.anims)) {
-          const layers = {} as Record<Layer, Texture[]>;
-          for (const layer of LAYERS) {
-            const strip = await Assets.load<Texture>(`${base}${a.files[layer]}`);
-            strip.source.scaleMode = 'linear';
-            layers[layer] = Array.from(
-              { length: a.frames },
-              (_, i) => new Texture({ source: strip.source, frame: new Rectangle(i * a.frameW, 0, a.frameW, a.frameH) }),
-            );
-          }
-          anims[name] = {
-            frames: a.frames,
-            fps: a.fps,
-            loop: a.loop,
-            idleFrame: a.idleFrame ?? 0,
-            anchorX: a.anchorX,
-            anchorY: a.anchorY,
-            layers,
-          };
+    // Every strip loads in parallel; a character that fails to load is skipped.
+    const loaded = await Promise.all(
+      Object.entries(manifest.characters ?? {}).map(async ([id, c]) => {
+        try {
+          const anims: Record<string, Anim> = {};
+          await Promise.all(Object.entries(c.anims).map(async ([name, a]) => (anims[name] = await loadAnim(base, a))));
+          return { id, sex: c.sex, refHeight: c.refHeight, anims };
+        } catch (err) {
+          console.warn(`sprites: could not load ${id}`, err);
+          return null;
         }
-        characters.push({ id, sex: c.sex, refHeight: c.refHeight, anims });
-      } catch (err) {
-        console.warn(`sprites: could not load ${id}`, err);
-      }
-    }
+      }),
+    );
+    const characters = loaded.filter((c): c is Character => c !== null);
     return characters.length ? new CharacterArt(characters) : null;
   }
+}
+
+async function loadAnim(base: string, a: AnimManifest): Promise<Anim> {
+  const layers = {} as Record<Layer, Texture[]>;
+  await Promise.all(
+    LAYERS.map(async (layer) => {
+      const strip = await Assets.load<Texture>(`${base}${a.files[layer]}`);
+      strip.source.scaleMode = 'linear';
+      layers[layer] = Array.from(
+        { length: a.frames },
+        (_, i) => new Texture({ source: strip.source, frame: new Rectangle(i * a.frameW, 0, a.frameW, a.frameH) }),
+      );
+    }),
+  );
+  return { frames: a.frames, fps: a.fps, loop: a.loop, idleFrame: a.idleFrame ?? 0, anchorX: a.anchorX, anchorY: a.anchorY, layers };
 }
 
 /** What a resident is doing, which picks the animation a Figure plays. */

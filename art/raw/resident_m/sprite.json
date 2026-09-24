@@ -1,20 +1,26 @@
 {
-  "id": "resident_f",
-  "sex": "f",
+  "id": "resident_m",
+  "sex": "m",
   "targetHeight": 128,
   "referenceAnim": "walk",
   "anims": {
     "walk": {
-      "file": "walk.webp",
+      "file": "walk.png",
       "fps": 11,
-      "drop": [
-        5
-      ],
+      "drop": [],
       "idleFrame": 2
     },
     "work": {
       "file": "work.png",
-      "fps": 8
+      "fps": 8,
+      "drop": [
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ]
     },
     "fight": {
       "file": "fight.png",
@@ -35,9 +41,12 @@
         0,
         0,
         2752,
-        806
+        800
       ],
-      "heightFrom": 0
+      "heightFrom": 0,
+      "flip": [
+        3
+      ]
     },
     "idle": {
       "file": "idle.png",

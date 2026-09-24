@@ -8,14 +8,12 @@ Deeper technical detail is in [`docs/design/art-spec.md`](../design/art-spec.md)
 
 ## 1. What already exists
 
-| id | Body | Animations done | Status |
+| id | Body | Animations done | Source |
 |---|---|---|---|
-| `resident_f` | female | `walk` (12 frames, 1 dropped) | ✅ in game. Source: `art/raw/resident_f/walk.webp` |
-| `resident_m` | male | none | ❌ **needed first.** Men are still drawn placeholders |
+| `resident_f` | female | `walk`, `idle`, `work`, `fight`, `fallen`, `carry` | `art/raw/resident_f/` |
+| `resident_m` | male | `walk`, `idle`, `work`, `fight`, `fallen`, `carry` | `art/raw/resident_m/` |
 
-**The approved look is the existing female walk sheet.** Match it: chunky, readable at small size, soft cel shading, dark outlines. Open `art/raw/resident_f/walk.webp` and `art/previews/resident_f_walk.png`, and feed the sheet to the generator as a reference image if it accepts one.
-
----
+Every resident animation is done and in the game. The female walk was the approved look. The other sheets were generated from it with Artlist's Nano Banana 2 image-to-image model at 2K, and each male sheet used the male walk as its reference. The table in section 2 is kept as the list of what the set covers.
 
 ## 2. What to make, in priority order
 
@@ -34,7 +32,7 @@ Deeper technical detail is in [`docs/design/art-spec.md`](../design/art-spec.md)
 
 Children don't need art: they reuse the adult sheet at 62% scale with a lighter suit.
 
-Rows 1–3 give the biggest visible improvement. The game currently shows the walk sheet's `idleFrame` when a resident stands still, and a rotated walk frame for a fallen resident.
+All ten are done. When a sheet is missing, the game falls back as described in section 6.
 
 ---
 
@@ -147,6 +145,22 @@ This writes:
 
 Fix the sheet, or tune that character's `"regions"` in `sprite.json` (see `art-spec.md`), then run the command again.
 
+### Options for awkward sheets
+
+Generated sheets are rarely perfect. These per-animation options in `sprite.json` let you use one anyway instead of regenerating:
+
+| Option | Example | Use |
+|---|---|---|
+| `drop` | `[6, 7, 8]` | Throw away bad frames (0-based, reading order) |
+| `crop` | `[0, 0, 2752, 806]` | Use only part of the sheet (e.g. the first row, when the second row drifts off-brief) |
+| `split` | `"figures"` | Find frames as separate figures instead of by empty gaps. Use when frames nearly touch (a rifle reaching the next figure) |
+| `flip` | `[3]` | Mirror frames (counted after `drop`) that face the wrong way |
+| `regions` | `{"hair": {"aboveFraction": 0.36}}` | Override the colour rules for this animation only. `aboveFraction` keeps hair to the head (a gunmetal rifle reads as hair otherwise). `skin.maxSat` and `skin.minVal` keep a leather backpack out of the skin |
+| `heightFrom` | `0` | Size the animation from this frame, for sheets where the figure doesn't stand throughout (`fallen`) |
+| `fitHeight` | `false` | Share the reference animation's scale instead of fitting this one to `targetHeight` |
+
+Each animation is scaled so the figure stands `targetHeight` tall, because sheets from separate generations come out at different sizes. `art/previews/<id>_lineup.png` shows frame 0 of every animation side by side to check this.
+
 If the art session can't run the pipeline, drop the raw sheets and a short note in `art/raw/<id>/` and commit. The main session will build them.
 
 ---
@@ -177,3 +191,5 @@ We need commercial use rights with no attribution or exclusivity strings. Record
 | id / anim | Tool | Plan / licence | Date | Checked |
 |---|---|---|---|---|
 | resident_f / walk | artlist.io | ? | ? | ☐ |
+| resident_f / idle, work, fight, fallen, carry | artlist.io, Nano Banana 2 I2I 2K | AI Suite plan (credits) | 2026-09-24 | ☐ |
+| resident_m / all | artlist.io, Nano Banana 2 I2I 2K | AI Suite plan (credits) | 2026-09-24 | ☐ |
