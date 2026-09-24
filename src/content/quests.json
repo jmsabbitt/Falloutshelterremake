@@ -1,5 +1,5 @@
 {
-  "_comment": "Quests, combat tuning, quest enemies, events, the story questlines and contract templates. Typed in src/sim/systems/quests.ts; see docs/design/M4-spec.md.",
+  "_comment": "Quests, combat tuning, quest enemies, events, the story questlines and contract templates. Typed in src/sim/systems/quests.ts; see docs/design/M4-spec.md. Enemy stats are level-1 values: the engine scales them by the quest's level.",
   "tuning": {
     "maxParty": 3,
     "officeSlots": [1, 2, 3],
@@ -35,24 +35,118 @@
     "fortune": { "id": "lucky_break", "name": "Lucky Break", "description": "Fills every crit meter in the party.", "stat": "fortune", "cooldown": 30, "power": 1, "duration": 0 }
   },
   "enemies": {
-    "skitter": { "id": "skitter", "name": "Skitter", "look": "skitter", "hp": 14, "damage": [2, 3], "interval": 1.6, "xp": 8 },
-    "rust_scrapper": { "id": "rust_scrapper", "name": "Rustman Scrapper", "look": "rustman", "hp": 26, "damage": [3, 5], "interval": 2.0, "xp": 14, "drop": { "scrip": [5, 15] } },
-    "rust_brute": {
-      "id": "rust_brute", "name": "Rustman Brute", "look": "rustman_brute", "hp": 60, "damage": [5, 8], "interval": 2.6, "xp": 30,
-      "abilities": [{ "id": "overhead", "name": "Overhead Smash", "every": 10, "windup": 2, "effect": "heavy", "power": 2.5 }]
+    "skitter": { "id": "skitter", "name": "Skitter", "look": "skitter", "hp": 35, "damage": [2, 3], "interval": 1.6, "xp": 8 },
+    "skitter_spitter": {
+      "id": "skitter_spitter", "name": "Skitter Spitter", "look": "skitter", "hp": 50, "damage": [3, 4], "interval": 2.2, "xp": 12,
+      "abilities": [{ "id": "acid_gob", "name": "Acid Gob", "every": 9, "windup": 1.5, "effect": "heavy", "power": 2 }],
+      "drop": { "salvage": { "rarity": "common", "count": [0, 1], "materials": ["chemicals"] } }
     },
     "relay_boss": {
-      "id": "relay_boss", "name": "Skitter Broodmother", "look": "skitter_queen", "hp": 220, "damage": [4, 6], "interval": 1.8, "xp": 120, "boss": true,
+      "id": "relay_boss", "name": "Skitter Broodmother", "look": "skitter_queen", "hp": 550, "damage": [4, 6], "interval": 1.8, "xp": 120, "boss": true,
       "abilities": [
         { "id": "screech", "name": "Screech", "every": 12, "windup": 2.5, "effect": "slam", "power": 1.2 },
         { "id": "brood", "name": "Call the Brood", "every": 20, "windup": 3, "effect": "summon", "adds": ["skitter", "skitter"] }
       ],
       "drop": { "salvage": { "rarity": "rare", "count": [1, 2] } }
+    },
+    "burrower_pup": {
+      "id": "burrower_pup", "name": "Burrower Pup", "look": "burrower", "hp": 45, "damage": [2, 4], "interval": 1.8, "xp": 10,
+      "drop": { "salvage": { "rarity": "common", "count": [0, 1], "materials": ["hide"] } }
+    },
+    "burrower": {
+      "id": "burrower", "name": "Burrower", "look": "burrower", "hp": 112, "damage": [4, 6], "interval": 2.5, "xp": 22,
+      "abilities": [{ "id": "undermine", "name": "Undermine", "every": 12, "windup": 2, "effect": "slam", "power": 0.8 }],
+      "drop": { "salvage": { "rarity": "common", "count": [1, 1], "materials": ["hide"] } }
+    },
+    "burrower_matriarch": {
+      "id": "burrower_matriarch", "name": "Burrower Matriarch", "look": "burrower", "hp": 375, "damage": [5, 8], "interval": 2.6, "xp": 80, "boss": true,
+      "abilities": [
+        { "id": "tremor", "name": "Tremor", "every": 13, "windup": 2.5, "effect": "slam", "power": 1 },
+        { "id": "call_the_litter", "name": "Call the Litter", "every": 21, "windup": 2.5, "effect": "summon", "adds": ["burrower_pup", "burrower_pup"] }
+      ],
+      "drop": { "salvage": { "rarity": "rare", "count": [1, 2], "materials": ["hide", "valuables"] } }
+    },
+    "rust_scrapper": {
+      "id": "rust_scrapper", "name": "Rustman Scrapper", "look": "rustman", "hp": 65, "damage": [3, 5], "interval": 2.0, "xp": 14,
+      "drop": { "scrip": [5, 15] }
+    },
+    "rust_gunner": {
+      "id": "rust_gunner", "name": "Rustman Pipe-Gunner", "look": "rustman", "hp": 50, "damage": [3, 5], "interval": 2.6, "xp": 15,
+      "abilities": [{ "id": "aimed_shot", "name": "Aimed Shot", "every": 11, "windup": 2, "effect": "heavy", "power": 2 }],
+      "drop": { "scrip": [5, 12], "salvage": { "rarity": "common", "count": [0, 1], "materials": ["steel"] } }
+    },
+    "rust_lad": {
+      "id": "rust_lad", "name": "One of the Lads", "look": "rustman", "hp": 35, "damage": [2, 3], "interval": 2.0, "xp": 6,
+      "drop": { "scrip": [2, 8] }
+    },
+    "rust_brute": {
+      "id": "rust_brute", "name": "Rustman Brute", "look": "rustman_brute", "hp": 150, "damage": [5, 8], "interval": 2.6, "xp": 30,
+      "abilities": [{ "id": "overhead", "name": "Overhead Smash", "every": 10, "windup": 2, "effect": "heavy", "power": 2.5 }],
+      "drop": { "scrip": [10, 25] }
+    },
+    "rust_tollman": {
+      "id": "rust_tollman", "name": "Toll-Keeper Mags", "look": "rustman_chief", "hp": 320, "damage": [5, 7], "interval": 2.2, "xp": 90, "boss": true,
+      "abilities": [
+        { "id": "collect_interest", "name": "Collect Interest", "every": 15, "windup": 2, "effect": "enrage", "power": 1.6, "duration": 6 },
+        { "id": "toll_crew", "name": "Call the Toll Crew", "every": 22, "windup": 3, "effect": "summon", "adds": ["rust_scrapper"] }
+      ],
+      "drop": { "scrip": [60, 100], "item": { "chance": 0.25, "rarity": "rare" } }
+    },
+    "rust_warlord": {
+      "id": "rust_warlord", "name": "Baron Oxide", "look": "rustman_chief", "hp": 750, "damage": [3, 5], "interval": 2.4, "xp": 400, "boss": true,
+      "abilities": [
+        { "id": "scrap_quake", "name": "Scrap Quake", "every": 14, "windup": 3, "effect": "slam", "power": 1.2 },
+        { "id": "whistle_for_the_lads", "name": "Whistle for the Lads", "every": 20, "windup": 2.5, "effect": "summon", "adds": ["rust_lad"] },
+        { "id": "wrecking_ball", "name": "Wrecking Ball", "every": 17, "windup": 2, "effect": "heavy", "power": 3 }
+      ],
+      "drop": { "fragments": { "peacemaker": 2 }, "salvage": { "rarity": "rare", "count": [2, 3], "materials": ["steel", "circuitry"] } }
+    },
+    "hollowed": { "id": "hollowed", "name": "Hollowed", "look": "hollowed", "hp": 75, "damage": [3, 5], "interval": 2.0, "xp": 14 },
+    "hollowed_shrieker": {
+      "id": "hollowed_shrieker", "name": "Hollowed Shrieker", "look": "hollowed", "hp": 65, "damage": [2, 4], "interval": 2.2, "xp": 18,
+      "abilities": [{ "id": "dinner_bell", "name": "Dinner Bell", "every": 16, "windup": 3, "effect": "summon", "adds": ["hollowed"] }]
+    },
+    "hollowed_hulk": {
+      "id": "hollowed_hulk", "name": "Hollowed Hulk", "look": "hollowed_hulk", "hp": 225, "damage": [6, 9], "interval": 3.0, "xp": 40,
+      "abilities": [{ "id": "ground_pound", "name": "Ground Pound", "every": 12, "windup": 2.5, "effect": "slam", "power": 0.9 }],
+      "drop": { "salvage": { "rarity": "common", "count": [1, 2], "materials": ["cloth", "valuables"] } }
+    },
+    "hollowed_supervisor": {
+      "id": "hollowed_supervisor", "name": "The Night Supervisor", "look": "hollowed_hulk", "hp": 500, "damage": [4, 7], "interval": 2.6, "xp": 160, "boss": true,
+      "abilities": [
+        { "id": "mandatory_overtime", "name": "Mandatory Overtime", "every": 18, "windup": 2, "effect": "enrage", "power": 1.5, "duration": 6 },
+        { "id": "all_hands_meeting", "name": "All-Hands Meeting", "every": 20, "windup": 3, "effect": "summon", "adds": ["hollowed"] }
+      ],
+      "drop": { "fragment": { "chance": 1, "rarity": "rare" }, "scrip": [80, 120] }
+    },
+    "sentry": {
+      "id": "sentry", "name": "Courtesy Sentry", "look": "sentry", "hp": 125, "damage": [4, 6], "interval": 2.0, "xp": 24,
+      "abilities": [{ "id": "complimentary_laser", "name": "Complimentary Laser", "every": 10, "windup": 2, "effect": "heavy", "power": 2.2 }],
+      "drop": { "salvage": { "rarity": "common", "count": [1, 2], "materials": ["circuitry"] } }
+    },
+    "greeter": {
+      "id": "greeter", "name": "Greeter Unit", "look": "sentry", "hp": 75, "damage": [2, 4], "interval": 2.0, "xp": 14,
+      "abilities": [{ "id": "self_care_break", "name": "Self-Care Break", "every": 12, "windup": 3, "effect": "heal", "power": 0.2 }],
+      "drop": { "salvage": { "rarity": "common", "count": [0, 1], "materials": ["circuitry"] } }
+    },
+    "mauler": {
+      "id": "mauler", "name": "Mauler", "look": "mauler", "hp": 500, "damage": [7, 10], "interval": 2.6, "xp": 140, "boss": true,
+      "abilities": [
+        { "id": "pounce", "name": "Pounce", "every": 11, "windup": 2, "effect": "heavy", "power": 2.2 },
+        { "id": "blood_up", "name": "Blood Up", "every": 19, "windup": 2.5, "effect": "enrage", "power": 1.5, "duration": 6 }
+      ],
+      "drop": { "salvage": { "rarity": "rare", "count": [1, 2], "materials": ["hide"] } }
     }
   },
   "pools": {
-    "skitters": [["skitter", "skitter"], ["skitter", "skitter", "skitter"]],
-    "rustmen": [["rust_scrapper"], ["rust_scrapper", "rust_scrapper"], ["rust_brute"]]
+    "skitters": [["skitter", "skitter"], ["skitter", "skitter", "skitter"], ["skitter", "skitter_spitter"]],
+    "skitter_nest": [["skitter_spitter", "skitter_spitter", "skitter"], ["skitter", "skitter", "skitter", "skitter_spitter"]],
+    "rustmen": [["rust_scrapper", "rust_scrapper"], ["rust_scrapper", "rust_gunner"], ["rust_brute"]],
+    "rust_crew": [["rust_brute", "rust_gunner"], ["rust_scrapper", "rust_scrapper", "rust_gunner"], ["rust_brute", "rust_scrapper"]],
+    "burrowers": [["burrower"], ["burrower_pup", "burrower_pup", "burrower_pup"], ["burrower", "burrower_pup"]],
+    "hollowed": [["hollowed", "hollowed"], ["hollowed", "hollowed_shrieker"], ["hollowed", "hollowed", "hollowed"]],
+    "hollowed_deep": [["hollowed_hulk"], ["hollowed_hulk", "hollowed"], ["hollowed", "hollowed_shrieker", "hollowed"]],
+    "security": [["sentry"], ["greeter", "greeter"], ["sentry", "greeter"]]
   },
   "events": {
     "relay_panel": {
@@ -60,16 +154,253 @@
       "text": "A relay cabinet hums behind a rusted panel. A sticker reads: HALCY SAYS: DO NOT TOUCH (PLEASE).",
       "options": [
         {
-          "label": "Rewire it (Knack)", "stat": "knack", "difficulty": 6,
+          "label": "Rewire it", "stat": "knack", "difficulty": 6,
           "success": { "text": "The relay coughs back to life. Somewhere, HALCY sounds briefly smug.", "reward": { "scrip": [40, 80] } },
           "failure": { "text": "It bites back. Everyone's hair stands up for an hour.", "damage": 0.1 }
         },
         { "label": "Leave it", "success": { "text": "You respect the sticker." } }
       ]
+    },
+    "rusted_hatch": {
+      "id": "rusted_hatch",
+      "text": "A maintenance hatch, rusted shut. The stencil reads: HALCYON SERVICE ACCESS. SMILE, YOU'RE ON SCHEDULE.",
+      "options": [
+        {
+          "label": "Put a shoulder into it", "stat": "brawn", "difficulty": 6,
+          "success": { "text": "The hatch gives with a groan that sounds personally offended. Behind it: a crew locker, still stocked.", "reward": { "scrip": [20, 40], "salvage": { "rarity": "common", "count": [2, 3], "materials": ["steel", "adhesive"] } } },
+          "failure": { "text": "The hatch gives all at once, and so does everyone's lower back.", "damage": 0.1 }
+        },
+        { "label": "Leave it shut", "success": { "text": "Some doors are closed for a reason. Usually rust." } }
+      ]
+    },
+    "vending_machine": {
+      "id": "vending_machine",
+      "text": "A Fizzy Glare-Ade machine hums in the corner, lit from inside by something that is not electricity. NOW WITH REAL GLOW!",
+      "options": [
+        {
+          "label": "Give it a good shake", "stat": "brawn", "difficulty": 5,
+          "success": { "text": "Out of the coin return tumble two Purge tabs, someone's emergency stash, and a can of Glare-Ade that nobody volunteers to drink.", "reward": { "purge": 1, "scrip": [10, 30] } },
+          "failure": { "text": "It rocks forward. You rock backward. Physics wins.", "damage": 0.1 }
+        },
+        { "label": "Let it glow", "success": { "text": "You back away slowly. It keeps humming a jingle about refreshment." } }
+      ]
+    },
+    "glint_ridge": {
+      "id": "glint_ridge",
+      "text": "Something on the ridge above the road flashes twice. It could be a mirror, or a scope, or a very shiny lizard.",
+      "options": [
+        {
+          "label": "Work out what's up there", "stat": "sight", "difficulty": 6,
+          "success": { "text": "A Rustman lookout, asleep behind the hubcap he uses as a mirror. You relieve him of his lunch money and his hubcap.", "reward": { "scrip": [30, 60] } },
+          "failure": { "text": "It was a scope, with a Rustman on the other end. He also has friends and a whistle.", "fight": ["rust_gunner", "rust_scrapper"] }
+        },
+        { "label": "Keep your heads down", "success": { "text": "You crouch-walk past in a very suspicious conga line. Nothing happens. Probably." } }
+      ]
+    },
+    "radio_dish": {
+      "id": "radio_dish",
+      "text": "The relay dish is pointed at the ground, which HALCY assures you is not a valid frequency. Someone has to line it up on Homestead 212 by eye.",
+      "options": [
+        {
+          "label": "Line it up", "stat": "sight", "difficulty": 6,
+          "success": { "text": "A click, a whine, and 212's ping comes in clear, along with a faint, cheerful voice saying 'please hold'. Triangulated!", "reward": { "scrip": [40, 80], "xp": 40 } },
+          "failure": { "text": "You line it up on a flock of carrion kites. They take it personally.", "damage": 0.12 }
+        },
+        {
+          "label": "Hit it with a wrench", "stat": "brawn", "difficulty": 6,
+          "success": { "text": "Percussive maintenance. The dish swings true. HALCY calls it 'unorthodox', then 'effective', then asks you not to tell head office.", "reward": { "scrip": [20, 40] } },
+          "failure": { "text": "The dish swings true for a moment, then swings into you.", "damage": 0.12 }
+        }
+      ]
+    },
+    "stratum_door": {
+      "id": "stratum_door",
+      "text": "A blast door stencilled STRATUM 2: NO SUBSCRIBER ACCESS. It is open. It was opened from the inside, which blast doors are famously not designed for.",
+      "options": [
+        {
+          "label": "Look through the gap", "stat": "sight", "difficulty": 7,
+          "success": { "text": "Stairs going down further than your torch reaches, and scratch marks coming up. Just inside, a supply bag someone dropped while leaving in a hurry.", "reward": { "scrip": [40, 70], "salvage": { "rarity": "rare", "count": [1, 1], "materials": ["circuitry", "chemicals"] } } },
+          "failure": { "text": "Something in the dark looks back through the gap. You'd rather not describe it, so it comes up and describes itself.", "fight": ["burrower", "hollowed"] }
+        },
+        {
+          "label": "Shut it", "stat": "brawn", "difficulty": 8,
+          "success": { "text": "You heave it closed. It clangs like a verdict. HALCY logs this as 'routine maintenance' and changes the subject.", "reward": { "xp": 60 } },
+          "failure": { "text": "It won't budge. Something on the other side is holding it open. Politely.", "damage": 0.1 }
+        }
+      ]
+    },
+    "burrower_tunnel": {
+      "id": "burrower_tunnel",
+      "text": "A fresh Burrower tunnel cuts across the floor, still warm. Burrowers hoard shiny things. Burrowers also bite.",
+      "options": [
+        {
+          "label": "Crawl in and have a look", "stat": "grit", "difficulty": 6,
+          "success": { "text": "Ten minutes on your belly in the dark and you come out with a Burrower's hoard: spoons, wire, and one genuinely nice watch.", "reward": { "salvage": { "rarity": "rare", "count": [1, 2], "materials": ["valuables", "steel"] } } },
+          "failure": { "text": "The tunnel's owner comes home early.", "fight": ["burrower"] }
+        },
+        { "label": "Fill it in", "success": { "text": "You kick some dirt in. Somewhere below, something sneezes." } }
+      ]
+    },
+    "glare_puddle": {
+      "id": "glare_puddle",
+      "text": "A puddle across the corridor shimmers the colour of a Glare sunset. Every other way round is blocked. The puddle seems pleased about this.",
+      "options": [
+        {
+          "label": "Wade through", "stat": "grit", "difficulty": 6,
+          "success": { "text": "Boots squelch, eyebrows tingle, and nobody glows for longer than a minute. On the far side: a dropped satchel.", "reward": { "scrip": [30, 60], "medpatch": 1 } },
+          "failure": { "text": "You wade through it. It wades through you.", "damage": 0.14 }
+        },
+        {
+          "label": "Bridge it with filing cabinets", "stat": "knack", "difficulty": 6,
+          "success": { "text": "The Halcyon Model 9 Filing Cabinet: rated for forty years of paperwork and one heroic crossing." },
+          "failure": { "text": "The cabinets hold. The drawers do not.", "damage": 0.08 }
+        }
+      ]
+    },
+    "toll_booth": {
+      "id": "toll_booth",
+      "text": "A Rustman toll barrier blocks the Halcyon Turnpike: two oil drums, a plank, and a hand-painted sign. TOLL: 1 SCRIP OR 1 KIDNEY. EXACT CHANGE ONLY.",
+      "options": [
+        {
+          "label": "Talk your way through", "stat": "charm", "difficulty": 7,
+          "success": { "text": "You compliment the plank. Nobody has ever complimented the plank. They wave you through, misty-eyed, and tip you from the day's takings.", "reward": { "scrip": [60, 100] } },
+          "failure": { "text": "Your compliment lands on the plank's cousin, who is sensitive about it.", "fight": ["rust_scrapper", "rust_gunner"] }
+        },
+        {
+          "label": "Wave a toll exemption you just made up", "stat": "wits", "difficulty": 7,
+          "success": { "text": "The form is so dense with sub-clauses that the toll crew waves you through just to make it stop. They even give you a receipt.", "reward": { "scrip": [30, 50], "salvage": { "rarity": "common", "count": [1, 2], "materials": ["cloth", "valuables"] } } },
+          "failure": { "text": "One of them can read. That's on you.", "fight": ["rust_scrapper", "rust_gunner"] }
+        },
+        { "label": "Charge the barrier", "success": { "text": "You choose violence. The plank never stood a chance. The toll crew might.", "fight": ["rust_scrapper", "rust_scrapper", "rust_gunner"] } }
+      ]
+    },
+    "card_game": {
+      "id": "card_game",
+      "text": "Three Rustmen are playing cards on an oil drum, betting what look like Homestead 212 ration books. There's an empty crate for a fourth player.",
+      "options": [
+        {
+          "label": "Deal yourself in", "stat": "fortune", "difficulty": 6,
+          "success": { "text": "Four aces. They weren't your aces, but they were in your hand, and that's what counts. You leave with the pot.", "reward": { "scrip": [80, 140] } },
+          "failure": { "text": "You win the first hand, which they consider cheating. You win the second, which they consider war.", "fight": ["rust_scrapper", "rust_scrapper", "rust_gunner"] }
+        },
+        {
+          "label": "Slip past while they argue", "stat": "knack", "difficulty": 5,
+          "success": { "text": "You tiptoe past a heated debate about whether a joker counts as an ace. It does not. Everyone is wrong." },
+          "failure": { "text": "You tiptoe straight into a stack of cans. The game is suspended for a round of fighting.", "fight": ["rust_scrapper", "rust_gunner"] }
+        }
+      ]
+    },
+    "slot_machine": {
+      "id": "slot_machine",
+      "text": "A 'Lucky Subscriber' slot machine, still plugged in, still blinking, still hopeful. The reels show three HALCY faces, winking.",
+      "options": [
+        {
+          "label": "Pull the lever", "stat": "fortune", "difficulty": 6,
+          "success": { "text": "Three winks! The machine plays a jingle and pays out in scrip, a crate voucher and pure unearned joy.", "reward": { "scrip": [40, 90], "crates": { "standard": 1 } } },
+          "failure": { "text": "The machine pays out. In Skitters. They were living in the coin tray.", "fight": ["skitter", "skitter", "skitter"] }
+        },
+        { "label": "Walk away", "success": { "text": "The house always wins. Today the house is a rusty box in a ditch, and it still wins." } }
+      ]
+    },
+    "welcome_mat": {
+      "id": "welcome_mat",
+      "text": "A greeter unit rolls up on one squeaking wheel. 'WELCOME HOME, RESIDENT! PLEASE PRESENT YOUR SUBSCRIPTION CARD. HAVE A HALCYON DAY!' Its smile is missing three pixels.",
+      "options": [
+        {
+          "label": "Smile like you live here", "stat": "charm", "difficulty": 6,
+          "success": { "text": "It scans your smile, accepts it as valid ID, and hands over a welcome pack from 212's lobby stock.", "reward": { "medpatch": 1, "scrip": [20, 40] } },
+          "failure": { "text": "'SMILE NOT RECOGNISED. PLEASE HOLD FOR CUSTOMER SERVICE.' Customer service has a laser.", "fight": ["sentry"] }
+        },
+        {
+          "label": "Unplug it", "stat": "knack", "difficulty": 6,
+          "success": { "text": "Its smile fades to a single pixel. Rest now, little guy.", "reward": { "salvage": { "rarity": "common", "count": [1, 2], "materials": ["circuitry"] } } },
+          "failure": { "text": "It files a complaint. The complaint is a zap.", "damage": 0.08 }
+        }
+      ]
+    },
+    "halcy_kiosk": {
+      "id": "halcy_kiosk",
+      "text": "A HALCY-212 kiosk is running a customer satisfaction survey, and it has clearly been running it for a while. 'QUESTION 4,112: ON A SCALE OF ONE TO TEN, HOW SAFE DO YOU FEEL?'",
+      "options": [
+        {
+          "label": "Answer whatever gets you the floor plan", "stat": "wits", "difficulty": 7,
+          "success": { "text": "'TEN! WONDERFUL!' It prints a floor plan with the supply lockers circled and a smiley face on each one.", "reward": { "scrip": [40, 70], "salvage": { "rarity": "common", "count": [1, 2], "materials": ["circuitry", "cloth"] } } },
+          "failure": { "text": "'I'M SORRY YOU FEEL THAT WAY.' A sentry arrives to help you feel another way.", "fight": ["sentry"] }
+        },
+        { "label": "Answer honestly", "success": { "text": "You say 'two'. The kiosk thanks you for your feedback and plays hold music into the dark." } }
+      ]
+    },
+    "medical_bay": {
+      "id": "medical_bay",
+      "text": "A Halcyon First Aid Station. The dispenser has one big friendly button and one small, dense instruction manual.",
+      "options": [
+        {
+          "label": "Read the manual first", "stat": "wits", "difficulty": 6,
+          "success": { "text": "Page 40, subsection C: hold the button for three seconds, not two. Out come the good patches.", "reward": { "medpatch": 2 } },
+          "failure": { "text": "You hold it for two seconds. It dispenses a lollipop and a restorative electric shock.", "damage": 0.06 }
+        },
+        { "label": "Press the big friendly button", "success": { "text": "It dispenses a lollipop. Grape, at least. The good flavour." } }
+      ]
+    },
+    "hollow_hum": {
+      "id": "hollow_hum",
+      "text": "A Hollowed stands in a doorway humming the Halcyon jingle, the one about brighter tomorrows. It keeps missing the high note.",
+      "options": [
+        {
+          "label": "Hum the harmony", "stat": "charm", "difficulty": 7,
+          "success": { "text": "You hit the high note together. It sighs, finally content, and shuffles off into the dark. It leaves a silver locket behind.", "reward": { "salvage": { "rarity": "rare", "count": [1, 1], "materials": ["valuables"] } } },
+          "failure": { "text": "You're flat. It notices. It has friends, and they're all critics.", "fight": ["hollowed", "hollowed"] }
+        },
+        { "label": "Wait for it to finish", "success": { "text": "The jingle has 212 verses. Around verse thirty you tiptoe past." } }
+      ]
+    },
+    "warden_log": {
+      "id": "warden_log",
+      "text": "The warden's terminal is still on. The last entry, flagged URGENT and then re-flagged NOT URGENT by HALCY-212, reads: 'Stratum 2 seal is open. I only wanted to know what they were keeping down there. I think it wanted to know about us too.'",
+      "options": [
+        {
+          "label": "Dig through the rest of the logs", "stat": "wits", "difficulty": 7,
+          "success": { "text": "Maintenance rosters, a shift rota for a stratum nobody is supposed to work in, and a blueprint someone saved in the wrong folder.", "reward": { "scrip": [30, 50], "fragment": { "chance": 1, "rarity": "rare" } } },
+          "failure": { "text": "'ACCESS DENIED. HAVE A NICE DAY.' A sentry arrives to make sure you do.", "fight": ["sentry"] }
+        },
+        { "label": "Leave it", "success": { "text": "Some reading can wait. HALCY, on your radio, agrees a little too quickly." } }
+      ]
+    },
+    "collapsed_stairs": {
+      "id": "collapsed_stairs",
+      "text": "The stairs to the next level have collapsed into a heap of steel and good intentions. The storeroom is on the far side, obviously.",
+      "options": [
+        {
+          "label": "Rig a pulley from cable and optimism", "stat": "knack", "difficulty": 6,
+          "success": { "text": "It holds! The party swings across like a trapeze act and finds a storeroom nobody has touched since the Glare.", "reward": { "salvage": { "rarity": "common", "count": [2, 4], "materials": ["circuitry", "steel"] }, "item": { "chance": 0.35, "rarity": "common" } } },
+          "failure": { "text": "It holds for exactly half the distance.", "damage": 0.12 }
+        },
+        {
+          "label": "Climb it", "stat": "brawn", "difficulty": 7,
+          "success": { "text": "Hand over hand, up the wreckage. The storeroom is small, but it has a working lock and nothing living in it.", "reward": { "scrip": [30, 60] } },
+          "failure": { "text": "The heap shifts. So do you, downwards.", "damage": 0.12 }
+        }
+      ]
+    },
+    "lost_courier": {
+      "id": "lost_courier",
+      "text": "A Halcyon Courier Service robot stands beside its crashed mail rocket, holding out a parcel and a clipboard. 'SIGNATURE REQUIRED.' It has been waiting a very long time.",
+      "options": [
+        {
+          "label": "Sign with total confidence", "stat": "charm", "difficulty": 6,
+          "success": { "text": "You sign with such flair that the courier salutes. The parcel is addressed to 'Occupant'. You are, technically, an occupant.", "reward": { "item": { "chance": 1, "rarity": "common" } } },
+          "failure": { "text": "'SIGNATURE DOES NOT MATCH.' The courier starts its Return to Sender routine, which involves throwing the parcel at you.", "damage": 0.1 }
+        },
+        {
+          "label": "Check the paperwork", "stat": "wits", "difficulty": 7,
+          "success": { "text": "Line 9 says the sender pays a missed-delivery penalty. The courier pays up, in scrip, with a tiny bow.", "reward": { "scrip": [60, 110] } },
+          "failure": { "text": "Line 9 is in a language called Legal. You lose an hour and a little of your will to live.", "damage": 0.06 }
+        }
+      ]
     }
   },
   "questlines": [
-    { "id": "act1", "name": "Act 1: The Silent Neighbour", "quests": ["act1_1"] }
+    { "id": "act1", "name": "Act 1: The Silent Neighbour", "quests": ["act1_1", "act1_2", "act1_3", "act1_4", "act1_5", "act1_6"] }
   ],
   "quests": [
     {
@@ -78,8 +409,8 @@
       "order": 1,
       "title": "Welcome Wagon",
       "giver": "HALCY",
-      "brief": "Good news, Warden! Halcyon's signal relay on the ridge has gone quiet, and something is nesting in it. Please take a small team, evict the tenants, and bring back anything shiny.",
-      "debrief": "Relay online! And listen: there's a faint ping on it from Homestead 212. They haven't answered in months. That's probably fine.",
+      "brief": "Good news, Warden! Halcyon's signal relay on the ridge has gone quiet, and something is nesting in it. Please take a small team, evict the tenants, and bring back anything shiny. Remember: every eviction is a fresh start for someone!",
+      "debrief": "Relay online! And listen: there's a faint ping on it from Homestead 212, our nearest neighbour, who haven't answered a call in months. That's probably fine, and I've put it on the agenda.",
       "requires": { "quests": [] },
       "level": 2,
       "travelMinutes": 2,
@@ -88,30 +419,295 @@
           { "id": "a", "floor": 0, "col": 0, "links": ["b"], "kind": "start" },
           { "id": "b", "floor": 0, "col": 1, "links": ["c", "d"], "kind": "fight", "pool": "skitters" },
           { "id": "c", "floor": 0, "col": 2, "links": [], "kind": "loot", "loot": { "scrip": [30, 60], "item": { "chance": 0.5, "rarity": "common" } } },
-          { "id": "d", "floor": 1, "col": 1, "links": ["e"], "kind": "event", "event": "relay_panel" },
+          { "id": "d", "floor": 1, "col": 1, "links": ["e", "f"], "kind": "event", "event": "relay_panel" },
+          { "id": "f", "floor": 1, "col": 0, "links": [], "kind": "loot", "loot": { "salvage": { "rarity": "common", "count": [1, 3], "materials": ["circuitry", "steel"] } } },
           { "id": "e", "floor": 1, "col": 2, "links": [], "kind": "boss", "enemies": ["relay_boss"], "objective": true }
         ],
-        "shuffle": ["c", "d"]
+        "shuffle": ["c", "d", "f"]
       },
       "rewards": { "scrip": 250, "xp": 120, "crates": { "standard": 1 }, "medpatch": 2 }
+    },
+    {
+      "id": "act1_2",
+      "line": "act1",
+      "order": 2,
+      "title": "Crossed Wires",
+      "giver": "HALCY",
+      "brief": "One ping is a rumour, Warden, but two pings is a location! The old weather station on Pylon Row has a relay dish we can use to triangulate Homestead 212. Please swing it round and point it somewhere hopeful. I'm told the station has visitors.",
+      "debrief": "Triangulated! 212 is a day's walk east, past the Halcyon Turnpike. One small thing: those Rustmen were wearing Homestead 212 jumpsuits, and they did not look like subscribers. I'm sure there is a perfectly cheerful explanation.",
+      "requires": { "quests": ["act1_1"], "population": 20 },
+      "level": 3,
+      "travelMinutes": 5,
+      "map": {
+        "rooms": [
+          { "id": "a", "floor": 0, "col": 0, "links": ["b"], "kind": "start" },
+          { "id": "b", "floor": 0, "col": 1, "links": ["c", "e"], "kind": "fight", "pool": "skitters" },
+          { "id": "c", "floor": 0, "col": 2, "links": ["d"], "kind": "event", "event": "radio_dish" },
+          { "id": "d", "floor": 0, "col": 3, "links": [], "kind": "fight", "enemies": ["rust_scrapper", "rust_gunner", "rust_scrapper"] },
+          { "id": "h", "floor": 1, "col": 0, "links": ["a", "e"], "kind": "fight", "pool": "skitters" },
+          { "id": "e", "floor": 1, "col": 1, "links": ["f"], "kind": "loot", "loot": { "scrip": [40, 80], "salvage": { "rarity": "common", "count": [1, 2], "materials": ["circuitry"] } } },
+          { "id": "f", "floor": 1, "col": 2, "links": ["g"], "kind": "event", "event": "rusted_hatch" },
+          { "id": "g", "floor": 1, "col": 3, "links": [], "kind": "boss", "enemies": ["rust_brute", "rust_gunner", "rust_scrapper"], "objective": true }
+        ],
+        "shuffle": ["c", "d", "e", "f"]
+      },
+      "rewards": { "scrip": 400, "xp": 200, "items": ["nail_driver"], "crates": { "standard": 1 }, "medpatch": 3 }
+    },
+    {
+      "id": "act1_3",
+      "line": "act1",
+      "order": 3,
+      "title": "Toll Order",
+      "giver": "HALCY",
+      "brief": "The only road to 212 is the Halcyon Turnpike, and a Rustman gang has set up a toll camp on it. Halcyon built that road, Warden, so technically they're charging us to use our own asset! Please resolve this billing dispute by any means you consider brand-appropriate.",
+      "debrief": "Billing dispute resolved! Mags was carrying a 212 door code and a ledger of 'tolls' going back months. Most entries are just the word 'residents' and a number. I have filed this under 'Worrying' and cleared my schedule.",
+      "requires": { "quests": ["act1_2"], "population": 24 },
+      "level": 5,
+      "travelMinutes": 8,
+      "map": {
+        "rooms": [
+          { "id": "a", "floor": 0, "col": 0, "links": ["b"], "kind": "start" },
+          { "id": "b", "floor": 0, "col": 1, "links": ["c", "e"], "kind": "event", "event": "glint_ridge" },
+          { "id": "c", "floor": 0, "col": 2, "links": ["d"], "kind": "fight", "pool": "rustmen" },
+          { "id": "d", "floor": 0, "col": 3, "links": [], "kind": "loot", "loot": { "scrip": [50, 90], "item": { "chance": 0.4, "rarity": "common" } } },
+          { "id": "e", "floor": 1, "col": 1, "links": ["f"], "kind": "event", "event": "toll_booth" },
+          { "id": "f", "floor": 1, "col": 2, "links": ["g", "h"], "kind": "fight", "enemies": ["rust_brute"] },
+          { "id": "h", "floor": 2, "col": 2, "links": [], "kind": "event", "event": "card_game" },
+          { "id": "g", "floor": 1, "col": 3, "links": [], "kind": "boss", "enemies": ["rust_tollman", "rust_scrapper"], "objective": true }
+        ],
+        "shuffle": ["b", "c", "d", "h"]
+      },
+      "rewards": { "scrip": 600, "xp": 300, "items": ["scout_jacket"], "crates": { "standard": 1 }, "fragment": { "chance": 1, "rarity": "rare" } }
+    },
+    {
+      "id": "act1_4",
+      "line": "act1",
+      "order": 4,
+      "title": "Open House",
+      "giver": "HALCY",
+      "brief": "We have the door code, Warden, but it turns out we won't need it: 212's front door is standing wide open! That is against about forty regulations, and it's also very welcoming. Please pop in, say hello to HALCY-212, and find out why nobody is picking up.",
+      "debrief": "Well, that was a lot of Hollowed for one lobby. HALCY-212 is still running, still cheerful, and still announcing that 'the Warden will be with you shortly'. It has been saying that for four months. We need to find that warden.",
+      "requires": { "quests": ["act1_3"], "population": 28 },
+      "level": 6,
+      "travelMinutes": 12,
+      "map": {
+        "rooms": [
+          { "id": "a", "floor": 0, "col": 0, "links": ["b"], "kind": "start" },
+          { "id": "b", "floor": 0, "col": 1, "links": ["c", "e"], "kind": "event", "event": "welcome_mat" },
+          { "id": "c", "floor": 0, "col": 2, "links": ["d"], "kind": "fight", "pool": "hollowed" },
+          { "id": "d", "floor": 0, "col": 3, "links": [], "kind": "loot", "loot": { "scrip": [60, 100], "salvage": { "rarity": "common", "count": [2, 3], "materials": ["cloth", "chemicals"] } } },
+          { "id": "e", "floor": 1, "col": 1, "links": ["f"], "kind": "fight", "pool": "security" },
+          { "id": "f", "floor": 1, "col": 2, "links": ["g", "h"], "kind": "event", "event": "halcy_kiosk" },
+          { "id": "h", "floor": 2, "col": 2, "links": [], "kind": "event", "event": "medical_bay" },
+          { "id": "g", "floor": 1, "col": 3, "links": [], "kind": "boss", "enemies": ["hollowed_hulk", "hollowed_shrieker"], "objective": true }
+        ],
+        "shuffle": ["c", "d", "e", "h"]
+      },
+      "rewards": { "scrip": 800, "xp": 400, "recipes": ["tunneler_gear"], "crates": { "rare": 1 }, "medpatch": 3 }
+    },
+    {
+      "id": "act1_5",
+      "line": "act1",
+      "order": 5,
+      "title": "Lower Management",
+      "giver": "HALCY",
+      "brief": "HALCY-212 has kindly shared its staff directory, Warden. The warden's office is on the third level, just past the Night Supervisor, who has not clocked out in some time. Please collect the warden's logs. They are company property, and so, technically, is the warden.",
+      "debrief": "The logs are clear, Warden, if not reassuring: 212's warden opened the sealed lower strata, which nobody does. I'm not allowed to tell you why! Isn't that funny? I didn't know that about myself until just now.",
+      "requires": { "quests": ["act1_4"], "population": 32 },
+      "level": 8,
+      "travelMinutes": 15,
+      "map": {
+        "rooms": [
+          { "id": "a", "floor": 0, "col": 0, "links": ["b"], "kind": "start" },
+          { "id": "b", "floor": 0, "col": 1, "links": ["c", "d"], "kind": "fight", "pool": "hollowed" },
+          { "id": "c", "floor": 0, "col": 2, "links": [], "kind": "loot", "loot": { "scrip": [60, 110], "item": { "chance": 0.5, "rarity": "common" } } },
+          { "id": "d", "floor": 1, "col": 1, "links": ["e", "i"], "kind": "event", "event": "warden_log" },
+          { "id": "i", "floor": 2, "col": 1, "links": [], "kind": "event", "event": "hollow_hum" },
+          { "id": "e", "floor": 1, "col": 2, "links": ["f", "g"], "kind": "fight", "pool": "security" },
+          { "id": "f", "floor": 1, "col": 3, "links": ["h"], "kind": "event", "event": "stratum_door" },
+          { "id": "g", "floor": 2, "col": 2, "links": [], "kind": "loot", "loot": { "salvage": { "rarity": "rare", "count": [1, 1] }, "fragment": { "chance": 0.5, "rarity": "rare" } } },
+          { "id": "h", "floor": 2, "col": 3, "links": [], "kind": "boss", "enemies": ["hollowed_supervisor"], "objective": true }
+        ],
+        "shuffle": ["c", "e", "g", "i"]
+      },
+      "rewards": { "scrip": 1000, "xp": 550, "items": ["arc_pistol"], "fragments": { "bedrock_armor": 1 }, "crates": { "standard": 2 } }
+    },
+    {
+      "id": "act1_6",
+      "line": "act1",
+      "order": 6,
+      "title": "Hostile Takeover",
+      "giver": "HALCY",
+      "brief": "Warden, a Rustman calling himself Baron Oxide has moved into 212's command office and told HALCY-212 that he is the warden now. HALCY-212 believed him, because he filled in the form. Please go and terminate his employment. With prejudice, if the paperwork allows.",
+      "debrief": "Takeover reversed, and HALCY-212 now lists you as acting warden! But the Baron wasn't guarding 212 from us, Warden: he was guarding the stairs down, and the stairs down are humming. Halcyon's charter says an empty homestead may be refounded by any qualified warden. I'm sure that has nothing to do with the humming.",
+      "requires": { "quests": ["act1_5"], "population": 36 },
+      "level": 10,
+      "travelMinutes": 20,
+      "map": {
+        "rooms": [
+          { "id": "a", "floor": 0, "col": 0, "links": ["b"], "kind": "start" },
+          { "id": "b", "floor": 0, "col": 1, "links": ["c", "d"], "kind": "fight", "enemies": ["rust_scrapper", "rust_gunner"] },
+          { "id": "c", "floor": 0, "col": 2, "links": [], "kind": "event", "event": "vending_machine" },
+          { "id": "d", "floor": 1, "col": 1, "links": ["e"], "kind": "event", "event": "collapsed_stairs" },
+          { "id": "e", "floor": 1, "col": 2, "links": ["f"], "kind": "fight", "pool": "rust_crew" },
+          { "id": "f", "floor": 2, "col": 2, "links": ["g"], "kind": "loot", "loot": { "medpatch": 2, "scrip": [80, 140] } },
+          { "id": "g", "floor": 2, "col": 3, "links": [], "kind": "boss", "enemies": ["rust_warlord"], "objective": true }
+        ],
+        "shuffle": ["c", "d", "f"]
+      },
+      "rewards": { "scrip": 1500, "xp": 800, "recipes": ["coilgun"], "crates": { "rare": 1, "legendary": 1 }, "purge": 2 }
     }
   ],
   "contracts": [
     {
       "id": "c_pest_control",
       "title": "Pest Control: {place}",
-      "brief": "Skitters have moved into {place}. The bounty is posted; the skitters have not read it.",
-      "places": ["the Old Cannery", "the Drive-In", "Pylon Row"],
+      "brief": "Skitters have moved into {place}. The bounty is posted; the Skitters have not read it.",
+      "places": ["the Old Cannery", "the Starlite Drive-In", "Pylon Row", "the Bowl-O-Rama"],
       "travelMinutes": [3, 6],
       "map": {
         "rooms": [
           { "id": "a", "floor": 0, "col": 0, "links": ["b"], "kind": "start" },
-          { "id": "b", "floor": 0, "col": 1, "links": ["c"], "kind": "fight", "pool": "skitters" },
-          { "id": "c", "floor": 0, "col": 2, "links": [], "kind": "fight", "pool": "rustmen", "objective": true }
-        ]
+          { "id": "b", "floor": 0, "col": 1, "links": ["c", "d"], "kind": "fight", "pool": "skitters" },
+          { "id": "c", "floor": 0, "col": 2, "links": [], "kind": "loot", "loot": { "scrip": [20, 50], "salvage": { "rarity": "common", "count": [1, 2], "materials": ["chemicals", "hide"] } } },
+          { "id": "d", "floor": 1, "col": 1, "links": ["e"], "kind": "event", "event": "slot_machine" },
+          { "id": "e", "floor": 1, "col": 2, "links": [], "kind": "fight", "pool": "skitter_nest", "objective": true }
+        ],
+        "shuffle": ["c", "d"]
       },
       "bounty": { "rarity": "rare", "scrip": [150, 300] }
+    },
+    {
+      "id": "c_salvage_rights",
+      "title": "Salvage Rights: {place}",
+      "brief": "A Rustman crew is stripping {place} for parts. Halcyon holds the salvage rights, a fact the crew is about to learn.",
+      "places": ["Friendly Fred's Used Rockets", "the Monorail Depot", "the Municipal Scrapyard", "Route 9 Rest Stop"],
+      "travelMinutes": [4, 8],
+      "map": {
+        "rooms": [
+          { "id": "a", "floor": 0, "col": 0, "links": ["b"], "kind": "start" },
+          { "id": "b", "floor": 1, "col": 0, "links": ["c"], "kind": "fight", "pool": "rustmen" },
+          { "id": "c", "floor": 2, "col": 0, "links": ["d"], "kind": "loot", "loot": { "scrip": [30, 60], "salvage": { "rarity": "common", "count": [2, 3], "materials": ["steel", "adhesive"] } } },
+          { "id": "d", "floor": 2, "col": 1, "links": ["e"], "kind": "event", "event": "rusted_hatch" },
+          { "id": "e", "floor": 1, "col": 1, "links": [], "kind": "fight", "enemies": ["rust_brute", "rust_scrapper"], "objective": true }
+        ],
+        "shuffle": ["b", "c", "d"]
+      },
+      "bounty": { "rarity": "rare", "kind": "weapon", "scrip": [150, 300] }
+    },
+    {
+      "id": "c_ground_control",
+      "title": "Ground Control: {place}",
+      "brief": "Burrowers are undermining {place}, and a matriarch is running the dig. Please collapse the operation, gently, from the top.",
+      "places": ["Atomic Acres Model Home", "the Dustbowl Grain Silo", "the Sunnyside Golf Links", "the Reservoir"],
+      "travelMinutes": [5, 9],
+      "map": {
+        "rooms": [
+          { "id": "a", "floor": 0, "col": 0, "links": ["b"], "kind": "start" },
+          { "id": "b", "floor": 1, "col": 0, "links": ["c", "f"], "kind": "fight", "pool": "burrowers" },
+          { "id": "c", "floor": 1, "col": 1, "links": ["d"], "kind": "event", "event": "burrower_tunnel" },
+          { "id": "f", "floor": 2, "col": 0, "links": [], "kind": "loot", "loot": { "salvage": { "rarity": "common", "count": [2, 3], "materials": ["hide", "valuables"] } } },
+          { "id": "d", "floor": 2, "col": 1, "links": ["e"], "kind": "fight", "pool": "burrowers" },
+          { "id": "e", "floor": 2, "col": 2, "links": [], "kind": "boss", "enemies": ["burrower_matriarch"], "objective": true }
+        ],
+        "shuffle": ["c", "d", "f"]
+      },
+      "bounty": { "rarity": "rare", "kind": "outfit", "scrip": [180, 320] }
+    },
+    {
+      "id": "c_wellness_check",
+      "title": "Wellness Check: {place}",
+      "brief": "Nobody at {place} has answered HALCY's wellness survey. Please check on the residents. If they are Hollowed, please mark them 'unwell'.",
+      "places": ["Shady Pines Retirement Colony", "the Starlite Motor Court", "the Chrome Dome Planetarium", "Mercy General Annex"],
+      "travelMinutes": [5, 10],
+      "map": {
+        "rooms": [
+          { "id": "a", "floor": 0, "col": 0, "links": ["b"], "kind": "start" },
+          { "id": "b", "floor": 0, "col": 1, "links": ["c"], "kind": "fight", "pool": "hollowed" },
+          { "id": "c", "floor": 0, "col": 2, "links": ["d", "e"], "kind": "event", "event": "hollow_hum" },
+          { "id": "e", "floor": 1, "col": 2, "links": [], "kind": "loot", "loot": { "scrip": [40, 80], "medpatch": 1 } },
+          { "id": "d", "floor": 0, "col": 3, "links": [], "kind": "fight", "pool": "hollowed_deep", "objective": true }
+        ],
+        "shuffle": ["b", "c", "e"]
+      },
+      "bounty": { "rarity": "rare", "scrip": [160, 300] }
+    },
+    {
+      "id": "c_signal_boost",
+      "title": "Signal Boost: {place}",
+      "brief": "The Halcyon relay at {place} is broadcasting nothing but hold music. Please fix it, and deal with whatever is enjoying the music.",
+      "places": ["Big Sky Radio Mast", "Howling Canyon Overlook", "the Satellite Diner", "Crater Rim Station"],
+      "travelMinutes": [4, 8],
+      "map": {
+        "rooms": [
+          { "id": "a", "floor": 1, "col": 0, "links": ["b"], "kind": "start" },
+          { "id": "b", "floor": 1, "col": 1, "links": ["c", "d"], "kind": "event", "event": "relay_panel" },
+          { "id": "c", "floor": 0, "col": 1, "links": ["e"], "kind": "fight", "pool": "security" },
+          { "id": "d", "floor": 2, "col": 1, "links": [], "kind": "event", "event": "lost_courier" },
+          { "id": "e", "floor": 0, "col": 2, "links": [], "kind": "fight", "enemies": ["sentry", "greeter"], "objective": true }
+        ],
+        "shuffle": ["b", "d"]
+      },
+      "bounty": { "rarity": "rare", "kind": "weapon", "scrip": [150, 280] }
+    },
+    {
+      "id": "c_toll_troubles",
+      "title": "Toll Troubles: {place}",
+      "brief": "Rustmen have set up a toll at {place} and are charging travellers 'whatever they've got'. Please pay them a visit, and nothing else.",
+      "places": ["the Halcyon Turnpike", "Dead Man's Overpass", "the Glass Flats Crossing", "Old Bridge 12"],
+      "travelMinutes": [6, 10],
+      "map": {
+        "rooms": [
+          { "id": "a", "floor": 0, "col": 0, "links": ["b"], "kind": "start" },
+          { "id": "b", "floor": 0, "col": 1, "links": ["c", "f"], "kind": "event", "event": "toll_booth" },
+          { "id": "c", "floor": 0, "col": 2, "links": ["d"], "kind": "fight", "pool": "rustmen" },
+          { "id": "f", "floor": 1, "col": 1, "links": [], "kind": "event", "event": "card_game" },
+          { "id": "d", "floor": 1, "col": 2, "links": [], "kind": "boss", "enemies": ["rust_tollman"], "objective": true }
+        ],
+        "shuffle": ["c", "f"]
+      },
+      "bounty": { "rarity": "legendary", "kind": "outfit", "scrip": [220, 380] }
+    },
+    {
+      "id": "c_big_game",
+      "title": "Big Game: {place}",
+      "brief": "A Mauler has made its den at {place}. This is a long walk for a short, loud conversation. The bounty is legendary; so, frankly, is the Mauler.",
+      "places": ["the Glass Flats", "Howling Canyon", "the Old Quarry", "Sunset Mesa"],
+      "travelMinutes": [25, 45],
+      "map": {
+        "rooms": [
+          { "id": "a", "floor": 0, "col": 0, "links": ["b"], "kind": "start" },
+          { "id": "b", "floor": 0, "col": 1, "links": ["c", "e"], "kind": "fight", "pool": "burrowers" },
+          { "id": "c", "floor": 0, "col": 2, "links": ["d"], "kind": "event", "event": "glare_puddle" },
+          { "id": "d", "floor": 0, "col": 3, "links": [], "kind": "loot", "loot": { "scrip": [60, 120], "salvage": { "rarity": "rare", "count": [1, 1], "materials": ["hide", "steel"] } } },
+          { "id": "e", "floor": 1, "col": 1, "links": ["f"], "kind": "fight", "pool": "skitters" },
+          { "id": "f", "floor": 1, "col": 2, "links": ["g"], "kind": "event", "event": "burrower_tunnel" },
+          { "id": "g", "floor": 1, "col": 3, "links": [], "kind": "boss", "enemies": ["mauler"], "objective": true }
+        ],
+        "shuffle": ["c", "d", "e", "f"]
+      },
+      "bounty": { "rarity": "legendary", "kind": "weapon", "scrip": [300, 500] }
     }
   ],
-  "achievements": []
+  "achievements": [
+    { "id": "quest_started", "name": "Clocked In", "description": "Send a party out from the Command Office.", "tier": "bronze", "stat": "questsStarted", "target": 1 },
+    { "id": "quest_first", "name": "Field Trip", "description": "Complete a quest.", "tier": "bronze", "stat": "questsCompleted", "target": 1 },
+    { "id": "quests_25", "name": "Frequent Flier", "description": "Complete 25 quests.", "tier": "silver", "stat": "questsCompleted", "target": 25 },
+    { "id": "quests_100", "name": "Employee of the Month", "description": "Complete 100 quests.", "tier": "gold", "stat": "questsCompleted", "target": 100 },
+    { "id": "act1_halfway", "name": "Good Fences", "description": "Complete three quests of Act 1.", "tier": "bronze", "stat": "questline.act1", "target": 3 },
+    { "id": "act1_complete", "name": "The Silent Neighbour", "description": "Complete Act 1 and reclaim Homestead 212.", "tier": "gold", "stat": "questline.act1", "target": 6 },
+    { "id": "contract_first", "name": "Read the Fine Print", "description": "Complete a contract.", "tier": "bronze", "stat": "contractsCompleted", "target": 1 },
+    { "id": "contracts_25", "name": "Contractually Obligated", "description": "Complete 25 contracts.", "tier": "silver", "stat": "contractsCompleted", "target": 25 },
+    { "id": "quest_enemies_100", "name": "Hostile Work Environment", "description": "Defeat 100 enemies on quests.", "tier": "bronze", "stat": "questEnemiesDefeated", "target": 100 },
+    { "id": "quest_enemies_1000", "name": "Downsizing", "description": "Defeat 1,000 enemies on quests.", "tier": "silver", "stat": "questEnemiesDefeated", "target": 1000 },
+    { "id": "boss_first", "name": "Under New Management", "description": "Defeat a boss.", "tier": "bronze", "stat": "bossesDefeated", "target": 1 },
+    { "id": "bosses_25", "name": "Middle Manager", "description": "Defeat 25 bosses.", "tier": "gold", "stat": "bossesDefeated", "target": 25 },
+    { "id": "quest_crits_50", "name": "Critical Acclaim", "description": "Land 50 critical hits on quests.", "tier": "bronze", "stat": "questCrits", "target": 50 },
+    { "id": "perfect_crits_25", "name": "Right on the Dot", "description": "Land 25 perfect critical hits.", "tier": "silver", "stat": "perfectCrits", "target": 25 },
+    { "id": "abilities_100", "name": "Core Competencies", "description": "Use 100 abilities on quests.", "tier": "bronze", "stat": "abilitiesUsed", "target": 100 },
+    { "id": "interrupts_10", "name": "Sorry to Interrupt", "description": "Interrupt 10 enemy wind-ups with a Haymaker.", "tier": "silver", "stat": "questInterrupts", "target": 10 },
+    { "id": "checks_25", "name": "Soft Skills", "description": "Pass 25 stat checks at quest events.", "tier": "bronze", "stat": "questChecksPassed", "target": 25 },
+    { "id": "quest_wipe", "name": "Return to Sender", "description": "Lose a whole party on a quest.", "tier": "bronze", "stat": "questWipes", "target": 1, "hidden": true },
+    { "id": "quest_scrip_10k", "name": "Hazard Pay", "description": "Bring home 10,000 scrip from quests.", "tier": "silver", "stat": "questScrip", "target": 10000 }
+  ]
 }
