@@ -146,6 +146,7 @@ export {
   type TraitDef,
 } from './systems/traits';
 export { autoAssign, idleAdults } from './systems/assign';
+export { threatRating, type ThreatRating, type ThreatFactor } from './systems/threat';
 export { knowsRecipe, fragmentsNeeded, salvageCount, SALVAGE_CAP } from './systems/inventory';
 export {
   residentsInRoom,
