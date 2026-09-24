@@ -190,6 +190,7 @@ The same pipeline builds enemies and interface portraits. Set `"kind"` in `sprit
 
 - **`"kind": "creature"`** (in `art/raw/<look>/`, named after the enemy's `look`): full colour, no recolouring. Animations are `idle` (loop), `attack` (plays when it strikes; its early frames are held during a boss wind-up) and `death` (plays once before the fade). Sheets must end up **facing left**, toward the party; use `"mirror": true` for sheets drawn facing right. Use `"background": "magenta"` for anything with green in it. The quest screen and the vault incidents (skitters, burrowers, raiders, deepcrawlers) use the art when a look has some, and draw the old Graphics version otherwise.
 - **`"kind": "portrait"`**: each frame is saved as its own image in `public/sprites/portraits/<id>_<name>.webp`, named by `"names"`. HALCY's four faces (`smile`, `talk`, `worried`, `wink`) appear beside her lines (`src/client/ui/halcy.ts`).
+- **Item icons** use the portrait kind too (`art/raw/items/`, `"outDir": "items"`, `"prefix": ""`, `"fit": 96`), one image per item id in `public/sprites/items/`. The storage list and crate cards show them (`src/client/ui/icons.ts`), with the old emoji as fallback. Icon sheets often come out shuffled or with repeats: `"order": "x"` reads a row strictly left to right, `"boxes"` names explicit regions of the sheet, and `"background": "corner"` keys any flat background colour.
 
 | Look | Used by | Animations |
 |---|---|---|

@@ -62,6 +62,12 @@ def hex_rgb(h: str) -> tuple[int, int, int]:
 def chroma_key(img: Image.Image, background: str = "green") -> np.ndarray:
     a = np.array(img.convert("RGB")).astype(int)
     r, g, b = a[..., 0], a[..., 1], a[..., 2]
+    if background == "corner":
+        # Key out whatever flat colour the top-left corner is (for off-shade backgrounds).
+        bg = a[:8, :8].reshape(-1, 3).mean(axis=0)
+        dist = np.sqrt(((a - bg) ** 2).sum(axis=-1))
+        alpha = np.clip((dist - 40) / 50.0, 0, 1)
+        return np.dstack([r, g, b, alpha * 255]).clip(0, 255).astype(np.uint8)
     if background == "magenta":
         # For art with green in it (glowing creatures): key out #FF00FF instead.
         dom = np.minimum(r, b) - g
@@ -105,7 +111,23 @@ def find_frames(rgba: np.ndarray) -> list[np.ndarray]:
     return frames
 
 
-def find_figures(rgba: np.ndarray) -> list[np.ndarray]:
+def box_frame(rgba: np.ndarray) -> np.ndarray:
+    """Everything sizeable in a cut-out box, trimmed to its bounds."""
+    from scipy import ndimage
+
+    mask = rgba[..., 3] > 128
+    labels, n = ndimage.label(mask)
+    if n == 0:
+        return rgba
+    areas = ndimage.sum(mask, labels, range(1, n + 1))
+    keep = np.isin(labels, [i + 1 for i in range(n) if areas[i] >= max(areas) * 0.05])
+    out = rgba.copy()
+    out[..., 3] = np.where(keep, out[..., 3], 0)
+    ys, xs = np.where(keep)
+    return out[ys.min() : ys.max() + 1, xs.min() : xs.max() + 1]
+
+
+def find_figures(rgba: np.ndarray, by_x: bool = False) -> list[np.ndarray]:
     """Frames as separate figures (connected shapes), in reading order.
 
     For sheets where frames nearly touch (a rifle reaching toward the next
@@ -138,6 +160,8 @@ def find_figures(rgba: np.ndarray) -> list[np.ndarray]:
         f = rgba[y0:y1, x0:x1].copy()
         f[..., 3] = np.where(keep, f[..., 3], 0)
         figs.append((y1, x0, y1 - y0, f))
+    if by_x:  # one row of things of different heights (icons): just left to right
+        return [f for (_, _, _, f) in sorted(figs, key=lambda t: t[1])]
     # Reading order: group into rows by where the feet are (a lying figure
     # shares the ground line with the standing ones), then left to right.
     figs.sort(key=lambda t: t[0])
@@ -245,21 +269,26 @@ def body_x(frame: np.ndarray) -> float:
 
 
 def build_portraits(cid: str, cfg: dict, cut: dict[str, list[np.ndarray]], target: int) -> tuple[str, dict]:
-    """"kind": "portrait": each frame saved on its own (for the interface), named by "names"."""
-    out_dir = OUT / "portraits"
+    """"kind": "portrait": each frame saved on its own (for the interface), named by "names".
+
+    "outDir" (default "portraits") and "prefix" (default "<id>_") place the
+    files; "fit" scales each to fit a square that size instead of to
+    targetHeight (for wide things like rifles).
+    """
+    out_dir = OUT / cfg.get("outDir", "portraits")
+    prefix = cfg.get("prefix", f"{cid}_")
     out_dir.mkdir(parents=True, exist_ok=True)
-    for old in out_dir.glob(f"{cid}_*"):
-        old.unlink()
     files = {}
     for name, frames in cut.items():
         names = cfg["anims"][name].get("names", [])
         for i, f in enumerate(frames):
             key = names[i] if i < len(names) else f"{name}{i}"
             img = Image.fromarray(f)
-            img = img.resize((max(1, round(img.width * target / img.height)), target), Image.LANCZOS)
-            fn = f"{cid}_{key}.webp"
+            k = cfg["fit"] / max(img.size) if "fit" in cfg else target / img.height
+            img = img.resize((max(1, round(img.width * k)), max(1, round(img.height * k))), Image.LANCZOS)
+            fn = f"{prefix}{key}.webp"
             save_webp(img, out_dir / fn)
-            files[key] = f"portraits/{fn}"
+            files[key] = f"{out_dir.name}/{fn}"
     return ("portraits", {cid: files})
 
 
@@ -283,13 +312,22 @@ def build_character(folder: Path) -> tuple[str, dict] | None:
         # "crop": [x0, y0, x1, y1] uses only part of the sheet (e.g. its first row).
         if "crop" in a:
             sheet = sheet.crop(tuple(a["crop"]))
-        keyed = chroma_key(sheet, cfg.get("background", "green"))
+        keyed = chroma_key(sheet, a.get("background", cfg.get("background", "green")))
         # A ground line drawn under the frames would join them all: clear rows
         # that are mostly covered but belong to no figure (a thin line).
         solid = (keyed[..., 3] > 128).mean(axis=1) > 0.5
         keyed[solid, 3] = 0
         # "split": "figures" cuts by connected shapes instead of by empty gaps.
-        frames = find_figures(keyed) if a.get("split") == "figures" else find_frames(keyed)
+        # "boxes": [[x0, y0, x1, y1], ...] cuts one frame per box instead (for
+        # sheets where the generator repeated or overlapped things); each frame
+        # keeps every sizeable shape in its box, so a hat stays with its coat.
+        if "boxes" in a:
+            frames = [box_frame(keyed[y0:y1, x0:x1]) for x0, y0, x1, y1 in a["boxes"]]
+            cut[name] = frames
+            print(f"  {cid}/{name}: {len(frames)} frames")
+            continue
+        # "order": "x" reads figures strictly left to right.
+        frames = find_figures(keyed, a.get("order") == "x") if a.get("split") == "figures" else find_frames(keyed)
         drop = set(a.get("drop", []))
         frames = [f for i, f in enumerate(frames) if i not in drop]
         # "take": n keeps the first n frames (e.g. only a sheet's first row).

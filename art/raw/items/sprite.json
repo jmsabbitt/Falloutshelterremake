@@ -1,0 +1,231 @@
+{
+  "id": "items",
+  "kind": "portrait",
+  "background": "magenta",
+  "outDir": "items",
+  "prefix": "",
+  "fit": 96,
+  "targetHeight": 96,
+  "anims": {
+    "w1": {
+      "file": "icons_w1.png",
+      "split": "figures",
+      "take": 4,
+      "names": [
+        "rusty_revolver",
+        "wrench",
+        "service_pistol",
+        "nail_driver"
+      ],
+      "order": "x",
+      "background": "corner",
+      "crop": [
+        0,
+        470,
+        2752,
+        1536
+      ]
+    },
+    "w2": {
+      "file": "icons_w2.png",
+      "split": "figures",
+      "take": 4,
+      "names": [
+        "rivet_rifle",
+        "flare_gun",
+        "scrap_carbine",
+        "scattergun"
+      ],
+      "order": "x",
+      "background": "corner"
+    },
+    "w3": {
+      "file": "icons_w3.png",
+      "split": "figures",
+      "take": 4,
+      "names": [
+        "arc_pistol",
+        "longrifle",
+        "coilgun",
+        "sunbeam_rifle"
+      ],
+      "order": "x",
+      "boxes": [
+        [
+          138,
+          198,
+          963,
+          680
+        ],
+        [
+          1266,
+          253,
+          2614,
+          638
+        ],
+        [
+          124,
+          941,
+          1417,
+          1340
+        ],
+        [
+          1624,
+          859,
+          2601,
+          1313
+        ]
+      ]
+    },
+    "w4": {
+      "file": "icons_w4.png",
+      "split": "figures",
+      "take": 4,
+      "names": [
+        "thunderclap",
+        "glare_lance",
+        "peacemaker",
+        "four_leaf_tux"
+      ],
+      "order": "x"
+    },
+    "o1": {
+      "file": "icons_o1.png",
+      "split": "figures",
+      "take": 4,
+      "names": [
+        "work_overalls",
+        "lookout_jacket",
+        "miners_gear",
+        "evening_wear"
+      ],
+      "order": "x",
+      "boxes": [
+        [
+          110,
+          115,
+          605,
+          1410
+        ],
+        [
+          674,
+          267,
+          1376,
+          1079
+        ],
+        [
+          1445,
+          115,
+          2119,
+          1175
+        ],
+        [
+          2146,
+          184,
+          2683,
+          1423
+        ]
+      ]
+    },
+    "o2": {
+      "file": "icons_o2.png",
+      "split": "figures",
+      "take": 4,
+      "names": [
+        "lab_smock",
+        "mechanic_jumpsuit",
+        "lucky_suspenders",
+        "foreman_overalls"
+      ],
+      "order": "x"
+    },
+    "o3": {
+      "file": "icons_o3.png",
+      "split": "figures",
+      "take": 4,
+      "names": [
+        "scout_jacket",
+        "tunneler_gear",
+        "dinner_jacket",
+        "research_smock"
+      ],
+      "order": "x",
+      "boxes": [
+        [
+          55,
+          165,
+          700,
+          757
+        ],
+        [
+          743,
+          193,
+          1376,
+          1128
+        ],
+        [
+          1417,
+          220,
+          2036,
+          770
+        ],
+        [
+          2078,
+          812,
+          2683,
+          1420
+        ]
+      ]
+    },
+    "o4": {
+      "file": "icons_o4.png",
+      "split": "figures",
+      "take": 4,
+      "names": [
+        "racing_jumpsuit",
+        "gamblers_vest",
+        "titan_harness",
+        "hawkeye_duster"
+      ],
+      "order": "x"
+    },
+    "o5": {
+      "file": "icons_o5.png",
+      "split": "figures",
+      "take": 4,
+      "names": [
+        "bedrock_armor",
+        "silver_tongue_suit",
+        "professors_tweed",
+        "quicksilver_suit"
+      ],
+      "order": "x",
+      "boxes": [
+        [
+          83,
+          124,
+          743,
+          1390
+        ],
+        [
+          798,
+          124,
+          1376,
+          729
+        ],
+        [
+          1445,
+          124,
+          2050,
+          729
+        ],
+        [
+          2105,
+          124,
+          2683,
+          1376
+        ]
+      ]
+    }
+  }
+}

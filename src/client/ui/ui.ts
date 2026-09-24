@@ -1,5 +1,6 @@
 // DOM interface over the Pixi view: HUD, toolbar, side panels, toasts, hints.
 
+import { itemIcon } from './icons';
 import { halcyFace } from './halcy';
 import {
   achievementProgress,
@@ -1332,7 +1333,7 @@ export class UI {
 
     const rows = items.map(({ item, def }) => {
       const stats = h('span', { class: 'muted' }, def.kind === 'weapon' ? `${def.min}–${def.max} dmg` : bonusText(def.bonus));
-      const label = h('span', { class: 'item-name' }, h('span', { class: `rarity ${def.rarity}` }, RARITY_MARK[def.rarity]), ` ${def.name} `, stats);
+      const label = h('span', { class: 'item-name' }, itemIcon(def.id, def.kind), h('span', { class: `rarity ${def.rarity}` }, RARITY_MARK[def.rarity]), ` ${def.name} `, stats);
       if (reforging) {
         const picked = sel.includes(item.id);
         const fits = !firstDef || (firstDef.kind === def.kind && firstDef.rarity === def.rarity);
@@ -1596,7 +1597,7 @@ export class UI {
   private cardView(card: CrateCard, i: number): HTMLElement {
     const { state, content } = this.game;
     let rarity = 'common';
-    let icon = '';
+    let icon: string | HTMLElement = '';
     let title = '';
     let sub = '';
     switch (card.kind) {
@@ -1624,7 +1625,7 @@ export class UI {
       case 'item': {
         const def = content.items[card.defId];
         rarity = card.rarity;
-        icon = def?.kind === 'weapon' ? '🔫' : '🧥';
+        icon = def ? itemIcon(def.id, def.kind, 'large') : '🧥';
         title = def?.name ?? card.defId;
         sub = def ? (def.kind === 'weapon' ? `${def.min}–${def.max} dmg` : bonusText(def.bonus)) : '';
         if (card.sold) sub += ` · storage full, sold for ${card.sold}`;
