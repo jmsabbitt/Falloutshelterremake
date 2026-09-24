@@ -1,5 +1,6 @@
 // DOM interface over the Pixi view: HUD, toolbar, side panels, toasts, hints.
 
+import { halcyFace } from './halcy';
 import {
   achievementProgress,
   buildCost,
@@ -2400,7 +2401,7 @@ export class UI {
     const n = this.game.state.homesteadNumber;
     this.modal(
       `Welcome, Warden`,
-      h('p', {}, `HALCY here! Congratulations on your appointment as Warden of Halcyon Homestead ${n}. Your founding residents are waiting at the door, and Halcyon has sent a few Supply Crates to get you started.`),
+      h('p', { class: 'halcy-quote' }, halcyFace('smile'), `HALCY here! Congratulations on your appointment as Warden of Halcyon Homestead ${n}. Your founding residents are waiting at the door, and Halcyon has sent a few Supply Crates to get you started.`),
       h(
         'ol',
         { class: 'welcome-steps muted' },

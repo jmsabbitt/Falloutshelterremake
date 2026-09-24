@@ -481,6 +481,8 @@ button.pulse { animation: ready 0.6s infinite alternate; }
 .legacy-explainer p { font-size: 13px; line-height: 1.45; margin: 4px 0 8px; }
 .halcy-quote { margin: 0 0 10px; padding: 8px 10px; border-left: 3px solid var(--teal); background: rgba(79, 179, 169, 0.08); border-radius: 0 8px 8px 0; font-size: 13.5px; line-height: 1.45; color: #e6dcc3; }
 .halcy-quote .giver { color: var(--teal); font-weight: 700; font-style: normal; }
+.halcy-quote, .quest-card .brief { display: flow-root; }
+.halcy-face { float: left; width: 40px; height: 40px; object-fit: contain; margin: 0 8px 2px 0; }
 .charter-req { background: #1a2729; border-radius: 8px; padding: 7px 9px; margin-bottom: 6px; font-size: 13.5px; }
 .charter-req .progress.big > div { background: var(--teal); }
 .charter-req.done { border: 1px solid rgba(143, 201, 58, 0.5); }

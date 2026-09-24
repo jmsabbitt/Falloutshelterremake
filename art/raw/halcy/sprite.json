@@ -1,0 +1,9 @@
+{
+  "id": "halcy",
+  "kind": "portrait",
+  "background": "magenta",
+  "targetHeight": 96,
+  "anims": {
+    "faces": { "file": "faces.png", "split": "figures", "take": 4, "names": ["smile", "talk", "worried", "wink"] }
+  }
+}

@@ -3,6 +3,7 @@
 // Homestead" flow. Hooked into ui.ts with a few small calls; the sim side is
 // src/sim/systems/prestige.ts and src/sim/legacy.ts (see docs/design/M5-spec.md).
 
+import { halcyFace } from './halcy';
 import {
   canBuyPerk,
   canFound,
@@ -244,7 +245,7 @@ export class LegacyUI {
         ),
       );
     }
-    out.push(h('blockquote', { class: 'halcy-quote' }, h('span', { class: 'giver' }, 'HALCY: '), cs.text));
+    out.push(h('blockquote', { class: 'halcy-quote' }, halcyFace(), h('span', { class: 'giver' }, 'HALCY: '), cs.text));
     out.push(h('h3', { class: 'group' }, `Charter milestone ${cs.ready ? '✓' : ''}`));
     for (const r of cs.requirements) {
       const pct = Math.min(100, (r.have / Math.max(1, r.need)) * 100);
@@ -460,7 +461,7 @@ export class LegacyUI {
           h('div', { class: 'ceremony-kicker' }, 'Halcyon Charter §12'),
           h('div', { class: 'ceremony-title' }, 'Charter milestone reached'),
           h('div', { class: 'ribbon' }),
-          h('p', { class: 'halcy-quote' }, h('span', { class: 'giver' }, 'HALCY: '), cs.text),
+          h('p', { class: 'halcy-quote' }, halcyFace(), h('span', { class: 'giver' }, 'HALCY: '), cs.text),
           h('ul', { class: 'tick-list' }, ...cs.requirements.map((r) => h('li', {}, `✓ ${r.label}`))),
           h('p', {}, `Homestead ${state.homesteadNumber} may now sponsor a new homestead. Founding now would earn about `, h('b', { class: 'legacy-ink' }, `◆ ${est} Legacy`), '.'),
           h('p', { class: 'muted small' }, 'No rush: the Charter stays signed. Found whenever you are ready, from the Legacy panel.'),
@@ -669,7 +670,7 @@ export class LegacyUI {
     const { state, content } = this.game;
     const b = legacyBreakdown(state, content);
     return [
-      h('p', { class: 'halcy-quote' }, h('span', { class: 'giver' }, 'HALCY: '), `Paperwork first, Warden! Here is what Homestead ${state.homesteadNumber} has earned the family name. Legacy is scored for this homestead only, and it is yours to keep.`),
+      h('p', { class: 'halcy-quote' }, halcyFace(), h('span', { class: 'giver' }, 'HALCY: '), `Paperwork first, Warden! Here is what Homestead ${state.homesteadNumber} has earned the family name. Legacy is scored for this homestead only, and it is yours to keep.`),
       h('div', { class: 'ff-total' }, h('span', { class: 'muted' }, 'You will earn'), h('b', {}, `◆ ${b.total} Legacy`), h('span', { class: 'muted small' }, `Unspent after founding: ◆ ${state.legacy.points + b.total}`)),
       this.breakdownTable(),
       h('div', { class: 'carry-grid' }, carryList('Comes with you', CARRIES, 'carry'), carryList('Stays behind', STAYS, 'stay')),
@@ -681,7 +682,7 @@ export class LegacyUI {
     const b = legacyBreakdown(state, content);
     const here = siteDef(content, state.legacy.siteId);
     return [
-      h('p', { class: 'halcy-quote' }, h('span', { class: 'giver' }, 'HALCY: '), 'Location, location, irradiation! Harder ground pays better when the new homestead founds one of its own.'),
+      h('p', { class: 'halcy-quote' }, halcyFace(), h('span', { class: 'giver' }, 'HALCY: '), 'Location, location, irradiation! Harder ground pays better when the new homestead founds one of its own.'),
       h('p', { class: 'muted small' }, `This founding earns ◆ ${b.total} (scored at ${here?.name ?? 'Plot 7'} ×${fmtMult(b.siteMult)}). The site you pick sets the multiplier for the new homestead's own founding later.`),
       h(
         'div',
@@ -758,7 +759,7 @@ export class LegacyUI {
         label,
       );
     return [
-      h('p', { class: 'halcy-quote' }, h('span', { class: 'giver' }, 'HALCY: '), `Pick your pioneers! Up to ${max} can make the trip. They keep their levels, stats and the gear on their backs.`),
+      h('p', { class: 'halcy-quote' }, halcyFace(), h('span', { class: 'giver' }, 'HALCY: '), `Pick your pioneers! Up to ${max} can make the trip. They keep their levels, stats and the gear on their backs.`),
       h(
         'div',
         { class: 'founder-slots' },
@@ -795,7 +796,7 @@ export class LegacyUI {
       );
     });
     const out: (HTMLElement | null)[] = [
-      h('p', { class: 'halcy-quote' }, h('span', { class: 'giver' }, 'HALCY: '), `Pack the good china! Up to ${max} items from storage can travel as heirlooms. Gear your founders are wearing comes along anyway.`),
+      h('p', { class: 'halcy-quote' }, halcyFace(), h('span', { class: 'giver' }, 'HALCY: '), `Pack the good china! Up to ${max} items from storage can travel as heirlooms. Gear your founders are wearing comes along anyway.`),
       h('div', { class: 'row' }, h('b', {}, `Heirlooms ${d.heirloomIds.length} / ${max}`), h('span', { class: 'muted small' }, `${items.length} in storage`)),
       h('div', { class: 'slot-pips' }, ...Array.from({ length: max }, (_, i) => h('span', { class: i < d.heirloomIds.length ? 'used' : 'free' }))),
       ...this.leftBehindWarning(d, 'stored'),
@@ -1008,7 +1009,7 @@ export class LegacyUI {
           h(
             'p',
             { class: 'halcy-quote' },
-            h('span', { class: 'giver' }, 'HALCY: '),
+            halcyFace(), h('span', { class: 'giver' }, 'HALCY: '),
             `Welcome to Halcyon Homestead ${state.homesteadNumber}, ${site?.name ?? 'your new site'}! ${names} ${party.length === 1 ? 'is' : 'are'} waiting at the door${heirlooms ? `, and ${heirlooms} heirloom${heirlooms === 1 ? ' is' : 's are'} in storage` : ''}. I have hung the ribbon and alphabetised the rubble.`,
           ),
           h('div', { class: 'ff-total' }, h('span', { class: 'muted' }, 'You earned'), h('b', {}, `◆ ${res.legacy} Legacy`), h('span', { class: 'muted small' }, `Spend it in the Legacy panel. ◆ ${state.legacy.points} unspent.`)),

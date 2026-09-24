@@ -238,6 +238,23 @@ def body_x(frame: np.ndarray) -> float:
     return float((cols * np.arange(frame.shape[1])).sum() / max(1, cols.sum()))
 
 
+def build_portraits(cid: str, cfg: dict, cut: dict[str, list[np.ndarray]], target: int) -> tuple[str, dict]:
+    """"kind": "portrait": each frame saved on its own (for the interface), named by "names"."""
+    out_dir = OUT / "portraits"
+    out_dir.mkdir(parents=True, exist_ok=True)
+    files = {}
+    for name, frames in cut.items():
+        names = cfg["anims"][name].get("names", [])
+        for i, f in enumerate(frames):
+            key = names[i] if i < len(names) else f"{name}{i}"
+            img = Image.fromarray(f)
+            img = img.resize((max(1, round(img.width * target / img.height)), target), Image.LANCZOS)
+            fn = f"{cid}_{key}.png"
+            img.save(out_dir / fn, optimize=True)
+            files[key] = f"portraits/{fn}"
+    return ("portraits", {cid: files})
+
+
 def build_character(folder: Path) -> tuple[str, dict] | None:
     cfg_path = folder / "sprite.json"
     if not cfg_path.exists():
@@ -281,6 +298,8 @@ def build_character(folder: Path) -> tuple[str, dict] | None:
         print(f"  {cid}/{name}: {len(frames)} frames")
     if not cut:
         return None
+    if cfg.get("kind") == "portrait":
+        return build_portraits(cid, cfg, cut, target)
     ref = cut.get(ref_anim) or next(iter(cut.values()))
     ref_scale = target / float(np.median([f.shape[0] for f in ref]))
 
@@ -383,7 +402,7 @@ def main() -> int:
     if not RAW.exists():
         print("no art/raw folder; nothing to build")
         return 0
-    manifest: dict = {"version": 1, "characters": {}, "creatures": {}}
+    manifest: dict = {"version": 1, "characters": {}, "creatures": {}, "portraits": {}}
     for folder in sorted(p for p in RAW.iterdir() if p.is_dir()):
         built = build_character(folder)
         if built:

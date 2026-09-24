@@ -2,6 +2,7 @@
 // active quests), the party picker, the Command Office's room section, the
 // HUD chip and the quest toasts. Hooked into ui.ts with a few small calls.
 
+import { halcyFace } from './halcy';
 import {
   abilityFor,
   canQuest,
@@ -251,7 +252,7 @@ export class QuestUI {
       'div',
       { class: `list-item quest-card${available ? ' available' : ''}${active ? ' active' : ''}${!available && !active ? ' locked' : ''}` },
       h('div', { class: 'row', style: 'margin:0' }, h('b', {}, available || active ? d.title : `🔒 ${d.title}`), h('span', { class: `lvl ${this.levelClass(d.level)}` }, `Rec. L${d.level}`)),
-      h('div', { class: 'brief' }, h('span', { class: 'giver' }, `${d.giver}: `), d.brief),
+      h('div', { class: 'brief' }, d.giver === 'HALCY' ? halcyFace('smile') : null, h('span', { class: 'giver' }, `${d.giver}: `), d.brief),
       h('div', { class: 'muted small' }, `Travel ${duration(d.travelMinutes * 60)} each way${d.partyMin && d.partyMin > 1 ? ` · party of ${d.partyMin}+` : ''}`),
       h('div', { class: 'loot-line' }, ...rewardChips(content, d.rewards)),
       active

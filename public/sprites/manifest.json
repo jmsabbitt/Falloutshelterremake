@@ -715,5 +715,13 @@
         }
       }
     }
+  },
+  "portraits": {
+    "halcy": {
+      "smile": "portraits/halcy_smile.png",
+      "talk": "portraits/halcy_talk.png",
+      "worried": "portraits/halcy_worried.png",
+      "wink": "portraits/halcy_wink.png"
+    }
   }
 }
