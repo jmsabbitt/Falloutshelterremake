@@ -65,7 +65,7 @@
     "failHappiness": -5
   },
   "bonusScrip": {
-    "basePerSegment": 3,
+    "basePerSegment": 2,
     "chancePerFortune": 0.05,
     "maxChance": 0.5,
     "tiers": [
