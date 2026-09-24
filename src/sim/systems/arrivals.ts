@@ -52,7 +52,7 @@ export function tickArrivals(state: GameState, content: Content, dt: number): vo
     room.timer += dt;
     const interval = radioInterval(state, content, room);
     if (room.timer >= interval) {
-      room.timer = 0;
+      room.timer -= interval; // keep the overshoot so long offline steps don't lose time
       if (waitingCount(state) < a.maxWaiting && chance(state.rng, radioChance(content, room))) arrive(state, content, 'radio');
     }
   }

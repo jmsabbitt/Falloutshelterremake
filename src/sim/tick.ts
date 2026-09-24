@@ -103,7 +103,9 @@ export function catchUp(state: GameState, content: Content, nowMs: number): Catc
     if (consuming) state.offlineConsumed += dt;
     elapsed += dt;
   }
-  state.lastRealTime = nowMs;
+  // Never move the clock backwards: winding the device clock back and forward
+  // again must not grant the same offline time twice.
+  state.lastRealTime = Math.max(state.lastRealTime, nowMs);
   return {
     seconds,
     cappedAt: raw > maxSeconds ? maxSeconds : null,

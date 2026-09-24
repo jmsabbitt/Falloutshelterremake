@@ -7,7 +7,7 @@
 import type { Content } from '../content';
 import { population, storageCapacity } from '../economy';
 import { roomDef } from '../grid';
-import { bump, closelyRelated, createChild, effectiveStat, isChild } from '../residents';
+import { bump, closelyRelated, createChild, effectiveStat, isAway, isChild } from '../residents';
 import type { GameState, Resident } from '../types';
 
 function eligible(state: GameState, r: Resident): boolean {
@@ -49,8 +49,10 @@ export function tickCourtship(state: GameState, content: Content, dt: number): v
     const c = woman.courtship;
     if (!c) continue;
     const partner = state.residents.find((r) => r.id === c.partnerId);
-    // Courtship breaks off if either leaves the room.
-    if (!partner || partner.dead || partner.roomId !== woman.roomId || woman.dead) {
+    // Courtship breaks off if either leaves the quarters (or the homestead).
+    const room = woman.roomId !== null ? state.rooms.find((r) => r.id === woman.roomId) : undefined;
+    const inQuarters = room !== undefined && roomDef(content, room).category === 'living';
+    if (!partner || partner.dead || partner.roomId !== woman.roomId || woman.dead || !inQuarters || isAway(woman) || isAway(partner)) {
       woman.courtship = null;
       continue;
     }
@@ -72,8 +74,11 @@ export function tickFamily(state: GameState, content: Content): void {
     const p = mother.pregnancy;
     if (!p || state.time < p.dueAt || mother.dead) continue;
     if (population(state) >= storageCapacity(state, content, 'population')) continue; // wait for a bed
+    // A father laid to rest still passes on his name in the family tree; the
+    // mother stands in for his genes.
     const father = state.residents.find((r) => r.id === p.fatherId) ?? mother;
     const child = createChild(state, content, mother, father);
+    child.fatherId = p.fatherId;
     state.residents.push(child);
     mother.pregnancy = null;
     bump(state, 'births');

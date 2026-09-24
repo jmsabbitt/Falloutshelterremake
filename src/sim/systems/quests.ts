@@ -668,7 +668,8 @@ function damageEnemy(state: GameState, content: Content, q: Quest, e: QuestEnemy
   e.windup = null;
   bump(state, 'questEnemiesDefeated');
   const def = enemyDef(content, e.defId);
-  if (def.boss) bump(state, 'bossesDefeated');
+  // Bosses count once the quest succeeds (see collectQuest), so abandoning can't farm them.
+  if (def.boss) q.loot.bosses = (q.loot.bosses ?? 0) + 1;
   state.events.push({ type: 'questEnemyDown', questId: q.id, enemyUid: e.uid });
   q.loot.xp += def.xp;
   if (def.drop) {
@@ -700,6 +701,7 @@ function damageMember(state: GameState, content: Content, q: Quest, m: QuestMemb
   state.events.push({ type: 'questHit', questId: q.id, from: 'enemy', source, target: r.id, amount: dmg, crit: false });
   if (r.hp > 0) return;
   m.downed = true;
+  m.wasDowned = true;
   m.taunt = 0;
   state.events.push({ type: 'questMemberDown', questId: q.id, residentId: r.id });
 }
@@ -964,6 +966,14 @@ function finish(state: GameState, content: Content, q: Quest, outcome: QuestOutc
   q.enemies = [];
   q.pendingEvent = null;
   q.travelRemaining = q.travelTotal;
+  if (outcome !== 'failed') {
+    // Anyone still down gets back on their feet for the walk home.
+    const t = tuning(content);
+    for (const { m, r } of members(state, q)) {
+      if (m.downed || r.hp <= 0) r.hp = Math.max(r.hp, Math.ceil(effectiveMaxHp(r) * t.recoverHp));
+      m.downed = false;
+    }
+  }
   if (outcome === 'failed') {
     // A wiped party comes home as bodies, to be revived or laid to rest.
     for (const { r } of members(state, q)) {
@@ -1024,9 +1034,12 @@ export function collectQuest(state: GameState, content: Content, questId: number
   }
 
   const party = members(state, q);
+  // Fight XP is shared; anyone who went down along the way gets a smaller share.
   const alive = party.filter(({ r }) => !r.dead);
-  for (const { r } of alive) {
-    if (loot.xp > 0) grantXp(state, content, r, Math.round(loot.xp / Math.max(1, alive.length)));
+  const weight = (m: QuestMember) => (m.wasDowned ? tuning(content).downedXp : 1);
+  const shares = alive.reduce((a, { m }) => a + weight(m), 0);
+  for (const { m, r } of alive) {
+    if (loot.xp > 0 && shares > 0) grantXp(state, content, r, Math.round((loot.xp * weight(m)) / shares));
   }
   for (const { r } of party) {
     r.quest = null;
@@ -1036,6 +1049,7 @@ export function collectQuest(state: GameState, content: Content, questId: number
 
   if (q.outcome === 'success') {
     bump(state, 'questsCompleted');
+    bump(state, 'bossesDefeated', loot.bosses ?? 0);
     const def = q.contract ? undefined : questDef(content, q.defId);
     if (def) {
       if (!state.questsDone.includes(def.id)) state.questsDone.push(def.id);
@@ -1068,6 +1082,11 @@ function bountyFor(state: GameState, content: Content, tpl: ContractTemplateDef)
   const reward: QuestReward = { scrip: nextInt(state.rng, b.scrip[0], b.scrip[1]) };
   const candidates = Object.values(content.items).filter((d) => d.rarity === b.rarity && (!b.kind || d.kind === b.kind));
   const unknown = candidates.filter((d) => !knowsRecipe(state, content, d.id));
+  if (b.rarity === 'legendary' && !unknown.length) {
+    // Every legendary of this kind is already known: fragments would be worthless.
+    reward.crates = { legendary: 1 };
+    return reward;
+  }
   const item = pick(state.rng, unknown.length ? unknown : candidates);
   if (!item) return reward;
   if (b.rarity === 'legendary') {

@@ -111,7 +111,7 @@ export function openCrate(state: GameState, content: Content, tier: CrateTier): 
 
 /** Daily login crate. `day` is a local calendar day number supplied by the client. */
 export function claimDaily(state: GameState, content: Content, day: number): CrateTier | null {
-  if (day <= state.daily.lastDay) return null;
+  if (!Number.isInteger(day) || day <= state.daily.lastDay) return null;
   state.daily.streak = day === state.daily.lastDay + 1 ? state.daily.streak + 1 : 1;
   state.daily.lastDay = day;
   const tier = (state.daily.streak % 7 === 0 ? content.balance.crates.daily.seventh : content.balance.crates.daily.normal) as CrateTier;

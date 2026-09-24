@@ -234,6 +234,8 @@ export interface QuestMember {
   abilityCooldown: number;
   /** Seconds left drawing every enemy's attacks (Hold the Line). */
   taunt: number;
+  /** Went down at some point on this quest (smaller XP share). */
+  wasDowned?: boolean;
 }
 
 export interface QuestEnemy {
@@ -293,7 +295,7 @@ export interface Quest {
   pendingEvent: string | null;
   /** Short narrative lines (event outcomes, finds), newest last. */
   log: string[];
-  loot: ExpeditionLoot & { crates: Partial<Record<CrateTier, number>>; medpatch: number; purge: number; xp: number };
+  loot: ExpeditionLoot & { crates: Partial<Record<CrateTier, number>>; medpatch: number; purge: number; xp: number; bosses?: number };
   supplies: { medpatch: number };
   /** Seconds left on the party-wide damage buff (Rally). */
   rally: number;

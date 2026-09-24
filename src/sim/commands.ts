@@ -84,7 +84,20 @@ export function roomCapacity(content: Content, room: Room): number {
   return roomDef(content, room).capacityPerSegment * room.segments;
 }
 
+/** Commands can come from the console or saved presets: refuse malformed numbers and tiers. */
+function malformed(state: GameState, cmd: Command): string | null {
+  for (const [k, v] of Object.entries(cmd)) {
+    if (typeof v === 'number' && !Number.isFinite(v)) return `bad ${k}`;
+    if (Array.isArray(v) && v.some((x) => typeof x === 'number' && !Number.isFinite(x))) return `bad ${k}`;
+  }
+  if ((cmd.type === 'openCrate') && !(cmd.tier in state.crates)) return 'no such crate tier';
+  if ('medpatch' in cmd && (cmd.medpatch < 0 || cmd.medpatch !== Math.floor(cmd.medpatch))) return 'bad supply count';
+  return null;
+}
+
 export function applyCommand(state: GameState, content: Content, cmd: Command): CommandResult {
+  const bad = malformed(state, cmd);
+  if (bad) return fail(bad);
   const from = state.events.length;
   const outcome = dispatch(state, content, cmd);
   if (outcome.ok) {
@@ -138,9 +151,10 @@ function dispatch(state: GameState, content: Content, cmd: Command): CommandResu
       if (needPop !== undefined && population(state) < needPop) return fail(`needs population ${needPop} to upgrade`);
       if (state.incidents.length) return fail('deal with the incident first');
       if (state.scrip < cost) return fail('not enough scrip');
-      addScrip(state, content, -cost);
       // Batches made at the old level are paid at the old level.
       if (room.ready) collectRoom(state, content, room);
+      if (room.ready) return fail('storage is full: make room for its finished batches first');
+      addScrip(state, content, -cost);
       room.level++;
       bump(state, 'upgrades');
       state.events.push({ type: 'roomUpgraded', roomId: room.id, level: room.level });
@@ -153,6 +167,7 @@ function dispatch(state: GameState, content: Content, cmd: Command): CommandResu
       if (!room) return fail('no such room');
       if (room.type === 'door') return fail('the door stays');
       if (room.job) return fail('finish or cancel the crafting job first');
+      for (const r of state.residents) if (r.roomId === room.id) r.courtship = null;
       if (state.incidents.some((i) => i.roomId === room.id)) return fail('deal with the incident first');
       const without: GameState = { ...state, rooms: state.rooms.filter((r) => r.id !== room.id) };
       if (connectedRoomIds(without, content).size !== without.rooms.length) {
@@ -259,6 +274,9 @@ function dispatch(state: GameState, content: Content, cmd: Command): CommandResu
       addScrip(state, content, -cost);
       res.dead = false;
       res.hp = effectiveMaxHp(res);
+      // Their job may have been filled while they were down.
+      const post = res.roomId !== null ? findRoom(state, res.roomId) : undefined;
+      if (post && residentsInRoom(state, post.id).length > roomCapacity(content, post)) res.roomId = null;
       bump(state, 'revives');
       state.events.push({ type: 'residentRevived', residentId: res.id });
       // Explorers revived in the field: the exploration system resumes the trip
