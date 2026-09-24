@@ -2149,8 +2149,10 @@ export class UI {
     const home = s.explorersHome.length;
     const fallen = s.explorersFallen.length;
     const extras = [
-      s.births ? `${s.births} baby${s.births > 1 ? ' babies were' : ' was'} born.` : '',
+      s.births ? `${s.births} ${s.births > 1 ? 'babies were' : 'baby was'} born.` : '',
       s.arrivals ? `${s.arrivals} new arrival${s.arrivals > 1 ? 's are' : ' is'} at the door.` : '',
+      s.research ? `The Labs worked out ${fmt(s.research)} research points.` : '',
+      s.refined ? `The refinery turned out ${s.refined} piece${s.refined > 1 ? 's' : ''} of salvage.` : '',
     ]
       .filter(Boolean)
       .join(' ');

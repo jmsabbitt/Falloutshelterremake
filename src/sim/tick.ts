@@ -87,6 +87,10 @@ export interface CatchUpSummary {
   readyRooms: number;
   births: number;
   arrivals: number;
+  /** M6: research points earned, salvage refined, and finished batches waiting (banked ones included). */
+  research: number;
+  refined: number;
+  batches: number;
 }
 
 /** Fast-forward from state.lastRealTime to `nowMs`. */
@@ -99,6 +103,8 @@ export function catchUp(state: GameState, content: Content, nowMs: number): Catc
   state.offlineConsumed = 0;
   const births0 = state.stats['births'] ?? 0;
   const arrivals0 = (state.stats['arrivals.radio'] ?? 0) + (state.stats['arrivals.wanderer'] ?? 0);
+  const research0 = state.stats['researchPoints'] ?? 0;
+  const refined0 = state.stats['refinedSalvage'] ?? 0;
 
   let elapsed = 0;
   while (elapsed < seconds - 1e-9) {
@@ -120,6 +126,9 @@ export function catchUp(state: GameState, content: Content, nowMs: number): Catc
     readyRooms: state.rooms.filter((r) => r.ready).length,
     births: (state.stats['births'] ?? 0) - births0,
     arrivals: (state.stats['arrivals.radio'] ?? 0) + (state.stats['arrivals.wanderer'] ?? 0) - arrivals0,
+    research: Math.floor((state.stats['researchPoints'] ?? 0) - research0),
+    refined: (state.stats['refinedSalvage'] ?? 0) - refined0,
+    batches: state.rooms.reduce((n, r) => n + (r.ready ? 1 + (r.banked ?? 0) : 0), 0),
   };
 }
 
