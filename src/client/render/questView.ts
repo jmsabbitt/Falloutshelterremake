@@ -38,7 +38,7 @@ import {
   strHash,
   themeFor,
 } from './ruinArt';
-import { type CharacterArt, Figure, residentTints } from './sprites';
+import { type Action, type CharacterArt, Figure, residentTints } from './sprites';
 import { RESIDENT_H, SPRITE_H, drawOverlays, drawResident } from './vaultView';
 
 /** Displayed height of party members, in world units. */
@@ -95,6 +95,8 @@ interface MemberSprite {
   hurt: number;
   /** Crit meter last frame, to call out the moment it fills. */
   crit: number;
+  /** What the figure is doing (picks the animation). */
+  action: Action;
 }
 
 interface EnemySprite {
@@ -775,9 +777,16 @@ export class QuestView {
         sp.root.position.set(sp.x + sp.facing * sp.lunge * 10 + shakeX, sp.y);
         sp.root.zIndex = 30 + i;
         sp.pose.scale.set(sp.facing * PARTY_SCALE, PARTY_SCALE);
-        sp.pose.rotation = down ? -Math.PI / 2 * sp.facing : sp.figure ? 0 : sp.moving ? Math.sin(sp.walk * 12) * 0.05 : 0;
+        const flat = down && !sp.figure?.has('fallen');
+        sp.pose.rotation = flat ? -Math.PI / 2 * sp.facing : sp.figure ? 0 : sp.moving ? Math.sin(sp.walk * 12) * 0.05 : 0;
         sp.pose.alpha = down ? 0.6 : 1;
-        sp.figure?.pose(sp.moving && !down, sp.walk);
+        const action = down ? 'fallen' : sp.moving ? 'walk' : fight ? 'fight' : 'idle';
+        if (action !== sp.action) {
+          sp.action = action;
+          // Fight art holds the weapon itself; redress to drop the overlay.
+          if (sp.figure?.has('fight')) this.dress(sp, res);
+        }
+        sp.figure?.play(action, action === 'walk' ? sp.walk : this.time + i * 0.37);
         sp.root.tint = sp.hurt > 0.5 ? 0xff9a8a : 0xffffff;
         sp.name.position.set(0, down ? -30 : -PARTY_H - 30);
       });
@@ -804,7 +813,7 @@ export class QuestView {
       name.anchor.set(0.5, 1);
       root.addChild(pose, name);
       this.actors.addChild(root);
-      sp = { root, pose, body, figure: null, look: '', name, x: start.x, y: start.y, facing: 1, walk: 0, moving: false, lunge: 0, hurt: 0, crit: 0 };
+      sp = { root, pose, body, figure: null, look: '', name, x: start.x, y: start.y, facing: 1, walk: 0, moving: false, lunge: 0, hurt: 0, crit: 0, action: 'idle' };
       this.members.set(res.id, sp);
     }
     const look = `${res.weapon ?? ''}|${res.outfit ?? ''}|${this.art ? 1 : 0}`;
@@ -829,7 +838,7 @@ export class QuestView {
     sp.body.clear();
     if (sp.figure) {
       sp.figure.setTints(residentTints(res, content, false));
-      drawOverlays(sp.body, res, content);
+      drawOverlays(sp.body, res, content, !(sp.action === 'fight' && sp.figure.has('fight')));
     } else {
       drawResident(sp.body, res, content, false);
     }

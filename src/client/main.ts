@@ -56,6 +56,8 @@ async function boot(): Promise<void> {
     worldToScreen: (x: number, y: number) => view.world.toGlobal({ x, y }),
     /** What the vault view has drawn (sprites, rooms, camera), to check a re-sync. */
     counts: () => view.debugCounts(),
+    /** Which animation each resident figure is showing, by action. */
+    figures: () => view.debugFigures(),
     /** Quest screen: open one, and find enemies and rooms on screen. */
     openQuest: (id: number) => ui?.quests.open(id),
     enemyScreen: (uid: number) => questView.enemyScreen(uid),

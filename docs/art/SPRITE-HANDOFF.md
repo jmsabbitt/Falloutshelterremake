@@ -153,13 +153,22 @@ If the art session can't run the pipeline, drop the raw sheets and a short note 
 
 ## 6. Wiring status
 
-These are notes for whoever picks this up in code.
+The code side is done. **Every animation above is picked up as soon as it's built.** No code changes are needed.
 
-- **The loader** (`src/client/render/sprites.ts`) picks a character by `sex`, meaning the first manifest entry per sex. A `resident_m` sheet is used for men automatically.
-- **Only the `walk` animation is used in code today.** It walks while moving and holds `idleFrame` when still.
-- **When `idle`, `work`, `fight` and `fallen` exist,** `Figure` needs a small change: pick the animation by state (idle / working in a production room / fighting in an incident or on a quest / dead). That's a short code task in `sprites.ts` and `vaultView.ts`, and the quest screen (`questView.ts`) uses the same `Figure`.
+- **The loader** (`src/client/render/sprites.ts`) picks a character by `sex`, meaning the first manifest entry per sex. A `resident_m` sheet is used for men automatically. Until then, men are drawn placeholders.
+- **`Figure.play(action, time)`** picks the animation for what the resident is doing, and falls back when a sheet is missing:
 
----
+  | Action | When | Falls back to |
+  |---|---|---|
+  | `walk` | moving | (always exists) |
+  | `idle` | standing in a living room or storage, waiting at the door, or in a quest between fights | walk `idleFrame` |
+  | `work` | standing in a production room, workshop, Lab, Radio Room or Command Office | `idle`, then walk `idleFrame` |
+  | `fight` | in a room with an incident, or in quest combat | `idle`, then walk `idleFrame` |
+  | `fallen` | dead or downed; plays once and holds the last frame | `idle` or walk, rotated flat |
+  | `carry` | explorers walking on the surface | `walk` with a drawn backpack |
+
+- **Weapons:** while the `fight` art is showing, the drawn hip weapon is hidden, because the sheet holds its own rifle. With `carry` art, the drawn backpack is hidden.
+- **Checking in a browser:** `homesteadView.figures()` in the console counts residents per `action>animation`, for example `{"work>idle": 12, "fight>fight": 3}`.
 
 ## 7. Licensing: check before anything ships
 

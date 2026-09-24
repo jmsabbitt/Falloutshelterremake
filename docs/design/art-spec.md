@@ -47,18 +47,18 @@ A few consequences:
 | Anim | Status | Frames | Loop | Notes |
 |---|---|---|---|---|
 | `walk` | **used now** | 8–12 | yes | Also provides the idle pose (`idleFrame`) |
-| `idle` | planned | 4–8 | yes | Subtle breathing and weight shift |
-| `work` | planned | 6–10 | yes | Generic working at a console or bench, facing right |
-| `fight` | planned | 6–8 | yes | Holding a rifle-sized weapon at the ready, then firing |
-| `fallen` | planned | 1–4 | no | Lying down, used for dead residents |
-| `carry` / explorer | optional | 8–12 | yes | Walk with a backpack, for surface explorers |
+| `idle` | wired | 4–8 | yes | Subtle breathing and weight shift |
+| `work` | wired | 6–10 | yes | Generic working at a console or bench, facing right |
+| `fight` | wired | 6–8 | yes | Holding a rifle-sized weapon at the ready, then firing |
+| `fallen` | wired | 1–4 | no | Lying down, used for dead residents |
+| `carry` / explorer | wired, optional | 8–12 | yes | Walk with a backpack, for surface explorers |
 
-Until an animation exists, the game falls back:
+The game picks the animation for what a resident is doing (`Figure.play` in `sprites.ts`). Every one in the table is wired and is used as soon as it's built. Until an animation exists, the game falls back:
 
-- **Standing still:** the walk sheet's `idleFrame`.
-- **Dead:** the walk figure rotated flat.
-- **Weapon:** drawn as a small overlay at the hip.
-- **Explorers:** the walk sheet with a drawn pack.
+- **Standing, working or fighting:** `idle` if it exists, else the walk sheet's `idleFrame`.
+- **Dead:** `idle` or the walk figure, rotated flat.
+- **Weapon:** drawn as a small overlay at the hip. It's hidden while `fight` art shows its own weapon.
+- **Explorers:** the walk sheet with a drawn pack. It's hidden when `carry` art exists.
 
 Every animation for one character must use the same character at the same scale. The pipeline scales them all together from `referenceAnim`.
 

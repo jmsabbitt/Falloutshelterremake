@@ -47,7 +47,7 @@ import {
 } from './palette';
 import { drawOffice } from './officeArt';
 import { buildDeepBackground, DEEP_INCIDENT_COLORS, DeepLayer, deepViewKey, drawDeepFrame, drawDeepIncident, drawDepthRoom, labelInk, lampFor, SEAL_H, type DeepGeometry } from './deepArt';
-import { type CharacterArt, Figure, residentTints } from './sprites';
+import { type Action, type CharacterArt, Figure, residentTints } from './sprites';
 
 export const CELL = 44;
 export const FLOOR_H = 132;
@@ -84,6 +84,8 @@ const MAX_WALKERS = 5;
 /** How far right of the door explorers walk before fading into the Glarelands. */
 const WALK_RANGE = 560;
 const WALKER_SCALE = 0.8;
+/** Room categories where a resident standing still is shown at work. */
+const WORK_ROOMS = new Set(['production', 'workshop', 'research', 'radio', 'office']);
 
 interface ResidentSprite {
   root: Container;
@@ -100,6 +102,8 @@ interface ResidentSprite {
   facing: 1 | -1;
   /** Key of what the sprite currently shows; redraw when it changes. */
   look: string;
+  /** What the figure is doing (picks the animation). */
+  action: Action;
 }
 
 interface FloatText {
@@ -207,6 +211,16 @@ export class VaultView {
   /** For automated UI tests: what is drawn right now. */
   debugCounts() {
     return { sprites: this.sprites.size, residentLayer: this.residentLayer.children.length, walkers: this.walkers.size, statics: this.statics.children.length, ghosts: this.ghostLayer.children.length, zoom: this.zoom, x: Math.round(this.world.x), y: Math.round(this.world.y) };
+  }
+
+  /** How many residents show each action, and which animation stands in for it ("fight>idle"). */
+  debugFigures(): Record<string, number> {
+    const out: Record<string, number> = {};
+    for (const sp of this.sprites.values()) {
+      const k = sp.figure ? `${sp.action}>${sp.figure.showing}` : `${sp.action}>placeholder`;
+      out[k] = (out[k] ?? 0) + 1;
+    }
+    return out;
   }
 
   // ---------------------------------------------------------------- geometry
@@ -716,7 +730,7 @@ export class VaultView {
    * Redraw a figure: sprite art with small overlays if there is art for the
    * resident's body type, else the drawn placeholder.
    */
-  private dress(f: { pose: Container; body: Graphics; figure: Figure | null }, res: Resident, child: boolean, backpack: boolean): void {
+  private dress(f: { pose: Container; body: Graphics; figure: Figure | null }, res: Resident, child: boolean, backpack: boolean, armed = false): void {
     const character = this.art?.forResident(res);
     if (f.figure && f.figure.character !== character) {
       f.figure.destroy();
@@ -728,10 +742,11 @@ export class VaultView {
     }
     const { content } = this.game;
     f.body.clear();
-    if (backpack) drawBackpack(f.body);
+    // Carry art draws its own pack.
+    if (backpack && !f.figure?.has('carry')) drawBackpack(f.body);
     if (f.figure) {
       f.figure.setTints(residentTints(res, content, child));
-      drawOverlays(f.body, res, content);
+      drawOverlays(f.body, res, content, !armed);
     } else {
       drawResident(f.body, res, content, child);
     }
@@ -743,6 +758,10 @@ export class VaultView {
     const { state } = this.game;
     const alive = new Set<number>();
     const waitingList = state.residents.filter((r) => r.waiting);
+    // What each room has its residents doing when they stand still.
+    const roomAction = new Map<number, Action>();
+    for (const room of state.rooms) if (WORK_ROOMS.has(this.game.content.rooms[room.type]?.category ?? '')) roomAction.set(room.id, 'work');
+    for (const inc of state.incidents) roomAction.set(inc.roomId, 'fight');
     for (const res of state.residents) {
       // Explorers are out in the Glarelands, not inside (see updateWalkers).
       if (isAway(res)) continue;
@@ -753,10 +772,12 @@ export class VaultView {
         this.sprites.set(res.id, sp);
       }
       const child = isChild(state, res);
-      const look = `${res.pregnancy ? 'p' : ''}${child ? 'c' : ''}${res.weapon ?? ''}|${res.outfit ?? ''}`;
+      // Last frame's action decides whether fight art holds the weapon itself.
+      const armed = sp.action === 'fight' && !!sp.figure?.has('fight');
+      const look = `${res.pregnancy ? 'p' : ''}${child ? 'c' : ''}${armed ? 'a' : ''}${res.weapon ?? ''}|${res.outfit ?? ''}`;
       if (sp.look !== look) {
         sp.look = look;
-        this.dress(sp, res, child, false);
+        this.dress(sp, res, child, false, armed);
       }
       const where: ResidentSprite['roomId'] = res.waiting ? 'waiting' : child ? 'child' : res.roomId;
       const bounds = this.residentBounds(res, waitingList.indexOf(res));
@@ -784,9 +805,12 @@ export class VaultView {
       sp.root.position.set(sp.x, bounds.y);
       const size = child ? 0.62 : 1;
       sp.root.scale.set(sp.facing * size, size);
+      sp.action = res.dead ? 'fallen' : sp.moving ? 'walk' : (!child && res.roomId !== null && roomAction.get(res.roomId)) || 'idle';
       // Sprites carry their own walk; only the placeholder needs a wobble.
-      sp.pose.rotation = res.dead ? -Math.PI / 2 : sp.figure ? 0 : Math.sin(sp.phase) * 0.04;
-      sp.figure?.pose(sp.moving && !res.dead, sp.phase / 9);
+      // The dead lie flat unless the art has its own fallen pose.
+      const flat = res.dead && !sp.figure?.has('fallen');
+      sp.pose.rotation = flat ? -Math.PI / 2 : sp.figure ? 0 : Math.sin(sp.phase) * 0.04;
+      sp.figure?.play(sp.action, sp.action === 'walk' ? sp.phase / 9 : this.time + (hash(res.id) % 1000) / 250);
       sp.root.alpha = res.dead ? 0.7 : 1;
       const selected = res.id === this.selectedResidentId;
       sp.root.children[0]!.visible = selected;
@@ -857,7 +881,7 @@ export class VaultView {
       w.root.scale.set(facing * WALKER_SCALE, WALKER_SCALE);
       w.root.alpha = Math.max(0, alpha);
       w.pose.rotation = bobbing && !w.figure ? Math.sin(this.time * 8 + e.id) * 0.05 : 0;
-      w.figure?.pose(bobbing, this.time + e.id);
+      w.figure?.play(bobbing ? 'carry' : 'idle', this.time + e.id);
     });
     for (const [id, w] of this.walkers) {
       if (keep.has(id)) continue;
@@ -916,7 +940,7 @@ export class VaultView {
       this.gesture = { kind: 'drag', startX: e.global.x, startY: e.global.y, t: performance.now(), moved: false, residentId: res.id };
     });
     this.residentLayer.addChild(root);
-    return { root, pose, body, figure: null, moving: false, x: 0, targetX: 0, roomId: -999, phase: hash(res.id) % 10, facing: 1, look: '' };
+    return { root, pose, body, figure: null, moving: false, x: 0, targetX: 0, roomId: -999, phase: hash(res.id) % 10, facing: 1, look: '', action: 'idle' };
   }
 
   // ---------------------------------------------------------------- input
@@ -1523,13 +1547,13 @@ function drawRarityPip(g: Graphics, res: Resident, y: number): void {
 }
 
 /**
- * What sprite art doesn't show yet, drawn over it: the weapon held low at
- * the side, an expecting marker, and the rarity pip. Replace these as the
- * art gains held-weapon poses.
+ * What sprite art doesn't show, drawn over it: the weapon held low at the
+ * side (left out while a fight animation holds its own), an expecting marker,
+ * and the rarity pip.
  */
-export function drawOverlays(g: Graphics, res: Resident, content: Content): void {
+export function drawOverlays(g: Graphics, res: Resident, content: Content, weapon = true): void {
   const top = -SPRITE_H;
-  drawWeapon(g, res, content, 4, top + SPRITE_H * 0.5);
+  if (weapon) drawWeapon(g, res, content, 4, top + SPRITE_H * 0.5);
   if (res.pregnancy) drawHeart(g, 11, top + 4, 3);
   drawRarityPip(g, res, top - 5);
 }

@@ -121,6 +121,22 @@ export class CharacterArt {
   }
 }
 
+/** What a resident is doing, which picks the animation a Figure plays. */
+export type Action = 'walk' | 'idle' | 'work' | 'fight' | 'fallen' | 'carry';
+
+/**
+ * Animations to try for each action, best first. Every chain ends on the walk
+ * sheet, which every character has; standing actions hold its idleFrame.
+ */
+const FALLBACK: Record<Action, string[]> = {
+  walk: ['walk'],
+  carry: ['carry', 'walk'],
+  idle: ['idle', 'walk'],
+  work: ['work', 'idle', 'walk'],
+  fight: ['fight', 'idle', 'walk'],
+  fallen: ['fallen', 'idle', 'walk'],
+};
+
 /**
  * A stack of tinted layer sprites showing one frame of one animation. The
  * sheets face right; mirror the parent to face left.
@@ -128,6 +144,10 @@ export class CharacterArt {
 export class Figure extends Container {
   private parts: Sprite[] = [];
   private anim: Anim;
+  private animName = '';
+  private action: Action | null = null;
+  /** Clock value when the current action began, so non-looping anims play once. */
+  private startedAt = 0;
   private frame = -1;
 
   constructor(
@@ -139,12 +159,21 @@ export class Figure extends Container {
     this.anim = character.anims.walk ?? (Object.values(character.anims)[0] as Anim);
     for (const layer of LAYERS) {
       const s = new Sprite(this.anim.layers[layer][0]);
-      s.anchor.set(this.anim.anchorX, this.anim.anchorY);
       this.parts.push(s);
       this.addChild(s);
     }
     this.scale.set(height / character.refHeight);
-    this.setFrame(this.anim.idleFrame);
+    this.play('idle', 0);
+  }
+
+  /** The animation on screen, after fallbacks. */
+  get showing(): string {
+    return this.animName;
+  }
+
+  /** True if the character has its own art for an action (no fallback needed). */
+  has(action: Action): boolean {
+    return !!this.character.anims[action];
   }
 
   setTints(tints: Record<Layer, number>): void {
@@ -153,10 +182,29 @@ export class Figure extends Container {
     });
   }
 
-  /** Show the walk cycle at a phase (in seconds of walking), or stand idle. */
-  pose(moving: boolean, walkTime: number): void {
+  /**
+   * Show an action at a clock value in seconds. Walking and carrying take the
+   * walk phase; other actions take any steadily increasing clock.
+   */
+  play(action: Action, time: number): void {
+    const { anims } = this.character;
+    const name = FALLBACK[action].find((n) => anims[n]) ?? Object.keys(anims)[0]!;
+    if (action !== this.action) {
+      this.action = action;
+      this.startedAt = time;
+    }
+    if (name !== this.animName) {
+      this.animName = name;
+      this.anim = anims[name]!;
+      for (const s of this.parts) s.anchor.set(this.anim.anchorX, this.anim.anchorY);
+      this.frame = -1;
+    }
     const a = this.anim;
-    this.setFrame(moving ? Math.floor(walkTime * a.fps) % a.frames : a.idleFrame);
+    // A stand-in walk sheet holds its idle pose unless the action is a walk.
+    if (name === 'walk' && action !== 'walk' && action !== 'carry') return this.setFrame(a.idleFrame);
+    const moving = action === 'walk' || action === 'carry';
+    const n = Math.floor((moving ? time : time - this.startedAt) * a.fps);
+    this.setFrame(a.loop ? ((n % a.frames) + a.frames) % a.frames : Math.min(Math.max(n, 0), a.frames - 1));
   }
 
   private setFrame(i: number): void {
