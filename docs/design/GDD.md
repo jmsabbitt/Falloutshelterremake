@@ -424,6 +424,7 @@ This is a sandbox and scenario mode for testing and "what if" play:
 | 2026-09-23 | **Art: 2.5D.** Rooms are layered pseudo-3D cross-sections with depth and parallax. Residents are sprite sheets. Procedural placeholder art at first; final assets may come from PixelLab |
 | 2026-09-23 | Wishlist adopted: rare-item paths, Platinum-style achievements, easier crates, Custom Game (post-launch) |
 | 2026-09-23 | **No ageing or death from old age.** Residents are born as children and grow into adults; that is the only life stage change. Revisit later |
+| 2026-09-24 | **Quests (M4):** abilities come from a resident's best stat until professions exist (M6); a wiped party comes home dead (revivable); nothing on a quest site runs offline; smaller parties face weaker enemies, but 3 is recommended; contracts refresh daily and name their bounty; legendaries only as fragments |
 
 ## 17. Open questions
 

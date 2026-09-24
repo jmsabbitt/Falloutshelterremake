@@ -268,7 +268,7 @@ function runQuests(): void {
   for (const q of s.quests) {
     if (q.status === 'returned') {
       applyCommand(s, content, { type: 'collectQuest', questId: q.id });
-      if (q.outcome) bump(`quest.${q.outcome}`);
+      if (q.outcome) bump(`${q.contract ? 'contract' : q.defId}.${q.outcome}`);
     } else if (q.status === 'onsite') questSeconds += playQuest(s, content, q.id);
   }
   const office = s.rooms.find((r) => r.type === 'office');
@@ -283,7 +283,8 @@ function runQuests(): void {
   const med = Math.min(5, Math.floor(s.resources.medpatch));
   const next = availableQuests(s, content).sort((a, b) => a.order - b.order)[0];
   const ids = team.map((r) => r.id);
-  if (next && avg >= next.level) {
+  // Go a couple of levels over, as the quest screen recommends.
+  if (next && avg >= next.level + 2) {
     applyCommand(s, content, { type: 'startQuest', questId: next.id, residentIds: ids, medpatch: med });
     return;
   }

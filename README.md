@@ -13,6 +13,8 @@ npm test           # simulation tests
 npm run typecheck
 npm run build      # production build in dist/
 npm run sim -- 48  # headless bot-player balance run: 48 in-game hours
+npm run quest-balance  # every quest and contract with scripted parties
+npm run sprites    # rebuild character sprites from art/raw (see docs/design/art-spec.md)
 ```
 
 In the browser console, `window.homestead` is a developer console: `skip(seconds)`, `addScrip(n)`, `spawn(n)`, `fill()`, `raid()`, `incident(type)`, `give(itemId)`, `crate(tier, n)`, `salvage(id, n)`, `fragments(itemId, n)`, `learn(itemId)`, `explore(residentId?)`, `run(command)`, `reset()`. It is the basis for the future Custom Game mode.
@@ -53,6 +55,9 @@ The client only changes the game through `applyCommand`. This keeps the simulati
 - **M1 (vault loop): playable.** Build, merge, upgrade, assign, collect, rush, fire, happiness, power brownouts, achievements.
 - **M2 (threats and growth): playable.** Four incident types including raiders, families and children, wanderers and radio recruiting, weapons and outfits, storage, Med-Patch/Purge, Supply Crates with pity and daily streaks, 37 achievements. A bot playing headlessly reaches population 40 in about a day of very active play.
 - **M3 (the Glarelands and crafting): playable.** Dustbowl Flats region with 26 enemies, 17 locations, 12 NPCs and 85+ journal musings; offline-safe explorer simulation; 21 salvage types; 36 recipes; Weapon and Outfit Workshops; blueprint fragments; scrapping; reforging with pity; 61 achievements. Built in parallel by three agents against a written contract (`docs/design/M3-spec.md`).
-- Next: **M4** (quests: Command Office, quest runner, real-time combat, first questline).
+- **M4 (quests): playable.** Command Office (pop 18, 1–3 concurrent quests); parties of 1–3; side-view quest maps with shuffled rooms; real-time combat with a crit-ring minigame (Fortune fills, Sight slows), one stat-based ability per resident, Grit as armour, telegraphed boss attacks that a stun interrupts; event choices with stat checks; Act 1 "The Silent Neighbour" (6 quests up to the first boss, Baron Oxide); daily contracts that name their bounty; 19 enemies, 18 events, 19 more achievements. Screenshots in `docs/screens/m4/`. Contract: `docs/design/M4-spec.md`.
+- Next: **M5** (prestige v1: Charter milestone, founding party, Legacy tree, Outposts).
+
+Quest tools: `npm run quest-balance` plays every quest with a scripted party across levels and gear. In the browser console, `homestead.quest.office()`, `.party(level, weapon)`, `.skip()` and `.win()` help testing.
 
 See [`docs/design/GDD.md`](docs/design/GDD.md) for the full plan.
