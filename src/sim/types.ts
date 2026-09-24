@@ -294,6 +294,51 @@ export interface Quest {
   onsiteTime: number;
 }
 
+// ------------------------------------------------------------------ M5: prestige
+
+/** A former homestead, still running in a light idle simulation. */
+export interface Outpost {
+  id: number;
+  homesteadNumber: number;
+  /** Which homestead in the chain it was (1 = the first). */
+  cycle: number;
+  siteId: string;
+  /** Residents who stayed behind. */
+  population: number;
+  /** Output per hour. */
+  rates: { scrip: number; salvage: number; cratesPerHour: number };
+  /** Accrued and waiting to be collected (capped at a day's worth). */
+  stored: { scrip: number; salvage: number; crates: number };
+}
+
+export interface HomesteadRecord {
+  cycle: number;
+  homesteadNumber: number;
+  siteId: string;
+  peakPopulation: number;
+  days: number;
+  legacyEarned: number;
+}
+
+export interface LegacyState {
+  /** This homestead's place in the chain (1 = the first). */
+  cycle: number;
+  /** Unspent Legacy. */
+  points: number;
+  /** Legacy ever earned. */
+  earned: number;
+  /** Perk id -> ranks bought. */
+  perks: Record<string, number>;
+  /** Where this homestead was founded. */
+  siteId: string;
+  /** Lifetime stats when this homestead was founded (Legacy scores only this homestead). */
+  statsAtFounding: Record<string, number>;
+  /** Achievements unlocked before this homestead. */
+  achievementsAtFounding: number;
+  history: HomesteadRecord[];
+  outposts: Outpost[];
+}
+
 export type GameEvent =
   | { type: 'collected'; roomId: number; resource: ResourceKey; amount: number; bonusScrip: number }
   | { type: 'rushSucceeded'; roomId: number }
@@ -351,7 +396,11 @@ export type GameEvent =
   | { type: 'questFinished'; questId: number; outcome: QuestOutcome }
   | { type: 'questReturned'; questId: number }
   | { type: 'questCollected'; questId: number; outcome: QuestOutcome; defId: string }
-  | { type: 'contractsRefreshed' };
+  | { type: 'contractsRefreshed' }
+  // M5
+  | { type: 'charterReached'; cycle: number }
+  | { type: 'perkBought'; perkId: string; rank: number }
+  | { type: 'outpostsCollected'; scrip: number; salvage: number; crates: number };
 
 /** Lifetime counters. Feed achievements, the stats screen and balancing. */
 export type LifetimeStats = Record<string, number>;
@@ -389,6 +438,8 @@ export interface GameState {
   questsDone: string[];
   /** M4: repeatable contracts on offer, refreshed daily (sim time). */
   contracts: { offers: ContractOffer[]; refreshAt: number };
+  /** M5: prestige progress carried from homestead to homestead. */
+  legacy: LegacyState;
   crates: Record<CrateTier, number>;
   crateTokens: number;
   /** Crates opened since the last legendary card (drives the pity guarantee). */

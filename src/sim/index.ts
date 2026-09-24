@@ -34,6 +34,7 @@ export {
   MAX_SUPPLIES,
   MAX_EXPLORERS,
   CARRY_LIMIT,
+  carryLimit,
 } from './systems/exploration';
 export {
   recipeFor,
@@ -67,6 +68,33 @@ export {
   type QuestDef,
   type QuestEventDef,
 } from './systems/quests';
+export {
+  buyPerk,
+  canBuyPerk,
+  canFound,
+  canFoundHomestead,
+  charterFor,
+  charterStatus,
+  foundHomestead,
+  foundingLimits,
+  legacyBreakdown,
+  outpostTotals,
+  sinceFounding,
+  type CharterRequirement,
+  type FoundOptions,
+  type LegacyLine,
+} from './systems/prestige';
+export {
+  legacyContent,
+  perkDef,
+  perkRank,
+  perkValue,
+  siteDef,
+  type CharterDef,
+  type PerkDef,
+  type PerkEffect,
+  type SiteDef,
+} from './legacy';
 export { knowsRecipe, fragmentsNeeded, salvageCount, SALVAGE_CAP } from './systems/inventory';
 export {
   residentsInRoom,

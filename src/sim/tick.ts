@@ -9,6 +9,9 @@
 
 import type { Content } from './content';
 import { refreshUnlocks } from './economy';
+import { perkValue } from './legacy';
+import { tickOutposts } from './systems/prestige';
+import { collectRoom } from './systems/production';
 import { tickArrivals } from './systems/arrivals';
 import { tickCrafting } from './systems/crafting';
 import { tickExpeditions } from './systems/exploration';
@@ -45,6 +48,11 @@ function step(state: GameState, content: Content, dt: number, opts: StepOptions)
   tickExpeditions(state, content, dt);
   tickCrafting(state, content, dt);
   tickQuests(state, content, dt, opts.offline);
+  tickOutposts(state, content, dt);
+  // Conveyor Belts (Legacy): finished batches collect themselves while playing.
+  if (!opts.offline && perkValue(state, content, 'autoCollect') > 0) {
+    for (const room of state.rooms) if (room.ready) collectRoom(state, content, room);
+  }
   refreshUnlocks(state, content);
   settle(state, content, from);
 }
@@ -70,7 +78,7 @@ export interface CatchUpSummary {
 /** Fast-forward from state.lastRealTime to `nowMs`. */
 export function catchUp(state: GameState, content: Content, nowMs: number): CatchUpSummary {
   const off = content.balance.offline;
-  const maxSeconds = off.maxCatchUpHours * 3600;
+  const maxSeconds = (off.maxCatchUpHours + perkValue(state, content, 'offlineHours')) * 3600;
   const raw = Math.max(0, (nowMs - state.lastRealTime) / 1000);
   const seconds = Math.min(raw, maxSeconds);
   const consumeWindow = off.consumptionMinutes * 60;

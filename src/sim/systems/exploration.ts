@@ -13,6 +13,7 @@
 import type { Content, SalvageMaterial } from '../content';
 import { addScrip, resourceCapacity } from '../economy';
 import { bump, bumpMax, effectiveMaxHp, effectiveStat, grantXp, isChild } from '../residents';
+import { perkValue } from '../legacy';
 import { chance, nextFloat, nextInt, pick } from '../rng';
 import type { Expedition, ExpeditionLoot, GameState, JournalEntry, JournalKind, Rarity, Resident, StatKey } from '../types';
 import { addFragment, addSalvage, fragmentsNeeded, knowsRecipe, unlockRecipe } from './inventory';
@@ -357,8 +358,13 @@ function accrueTaint(content: Content, e: Expedition, r: Resident, until: number
 
 // ------------------------------------------------------------------ loot
 
-function remainingCarry(e: Expedition): number {
-  return Math.max(0, CARRY_LIMIT - carriedCount(e));
+/** How much an explorer can carry before heading home (Pack Mules raises it). */
+export function carryLimit(state: GameState, content: Content): number {
+  return CARRY_LIMIT + perkValue(state, content, 'carryLimit');
+}
+
+function remainingCarry(state: GameState, content: Content, e: Expedition): number {
+  return Math.max(0, carryLimit(state, content) - carriedCount(e));
 }
 
 function unknownRecipes(state: GameState, content: Content, e: Expedition, rarity: Rarity, kind?: 'weapon' | 'outfit'): string[] {
@@ -399,7 +405,7 @@ function outfitScore(content: Content, id: string | null): number {
 
 /** Add a weapon or outfit; the explorer puts on anything better than what they have (as in the original). */
 function giveItem(state: GameState, content: Content, e: Expedition, r: Resident, defId: string): void {
-  if (remainingCarry(e) <= 0) return;
+  if (remainingCarry(state, content, e) <= 0) return;
   const def = content.items[defId];
   if (!def) return;
   const J = data(content).journal;
@@ -453,7 +459,7 @@ function salvageRarity(state: GameState, content: Content, e: Expedition, base: 
 function giveSalvage(state: GameState, content: Content, e: Expedition, reward: SalvageReward, count: number, upgrade: boolean): void {
   const J = data(content).journal;
   const got: Record<string, number> = {};
-  for (let i = 0; i < count && remainingCarry(e) > 0; i++) {
+  for (let i = 0; i < count && remainingCarry(state, content, e) > 0; i++) {
     const rarity = upgrade ? salvageRarity(state, content, e, reward.rarity) : reward.rarity;
     const material = pick(state.rng, reward.materials);
     const pool = content.salvageList.filter((s) => s.material === material && s.rarity === rarity);
@@ -580,7 +586,7 @@ function doScripFind(state: GameState, content: Content, e: Expedition, r: Resid
   // Scales linearly with Fortune (research 03 §4.2), and a little with time out.
   const fortune = Math.max(1, effectiveStat(content, r, 'fortune'));
   const base = nextInt(state.rng, t.scripPerFortune[0], t.scripPerFortune[1]);
-  giveScrip(state, content, e, base * fortune * (1 + t.scripGrowthPerHour * hours(e)), true);
+  giveScrip(state, content, e, base * fortune * (1 + t.scripGrowthPerHour * hours(e)) * (1 + perkValue(state, content, 'explorerScrip')), true);
 }
 
 function fire(state: GameState, content: Content, e: Expedition, r: Resident, region: RegionDef, key: EventTimer): void {
@@ -780,7 +786,7 @@ function explore(state: GameState, content: Content, e: Expedition, r: Resident,
     schedule(state, t, e, key, at);
     fire(state, content, e, r, region, key);
     if (e.status !== 'exploring') break;
-    if (carriedCount(e) >= CARRY_LIMIT) {
+    if (carriedCount(e) >= carryLimit(state, content)) {
       startReturn(state, content, e, 'full');
       break;
     }

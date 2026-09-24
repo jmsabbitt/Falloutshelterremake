@@ -170,7 +170,7 @@ function botTurn(): void {
   if (pop >= 12 && s.items.length >= storageCapacity(s, content, 'items') - 2) tryBuild('storeroom');
   // Spend spare scrip on upgrades, production and beds first.
   for (const room of [...s.rooms].sort((a, b) => a.level - b.level)) {
-    const cost = upgradeCost(content, room);
+    const cost = upgradeCost(content, room, s);
     if (cost !== null && s.scrip > cost * 3 + 500 && roomDef(content, room).category !== 'elevator') {
       applyCommand(s, content, { type: 'upgrade', roomId: room.id });
     }

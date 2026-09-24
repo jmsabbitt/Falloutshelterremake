@@ -2,6 +2,7 @@
 
 import { maxLevel, tableValue, type Content, type RoomDef, type StorageKind } from './content';
 import { roomDef } from './grid';
+import { costMult } from './legacy';
 import { livingResidents } from './residents';
 import type { GameState, ResourceKey, Room } from './types';
 
@@ -41,16 +42,17 @@ export function buildCost(state: GameState, content: Content, type: string): num
   const def = content.rooms[type];
   if (!def) return Infinity;
   const already = type === 'elevator' ? Math.max(0, builtCount(state, type) - 3) : builtCount(state, type);
-  return def.cost.base + def.cost.perBuilt * already;
+  return Math.round((def.cost.base + def.cost.perBuilt * already) * costMult(state, content));
 }
 
-export function upgradeCost(content: Content, room: Room): number | null {
+/** Upgrade price; pass the state to apply Legacy discounts. */
+export function upgradeCost(content: Content, room: Room, state?: GameState): number | null {
   const def = roomDef(content, room);
   if (!def.upgrade || room.level >= maxLevel(def)) return null;
   const single = def.upgrade[room.level - 1];
   if (single === undefined) return null;
   const mult = content.balance.upgradeWidthMultiplier[room.segments - 1] ?? 1;
-  return Math.round(single * mult);
+  return Math.round(single * mult * costMult(state, content));
 }
 
 export function isUnlocked(state: GameState, def: RoomDef): boolean {

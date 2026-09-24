@@ -651,7 +651,7 @@ export class UI {
         );
       }
     }
-    const up = upgradeCost(content, room);
+    const up = upgradeCost(content, room, state);
     if (up !== null) {
       actions.push(
         h(

@@ -10,6 +10,7 @@ import { equip, grantItem, sell, unequip } from './systems/items';
 import { collectExpedition, onResidentRevived, recallExpedition, startExpedition } from './systems/exploration';
 import { cancelCraft, collectCraft, reforge, scrapItem, startCraft } from './systems/crafting';
 import { collectRoom } from './systems/production';
+import { buyPerk, collectOutposts } from './systems/prestige';
 import { abandonQuest, collectQuest, questAbility, questChoose, questCrit, questHeal, questMove, questTarget, startQuest } from './systems/quests';
 import { performRush } from './systems/rush';
 import type { CrateTier, GameState, Resident, Room } from './types';
@@ -52,7 +53,10 @@ export type Command =
   | { type: 'questHeal'; questId: number; residentId: number }
   | { type: 'questChoose'; questId: number; option: number }
   | { type: 'abandonQuest'; questId: number }
-  | { type: 'collectQuest'; questId: number };
+  | { type: 'collectQuest'; questId: number }
+  // M5
+  | { type: 'buyPerk'; perkId: string }
+  | { type: 'collectOutposts' };
 
 export type CommandResult = { ok: true; detail?: string } | { ok: false; reason: string };
 
@@ -119,7 +123,7 @@ function dispatch(state: GameState, content: Content, cmd: Command): CommandResu
     case 'upgrade': {
       const room = findRoom(state, cmd.roomId);
       if (!room) return fail('no such room');
-      const cost = upgradeCost(content, room);
+      const cost = upgradeCost(content, room, state);
       if (cost === null) return fail('already at max level');
       const needPop = roomDef(content, room).upgradePop?.[room.level - 1];
       if (needPop !== undefined && population(state) < needPop) return fail(`needs population ${needPop} to upgrade`);
@@ -360,6 +364,10 @@ function dispatch(state: GameState, content: Content, cmd: Command): CommandResu
       return result(abandonQuest(state, content, cmd.questId));
     case 'collectQuest':
       return result(collectQuest(state, content, cmd.questId));
+    case 'buyPerk':
+      return result(buyPerk(state, content, cmd.perkId));
+    case 'collectOutposts':
+      return result(collectOutposts(state, content));
   }
 }
 

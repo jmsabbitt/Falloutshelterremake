@@ -1,9 +1,10 @@
 // Versioned save format. Bump SAVE_VERSION and add a migration whenever the
 // shape of GameState changes, so old saves keep loading.
 
+import { newLegacy } from './legacy';
 import type { GameState } from './types';
 
-export const SAVE_VERSION = 4;
+export const SAVE_VERSION = 5;
 
 interface SaveFile {
   format: 'homestead-save';
@@ -78,6 +79,8 @@ const migrations: Record<number, Migration> = {
     questsDone: [],
     contracts: { offers: [], refreshAt: 0 },
   }),
+  // v4 (M4) -> v5 (M5): prestige. Existing homesteads are the first in their chain.
+  4: (s) => ({ ...s, legacy: newLegacy() }),
 };
 
 export function serialize(state: GameState, now = Date.now()): string {

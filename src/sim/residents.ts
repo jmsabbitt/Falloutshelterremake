@@ -1,4 +1,5 @@
 import type { Content } from './content';
+import { perkValue } from './legacy';
 import { chance, nextFloat, nextInt, pick } from './rng';
 import { STAT_KEYS, type GameState, type Rarity, type Resident, type Sex, type StatKey, type Stats } from './types';
 
@@ -124,8 +125,8 @@ export function createResident(state: GameState, content: Content, opts: CreateO
     stats: opts.stats ?? rollStats(state, statTotalFor[rarity] + (rarity === 'common' ? nextInt(state.rng, 0, 1) : 0)),
     level: 1,
     xp: 0,
-    hp: r.baseHp,
-    maxHp: r.baseHp,
+    hp: r.baseHp + perkValue(state, content, 'baseHp'),
+    maxHp: r.baseHp + perkValue(state, content, 'baseHp'),
     taint: 0,
     happiness: content.balance.happiness.base,
     roomId: null,
@@ -155,7 +156,8 @@ export function createChild(state: GameState, content: Content, mother: Resident
   const primary = topStats(parent.stats)[0] ?? 'brawn';
   const max = (statTotal(mother.stats) + statTotal(father.stats) - 14) / 126;
   const roll = max / 4 + nextFloat(state.rng) * (max - max / 4);
-  const total = roll >= 0.95 ? 40 : roll >= 0.85 ? 28 : fam.childCommonStatTotal;
+  // Good Stock adds points on top of whatever tier the child rolls.
+  const total = (roll >= 0.95 ? 40 : roll >= 0.85 ? 28 : fam.childCommonStatTotal) + perkValue(state, content, 'childStats');
   const stats = rollStats(state, total, primary, total === fam.childCommonStatTotal ? fam.childPrimaryStat : Math.round(total / 5));
 
   const child = createResident(state, content, { stats });
@@ -197,7 +199,7 @@ export function grantXp(state: GameState, content: Content, resident: Resident, 
   if (resident.dead) return 0;
   const maxLvl = content.balance.resident.maxLevel;
   if (resident.level >= maxLvl) return 0;
-  resident.xp += amount;
+  resident.xp += amount * (1 + perkValue(state, content, 'xpBonus'));
   let gained = 0;
   while (resident.level < maxLvl && resident.xp >= xpToNext(content, resident.level)) {
     resident.xp -= xpToNext(content, resident.level);

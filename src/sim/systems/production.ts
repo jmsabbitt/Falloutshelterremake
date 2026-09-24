@@ -6,6 +6,7 @@
 import { tableValue, type Content } from '../content';
 import { addScrip, resourceCapacity } from '../economy';
 import { roomDef } from '../grid';
+import { productionMult } from '../legacy';
 import { bump, effectiveStat, grantXp, workersInRoom } from '../residents';
 import { chance, nextFloat } from '../rng';
 import type { GameState, Room } from '../types';
@@ -34,7 +35,7 @@ export function poolSize(content: Content, room: Room): number {
 
 /** Seconds per batch with the current crew, or Infinity if nobody works there. */
 export function cycleSeconds(state: GameState, content: Content, room: Room): number {
-  const rate = roomStatTotal(state, content, room) * (1 + happinessBonus(state, content));
+  const rate = roomStatTotal(state, content, room) * (1 + happinessBonus(state, content)) * productionMult(state, content, roomDef(content, room).produces?.resource);
   return rate > 0 ? poolSize(content, room) / rate : Infinity;
 }
 
@@ -49,7 +50,7 @@ export function tickProduction(state: GameState, content: Content, dt: number): 
   for (const room of state.rooms) {
     const def = roomDef(content, room);
     if (!def.produces || room.ready || !room.powered || burning.has(room.id)) continue;
-    const rate = roomStatTotal(state, content, room) * bonus;
+    const rate = roomStatTotal(state, content, room) * bonus * productionMult(state, content, def.produces.resource);
     if (rate <= 0) continue;
     room.pool += rate * dt;
     if (room.pool >= poolSize(content, room)) {

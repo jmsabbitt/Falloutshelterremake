@@ -1,5 +1,6 @@
 import type { Content } from './content';
 import { refreshUnlocks } from './economy';
+import { newLegacy } from './legacy';
 import { createResident } from './residents';
 import { nextInt, seedRng } from './rng';
 import { scheduleWanderer } from './systems/arrivals';
@@ -36,6 +37,7 @@ export function newGame(content: Content, opts: NewGameOptions = {}): GameState 
     quests: [],
     questsDone: [],
     contracts: { offers: [], refreshAt: 0 },
+    legacy: newLegacy(),
     crates: { ...start.crates },
     crateTokens: 0,
     pity: 0,

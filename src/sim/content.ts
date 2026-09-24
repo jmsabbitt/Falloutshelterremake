@@ -10,6 +10,7 @@ import salvageJson from '../content/salvage.json';
 import explorationJson from '../content/exploration.json';
 import craftingJson from '../content/crafting.json';
 import questsJson from '../content/quests.json';
+import legacyJson from '../content/legacy.json';
 import type { Rarity, ResourceKey, StatKey, Stats } from './types';
 
 export type RoomCategory = 'door' | 'elevator' | 'living' | 'production' | 'storage' | 'radio' | 'workshop' | 'office';
@@ -106,6 +107,8 @@ export interface Content {
   crafting: typeof craftingJson;
   /** Quest content and combat tuning (typed in systems/quests.ts). */
   quests: typeof questsJson;
+  /** Prestige content (typed in legacy.ts). */
+  legacy: typeof legacyJson;
 }
 
 function validate(content: Content): Content {
@@ -140,6 +143,7 @@ export function loadContent(): Content {
       ...((explorationJson as { achievements?: AchievementDef[] }).achievements ?? []),
       ...((craftingJson as { achievements?: AchievementDef[] }).achievements ?? []),
       ...((questsJson as { achievements?: AchievementDef[] }).achievements ?? []),
+      ...((legacyJson as { achievements?: AchievementDef[] }).achievements ?? []),
     ],
     weapons: Object.fromEntries(weapons.map((w) => [w.id, w])),
     outfits: Object.fromEntries(outfits.map((o) => [o.id, o])),
@@ -150,6 +154,7 @@ export function loadContent(): Content {
     exploration: explorationJson,
     crafting: craftingJson,
     quests: questsJson,
+    legacy: legacyJson,
   });
 }
 

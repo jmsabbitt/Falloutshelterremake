@@ -1,0 +1,113 @@
+{
+  "_comment": "Prestige: Charter milestones, Legacy scoring, founding sites, the Legacy perk tree and outposts. Typed in src/sim/legacy.ts; see docs/design/M5-spec.md.",
+  "charters": [
+    {
+      "cycle": 1,
+      "population": 100,
+      "quests": ["act1_6"],
+      "text": "Halcyon Charter §12: a homestead of one hundred souls that has secured its neighbourhood may sponsor a new homestead. HALCY has already printed the ribbon."
+    },
+    {
+      "cycle": 2,
+      "population": 100,
+      "contracts": 15,
+      "text": "Halcyon Charter §12(b): a sponsored homestead that reaches one hundred and has proven itself useful to the neighbourhood may sponsor another. The ribbon is reusable."
+    }
+  ],
+  "scoring": {
+    "perTenPopulation": 2,
+    "perStoryQuest": 5,
+    "perContract": 0.5,
+    "perAchievement": 1,
+    "perFiveLevels": 1,
+    "perLevelThreeRoom": 0.5,
+    "perDay": 2,
+    "maxDays": 30,
+    "perLegendaryResident": 2,
+    "perBossDefeated": 2
+  },
+  "founding": {
+    "partyBase": 5,
+    "heirloomBase": 3
+  },
+  "sites": [
+    {
+      "id": "plot7",
+      "name": "Halcyon Plot 7",
+      "description": "A textbook site: flat, dry, and only slightly on fire. Recommended for first-time sponsors.",
+      "legacyMult": 1,
+      "modifiers": {}
+    },
+    {
+      "id": "dry_wells",
+      "name": "The Dry Wells",
+      "description": "The water table is a rumour. Every drop is earned, and HALCY has started calling it 'hydration mindfulness'.",
+      "legacyMult": 1.25,
+      "modifiers": { "production": { "water": 0.75 } }
+    },
+    {
+      "id": "rust_country",
+      "name": "Rustman Country",
+      "description": "Excellent salvage, friendly neighbours. The neighbours are friendly the way wolves are friendly.",
+      "legacyMult": 1.35,
+      "modifiers": { "incidentRate": 1.5, "startScrip": 500 }
+    },
+    {
+      "id": "the_scorch",
+      "name": "The Scorch",
+      "description": "Where the Glare hit hardest. Nothing grows, everything bites, and the view is incredible.",
+      "legacyMult": 1.6,
+      "modifiers": { "production": { "power": 0.85, "food": 0.85, "water": 0.85 }, "incidentRate": 1.4 }
+    }
+  ],
+  "outposts": {
+    "scripPerResidentHour": 2,
+    "salvagePerResidentHour": 0.04,
+    "crateHoursPer10Residents": 60,
+    "storageHours": 24
+  },
+  "branches": [
+    { "id": "foundations", "name": "Foundations", "description": "Start stronger and build cheaper." },
+    { "id": "bloodlines", "name": "Bloodlines", "description": "Hardier, quicker, better-born residents." },
+    { "id": "automation", "name": "Automation", "description": "The homestead runs itself a little more." },
+    { "id": "expeditions", "name": "Expeditions", "description": "Explorers carry more and find more." },
+    { "id": "authority", "name": "Warden's Authority", "description": "More quests, more contracts, better field medicine." },
+    { "id": "network", "name": "Network", "description": "Outposts, founding parties and heirlooms." }
+  ],
+  "perks": [
+    { "id": "endowment", "branch": "foundations", "name": "Charter Endowment", "description": "Start each new homestead with {v} more scrip.", "effect": "startScrip", "perRank": 1500, "costs": [5, 10, 15] },
+    { "id": "union_rates", "branch": "foundations", "name": "Union Rates", "description": "Rooms cost {v}% less to build and upgrade.", "effect": "buildDiscount", "perRank": 0.05, "costs": [8, 12, 16, 20] },
+    { "id": "prefab_kit", "branch": "foundations", "name": "Prefab Kit", "description": "New homesteads start with a Storeroom and a Clinic already built.", "effect": "prefabRooms", "perRank": 1, "costs": [15] },
+
+    { "id": "good_stock", "branch": "bloodlines", "name": "Good Stock", "description": "Newborns get {v} more stat points.", "effect": "childStats", "perRank": 2, "costs": [8, 14, 20] },
+    { "id": "hardy_folk", "branch": "bloodlines", "name": "Hardy Folk", "description": "New residents start with {v} more max HP.", "effect": "baseHp", "perRank": 10, "costs": [6, 10, 14] },
+    { "id": "quick_studies", "branch": "bloodlines", "name": "Quick Studies", "description": "Residents gain {v}% more XP.", "effect": "xpBonus", "perRank": 0.1, "costs": [8, 12, 16] },
+
+    { "id": "overtime", "branch": "automation", "name": "Overtime", "description": "Production rooms work {v}% faster.", "effect": "productionSpeed", "perRank": 0.04, "costs": [8, 12, 16, 20, 24] },
+    { "id": "auto_collect", "branch": "automation", "name": "Conveyor Belts", "description": "Finished batches collect themselves while you play.", "effect": "autoCollect", "perRank": 1, "costs": [25], "requires": { "overtime": 2 } },
+    { "id": "long_absence", "branch": "automation", "name": "Long Absence", "description": "Offline catch-up covers {v} more hours.", "effect": "offlineHours", "perRank": 24, "costs": [6, 10] },
+
+    { "id": "pack_mules", "branch": "expeditions", "name": "Pack Mules", "description": "Explorers carry {v} more before heading home.", "effect": "carryLimit", "perRank": 25, "costs": [6, 10] },
+    { "id": "scouts_luck", "branch": "expeditions", "name": "Scout's Luck", "description": "Explorers find {v}% more scrip.", "effect": "explorerScrip", "perRank": 0.15, "costs": [6, 10, 14] },
+
+    { "id": "chain_of_command", "branch": "authority", "name": "Chain of Command", "description": "Run {v} more quest at a time.", "effect": "questSlots", "perRank": 1, "costs": [20] },
+    { "id": "bounty_board", "branch": "authority", "name": "Bounty Board", "description": "{v} more contracts on offer at each refresh.", "effect": "contractOffers", "perRank": 1, "costs": [10, 16] },
+    { "id": "field_medicine", "branch": "authority", "name": "Field Medicine", "description": "Med-Patches heal {v}% more on quests, and downed members get up stronger.", "effect": "questHeal", "perRank": 0.1, "costs": [6, 10] },
+
+    { "id": "supply_lines", "branch": "network", "name": "Supply Lines", "description": "Outposts produce {v}% more.", "effect": "outpostOutput", "perRank": 0.25, "costs": [6, 10, 14, 18] },
+    { "id": "big_families", "branch": "network", "name": "Big Families", "description": "Bring {v} more residents in the founding party.", "effect": "foundingParty", "perRank": 2, "costs": [8, 12, 16] },
+    { "id": "heirlooms", "branch": "network", "name": "Family Heirlooms", "description": "Bring {v} more heirloom items.", "effect": "heirlooms", "perRank": 2, "costs": [6, 10, 14] },
+    { "id": "lucky_charter", "branch": "network", "name": "Lucky Charter", "description": "Collecting has a {v}% better chance to earn crate tokens.", "effect": "crateLuck", "perRank": 0.25, "costs": [8, 14] }
+  ],
+  "achievements": [
+    { "id": "prestige_charter", "name": "Signed, Sealed, Sponsored", "description": "Reach your first Charter milestone.", "tier": "silver", "stat": "chartersReached", "target": 1 },
+    { "id": "prestige_found1", "name": "Moving Day", "description": "Found a new homestead.", "tier": "silver", "stat": "homesteadsFounded", "target": 1 },
+    { "id": "prestige_found3", "name": "Serial Founder", "description": "Found three new homesteads.", "tier": "gold", "stat": "homesteadsFounded", "target": 3 },
+    { "id": "prestige_perk1", "name": "Legacy Planning", "description": "Buy a Legacy perk.", "tier": "bronze", "stat": "perksBought", "target": 1 },
+    { "id": "prestige_perk15", "name": "Tree Surgeon", "description": "Buy 15 Legacy perk ranks.", "tier": "gold", "stat": "perksBought", "target": 15 },
+    { "id": "prestige_outpost", "name": "Care Package", "description": "Collect from an outpost.", "tier": "bronze", "stat": "outpostCollections", "target": 1 },
+    { "id": "prestige_outpost50", "name": "Regional Manager", "description": "Collect 50 times from outposts.", "tier": "silver", "stat": "outpostCollections", "target": 50 },
+    { "id": "prestige_legacy100", "name": "Old Money", "description": "Earn 100 Legacy in total.", "tier": "silver", "stat": "legacyEarned", "target": 100 },
+    { "id": "prestige_scorch", "name": "Sunscreen Optional", "description": "Found a homestead in The Scorch.", "tier": "gold", "stat": "sites.the_scorch", "target": 1 }
+  ]
+}

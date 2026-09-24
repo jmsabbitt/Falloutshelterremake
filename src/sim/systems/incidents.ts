@@ -12,6 +12,7 @@
 import type { Content } from '../content';
 import { addScrip, population } from '../economy';
 import { connectedRoomIds, floorOccupancy, roomCells, roomDef } from '../grid';
+import { incidentRate } from '../legacy';
 import { bump, combatDamage, fleesIncidents, grantXp, livingResidents } from '../residents';
 import { nextInt, pick } from '../rng';
 import type { GameState, Incident, IncidentType, Resident, Room } from '../types';
@@ -146,7 +147,8 @@ export function startRushIncident(state: GameState, content: Content, room: Room
 export function scheduleIncident(state: GameState, content: Content): void {
   const t = content.balance.incidents.timer;
   state.incidentTimer = 0;
-  state.nextIncidentAt = nextInt(state.rng, t.minSeconds, t.maxSeconds);
+  // Harsher sites (Legacy) bring incidents around more often.
+  state.nextIncidentAt = nextInt(state.rng, t.minSeconds, t.maxSeconds) / incidentRate(state, content);
 }
 
 /** Background incident timer (online only). */
