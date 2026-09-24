@@ -78,6 +78,7 @@
     { "id": "endowment", "branch": "foundations", "name": "Charter Endowment", "description": "Start each new homestead with {v} more scrip.", "effect": "startScrip", "perRank": 1500, "costs": [5, 10, 15] },
     { "id": "union_rates", "branch": "foundations", "name": "Union Rates", "description": "Rooms cost {v}% less to build and upgrade.", "effect": "buildDiscount", "perRank": 0.05, "costs": [8, 12, 16, 20] },
     { "id": "prefab_kit", "branch": "foundations", "name": "Prefab Kit", "description": "New homesteads start with a Storeroom and a Clinic already built.", "effect": "prefabRooms", "perRank": 1, "costs": [15] },
+    { "id": "institutional_memory", "branch": "foundations", "name": "Institutional Memory", "description": "New homesteads keep {v}% of your completed research, cheapest first, and the same share of unspent points. The binders travel well.", "effect": "researchKeep", "perRank": 0.2, "costs": [10, 15, 20] },
 
     { "id": "good_stock", "branch": "bloodlines", "name": "Good Stock", "description": "Newborns get {v} more stat points.", "effect": "childStats", "perRank": 2, "costs": [8, 14, 20] },
     { "id": "hardy_folk", "branch": "bloodlines", "name": "Hardy Folk", "description": "New residents start with {v} more max HP.", "effect": "baseHp", "perRank": 10, "costs": [6, 10, 14] },
