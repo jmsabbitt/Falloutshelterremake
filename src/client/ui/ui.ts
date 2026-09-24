@@ -2090,11 +2090,32 @@ export class UI {
     this.panelKey = '';
   }
 
+  /** Open toasts by their "shape" (text without names and numbers), so bursts fold into one line. */
+  private toastGroups = new Map<string, { el: HTMLElement; first: string; extra: number; timer: ReturnType<typeof setTimeout> }>();
+
   toast(text: string, kind?: 'good' | 'bad' | 'gold'): void {
+    // "Dot is all grown up…" and "Clyde is all grown up…" share a shape.
+    const shape = `${kind ?? ''}|${text.replace(/^[A-Z][\w'’-]*( [A-Z][\w'’-]*)?\s/, '').replace(/[\d,.]+/g, '#')}`;
+    const open = this.toastGroups.get(shape);
+    const life = 4200;
+    if (open && open.el.isConnected) {
+      open.extra++;
+      open.el.textContent = `${open.first} (+${open.extra} more)`;
+      clearTimeout(open.timer);
+      open.timer = setTimeout(() => this.dropToast(shape), life);
+      this.toasts.prepend(open.el);
+      return;
+    }
     const el = h('div', { class: `toast ${kind ?? ''}` }, text);
     this.toasts.prepend(el);
-    while (this.toasts.children.length > 5) this.toasts.lastElementChild?.remove();
-    setTimeout(() => el.remove(), 4200);
+    this.toastGroups.set(shape, { el, first: text, extra: 0, timer: setTimeout(() => this.dropToast(shape), life) });
+    // A short stack: the notification centre keeps the full history.
+    while (this.toasts.children.length > 3) this.toasts.lastElementChild?.remove();
+  }
+
+  private dropToast(shape: string): void {
+    this.toastGroups.get(shape)?.el.remove();
+    this.toastGroups.delete(shape);
   }
 
   private modal(title: string, ...content: (HTMLElement | string)[]): void {
