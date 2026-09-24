@@ -14,6 +14,10 @@ import {
   effectiveStat,
   foodDemandPerMin,
   availableQuests,
+  canExcavate,
+  canResearch,
+  researchContent,
+  totalFloors,
   canBuyPerk,
   canFound,
   charterStatus,
@@ -255,12 +259,13 @@ function botTurn(): void {
   }
 
   runQuests();
+  runDepth();
 
   // Jobs: fill production rooms with the best-matching idle adults.
   const idle = s.residents.filter((r) => !r.dead && !r.waiting && !isChild(s, r) && r.roomId === null && !isAway(r));
   const jobs = s.rooms.filter((r) => {
     const cat = roomDef(content, r).category;
-    return (cat === 'production' || cat === 'radio') && freeSlots(r) > 0;
+    return (cat === 'production' || cat === 'radio' || cat === 'research') && freeSlots(r) > 0;
   });
   for (const r of idle) {
     const best = jobs
@@ -271,6 +276,32 @@ function botTurn(): void {
         return (sb ? effectiveStat(content, r, sb) : 0) - (sa ? effectiveStat(content, r, sa) : 0);
       })[0];
     if (best) applyCommand(s, content, { type: 'assign', residentId: r.id, roomId: best.id });
+  }
+}
+
+/**
+ * M6: Labs from 25, research the cheapest open node, and once the Deep is
+ * surveyed extend an elevator shaft to the bottom floor, dig, and build deep rooms.
+ */
+function runDepth(): void {
+  const pop = population(s);
+  const labs = s.rooms.filter((r) => r.type === 'lab').length;
+  if ((pop >= 25 && labs < 1) || (pop >= 60 && labs < 2) || (pop >= 120 && labs < 3)) tryBuild('lab');
+  const open = researchContent(content)
+    .nodes.filter((n) => canResearch(s, content, n.id) === null)
+    .sort((a, b) => a.cost - b.cost);
+  if (open[0]) applyCommand(s, content, { type: 'research', nodeId: open[0].id });
+  if (!s.research.done.includes('deep_survey') || pop < 80) return;
+  // Extend the deepest elevator one floor down toward the current bottom floor.
+  const bottom = totalFloors(s, content) - 1;
+  const shafts = s.rooms.filter((r) => r.type === 'elevator').sort((a, b) => b.floor - a.floor);
+  const deepest = shafts[0];
+  if (deepest && deepest.floor < bottom && s.scrip > 3000) {
+    applyCommand(s, content, { type: 'build', roomType: 'elevator', floor: deepest.floor + 1, x: deepest.x });
+  }
+  if (!s.deep.dig && canExcavate(s, content) === null) applyCommand(s, content, { type: 'excavate' });
+  for (const [type, want] of [['geothermal', 2], ['fungalfarm', 2], ['aquifer', 1], ['refinery', 1]] as const) {
+    if (s.unlockedRooms.includes(type) && s.rooms.filter((r) => r.type === type).length < want && s.scrip > 8000) tryBuild(type);
   }
 }
 
@@ -421,5 +452,8 @@ if (process.env.DUMP) {
   writeFileSync(process.env.DUMP, serialize(s, 0));
   console.log('saved', process.env.DUMP);
 }
+console.log(
+  `depth: research ${s.research.done.length}/${researchContent(content).nodes.length} (${Math.round(s.research.points)} pts banked, ${Math.round(s.stats['researchPoints'] ?? 0)} earned) · strata ${s.deep.strata} · discoveries ${s.deep.discoveries.length} · deep rooms ${s.rooms.filter((r) => r.floor >= content.balance.grid.floors).length} · refined ${s.stats['refinedSalvage'] ?? 0} · mastery ups ${s.stats['masteryUps'] ?? 0} · labs ${s.rooms.filter((r) => r.type === 'lab').length}`,
+);
 const unused: Resident[] = s.residents.filter((r) => !r.dead && !r.waiting && !isChild(s, r) && r.roomId === null);
 console.log('idle adults at end:', unused.length);
