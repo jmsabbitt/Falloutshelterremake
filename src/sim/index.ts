@@ -23,7 +23,7 @@ export { cycleSeconds, poolSize, batchOutput, vaultHappiness, roomStatTotal } fr
 export { rushFailChance } from './systems/rush';
 export { powerDemandPerMin, foodDemandPerMin, waterDemandPerMin, shortageThreshold, isRightRoom } from './systems/needs';
 export { achievementProgress } from './systems/achievements';
-export { incidentDef, defenders, touchesDirt } from './systems/incidents';
+export { incidentDef, defenders, touchesDirt, deepIncidentTypes } from './systems/incidents';
 export { itemCapacity, sellValue, itemDef } from './systems/items';
 export { radioInterval, radioChance } from './systems/arrivals';
 export { courtshipSeconds } from './systems/family';
@@ -104,7 +104,27 @@ export {
   researchRate,
   type ResearchNodeDef,
 } from './systems/research';
-export { canExcavate, deepContent, isDeepFloor, stratumOf, totalFloors, type StratumDef } from './systems/deep';
+export {
+  braced,
+  canExcavate,
+  deepContent,
+  digCost,
+  digRate,
+  digSeconds,
+  digShaft,
+  digTimeLeft,
+  discoveryDef,
+  isDeepFloor,
+  nextStratum,
+  refineryBatch,
+  refineryPerHour,
+  stratumDef,
+  stratumOf,
+  totalFloors,
+  type DeepContent,
+  type DiscoveryDef,
+  type StratumDef,
+} from './systems/deep';
 export { masteryTier } from './systems/traits';
 export { autoAssign, idleAdults } from './systems/assign';
 export { knowsRecipe, fragmentsNeeded, salvageCount, SALVAGE_CAP } from './systems/inventory';
