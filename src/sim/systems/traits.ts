@@ -125,6 +125,8 @@ interface Index {
   aura: Set<string>;
   /** Traits with any production effect (workerMult skips everyone else). */
   production: Set<string>;
+  /** Traits with any happiness effect of their own. */
+  happiness: Set<string>;
 }
 
 // Lookups run every tick for every worker, so index the content once.
@@ -143,6 +145,7 @@ function index(content: Content): Index {
       byId: new Map(defs.map((d) => [d.id, d])),
       aura: new Set(defs.filter((d) => d.effects.some((e) => e.kind === 'roomHappiness')).map((d) => d.id)),
       production: new Set(defs.filter((d) => d.effects.some((e) => e.kind === 'production')).map((d) => d.id)),
+      happiness: new Set(defs.filter((d) => d.effects.some((e) => e.kind === 'happiness')).map((d) => d.id)),
     };
     indexes.set(key, ix);
   }
@@ -274,8 +277,22 @@ interface Place {
   count: number;
 }
 
+// The hooks below run for every resident every tick: plain loops, no closures.
+function findRoom(state: GameState, id: number | null): Room | undefined {
+  if (id === null) return undefined;
+  for (const room of state.rooms) if (room.id === id) return room;
+  return undefined;
+}
+
+function hasAny(r: Resident, set: Set<string>): boolean {
+  const ids = r.traits;
+  if (!ids || set.size === 0) return false;
+  for (const id of ids) if (set.has(id)) return true;
+  return false;
+}
+
 function placeOf(state: GameState, content: Content, r: Resident, room?: Room): Place {
-  const where = room ?? (r.roomId !== null ? state.rooms.find((x) => x.id === r.roomId) : undefined);
+  const where = room ?? findRoom(state, r.roomId);
   return { state, room: where ?? null, def: where ? (content.rooms[where.type] ?? null) : null, self: r, count: -1 };
 }
 
@@ -346,43 +363,40 @@ export function workerMult(state: GameState, content: Content, r: Resident, room
   const mastery = traitsContent(content).tuning.masteryTierBonus[masteryTier(content, r, room.type)] ?? 0;
   const production = index(content).production;
   let traits = 0;
-  if (r.traits?.some((id) => production.has(id))) traits = placedValue(state, content, r, placeOf(state, content, r, room), 'production');
+  if (hasAny(r, production)) traits = placedValue(state, content, r, placeOf(state, content, r, room), 'production');
   return Math.max(0.1, 1 + traits + mastery);
 }
 
 /** Change to a resident's happiness target from traits (can be negative). */
 export function traitHappiness(state: GameState, content: Content, r: Resident): number {
   const t = traitsContent(content).tuning;
-  const p = placeOf(state, content, r);
+  const ix = index(content);
+  const room = findRoom(state, r.roomId);
+  const own = hasAny(r, ix.happiness);
   let total = 0;
-  if (p.room) {
+  let p: Place | null = null;
+  if (room) {
+    const def = content.rooms[room.type] ?? null;
     // One pass over the residents: count the others here and find roommates
     // whose traits change the mood of the room.
-    const aura = index(content).aura;
-    const roomId = p.room.id;
     let n = 0;
     let holders: Resident[] | null = null;
     for (const o of state.residents) {
-      if (o === r || o.roomId !== roomId || o.dead) continue;
+      if (o === r || o.roomId !== room.id || o.dead) continue;
       n++;
-      for (const id of o.traits ?? []) {
-        if (aura.has(id)) {
-          (holders ??= []).push(o);
-          break;
-        }
-      }
+      if (hasAny(o, ix.aura)) (holders ??= []).push(o);
     }
-    p.count = n;
-    if (holders) {
+    if (own || holders) p = { state, room, def, self: r, count: n };
+    if (holders && p) {
       let from = 0;
       // Roommates share the room, and the same number of others in it.
       for (const o of holders) from += placedValue(state, content, o, p, 'roomHappiness');
       total += Math.max(-t.roomHappinessCap, Math.min(t.roomHappinessCap, from));
     }
+    // Masters take pride in their trade.
+    if (def?.stat && masteryTier(content, r, room.type) >= t.masteryTierSeconds.length - 1) total += t.masterHappiness;
   }
-  total += placedValue(state, content, r, p, 'happiness');
-  // Masters take pride in their trade.
-  if (p.room && p.def?.stat && masteryTier(content, r, p.room.type) >= t.masteryTierSeconds.length - 1) total += t.masterHappiness;
+  if (own) total += placedValue(state, content, r, p ?? { state, room: null, def: null, self: r, count: 0 }, 'happiness');
   return total;
 }
 
@@ -500,7 +514,7 @@ export function tickMastery(state: GameState, content: Content, dt: number): voi
     if (!r.mastery) r.mastery = {};
     if (seen && !r.dead) for (const id of r.traits) seen.add(id);
     if (dt <= 0 || !isWorking(state, r)) continue;
-    const room = state.rooms.find((x) => x.id === r.roomId);
+    const room = findRoom(state, r.roomId);
     if (!room || !roomDef(content, room).stat) continue;
     const before = r.mastery[room.type] ?? 0;
     const after = before + dt * masteryRate(content, r);
