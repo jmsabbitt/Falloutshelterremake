@@ -248,7 +248,8 @@ await page.evaluate((id) => {
   const hs = window.homestead;
   const r = hs.state.residents.find((x) => x.id === id);
   const room = hs.state.rooms.find((y) => y.id === r.roomId);
-  r.mastery = { [room.type]: 50000, canteen: 90000, waterworks: 30000 };
+  const tiers = hs.content.traits.tuning.masteryTierSeconds;
+  r.mastery = { [room.type]: tiers[1] * 1.6, canteen: tiers[2] + 1, waterworks: tiers[1] + 1 };
   window.__rid = id;
 }, rid);
 await tap(page.locator('.rl-row').nth(1));
@@ -266,7 +267,7 @@ await page.evaluate(() => {
   const hs = window.homestead;
   const r = hs.state.residents.find((x) => x.id === window.__rid);
   const room = hs.state.rooms.find((y) => y.id === r.roomId);
-  r.mastery[room.type] = 86399;
+  r.mastery[room.type] = hs.content.traits.tuning.masteryTierSeconds[2] - 1;
   hs.skip(3);
 });
 await page.waitForTimeout(300);
