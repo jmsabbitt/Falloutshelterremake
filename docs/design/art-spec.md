@@ -1,6 +1,6 @@
 # Character Art Spec
 
-> Making sprites? Start with the short handoff: [`docs/art/SPRITE-HANDOFF.md`](../art/SPRITE-HANDOFF.md).
+> Making sprites? Start with the short handoff: [`docs/art/SPRITE-HANDOFF.md`](../art/SPRITE-HANDOFF.md). It also covers creatures (enemies) and portraits, which use the same pipeline.
 
 How to make resident sprite sheets that drop straight into the game. The short version:
 
@@ -106,7 +106,7 @@ Variations:
    - `loop` defaults to true.
 3. Install the pipeline's dependencies once: `pip install -r tools/sprites/requirements.txt`.
 4. Run `npm run sprites`. This writes:
-   - `public/sprites/<id>/<anim>_<layer>.png`, the layer strips the game loads
+   - `public/sprites/<id>/<anim>_<layer>.webp`, the layer strips the game loads
    - `public/sprites/manifest.json`
    - `art/previews/<id>_<anim>.png`, a contact sheet of the frames recoloured in several palettes
 5. **Check the preview.** Look for skin that turned into suit colour, hair that didn't recolour, or stray green fringes. Fix these in the art, or adjust `regions`, then run the pipeline again.

@@ -15,12 +15,11 @@
           "anchorX": 0.4678,
           "anchorY": 1.0,
           "files": {
-            "base": "resident_f/walk_base.png",
-            "suit": "resident_f/walk_suit.png",
-            "skin": "resident_f/walk_skin.png",
-            "hair": "resident_f/walk_hair.png",
-            "trim": "resident_f/walk_trim.png",
-            "full": "resident_f/walk_full.png"
+            "base": "resident_f/walk_base.webp",
+            "suit": "resident_f/walk_suit.webp",
+            "skin": "resident_f/walk_skin.webp",
+            "hair": "resident_f/walk_hair.webp",
+            "trim": "resident_f/walk_trim.webp"
           }
         },
         "work": {
@@ -33,12 +32,11 @@
           "anchorX": 0.401,
           "anchorY": 1.0,
           "files": {
-            "base": "resident_f/work_base.png",
-            "suit": "resident_f/work_suit.png",
-            "skin": "resident_f/work_skin.png",
-            "hair": "resident_f/work_hair.png",
-            "trim": "resident_f/work_trim.png",
-            "full": "resident_f/work_full.png"
+            "base": "resident_f/work_base.webp",
+            "suit": "resident_f/work_suit.webp",
+            "skin": "resident_f/work_skin.webp",
+            "hair": "resident_f/work_hair.webp",
+            "trim": "resident_f/work_trim.webp"
           }
         },
         "fight": {
@@ -51,12 +49,11 @@
           "anchorX": 0.3598,
           "anchorY": 1.0,
           "files": {
-            "base": "resident_f/fight_base.png",
-            "suit": "resident_f/fight_suit.png",
-            "skin": "resident_f/fight_skin.png",
-            "hair": "resident_f/fight_hair.png",
-            "trim": "resident_f/fight_trim.png",
-            "full": "resident_f/fight_full.png"
+            "base": "resident_f/fight_base.webp",
+            "suit": "resident_f/fight_suit.webp",
+            "skin": "resident_f/fight_skin.webp",
+            "hair": "resident_f/fight_hair.webp",
+            "trim": "resident_f/fight_trim.webp"
           }
         },
         "fallen": {
@@ -69,12 +66,11 @@
           "anchorX": 0.5615,
           "anchorY": 1.0,
           "files": {
-            "base": "resident_f/fallen_base.png",
-            "suit": "resident_f/fallen_suit.png",
-            "skin": "resident_f/fallen_skin.png",
-            "hair": "resident_f/fallen_hair.png",
-            "trim": "resident_f/fallen_trim.png",
-            "full": "resident_f/fallen_full.png"
+            "base": "resident_f/fallen_base.webp",
+            "suit": "resident_f/fallen_suit.webp",
+            "skin": "resident_f/fallen_skin.webp",
+            "hair": "resident_f/fallen_hair.webp",
+            "trim": "resident_f/fallen_trim.webp"
           }
         },
         "idle": {
@@ -87,12 +83,11 @@
           "anchorX": 0.4875,
           "anchorY": 1.0,
           "files": {
-            "base": "resident_f/idle_base.png",
-            "suit": "resident_f/idle_suit.png",
-            "skin": "resident_f/idle_skin.png",
-            "hair": "resident_f/idle_hair.png",
-            "trim": "resident_f/idle_trim.png",
-            "full": "resident_f/idle_full.png"
+            "base": "resident_f/idle_base.webp",
+            "suit": "resident_f/idle_suit.webp",
+            "skin": "resident_f/idle_skin.webp",
+            "hair": "resident_f/idle_hair.webp",
+            "trim": "resident_f/idle_trim.webp"
           }
         },
         "carry": {
@@ -105,12 +100,11 @@
           "anchorX": 0.4898,
           "anchorY": 1.0,
           "files": {
-            "base": "resident_f/carry_base.png",
-            "suit": "resident_f/carry_suit.png",
-            "skin": "resident_f/carry_skin.png",
-            "hair": "resident_f/carry_hair.png",
-            "trim": "resident_f/carry_trim.png",
-            "full": "resident_f/carry_full.png"
+            "base": "resident_f/carry_base.webp",
+            "suit": "resident_f/carry_suit.webp",
+            "skin": "resident_f/carry_skin.webp",
+            "hair": "resident_f/carry_hair.webp",
+            "trim": "resident_f/carry_trim.webp"
           }
         }
       }
@@ -129,12 +123,11 @@
           "anchorX": 0.4627,
           "anchorY": 1.0,
           "files": {
-            "base": "resident_m/walk_base.png",
-            "suit": "resident_m/walk_suit.png",
-            "skin": "resident_m/walk_skin.png",
-            "hair": "resident_m/walk_hair.png",
-            "trim": "resident_m/walk_trim.png",
-            "full": "resident_m/walk_full.png"
+            "base": "resident_m/walk_base.webp",
+            "suit": "resident_m/walk_suit.webp",
+            "skin": "resident_m/walk_skin.webp",
+            "hair": "resident_m/walk_hair.webp",
+            "trim": "resident_m/walk_trim.webp"
           }
         },
         "work": {
@@ -147,12 +140,11 @@
           "anchorX": 0.3253,
           "anchorY": 1.0,
           "files": {
-            "base": "resident_m/work_base.png",
-            "suit": "resident_m/work_suit.png",
-            "skin": "resident_m/work_skin.png",
-            "hair": "resident_m/work_hair.png",
-            "trim": "resident_m/work_trim.png",
-            "full": "resident_m/work_full.png"
+            "base": "resident_m/work_base.webp",
+            "suit": "resident_m/work_suit.webp",
+            "skin": "resident_m/work_skin.webp",
+            "hair": "resident_m/work_hair.webp",
+            "trim": "resident_m/work_trim.webp"
           }
         },
         "fight": {
@@ -165,12 +157,11 @@
           "anchorX": 0.3617,
           "anchorY": 1.0,
           "files": {
-            "base": "resident_m/fight_base.png",
-            "suit": "resident_m/fight_suit.png",
-            "skin": "resident_m/fight_skin.png",
-            "hair": "resident_m/fight_hair.png",
-            "trim": "resident_m/fight_trim.png",
-            "full": "resident_m/fight_full.png"
+            "base": "resident_m/fight_base.webp",
+            "suit": "resident_m/fight_suit.webp",
+            "skin": "resident_m/fight_skin.webp",
+            "hair": "resident_m/fight_hair.webp",
+            "trim": "resident_m/fight_trim.webp"
           }
         },
         "fallen": {
@@ -183,12 +174,11 @@
           "anchorX": 0.5583,
           "anchorY": 1.0,
           "files": {
-            "base": "resident_m/fallen_base.png",
-            "suit": "resident_m/fallen_suit.png",
-            "skin": "resident_m/fallen_skin.png",
-            "hair": "resident_m/fallen_hair.png",
-            "trim": "resident_m/fallen_trim.png",
-            "full": "resident_m/fallen_full.png"
+            "base": "resident_m/fallen_base.webp",
+            "suit": "resident_m/fallen_suit.webp",
+            "skin": "resident_m/fallen_skin.webp",
+            "hair": "resident_m/fallen_hair.webp",
+            "trim": "resident_m/fallen_trim.webp"
           }
         },
         "idle": {
@@ -201,12 +191,11 @@
           "anchorX": 0.4686,
           "anchorY": 1.0,
           "files": {
-            "base": "resident_m/idle_base.png",
-            "suit": "resident_m/idle_suit.png",
-            "skin": "resident_m/idle_skin.png",
-            "hair": "resident_m/idle_hair.png",
-            "trim": "resident_m/idle_trim.png",
-            "full": "resident_m/idle_full.png"
+            "base": "resident_m/idle_base.webp",
+            "suit": "resident_m/idle_suit.webp",
+            "skin": "resident_m/idle_skin.webp",
+            "hair": "resident_m/idle_hair.webp",
+            "trim": "resident_m/idle_trim.webp"
           }
         },
         "carry": {
@@ -219,12 +208,11 @@
           "anchorX": 0.4716,
           "anchorY": 1.0,
           "files": {
-            "base": "resident_m/carry_base.png",
-            "suit": "resident_m/carry_suit.png",
-            "skin": "resident_m/carry_skin.png",
-            "hair": "resident_m/carry_hair.png",
-            "trim": "resident_m/carry_trim.png",
-            "full": "resident_m/carry_full.png"
+            "base": "resident_m/carry_base.webp",
+            "suit": "resident_m/carry_suit.webp",
+            "skin": "resident_m/carry_skin.webp",
+            "hair": "resident_m/carry_hair.webp",
+            "trim": "resident_m/carry_trim.webp"
           }
         }
       }
@@ -244,7 +232,7 @@
           "anchorX": 0.472,
           "anchorY": 1.0,
           "files": {
-            "full": "burrower/idle_full.png"
+            "full": "burrower/idle_full.webp"
           }
         },
         "attack": {
@@ -257,7 +245,7 @@
           "anchorX": 0.4669,
           "anchorY": 1.0,
           "files": {
-            "full": "burrower/attack_full.png"
+            "full": "burrower/attack_full.webp"
           }
         },
         "death": {
@@ -270,7 +258,7 @@
           "anchorX": 0.4844,
           "anchorY": 1.0,
           "files": {
-            "full": "burrower/death_full.png"
+            "full": "burrower/death_full.webp"
           }
         }
       }
@@ -288,7 +276,7 @@
           "anchorX": 0.4679,
           "anchorY": 1.0,
           "files": {
-            "full": "deepcrawler/idle_full.png"
+            "full": "deepcrawler/idle_full.webp"
           }
         },
         "attack": {
@@ -301,7 +289,7 @@
           "anchorX": 0.4772,
           "anchorY": 1.0,
           "files": {
-            "full": "deepcrawler/attack_full.png"
+            "full": "deepcrawler/attack_full.webp"
           }
         },
         "death": {
@@ -314,7 +302,7 @@
           "anchorX": 0.4773,
           "anchorY": 1.0,
           "files": {
-            "full": "deepcrawler/death_full.png"
+            "full": "deepcrawler/death_full.webp"
           }
         }
       }
@@ -332,7 +320,7 @@
           "anchorX": 0.5139,
           "anchorY": 1.0,
           "files": {
-            "full": "hollowed/idle_full.png"
+            "full": "hollowed/idle_full.webp"
           }
         },
         "attack": {
@@ -345,7 +333,7 @@
           "anchorX": 0.5154,
           "anchorY": 1.0,
           "files": {
-            "full": "hollowed/attack_full.png"
+            "full": "hollowed/attack_full.webp"
           }
         },
         "death": {
@@ -358,7 +346,7 @@
           "anchorX": 0.4564,
           "anchorY": 1.0,
           "files": {
-            "full": "hollowed/death_full.png"
+            "full": "hollowed/death_full.webp"
           }
         }
       }
@@ -376,7 +364,7 @@
           "anchorX": 0.4966,
           "anchorY": 1.0,
           "files": {
-            "full": "hollowed_hulk/idle_full.png"
+            "full": "hollowed_hulk/idle_full.webp"
           }
         },
         "attack": {
@@ -389,7 +377,7 @@
           "anchorX": 0.5529,
           "anchorY": 1.0,
           "files": {
-            "full": "hollowed_hulk/attack_full.png"
+            "full": "hollowed_hulk/attack_full.webp"
           }
         },
         "death": {
@@ -402,7 +390,7 @@
           "anchorX": 0.4614,
           "anchorY": 1.0,
           "files": {
-            "full": "hollowed_hulk/death_full.png"
+            "full": "hollowed_hulk/death_full.webp"
           }
         }
       }
@@ -420,7 +408,7 @@
           "anchorX": 0.5079,
           "anchorY": 1.0,
           "files": {
-            "full": "mauler/idle_full.png"
+            "full": "mauler/idle_full.webp"
           }
         },
         "attack": {
@@ -433,7 +421,7 @@
           "anchorX": 0.5322,
           "anchorY": 1.0,
           "files": {
-            "full": "mauler/attack_full.png"
+            "full": "mauler/attack_full.webp"
           }
         },
         "death": {
@@ -446,7 +434,7 @@
           "anchorX": 0.4737,
           "anchorY": 1.0,
           "files": {
-            "full": "mauler/death_full.png"
+            "full": "mauler/death_full.webp"
           }
         }
       }
@@ -464,7 +452,7 @@
           "anchorX": 0.5335,
           "anchorY": 1.0,
           "files": {
-            "full": "rustman/idle_full.png"
+            "full": "rustman/idle_full.webp"
           }
         },
         "attack": {
@@ -477,7 +465,7 @@
           "anchorX": 0.5321,
           "anchorY": 1.0,
           "files": {
-            "full": "rustman/attack_full.png"
+            "full": "rustman/attack_full.webp"
           }
         },
         "death": {
@@ -490,7 +478,7 @@
           "anchorX": 0.4944,
           "anchorY": 1.0,
           "files": {
-            "full": "rustman/death_full.png"
+            "full": "rustman/death_full.webp"
           }
         }
       }
@@ -508,7 +496,7 @@
           "anchorX": 0.424,
           "anchorY": 1.0,
           "files": {
-            "full": "rustman_brute/idle_full.png"
+            "full": "rustman_brute/idle_full.webp"
           }
         },
         "attack": {
@@ -521,7 +509,7 @@
           "anchorX": 0.4771,
           "anchorY": 1.0,
           "files": {
-            "full": "rustman_brute/attack_full.png"
+            "full": "rustman_brute/attack_full.webp"
           }
         },
         "death": {
@@ -534,7 +522,7 @@
           "anchorX": 0.4816,
           "anchorY": 1.0,
           "files": {
-            "full": "rustman_brute/death_full.png"
+            "full": "rustman_brute/death_full.webp"
           }
         }
       }
@@ -552,7 +540,7 @@
           "anchorX": 0.4093,
           "anchorY": 1.0,
           "files": {
-            "full": "rustman_chief/idle_full.png"
+            "full": "rustman_chief/idle_full.webp"
           }
         },
         "attack": {
@@ -565,7 +553,7 @@
           "anchorX": 0.4271,
           "anchorY": 1.0,
           "files": {
-            "full": "rustman_chief/attack_full.png"
+            "full": "rustman_chief/attack_full.webp"
           }
         },
         "death": {
@@ -578,7 +566,7 @@
           "anchorX": 0.4889,
           "anchorY": 1.0,
           "files": {
-            "full": "rustman_chief/death_full.png"
+            "full": "rustman_chief/death_full.webp"
           }
         }
       }
@@ -596,7 +584,7 @@
           "anchorX": 0.4381,
           "anchorY": 1.0,
           "files": {
-            "full": "sentry/idle_full.png"
+            "full": "sentry/idle_full.webp"
           }
         },
         "attack": {
@@ -609,7 +597,7 @@
           "anchorX": 0.5923,
           "anchorY": 1.0,
           "files": {
-            "full": "sentry/attack_full.png"
+            "full": "sentry/attack_full.webp"
           }
         },
         "death": {
@@ -622,7 +610,7 @@
           "anchorX": 0.4588,
           "anchorY": 1.0,
           "files": {
-            "full": "sentry/death_full.png"
+            "full": "sentry/death_full.webp"
           }
         }
       }
@@ -640,7 +628,7 @@
           "anchorX": 0.5219,
           "anchorY": 1.0,
           "files": {
-            "full": "skitter/idle_full.png"
+            "full": "skitter/idle_full.webp"
           }
         },
         "attack": {
@@ -653,7 +641,7 @@
           "anchorX": 0.5214,
           "anchorY": 1.0,
           "files": {
-            "full": "skitter/attack_full.png"
+            "full": "skitter/attack_full.webp"
           }
         },
         "death": {
@@ -666,7 +654,7 @@
           "anchorX": 0.5148,
           "anchorY": 1.0,
           "files": {
-            "full": "skitter/death_full.png"
+            "full": "skitter/death_full.webp"
           }
         }
       }
@@ -684,7 +672,7 @@
           "anchorX": 0.5334,
           "anchorY": 1.0,
           "files": {
-            "full": "skitter_queen/idle_full.png"
+            "full": "skitter_queen/idle_full.webp"
           }
         },
         "attack": {
@@ -697,7 +685,7 @@
           "anchorX": 0.5364,
           "anchorY": 1.0,
           "files": {
-            "full": "skitter_queen/attack_full.png"
+            "full": "skitter_queen/attack_full.webp"
           }
         },
         "death": {
@@ -710,7 +698,7 @@
           "anchorX": 0.5237,
           "anchorY": 1.0,
           "files": {
-            "full": "skitter_queen/death_full.png"
+            "full": "skitter_queen/death_full.webp"
           }
         }
       }
@@ -718,10 +706,10 @@
   },
   "portraits": {
     "halcy": {
-      "smile": "portraits/halcy_smile.png",
-      "talk": "portraits/halcy_talk.png",
-      "worried": "portraits/halcy_worried.png",
-      "wink": "portraits/halcy_wink.png"
+      "smile": "portraits/halcy_smile.webp",
+      "talk": "portraits/halcy_talk.webp",
+      "worried": "portraits/halcy_worried.webp",
+      "wink": "portraits/halcy_wink.webp"
     }
   }
 }

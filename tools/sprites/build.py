@@ -24,6 +24,7 @@ See docs/design/art-spec.md for how to generate sheets that work with this.
 from __future__ import annotations
 
 import json
+import shutil
 import sys
 from pathlib import Path
 
@@ -232,6 +233,11 @@ def torso_x(frame: np.ndarray, masks: dict[str, np.ndarray]) -> float:
     return float((cols * np.arange(m.shape[1])).sum() / max(1, cols.sum())) if xs.size else frame.shape[1] / 2
 
 
+def save_webp(img: Image.Image, path: Path) -> None:
+    """Game images are lossy WebP (about a third the size of PNG); alpha stays lossless."""
+    img.save(path, "WEBP", quality=90, method=4)
+
+
 def body_x(frame: np.ndarray) -> float:
     """Horizontal centre of mass of a creature's silhouette."""
     cols = (frame[..., 3] > 128).sum(axis=0)
@@ -242,6 +248,8 @@ def build_portraits(cid: str, cfg: dict, cut: dict[str, list[np.ndarray]], targe
     """"kind": "portrait": each frame saved on its own (for the interface), named by "names"."""
     out_dir = OUT / "portraits"
     out_dir.mkdir(parents=True, exist_ok=True)
+    for old in out_dir.glob(f"{cid}_*"):
+        old.unlink()
     files = {}
     for name, frames in cut.items():
         names = cfg["anims"][name].get("names", [])
@@ -249,8 +257,8 @@ def build_portraits(cid: str, cfg: dict, cut: dict[str, list[np.ndarray]], targe
             key = names[i] if i < len(names) else f"{name}{i}"
             img = Image.fromarray(f)
             img = img.resize((max(1, round(img.width * target / img.height)), target), Image.LANCZOS)
-            fn = f"{cid}_{key}.png"
-            img.save(out_dir / fn, optimize=True)
+            fn = f"{cid}_{key}.webp"
+            save_webp(img, out_dir / fn)
             files[key] = f"portraits/{fn}"
     return ("portraits", {cid: files})
 
@@ -304,6 +312,7 @@ def build_character(folder: Path) -> tuple[str, dict] | None:
     ref_scale = target / float(np.median([f.shape[0] for f in ref]))
 
     out_dir = OUT / cid
+    shutil.rmtree(out_dir, ignore_errors=True)  # no stale strips from an older build
     out_dir.mkdir(parents=True, exist_ok=True)
     manifest = {"refHeight": target, "anims": {}} if creature else {"sex": cfg.get("sex"), "refHeight": target, "anims": {}}
     lineup = []
@@ -340,8 +349,11 @@ def build_character(folder: Path) -> tuple[str, dict] | None:
                 strips[k].paste(cell, (i * cw, 0))
         files = {}
         for k, img in strips.items():
-            fn = f"{name}_{k}.png"
-            img.save(out_dir / fn, optimize=True)
+            # Characters only load the tint layers; their full-colour strip is for previews.
+            if k == "full" and not creature:
+                continue
+            fn = f"{name}_{k}.webp"
+            save_webp(img, out_dir / fn)
             files[k] = f"{cid}/{fn}"
         manifest["anims"][name] = {
             "frames": len(frames),

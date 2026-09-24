@@ -184,7 +184,26 @@ The code side is done. **Every animation above is picked up as soon as it's buil
 - **Weapons:** while the `fight` art is showing, the drawn hip weapon is hidden, because the sheet holds its own rifle. With `carry` art, the drawn backpack is hidden.
 - **Checking in a browser:** `homesteadView.figures()` in the console counts residents per `action>animation`, for example `{"work>idle": 12, "fight>fight": 3}`.
 
-## 7. Licensing: check before anything ships
+## 7. Creatures and portraits
+
+The same pipeline builds enemies and interface portraits. Set `"kind"` in `sprite.json`:
+
+- **`"kind": "creature"`** (in `art/raw/<look>/`, named after the enemy's `look`): full colour, no recolouring. Animations are `idle` (loop), `attack` (plays when it strikes; its early frames are held during a boss wind-up) and `death` (plays once before the fade). Sheets must end up **facing left**, toward the party; use `"mirror": true` for sheets drawn facing right. Use `"background": "magenta"` for anything with green in it. The quest screen and the vault incidents (skitters, burrowers, raiders, deepcrawlers) use the art when a look has some, and draw the old Graphics version otherwise.
+- **`"kind": "portrait"`**: each frame is saved as its own image in `public/sprites/portraits/<id>_<name>.webp`, named by `"names"`. HALCY's four faces (`smile`, `talk`, `worried`, `wink`) appear beside her lines (`src/client/ui/halcy.ts`).
+
+| Look | Used by | Animations |
+|---|---|---|
+| `skitter`, `skitter_queen` | Skitters, Spitters, the Broodmother; the skitter incident | idle, attack, death |
+| `burrower` | Burrower pups to the Matriarch; the burrower incident | idle, attack, death |
+| `rustman`, `rustman_brute`, `rustman_chief` | Rustmen, Brutes, Toll-Keeper Mags, Baron Oxide; raids | idle, attack, death |
+| `hollowed`, `hollowed_hulk` | The Hollowed, Shriekers, Hulks, the Night Supervisor | idle, attack, death |
+| `mauler` | The Mauler | idle, attack, death |
+| `sentry` | Courtesy Sentries and Greeter Units | idle, attack, death |
+| `deepcrawler` | The deepcrawler incident | idle, attack, death |
+
+Game images are written as lossy WebP (alpha lossless), about a third the size of PNG. Characters ship only their tint layers.
+
+## 8. Licensing: check before anything ships
 
 We need commercial use rights with no attribution or exclusivity strings. Record the tool, plan and date here:
 
@@ -193,3 +212,4 @@ We need commercial use rights with no attribution or exclusivity strings. Record
 | resident_f / walk | artlist.io | ? | ? | ☐ |
 | resident_f / idle, work, fight, fallen, carry | artlist.io, Nano Banana 2 I2I 2K | AI Suite plan (credits) | 2026-09-24 | ☐ |
 | resident_m / all | artlist.io, Nano Banana 2 I2I 2K | AI Suite plan (credits) | 2026-09-24 | ☐ |
+| all creatures, HALCY portraits | artlist.io, Nano Banana 2 I2I 2K | AI Suite plan (credits) | 2026-09-24 | ☐ |
