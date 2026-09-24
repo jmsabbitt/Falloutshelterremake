@@ -219,7 +219,7 @@ function botTurn(): void {
     else if (e.status === 'dead') applyCommand(s, content, { type: 'revive', residentId: e.residentId });
   }
   const wantOut = pop >= 30 ? 3 : pop >= 12 ? 1 : 0;
-  if (out.length < wantOut) {
+  if (out.length < wantOut && !preparing) {
     const scout = s.residents
       .filter((r) => canExplore(s, content, r) === null && r.roomId !== door?.id)
       .sort((a, b) => combatDamage(content, b) + b.level - (combatDamage(content, a) + a.level))[0];
@@ -272,7 +272,8 @@ const PERK_PLAN = ['overtime', 'union_rates', 'endowment', 'quick_studies', 'aut
 function maybeFound(hour: number): void {
   if (outpostTotals(s).scrip > 0 && turn % 60 === 0) applyCommand(s, content, { type: 'collectOutposts' });
   for (const id of PERK_PLAN) while (canBuyPerk(s, content, id) === null) applyCommand(s, content, { type: 'buyPerk', perkId: id });
-  if (!charterStatus(s, content).ready) return;
+  preparing = charterStatus(s, content).ready;
+  if (!preparing) return;
   // Recall everyone first.
   for (const e of s.expeditions) if (e.status === 'exploring') applyCommand(s, content, { type: 'recall', expeditionId: e.id });
   for (const e of s.expeditions) if (e.status === 'returned') applyCommand(s, content, { type: 'collectExpedition', expeditionId: e.id });
@@ -296,6 +297,7 @@ function maybeFound(hour: number): void {
       breakdown.lines.filter((l) => l.points).map((l) => `${l.label}: ${l.points}`).join(', ') + '\n',
   );
   s = res.state;
+  preparing = false;
   foundedAt.push(hour);
   // Population milestones are per homestead.
   for (const k of Object.keys(milestones)) delete milestones[Number(k)];
@@ -303,6 +305,8 @@ function maybeFound(hour: number): void {
   console.log(`perks: ${JSON.stringify(s.legacy.perks)} · unspent ${s.legacy.points}`);
 }
 const foundedAt: number[] = [];
+/** Charter met: stop sending people out so everyone can come home to found. */
+let preparing = false;
 
 /**
  * Quests: build the Command Office at 18, send the three strongest on the
@@ -318,7 +322,7 @@ function runQuests(): void {
     } else if (q.status === 'onsite') questSeconds += playQuest(s, content, q.id);
   }
   const office = s.rooms.find((r) => r.type === 'office');
-  if (!office || s.quests.length >= (office.level)) return;
+  if (!office || s.quests.length >= office.level || preparing) return;
   const door = s.rooms.find((r) => r.type === 'door');
   const team = s.residents
     .filter((r) => canQuest(s, r) === null && r.roomId !== door?.id && !r.dead)
