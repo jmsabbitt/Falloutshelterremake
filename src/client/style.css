@@ -444,3 +444,10 @@ button.pulse { animation: ready 0.6s infinite alternate; }
 .pick-row.selected .pick-box { background: var(--accent); border-color: var(--accent); }
 .ability-line { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 6px; margin-top: 3px; font-size: 13px; }
 .ability-line b { color: var(--teal); }
+@media (max-width: 640px) {
+  /* Short labels and icons: let each toolbar button take the width it needs. */
+  .toolbar button { flex: 1 1 auto; }
+}
+/* On the quest screen, toasts sit low, clear of the header and the fight. */
+.quest-open .toasts { top: auto; bottom: calc(190px + env(safe-area-inset-bottom, 0)); left: 8px; }
+@media (min-width: 700px) { .quest-open .toasts { bottom: 140px; } }

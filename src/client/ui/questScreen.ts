@@ -300,7 +300,7 @@ export class QuestScreen {
         if (q.pendingEvent) return 'Something needs deciding';
         if (inCombat(q)) return room?.kind === 'boss' ? 'Boss fight!' : 'Fighting!';
         if (q.moving) return 'On the move…';
-        return 'Tap a glowing room to move';
+        return 'Tap a room to move';
     }
   }
 

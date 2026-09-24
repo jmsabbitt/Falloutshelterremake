@@ -1868,6 +1868,8 @@ export class UI {
           else if (!this.game.state.incidents.some((i) => i.type === ev.incident)) this.toast(`${content.balance.incidents.types[ev.incident].name} dealt with.`, 'good');
           break;
         case 'residentDied':
+          // A wiped quest party gets its own toast, and can't be revived until it is home.
+          if (this.game.state.residents.find((r) => r.id === ev.residentId)?.quest != null) break;
           this.toast(`${this.name(ev.residentId)} has fallen. Revive them from Residents.`, 'bad');
           break;
         case 'pregnancy':

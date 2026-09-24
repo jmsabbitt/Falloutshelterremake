@@ -93,6 +93,8 @@ interface MemberSprite {
   moving: boolean;
   lunge: number;
   hurt: number;
+  /** Crit meter last frame, to call out the moment it fills. */
+  crit: number;
 }
 
 interface EnemySprite {
@@ -215,6 +217,8 @@ export class QuestView {
   private zoomInit = false;
   private skySize = '';
   private ring: Ring | null = null;
+  /** Where the ring was last drawn (world), so the result pops up in the same place. */
+  private ringAt: { x: number; y: number } | null = null;
   /** Doorway chevrons drawn this frame (tap one to go that way; world coords). */
   private doors: { roomId: string; x: number; y: number }[] = [];
   private down: { id: number; x: number; y: number; cx: number; cy: number; moved: boolean; used: boolean } | null = null;
@@ -308,6 +312,7 @@ export class QuestView {
     const r = this.resident(residentId);
     if (!q || !r || !inCombat(q)) return false;
     this.ring = { residentId, start: performance.now(), speed: critRingSpeed(this.game.content, r), age: 0 };
+    this.ringAt = null;
     return true;
   }
 
@@ -318,7 +323,7 @@ export class QuestView {
     const phase = (((performance.now() - ring.start) / 1000) * ring.speed) % 1;
     const quality = ringQuality(phase - RING_SWEET);
     this.ring = null;
-    const at = this.ringCentre(ring.residentId);
+    const at = this.ringAt ?? this.ringCentre(ring.residentId);
     this.cb.onRingResult(ring.residentId, quality);
     const perfect = quality >= 0.95;
     this.float(ringLabel(quality), at.x, at.y - 30 / this.zoom, perfect ? 0xffd23f : quality >= 0.45 ? 0xf4ecd8 : 0xb9b19c, perfect ? 30 : 22, 1.1);
@@ -699,6 +704,8 @@ export class QuestView {
           target = along(path, p * 1.12 - (i * 0.08) / Math.max(1, n - 1 || 1));
         }
         const down = m.downed || res.dead;
+        if (m.crit >= 1 && sp.crit < 1 && inCombat(q) && !down) this.float('CRIT READY', sp.x, sp.y - PARTY_H - 40, 0xffd23f, 13, 1.1);
+        sp.crit = m.crit;
         const dx = target.x - sp.x;
         const dy = target.y - sp.y;
         const dist = Math.hypot(dx, dy);
@@ -749,7 +756,7 @@ export class QuestView {
       name.anchor.set(0.5, 1);
       root.addChild(pose, name);
       this.actors.addChild(root);
-      sp = { root, pose, body, figure: null, look: '', name, x: start.x, y: start.y, facing: 1, walk: 0, moving: false, lunge: 0, hurt: 0 };
+      sp = { root, pose, body, figure: null, look: '', name, x: start.x, y: start.y, facing: 1, walk: 0, moving: false, lunge: 0, hurt: 0, crit: 0 };
       this.members.set(res.id, sp);
     }
     const look = `${res.weapon ?? ''}|${res.outfit ?? ''}|${this.art ? 1 : 0}`;
@@ -1077,7 +1084,10 @@ export class QuestView {
       const p = Math.max(0, Math.min(1, 1 - e.windup.remaining / Math.max(0.01, ab.windup)));
       const flash = 0.5 + 0.5 * Math.sin(this.time * (10 + p * 20));
       const tw = Math.max(64, Math.min(sp.def.boss ? 130 : 84, w + 10));
-      const tx = sp.x - tw / 2;
+      // Keep the telegraph inside the room, so it never runs off a phone screen.
+      const here = currentRoom(q);
+      const ro = here ? roomOrigin(here) : { x: sp.x - RW, y: 0 };
+      const tx = Math.max(ro.x + 8, Math.min(ro.x + RW - 8 - tw, sp.x - tw / 2));
       // Neighbours winding up at once stack their telegraphs instead of overlapping.
       const stagger = [...this.enemies.values()].some((o) => o !== sp && o.dead < 0 && o.last.windup && Math.abs(o.x - sp.x) < (tw + 20) && o.slot < sp.slot) ? 34 : 0;
       const ty = by - (sp.def.boss ? 36 : 22) - stagger;
@@ -1089,7 +1099,8 @@ export class QuestView {
       sp.wind.visible = true;
       const wname = ab.name.toUpperCase();
       if (sp.wind.text !== wname) sp.wind.text = wname;
-      sp.wind.position.set(sp.x, ty - 4);
+      const half = sp.wind.width / 2;
+      sp.wind.position.set(Math.max(ro.x + 4 + half, Math.min(ro.x + RW - 4 - half, sp.x)), ty - 4);
       sp.wind.scale.set(1 + flash * 0.06);
       const room = currentRoom(q);
       if (ab.effect === 'slam' && room) {
@@ -1345,10 +1356,18 @@ export class QuestView {
       return;
     }
     dim.rect(0, 0, this.app.screen.width, this.app.screen.height).fill({ color: 0x000000, alpha: 0.32 });
-    const at = this.ringCentre(ring.residentId);
     const z = this.zoom;
+    const W = this.app.screen.width;
+    const H = this.app.screen.height;
+    // Keep the whole ring on screen, even over an enemy at the room's edge on a phone.
+    const rmax = Math.min(RING_MAX, W * 0.3);
+    const scr = this.world.toGlobal(this.ringCentre(ring.residentId));
+    scr.x = Math.max(rmax + 8, Math.min(W - rmax - 8, scr.x));
+    scr.y = Math.max(this.insets.top + rmax + 8, Math.min(H - this.insets.bottom - rmax - 34, scr.y));
+    const at = this.world.toLocal(scr);
+    this.ringAt = { x: at.x, y: at.y };
     const phase = (elapsed * ring.speed) % 1;
-    const radius = (p: number) => (RING_MAX - (RING_MAX - RING_MIN) * p) / z;
+    const radius = (p: number) => (rmax - (rmax - RING_MIN) * p) / z;
     const sweet = radius(RING_SWEET);
     const goodIn = radius(Math.min(1, RING_SWEET + 0.15));
     const goodOut = radius(RING_SWEET - 0.15);
@@ -1369,7 +1388,7 @@ export class QuestView {
     const label = `${res?.firstName ?? ''}: TAP ON GOLD!`;
     if (this.ringText.text !== label) this.ringText.text = label;
     this.ringText.scale.set(1 / z);
-    this.ringText.position.set(at.x, at.y + (RING_MAX + 20) / z);
+    this.ringText.position.set(at.x, at.y + (rmax + 20) / z);
   }
 }
 
