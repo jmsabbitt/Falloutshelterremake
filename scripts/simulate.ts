@@ -414,5 +414,12 @@ console.log(
   ['questsStarted', 'questsCompleted', 'storyQuestsCompleted', 'contractsCompleted', 'questWipes', 'bossesDefeated', 'questCrits', 'abilitiesUsed'].map((k) => `${k} ${s.stats[k] ?? 0}`).join(', '),
   `· story done: ${s.questsDone.join(' ') || 'none'} · outcomes ${JSON.stringify(botStats)} · ${Math.round(questSeconds / 60)} min on site`,
 );
+if (process.env.DUMP) {
+  // DUMP=path: write the final save, e.g. to benchmark offline catch-up on a big homestead.
+  const { writeFileSync } = await import('node:fs');
+  const { serialize } = await import('../src/sim');
+  writeFileSync(process.env.DUMP, serialize(s, 0));
+  console.log('saved', process.env.DUMP);
+}
 const unused: Resident[] = s.residents.filter((r) => !r.dead && !r.waiting && !isChild(s, r) && r.roomId === null);
 console.log('idle adults at end:', unused.length);

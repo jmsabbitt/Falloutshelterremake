@@ -425,6 +425,7 @@ This is a sandbox and scenario mode for testing and "what if" play:
 | 2026-09-23 | Wishlist adopted: rare-item paths, Platinum-style achievements, easier crates, Custom Game (post-launch) |
 | 2026-09-23 | **No ageing or death from old age.** Residents are born as children and grow into adults; that is the only life stage change. Revisit later |
 | 2026-09-24 | **Quests (M4):** abilities come from a resident's best stat until professions exist (M6); a wiped party comes home dead (revivable); nothing on a quest site runs offline; smaller parties face weaker enemies, but 3 is recommended; contracts refresh every 6 h (dedicated players can keep playing) and name their bounty; legendaries only as fragments |
+| 2026-09-24 | **Quest levels are recommended levels:** enemies fight 2 levels below a quest's stated level, so a party at the stated level wins comfortably and an under-levelled one has a real fight |
 | 2026-09-24 | **Prestige v1 (M5):** Legacy is earned only by founding and scores only the homestead being left; founders keep levels, stats and worn gear; recipes, fragments, story, regions, achievements, lifetime stats and crates carry; outposts are an idle trickle capped at 24 h (visiting, raids and trade later); later Charters use contracts until Act 2 exists; residents gain +0.25 incident damage per level so seasoned residents keep up with level-scaled incidents |
 
 ## 17. Open questions
