@@ -191,33 +191,44 @@
       },
       "cavein": {
         "name": "Cave-in",
-        "natural": 9999,
+        "natural": 30,
         "rush": null,
-        "hpPerSegment": 40,
+        "hpPerSegment": 60,
         "hpPerRoomLevel": 0.3,
         "dpsPerSegment": 1.2,
         "spreads": false,
-        "deepOnly": true
+        "deepOnly": true,
+        "minStratum": 1,
+        "workStat": "brawn",
+        "workPerStat": 0.5,
+        "settleSeconds": 300
       },
       "flood": {
         "name": "Flood",
-        "natural": 9999,
+        "natural": 30,
         "rush": null,
-        "hpPerSegment": 45,
+        "hpPerSegment": 50,
         "hpPerRoomLevel": 0.3,
         "dpsPerSegment": 0.8,
         "spreads": true,
-        "deepOnly": true
+        "sideways": true,
+        "spreadDelaySeconds": 20,
+        "deepOnly": true,
+        "minStratum": 2,
+        "workStat": "knack",
+        "workPerStat": 0.5
       },
       "deepcrawlers": {
         "name": "Deepcrawlers",
-        "natural": 9999,
+        "natural": 30,
         "rush": null,
         "hpPerSegment": 70,
         "hpPerRoomLevel": 0.6,
-        "dpsPerSegment": 2,
+        "dpsPerSegment": 1.8,
         "spreads": true,
-        "deepOnly": true
+        "needsDirt": true,
+        "deepOnly": true,
+        "minStratum": 1
       }
     }
   },

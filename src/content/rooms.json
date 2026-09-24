@@ -598,5 +598,236 @@
     "maxSegments": 3,
     "capacityPerSegment": 2,
     "usesPower": true
+  },
+  {
+    "id": "geothermal",
+    "name": "Geothermal Tap",
+    "levelNames": [
+      "Geothermal Tap",
+      "Geothermal Works",
+      "Deep Furnace"
+    ],
+    "category": "production",
+    "stat": "brawn",
+    "unlockPop": 40,
+    "buildable": true,
+    "requiresResearch": "geothermal_taps",
+    "minFloor": 25,
+    "cost": {
+      "base": 2500,
+      "perBuilt": 500
+    },
+    "upgrade": [
+      6000,
+      18000
+    ],
+    "cells": 3,
+    "maxSegments": 3,
+    "capacityPerSegment": 2,
+    "usesPower": false,
+    "produces": {
+      "resource": "power",
+      "poolBase": 1320,
+      "output": [
+        [
+          16,
+          34,
+          70
+        ],
+        [
+          20,
+          42,
+          84
+        ],
+        [
+          25,
+          52,
+          105
+        ]
+      ]
+    },
+    "storage": {
+      "resource": "power",
+      "amount": [
+        [
+          75,
+          150,
+          225
+        ],
+        [
+          110,
+          225,
+          340
+        ],
+        [
+          150,
+          300,
+          450
+        ]
+      ]
+    }
+  },
+  {
+    "id": "fungalfarm",
+    "name": "Fungal Farm",
+    "levelNames": [
+      "Fungal Farm",
+      "Mushroom Cellars",
+      "Mycelium Gardens"
+    ],
+    "category": "production",
+    "stat": "grit",
+    "unlockPop": 40,
+    "buildable": true,
+    "requiresResearch": "fungal_farming",
+    "minFloor": 25,
+    "cost": {
+      "base": 2000,
+      "perBuilt": 400
+    },
+    "upgrade": [
+      5000,
+      15000
+    ],
+    "cells": 3,
+    "maxSegments": 3,
+    "capacityPerSegment": 2,
+    "usesPower": false,
+    "produces": {
+      "resource": "food",
+      "poolBase": 960,
+      "output": [
+        [
+          10,
+          22,
+          35
+        ],
+        [
+          13,
+          28,
+          43
+        ],
+        [
+          15,
+          33,
+          50
+        ]
+      ]
+    },
+    "storage": {
+      "resource": "food",
+      "amount": [
+        [
+          50,
+          100,
+          150
+        ],
+        [
+          75,
+          150,
+          225
+        ],
+        [
+          100,
+          200,
+          300
+        ]
+      ]
+    }
+  },
+  {
+    "id": "refinery",
+    "name": "Ore Refinery",
+    "levelNames": [
+      "Ore Refinery",
+      "Smelting Works",
+      "Groundworks Foundry"
+    ],
+    "category": "production",
+    "stat": "knack",
+    "unlockPop": 40,
+    "buildable": true,
+    "requiresResearch": "ore_refining",
+    "minFloor": 25,
+    "cost": {
+      "base": 4000,
+      "perBuilt": 800
+    },
+    "upgrade": [
+      10000,
+      30000
+    ],
+    "cells": 3,
+    "maxSegments": 3,
+    "capacityPerSegment": 2,
+    "usesPower": true
+  },
+  {
+    "id": "aquifer",
+    "name": "Aquifer Pump",
+    "levelNames": [
+      "Aquifer Pump",
+      "Pumping Station",
+      "Cistern Works"
+    ],
+    "category": "production",
+    "stat": "sight",
+    "unlockPop": 40,
+    "buildable": true,
+    "requiresResearch": "deep_survey_2",
+    "minFloor": 30,
+    "cost": {
+      "base": 2500,
+      "perBuilt": 500
+    },
+    "upgrade": [
+      6000,
+      18000
+    ],
+    "cells": 3,
+    "maxSegments": 3,
+    "capacityPerSegment": 2,
+    "usesPower": true,
+    "produces": {
+      "resource": "water",
+      "poolBase": 960,
+      "output": [
+        [
+          12,
+          26,
+          42
+        ],
+        [
+          15,
+          32,
+          51
+        ],
+        [
+          18,
+          39,
+          60
+        ]
+      ]
+    },
+    "storage": {
+      "resource": "water",
+      "amount": [
+        [
+          50,
+          100,
+          150
+        ],
+        [
+          75,
+          150,
+          225
+        ],
+        [
+          100,
+          200,
+          300
+        ]
+      ]
+    }
   }
 ]
