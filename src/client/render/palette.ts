@@ -40,6 +40,12 @@ const LOOKS: Record<string, RoomLook> = {
   weaponshop: { wall: 0xd3c4a2, trim: 0x5f5446, accent: 0xe4572e, floor: 0x5b4a37 },
   office: { wall: 0xd9cfb4, trim: 0x4a5a3a, accent: 0xc0392b, floor: 0x5e4a36 },
   outfitshop: { wall: 0xecdcd2, trim: 0x8e3b5e, accent: 0xe08fb0, floor: 0x7a5a52 },
+  // M6: the Lab and the deep rooms (props in deepArt.ts)
+  lab: { wall: 0xdde4d8, trim: 0x3f5a6b, accent: 0x7fe0c0, floor: 0x5a6468 },
+  geothermal: { wall: 0x9a7d66, trim: 0x3b2f2a, accent: 0xff7a1a, floor: 0x4a3a30 },
+  fungalfarm: { wall: 0x5e6b58, trim: 0x2e3a2c, accent: 0x9cf0c0, floor: 0x3a3328 },
+  refinery: { wall: 0x8a7e70, trim: 0x3a3632, accent: 0xe4572e, floor: 0x3e3834 },
+  aquifer: { wall: 0x6d878c, trim: 0x2d4a55, accent: 0x4fb3e9, floor: 0x33434a },
 };
 
 export function roomLook(type: string): RoomLook {

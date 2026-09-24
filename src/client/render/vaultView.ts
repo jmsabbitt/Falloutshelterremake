@@ -18,6 +18,12 @@ import {
   type GameEvent,
   type Resident,
   type Room,
+  braced,
+  isDeepFloor,
+  stratumDef,
+  stratumOf,
+  totalFloors,
+  deepContent,
 } from '../../sim';
 import type { Game } from '../game';
 import {
@@ -36,6 +42,7 @@ import {
   shade,
 } from './palette';
 import { drawOffice } from './officeArt';
+import { buildDeepBackground, DEEP_INCIDENT_COLORS, DeepLayer, deepViewKey, drawDeepFrame, drawDeepIncident, drawDepthRoom, labelInk, lampFor, SEAL_H, type DeepGeometry } from './deepArt';
 import { type CharacterArt, Figure, residentTints } from './sprites';
 
 export const CELL = 44;
@@ -115,6 +122,10 @@ export class VaultView {
   private residentLayer = new Container();
   private walkerLayer = new Container();
   private fxLayer = new Container();
+  /** M6: animated deep-room bits and the dig site (deepArt.ts). */
+  private deep = new DeepLayer(() => this.deepGeometry());
+  /** What the background and room frames were drawn for (strata, bracing). */
+  private deepKey = '';
 
   private builtLayout = -1;
   private sprites = new Map<number, ResidentSprite>();
@@ -145,7 +156,7 @@ export class VaultView {
     private game: Game,
     private cb: ViewCallbacks,
   ) {
-    this.world.addChild(this.bg, this.statics, this.overlay, this.ghostLayer, this.residentLayer, this.walkerLayer, this.fxLayer);
+    this.world.addChild(this.bg, this.statics, this.overlay, this.deep.root, this.ghostLayer, this.residentLayer, this.walkerLayer, this.fxLayer);
     app.stage.addChild(this.world);
     this.drawBackground();
     this.installInput();
@@ -196,8 +207,31 @@ export class VaultView {
   }
 
   private worldSize() {
-    const { floors, cellsPerFloor } = this.game.content.balance.grid;
-    return { w: cellsPerFloor * CELL, h: SURFACE_H + floors * FLOOR_H };
+    const { cellsPerFloor } = this.game.content.balance.grid;
+    // M6: the Deep adds floors below the charter grid, then a band of sealed rock.
+    return { w: cellsPerFloor * CELL, h: SURFACE_H + totalFloors(this.game.state, this.game.content) * FLOOR_H + SEAL_H * 0.6 };
+  }
+
+  private deepGeometry(): DeepGeometry {
+    const { content } = this.game;
+    const { floors, cellsPerFloor } = content.balance.grid;
+    return {
+      surfaceH: SURFACE_H,
+      floorH: FLOOR_H,
+      cell: CELL,
+      width: cellsPerFloor * CELL,
+      margin: MARGIN_CELLS * CELL,
+      baseFloors: floors,
+      floorsPerStratum: deepContent(content).tuning.floorsPerStratum,
+      depthX: DEPTH_X,
+      depthY: DEPTH_Y,
+    };
+  }
+
+  /** Centre the camera on a floor (the dig site, a new stratum). */
+  focusFloor(floor: number, cellX?: number): void {
+    const x = cellX === undefined ? this.worldSize().w / 2 : cellX * CELL + CELL / 2;
+    this.centerOn(x, SURFACE_H + floor * FLOOR_H + FLOOR_H / 2);
   }
 
   roomAt(wx: number, wy: number): Room | null {
@@ -243,7 +277,8 @@ export class VaultView {
   // ---------------------------------------------------------------- drawing
 
   private drawBackground(): void {
-    const { w, h } = this.worldSize();
+    const { w } = this.worldSize();
+    const h = SURFACE_H + this.game.content.balance.grid.floors * FLOOR_H;
     const m = MARGIN_CELLS * CELL;
     const g = new Graphics();
     // sky gradient (banded), from high above the surface down to the horizon
@@ -277,14 +312,23 @@ export class VaultView {
       g.rect(0, SURFACE_H + f * FLOOR_H - 1, w, 2).fill({ color: 0x000000, alpha: 0.18 });
     }
     this.bg.addChild(g);
+    // M6: dug strata below the charter floors, and the seal under the last one.
+    const { state, content } = this.game;
+    const dc = deepContent(content);
+    const names: Record<number, string> = {};
+    for (const st of dc.strata) names[st.index] = stratumDef(content, st.index)?.name ?? `Stratum ${st.index}`;
+    this.bg.addChild(buildDeepBackground(this.deepGeometry(), { strata: state.deep.strata, maxStrata: dc.strata.length, names }));
   }
 
   private rebuildStatics(): void {
     this.statics.removeChildren().forEach((c) => c.destroy({ children: true }));
+    const { state, content } = this.game;
+    const isBraced = braced(state, content);
     for (const room of this.game.state.rooms) {
       const r = this.roomRect(room);
       const g = new Graphics();
       drawRoomBox(g, room.type, r.w, r.h, room.level, room.segments);
+      if (isDeepFloor(content, room.floor)) drawDeepFrame(g, r.w, r.h, stratumOf(content, room.floor), isBraced, room.id, room.type === 'elevator');
       g.position.set(r.x, r.y);
       this.statics.addChild(g);
       const def = roomDef(this.game.content, room);
@@ -292,7 +336,7 @@ export class VaultView {
         const name = def.levelNames?.[room.level - 1] ?? def.name;
         const label = new Text({
           text: name.toUpperCase(),
-          style: { fontFamily: 'Bungee, sans-serif', fontSize: 11, fill: 0x1b1b1b, letterSpacing: 1 },
+          style: { fontFamily: 'Bungee, sans-serif', fontSize: 11, fill: labelInk(roomLook(room.type).wall), letterSpacing: 1 },
         });
         label.alpha = 0.7;
         label.position.set(r.x + DEPTH_X + 6, r.y + DEPTH_Y + 4);
@@ -300,6 +344,7 @@ export class VaultView {
       }
     }
     this.builtLayout = this.game.layoutVersion;
+    this.deepKey = deepViewKey(state, isBraced);
     this.rebuildGhosts();
   }
 
@@ -360,8 +405,17 @@ export class VaultView {
 
   update(dt: number): void {
     this.time += dt;
-    if (this.builtLayout !== this.game.layoutVersion) this.rebuildStatics();
+    const { state, content } = this.game;
+    const deepKey = deepViewKey(state, braced(state, content));
+    if (deepKey !== this.deepKey) {
+      // A stratum opened (or Deep Bracing went in): redraw the rock and the room frames.
+      this.bg.removeChildren().forEach((c) => c.destroy({ children: true }));
+      this.drawBackground();
+      this.rebuildStatics();
+      this.clampCamera();
+    } else if (this.builtLayout !== this.game.layoutVersion) this.rebuildStatics();
     this.drawOverlay();
+    this.deep.update(state, content, this.time, (room) => this.roomRect(room));
     this.updateResidents(dt);
     this.updateWalkers();
     this.updateFloats(dt);
@@ -380,7 +434,7 @@ export class VaultView {
         g.rect(r.x + 2, r.y + 2, r.w - 4, r.h - 4).fill({ color: 0x000000, alpha: 0.55 });
       } else if (room.type !== 'elevator') {
         const flicker = 0.1 + 0.03 * Math.sin(this.time * 3 + room.id);
-        g.rect(r.x + DEPTH_X, r.y + DEPTH_Y + 2, r.w - DEPTH_X * 2, 10).fill({ color: LAMP, alpha: flicker });
+        g.rect(r.x + DEPTH_X, r.y + DEPTH_Y + 2, r.w - DEPTH_X * 2, 10).fill({ color: lampFor(content, room), alpha: flicker });
       }
       // production progress along the floor lip
       if (def.produces && !room.ready) {
@@ -493,8 +547,10 @@ export class VaultView {
         }
         break;
       }
+      default:
+        drawDeepIncident(g, inc, r, t);
     }
-    const colour = ({ fire: 0xff7a1a, skitters: 0xb7f36a, burrowers: 0xc79a82, rustmen: 0xe4572e } as Record<string, number>)[inc.type] ?? 0xd0c080;
+    const colour = ({ fire: 0xff7a1a, skitters: 0xb7f36a, burrowers: 0xc79a82, rustmen: 0xe4572e, ...DEEP_INCIDENT_COLORS } as Record<string, number>)[inc.type] ?? 0xd0c080;
     g.rect(r.x + 10, r.y + 8, r.w - 20, 6).fill(0x14100d);
     g.rect(r.x + 10, r.y + 8, (r.w - 20) * Math.max(0, inc.hp / inc.maxHp), 6).fill(colour);
   }
@@ -1014,6 +1070,13 @@ function drawRoomBox(g: Graphics, type: string, w: number, h: number, level: num
       break;
     case 'office':
       drawOffice(g, look, bx, by, bw, bh);
+      break;
+    case 'lab':
+    case 'geothermal':
+    case 'fungalfarm':
+    case 'refinery':
+    case 'aquifer':
+      drawDepthRoom(g, type, look, bx, by, bw, bh, segments);
       break;
     default: {
       for (let s = 0; s < segments * 2; s++) {

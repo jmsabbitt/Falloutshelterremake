@@ -24,6 +24,7 @@ import { startIncident, startRaid } from '../sim/systems/incidents';
 import { grantItem } from '../sim/systems/items';
 import { addFragment, addSalvage, unlockRecipe } from '../sim/systems/inventory';
 import type { CrateTier, IncidentType } from '../sim';
+import { deepConsole, researchConsole } from './depthDev';
 import { prestigeConsole } from './prestigeDev';
 import { questConsole } from './questDev';
 import { clearSave, readSave, writeBackup, writeSave } from './storage';
@@ -290,6 +291,9 @@ export class Game {
       quest: questConsole(game),
       /** M5 prestige helpers: charter(), legacy(n), found(siteId?). */
       prestige: prestigeConsole(game),
+      /** M6 helpers: research.points(n), research.all(); deep.dig(), deep.open(n), deep.discover(id?). */
+      research: researchConsole(game),
+      deep: deepConsole(game),
     };
     console.info('%cHomestead dev console: window.homestead', 'color:#f2a541');
   }

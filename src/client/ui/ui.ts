@@ -76,8 +76,11 @@ import { downloadFile } from '../storage';
 import { duration, fmt, h, morph } from './dom';
 import { LegacyUI } from './prestige';
 import { QuestUI } from './quests';
+import { DeepUI, type DeepTab } from './deep';
+import { buildInfo, ResearchUI } from './research';
+import { TraitsUI } from './traits';
 
-type PanelKind = 'build' | 'room' | 'residents' | 'storage' | 'crates' | 'explore' | 'quests' | 'legacy' | 'achievements' | 'menu' | null;
+type PanelKind = 'build' | 'room' | 'residents' | 'storage' | 'crates' | 'explore' | 'quests' | 'legacy' | 'achievements' | 'menu' | 'research' | 'deep' | null;
 type StorageTab = 'items' | 'salvage' | 'blueprints';
 
 /** Draft of the send-to-explore modal. */
@@ -130,6 +133,9 @@ const INCIDENT_TOAST: Record<string, string> = {
   skitters: '🪲 Skitters! Stay in the room and stamp them out.',
   burrowers: '⛏ Burrowers broke through the wall and are draining power!',
   rustmen: '⚔ Rustmen raiders are at the door! Arm your door guards.',
+  cavein: '🪨 Cave-in! Send strong residents (Brawn) to dig the room out.',
+  flood: '🌊 Flooding! Send handy residents (Knack) before it spreads sideways.',
+  deepcrawlers: '🕷 Deepcrawlers are coming out of the rock! Send armed residents.',
 };
 
 export class UI {
@@ -163,6 +169,10 @@ export class UI {
   readonly quests: QuestUI;
   /** M5: Legacy panel, HUD chips and the Found flow. */
   readonly legacy: LegacyUI;
+  /** M6: research, the Deep, and traits and mastery. */
+  readonly research: ResearchUI;
+  readonly deep: DeepUI;
+  readonly traits: TraitsUI;
 
   constructor(
     private game: Game,
@@ -194,6 +204,24 @@ export class UI {
       },
       refreshPanel: () => this.renderPanel(true),
     });
+    this.research = new ResearchUI({
+      game,
+      toast: (text, kind) => this.toast(text, kind),
+      openResearch: () => this.openPanel('research'),
+      openDeep: () => this.openDeep(),
+      refreshPanel: () => this.renderPanel(true),
+    });
+    this.deep = new DeepUI({
+      game,
+      view,
+      modalHost: this.modalHost,
+      toast: (text, kind) => this.toast(text, kind),
+      openDeep: (tab) => this.openDeep(tab),
+      openResearch: () => this.openPanel('research'),
+      refreshPanel: () => this.renderPanel(true),
+      closePanel: () => this.closePanel(),
+    });
+    this.traits = new TraitsUI({ game, toast: (text, kind) => this.toast(text, kind), refreshPanel: () => this.renderPanel(true) });
     this.renderToolbar();
     game.on((events) => this.onEvents(events));
     game.onReplace(() => this.onStateReplaced());
@@ -262,7 +290,7 @@ export class UI {
     else if (who) {
       const def = roomDef(this.game.content, room);
       const good = def.stat && topStats(effectiveStats(this.game.content, who)).includes(def.stat);
-      this.toast(`${who.firstName} → ${def.name}${good ? ' ✓ great fit' : ''}${res.detail ? ` (${res.detail})` : ''}`, good ? 'good' : undefined);
+      this.toast(`${who.firstName} → ${def.name}${good ? ' ✓ great fit' : ''}${this.traits.fitNote(who, room)}${res.detail ? ` (${res.detail})` : ''}`, good ? 'good' : undefined);
     }
     this.renderPanel(true);
   }
@@ -276,6 +304,7 @@ export class UI {
     this.renderToolbar();
     this.quests.update();
     this.legacy.update();
+    this.deep.update();
     if (performance.now() - this.lastPanelRender > 500) this.renderPanel();
   }
 
@@ -310,6 +339,7 @@ export class UI {
       h('div', { class: 'stat-chip' }, 'Pop ', h('b', {}, `${pop}/${cap}`)),
       h('div', { class: 'stat-chip' }, 'Mood ', h('b', {}, pop > 0 ? `${Math.round(vaultHappiness(state))}%` : '—')),
       h('div', { class: 'stat-chip', title: 'Med-Patches / Purge' }, '✚ ', h('b', {}, `${Math.floor(state.resources.medpatch)}`), ' ☢ ', h('b', {}, `${Math.floor(state.resources.purge)}`)),
+      this.traits.shiftChip(),
     );
     const tokens = Math.round((state.crateTokens / content.balance.crates.tokensPerCrate) * 100);
     const buttons = h(
@@ -336,6 +366,8 @@ export class UI {
         ready ? h('b', {}, ` ${ready}`) : null,
       ),
       this.quests.hudChip(),
+      this.research.hudChip(),
+      this.deep.hudChip(),
       ...this.legacy.hudChips(),
     );
     // The meters change nearly every frame. Patch in place, and keep the buttons
@@ -383,7 +415,8 @@ export class UI {
     const office = this.quests.hasOffice();
     const questNeed = this.quests.attention();
     const legacyNeed = this.legacy.badge();
-    const key = `${this.panel}|${crates}|${state.items.length}|${homeOrFallen}|${window.innerWidth < 640}|${office}|${questNeed}|${legacyNeed}`;
+    const research = this.research.visible() ? this.research.badge() : -1;
+    const key = `${this.panel}|${crates}|${state.items.length}|${homeOrFallen}|${window.innerWidth < 640}|${office}|${questNeed}|${legacyNeed}|${research}`;
     if (key === this.lastToolbarKey) return;
     this.lastToolbarKey = key;
     const btn = (label: string, kind: PanelKind, extra = '', badge?: number) =>
@@ -408,6 +441,7 @@ export class UI {
       btn('Crates', 'crates', '', crates),
       btn(phone ? '🧭' : 'Explore', 'explore', '', homeOrFallen),
       ...(office ? [btn('Quests', 'quests', '', questNeed)] : []),
+      ...(research >= 0 ? [btn(phone ? '🔬' : 'Research', 'research', 'research-btn', research)] : []),
       btn(phone ? '◆' : 'Legacy', 'legacy', 'legacy-btn', legacyNeed),
       btn(phone ? '🏆' : 'Goals', 'achievements'),
       btn('☰', 'menu'),
@@ -431,6 +465,7 @@ export class UI {
       this.view.selectedRoomId = null;
     }
     if (kind === 'legacy') this.legacy.opened();
+    if (kind === 'deep') this.deep.opened();
     this.panel = kind;
     this.renderToolbar();
     this.renderPanel(true);
@@ -446,6 +481,12 @@ export class UI {
 
   closePanel(): void {
     this.openPanel(null);
+  }
+
+  /** M6: open the Deep panel on a tab. */
+  openDeep(tab?: DeepTab): void {
+    this.deep.opened(tab);
+    this.openPanel('deep');
   }
 
   private setBuildMode(type: string | null): void {
@@ -471,6 +512,8 @@ export class UI {
       legacy: 'Legacy',
       achievements: 'Goals',
       menu: 'Menu',
+      research: 'Research',
+      deep: 'The Deep',
     };
     let body: HTMLElement;
     let title = titles[this.panel];
@@ -513,10 +556,16 @@ export class UI {
       case 'menu':
         body = this.menuPanel();
         break;
+      case 'research':
+        body = this.research.panel();
+        break;
+      case 'deep':
+        body = this.deep.panel();
+        break;
     }
     const panel = h(
       'div',
-      { class: `panel${this.panel === 'legacy' ? ' panel-wide legacy-panel' : ''}` },
+      { class: `panel${this.panel === 'legacy' ? ' panel-wide legacy-panel' : this.panel === 'research' ? ' panel-wide research-panel' : this.panel === 'deep' ? ' deep-panel' : ''}` },
       h('header', {}, h('h2', {}, title), h('button', { class: 'close', onclick: () => this.closePanel() }, '✕')),
       body,
     );
@@ -526,7 +575,7 @@ export class UI {
     if (old && old.outerHTML === panel.outerHTML) return;
     // Same view: patch the live panel in place, which keeps the nodes under the
     // finger and the scroll position. A different view starts fresh at the top.
-    const key = `${this.panel}|${this.roomId}|${this.storageTab}|${this.equipFor ? 'equip' : ''}|${this.panel === 'legacy' ? this.legacy.tab : ''}`;
+    const key = `${this.panel}|${this.roomId}|${this.storageTab}|${this.equipFor ? 'equip' : ''}|${this.panel === 'legacy' ? this.legacy.tab : this.panel === 'deep' ? this.deep.tab : ''}`;
     if (old && key === this.panelKey) morph(old, panel);
     else this.panelHost.replaceChildren(panel);
     this.panelKey = key;
@@ -541,7 +590,8 @@ export class UI {
         const unlocked = state.unlockedRooms.includes(def.id);
         const cost = buildCost(state, content, def.id);
         const selected = this.view.buildMode === def.id;
-        const what = def.produces
+        const info = buildInfo(state, content, def);
+        const what = info.what ?? (def.produces
           ? `Makes ${def.produces.resource} · uses ${def.stat ? STAT_NAME[def.stat] : '—'}`
           : def.storage?.resource === 'population'
             ? `Houses residents · families start here`
@@ -551,7 +601,7 @@ export class UI {
                 ? 'Broadcasts to attract new residents · uses Charm'
                 : def.storage
                   ? `Stores ${def.storage.resource}`
-                  : '';
+                  : '');
         return h(
           'div',
           {
@@ -562,7 +612,7 @@ export class UI {
               this.renderPanel(true);
             },
           },
-          h('div', { class: 'row' }, h('b', {}, def.name), h('span', {}, unlocked ? `${fmt(cost)} scrip` : `🔒 pop ${def.unlockPop}`)),
+          h('div', { class: 'row' }, h('b', {}, def.name), h('span', {}, unlocked ? `${fmt(cost)} scrip` : (info.lock ?? `🔒 pop ${def.unlockPop}`))),
           h('div', { class: 'muted' }, what),
         );
       });
@@ -622,6 +672,7 @@ export class UI {
 
     if (def.category === 'workshop') parts.push(...this.workshopSection(room));
     if (def.category === 'office') parts.push(...this.quests.officeSection());
+    parts.push(...this.research.roomSection(room), ...this.deep.roomSection(room));
 
     if (cap > 0) {
       parts.push(h('h3', { style: 'margin:12px 0 4px;font-size:14px' }, `${def.category === 'door' ? 'Guards' : 'Crew'} ${crew.length}/${cap}`));
@@ -631,7 +682,7 @@ export class UI {
           h(
             'div',
             { class: 'list-item row' },
-            h('span', {}, `${r.firstName} ${r.lastName} · L${r.level}${tag}`),
+            h('span', {}, `${r.firstName} ${r.lastName} · L${r.level}${tag} `, this.traits.fitBadge(r, room)),
             h(
               'span',
               {},
@@ -752,13 +803,17 @@ export class UI {
           this.renderPanel(true);
         },
       },
-      h('div', { class: 'row' }, h('b', {}, rarityTag, ` ${r.firstName} ${r.lastName}`), h('span', { class: 'muted' }, `L${r.level} · ${where}`)),
+      h('div', { class: 'row' }, h('span', { class: 'name-line' }, h('b', {}, rarityTag, ` ${r.firstName} ${r.lastName}`), detailed ? null : this.traits.topChip(r)), h('span', { class: 'muted' }, `L${r.level} · ${where}`)),
       stats,
       h('div', { class: 'hpbar' }, h('div', { class: 'hp', style: `width:${hpPct}%` }), h('div', { class: 'taint', style: `width:${taintPct}%` })),
     );
     const status = this.statusLine(r);
     if (status && !r.dead) card.append(h('div', { class: 'muted', style: 'margin-top:4px' }, status));
-    if (!detailed) return card;
+    if (!detailed) {
+      const tip = this.traits.tip(r);
+      if (tip) card.append(tip);
+      return card;
+    }
 
     const stop = (fn: () => void) => (e: Event) => {
       e.stopPropagation();
@@ -774,6 +829,13 @@ export class UI {
         h('span', {}, `XP ${Math.floor(r.xp)}/${next}`),
       ),
     );
+    // M6: traits, profession and mastery.
+    const chips = this.traits.chips(r);
+    if (chips) card.append(chips);
+    const tip = this.traits.tip(r);
+    if (tip) card.append(tip);
+    const mastery = this.traits.mastery(r);
+    if (mastery) card.append(mastery);
     const parents = [r.motherId, r.fatherId].map((id) => state.residents.find((x) => x.id === id)).filter((x): x is Resident => !!x);
     if (parents.length) card.append(h('div', { class: 'muted' }, `Child of ${parents.map((p) => p.firstName).join(' & ')}`));
 
@@ -1868,6 +1930,9 @@ export class UI {
     this.journalToasts(events);
     this.quests.onEvents(events);
     this.legacy.onEvents(events);
+    this.research.onEvents(events);
+    this.deep.onEvents(events);
+    this.traits.onEvents(events);
     for (const ev of events) {
       if (ev.type === 'expeditionStarted') this.explorerOf.set(ev.expeditionId, ev.residentId);
       switch (ev.type) {
@@ -1878,7 +1943,8 @@ export class UI {
         }
         case 'roomUnlocked': {
           const d = content.rooms[ev.roomType];
-          if (d) this.toast(`New room unlocked: ${d.name}`, 'gold');
+          // Research-gated rooms get their own toast (research.ts).
+          if (d && !d.requiresResearch) this.toast(`New room unlocked: ${d.name}`, 'gold');
           break;
         }
         case 'incidentStarted':
@@ -2014,6 +2080,7 @@ export class UI {
   private onStateReplaced(): void {
     if (this.quests.screen.isOpen) this.quests.screen.close();
     this.legacy.onStateReplaced();
+    this.deep.onStateReplaced();
     this.modalHost.replaceChildren();
     this.exploreDraft = null;
     this.explorerOf.clear();
