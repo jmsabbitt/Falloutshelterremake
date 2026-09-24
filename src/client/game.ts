@@ -22,6 +22,7 @@ import { startIncident, startRaid } from '../sim/systems/incidents';
 import { grantItem } from '../sim/systems/items';
 import { addFragment, addSalvage, unlockRecipe } from '../sim/systems/inventory';
 import type { CrateTier, IncidentType } from '../sim';
+import { questConsole } from './questDev';
 import { clearSave, readSave, writeSave } from './storage';
 
 type Listener = (events: GameEvent[]) => void;
@@ -157,7 +158,8 @@ export class Game {
     this.save();
   }
 
-  private flush(): void {
+  /** Hand queued sim events to listeners (the dev console calls this after direct edits). */
+  flush(): void {
     const events = drainEvents(this.state);
     if (events.some((e) => e.type === 'roomsMerged')) this.layoutVersion++;
     for (const fn of this.listeners) fn(events);
@@ -236,6 +238,8 @@ export class Game {
         game.flush();
       },
       reset: () => game.reset(),
+      /** M4 quest helpers: office(), party(level, weapon), skip(), win(), crit(). */
+      quest: questConsole(game),
     };
     console.info('%cHomestead dev console: window.homestead', 'color:#f2a541');
   }
