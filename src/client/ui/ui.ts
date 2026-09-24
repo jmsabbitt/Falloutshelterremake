@@ -639,7 +639,7 @@ export class UI {
                 ? h('b', {}, `${STAT_LABEL[def.stat]} ${effectiveStats(content, r)[def.stat]}`)
                 : def.category === 'workshop'
                   ? h('b', {}, topStats(effectiveStats(content, r)).slice(0, 2).map((k) => `${STAT_LABEL[k]} ${effectiveStats(content, r)[k]}`).join(' '))
-                  : h('b', {}, `DMG ${combatDamage(content, r)}`),
+                  : h('b', {}, `DMG ${Math.round(combatDamage(content, r) * 10) / 10}`),
               ' ',
               h('button', { class: 'close', onclick: () => (this.game.run({ type: 'assign', residentId: r.id, roomId: null }), this.renderPanel(true)) }, 'Remove'),
             ),
