@@ -229,5 +229,491 @@
         }
       }
     }
+  },
+  "creatures": {
+    "burrower": {
+      "refHeight": 160,
+      "anims": {
+        "idle": {
+          "frames": 8,
+          "fps": 8,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 245,
+          "frameH": 174,
+          "anchorX": 0.472,
+          "anchorY": 1.0,
+          "files": {
+            "full": "burrower/idle_full.png"
+          }
+        },
+        "attack": {
+          "frames": 4,
+          "fps": 10,
+          "loop": false,
+          "idleFrame": 0,
+          "frameW": 246,
+          "frameH": 229,
+          "anchorX": 0.4669,
+          "anchorY": 1.0,
+          "files": {
+            "full": "burrower/attack_full.png"
+          }
+        },
+        "death": {
+          "frames": 4,
+          "fps": 8,
+          "loop": false,
+          "idleFrame": 0,
+          "frameW": 224,
+          "frameH": 162,
+          "anchorX": 0.4844,
+          "anchorY": 1.0,
+          "files": {
+            "full": "burrower/death_full.png"
+          }
+        }
+      }
+    },
+    "deepcrawler": {
+      "refHeight": 160,
+      "anims": {
+        "idle": {
+          "frames": 6,
+          "fps": 8,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 251,
+          "frameH": 166,
+          "anchorX": 0.4679,
+          "anchorY": 1.0,
+          "files": {
+            "full": "deepcrawler/idle_full.png"
+          }
+        },
+        "attack": {
+          "frames": 6,
+          "fps": 10,
+          "loop": false,
+          "idleFrame": 0,
+          "frameW": 257,
+          "frameH": 167,
+          "anchorX": 0.4772,
+          "anchorY": 1.0,
+          "files": {
+            "full": "deepcrawler/attack_full.png"
+          }
+        },
+        "death": {
+          "frames": 6,
+          "fps": 8,
+          "loop": false,
+          "idleFrame": 0,
+          "frameW": 208,
+          "frameH": 162,
+          "anchorX": 0.4773,
+          "anchorY": 1.0,
+          "files": {
+            "full": "deepcrawler/death_full.png"
+          }
+        }
+      }
+    },
+    "hollowed": {
+      "refHeight": 160,
+      "anims": {
+        "idle": {
+          "frames": 12,
+          "fps": 6,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 105,
+          "frameH": 164,
+          "anchorX": 0.5139,
+          "anchorY": 1.0,
+          "files": {
+            "full": "hollowed/idle_full.png"
+          }
+        },
+        "attack": {
+          "frames": 6,
+          "fps": 10,
+          "loop": false,
+          "idleFrame": 0,
+          "frameW": 131,
+          "frameH": 167,
+          "anchorX": 0.5154,
+          "anchorY": 1.0,
+          "files": {
+            "full": "hollowed/attack_full.png"
+          }
+        },
+        "death": {
+          "frames": 4,
+          "fps": 7,
+          "loop": false,
+          "idleFrame": 0,
+          "frameW": 166,
+          "frameH": 162,
+          "anchorX": 0.4564,
+          "anchorY": 1.0,
+          "files": {
+            "full": "hollowed/death_full.png"
+          }
+        }
+      }
+    },
+    "hollowed_hulk": {
+      "refHeight": 160,
+      "anims": {
+        "idle": {
+          "frames": 8,
+          "fps": 6,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 151,
+          "frameH": 164,
+          "anchorX": 0.4966,
+          "anchorY": 1.0,
+          "files": {
+            "full": "hollowed_hulk/idle_full.png"
+          }
+        },
+        "attack": {
+          "frames": 4,
+          "fps": 7,
+          "loop": false,
+          "idleFrame": 0,
+          "frameW": 167,
+          "frameH": 176,
+          "anchorX": 0.5529,
+          "anchorY": 1.0,
+          "files": {
+            "full": "hollowed_hulk/attack_full.png"
+          }
+        },
+        "death": {
+          "frames": 4,
+          "fps": 6,
+          "loop": false,
+          "idleFrame": 0,
+          "frameW": 176,
+          "frameH": 162,
+          "anchorX": 0.4614,
+          "anchorY": 1.0,
+          "files": {
+            "full": "hollowed_hulk/death_full.png"
+          }
+        }
+      }
+    },
+    "mauler": {
+      "refHeight": 160,
+      "anims": {
+        "idle": {
+          "frames": 8,
+          "fps": 6,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 154,
+          "frameH": 168,
+          "anchorX": 0.5079,
+          "anchorY": 1.0,
+          "files": {
+            "full": "mauler/idle_full.png"
+          }
+        },
+        "attack": {
+          "frames": 4,
+          "fps": 8,
+          "loop": false,
+          "idleFrame": 0,
+          "frameW": 168,
+          "frameH": 187,
+          "anchorX": 0.5322,
+          "anchorY": 1.0,
+          "files": {
+            "full": "mauler/attack_full.png"
+          }
+        },
+        "death": {
+          "frames": 4,
+          "fps": 6,
+          "loop": false,
+          "idleFrame": 0,
+          "frameW": 159,
+          "frameH": 162,
+          "anchorX": 0.4737,
+          "anchorY": 1.0,
+          "files": {
+            "full": "mauler/death_full.png"
+          }
+        }
+      }
+    },
+    "rustman": {
+      "refHeight": 160,
+      "anims": {
+        "idle": {
+          "frames": 12,
+          "fps": 8,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 111,
+          "frameH": 164,
+          "anchorX": 0.5335,
+          "anchorY": 1.0,
+          "files": {
+            "full": "rustman/idle_full.png"
+          }
+        },
+        "attack": {
+          "frames": 6,
+          "fps": 12,
+          "loop": false,
+          "idleFrame": 0,
+          "frameW": 132,
+          "frameH": 187,
+          "anchorX": 0.5321,
+          "anchorY": 1.0,
+          "files": {
+            "full": "rustman/attack_full.png"
+          }
+        },
+        "death": {
+          "frames": 4,
+          "fps": 8,
+          "loop": false,
+          "idleFrame": 0,
+          "frameW": 175,
+          "frameH": 162,
+          "anchorX": 0.4944,
+          "anchorY": 1.0,
+          "files": {
+            "full": "rustman/death_full.png"
+          }
+        }
+      }
+    },
+    "rustman_brute": {
+      "refHeight": 160,
+      "anims": {
+        "idle": {
+          "frames": 8,
+          "fps": 6,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 150,
+          "frameH": 163,
+          "anchorX": 0.424,
+          "anchorY": 1.0,
+          "files": {
+            "full": "rustman_brute/idle_full.png"
+          }
+        },
+        "attack": {
+          "frames": 5,
+          "fps": 8,
+          "loop": false,
+          "idleFrame": 0,
+          "frameW": 302,
+          "frameH": 185,
+          "anchorX": 0.4771,
+          "anchorY": 1.0,
+          "files": {
+            "full": "rustman_brute/attack_full.png"
+          }
+        },
+        "death": {
+          "frames": 4,
+          "fps": 7,
+          "loop": false,
+          "idleFrame": 0,
+          "frameW": 166,
+          "frameH": 162,
+          "anchorX": 0.4816,
+          "anchorY": 1.0,
+          "files": {
+            "full": "rustman_brute/death_full.png"
+          }
+        }
+      }
+    },
+    "rustman_chief": {
+      "refHeight": 160,
+      "anims": {
+        "idle": {
+          "frames": 8,
+          "fps": 6,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 156,
+          "frameH": 164,
+          "anchorX": 0.4093,
+          "anchorY": 1.0,
+          "files": {
+            "full": "rustman_chief/idle_full.png"
+          }
+        },
+        "attack": {
+          "frames": 4,
+          "fps": 8,
+          "loop": false,
+          "idleFrame": 0,
+          "frameW": 183,
+          "frameH": 163,
+          "anchorX": 0.4271,
+          "anchorY": 1.0,
+          "files": {
+            "full": "rustman_chief/attack_full.png"
+          }
+        },
+        "death": {
+          "frames": 4,
+          "fps": 7,
+          "loop": false,
+          "idleFrame": 0,
+          "frameW": 157,
+          "frameH": 162,
+          "anchorX": 0.4889,
+          "anchorY": 1.0,
+          "files": {
+            "full": "rustman_chief/death_full.png"
+          }
+        }
+      }
+    },
+    "sentry": {
+      "refHeight": 160,
+      "anims": {
+        "idle": {
+          "frames": 8,
+          "fps": 6,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 141,
+          "frameH": 165,
+          "anchorX": 0.4381,
+          "anchorY": 1.0,
+          "files": {
+            "full": "sentry/idle_full.png"
+          }
+        },
+        "attack": {
+          "frames": 4,
+          "fps": 8,
+          "loop": false,
+          "idleFrame": 0,
+          "frameW": 152,
+          "frameH": 163,
+          "anchorX": 0.5923,
+          "anchorY": 1.0,
+          "files": {
+            "full": "sentry/attack_full.png"
+          }
+        },
+        "death": {
+          "frames": 4,
+          "fps": 7,
+          "loop": false,
+          "idleFrame": 0,
+          "frameW": 163,
+          "frameH": 163,
+          "anchorX": 0.4588,
+          "anchorY": 1.0,
+          "files": {
+            "full": "sentry/death_full.png"
+          }
+        }
+      }
+    },
+    "skitter": {
+      "refHeight": 160,
+      "anims": {
+        "idle": {
+          "frames": 8,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 260,
+          "frameH": 163,
+          "anchorX": 0.5219,
+          "anchorY": 1.0,
+          "files": {
+            "full": "skitter/idle_full.png"
+          }
+        },
+        "attack": {
+          "frames": 4,
+          "fps": 10,
+          "loop": false,
+          "idleFrame": 0,
+          "frameW": 259,
+          "frameH": 164,
+          "anchorX": 0.5214,
+          "anchorY": 1.0,
+          "files": {
+            "full": "skitter/attack_full.png"
+          }
+        },
+        "death": {
+          "frames": 4,
+          "fps": 8,
+          "loop": false,
+          "idleFrame": 0,
+          "frameW": 249,
+          "frameH": 177,
+          "anchorX": 0.5148,
+          "anchorY": 1.0,
+          "files": {
+            "full": "skitter/death_full.png"
+          }
+        }
+      }
+    },
+    "skitter_queen": {
+      "refHeight": 160,
+      "anims": {
+        "idle": {
+          "frames": 4,
+          "fps": 6,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 90,
+          "frameH": 164,
+          "anchorX": 0.5334,
+          "anchorY": 1.0,
+          "files": {
+            "full": "skitter_queen/idle_full.png"
+          }
+        },
+        "attack": {
+          "frames": 4,
+          "fps": 8,
+          "loop": false,
+          "idleFrame": 0,
+          "frameW": 91,
+          "frameH": 165,
+          "anchorX": 0.5364,
+          "anchorY": 1.0,
+          "files": {
+            "full": "skitter_queen/attack_full.png"
+          }
+        },
+        "death": {
+          "frames": 4,
+          "fps": 6,
+          "loop": false,
+          "idleFrame": 0,
+          "frameW": 101,
+          "frameH": 162,
+          "anchorX": 0.5237,
+          "anchorY": 1.0,
+          "files": {
+            "full": "skitter_queen/death_full.png"
+          }
+        }
+      }
+    }
   }
 }

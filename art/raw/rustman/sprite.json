@@ -1,0 +1,32 @@
+{
+  "id": "rustman",
+  "kind": "creature",
+  "background": "magenta",
+  "targetHeight": 160,
+  "referenceAnim": "idle",
+  "anims": {
+    "idle": {
+      "file": "idle.png",
+      "fps": 8,
+      "split": "figures"
+    },
+    "attack": {
+      "file": "attack.png",
+      "fps": 12,
+      "loop": false,
+      "split": "figures",
+      "take": 6
+    },
+    "death": {
+      "file": "death.png",
+      "fps": 8,
+      "loop": false,
+      "split": "figures",
+      "take": 4,
+      "heightFrom": 0,
+      "drop": [
+        0
+      ]
+    }
+  }
+}

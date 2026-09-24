@@ -20,7 +20,7 @@ import {
   type Resident,
 } from '../../sim';
 import type { Game } from '../game';
-import { drawEnemy, lookSize } from './enemyArt';
+import { drawEnemy, drawEnemyShadow, lookSize } from './enemyArt';
 import { SKY_BOTTOM, shade } from './palette';
 import {
   DEPTH_X,
@@ -38,12 +38,14 @@ import {
   strHash,
   themeFor,
 } from './ruinArt';
-import { type Action, type CharacterArt, Figure, residentTints } from './sprites';
+import { type Action, type CharacterArt, CreatureFigure, Figure, residentTints } from './sprites';
 import { RESIDENT_H, SPRITE_H, drawOverlays, drawResident } from './vaultView';
 
 /** Displayed height of party members, in world units. */
 const PARTY_H = 64;
 const PARTY_SCALE = PARTY_H / RESIDENT_H;
+/** Creature sprite art stands a little taller than the drawn look size, which has no head room. */
+const CREATURE_H = 1.15;
 /** Smallest on-screen tap target, in pixels. */
 const MIN_TAP = 48;
 
@@ -124,6 +126,10 @@ interface EnemySprite {
   /** Ability index being wound up last frame. */
   winding: number | null;
   interrupted: number;
+  /** Creature art, when the look has some; else g draws the enemy. */
+  fig: CreatureFigure | null;
+  /** Clock time the last attack started (plays the attack animation), or -1. */
+  attackAt: number;
 }
 
 interface Float {
@@ -900,6 +906,8 @@ export class QuestView {
           last: e,
           winding: null,
           interrupted: 0,
+          fig: null,
+          attackAt: -1,
         };
         this.enemies.set(e.uid, sp);
         // Summoned adds (and fresh spawns) arrive with a puff.
@@ -914,7 +922,9 @@ export class QuestView {
     if (room) this.layoutEnemies(room);
     for (const [uid, sp] of this.enemies) {
       if (sp.dead >= 0) sp.dead += dt;
-      if (sp.dead > 0.9) {
+      // Creature art plays its death before fading out; drawn enemies just fade.
+      const fade = sp.fig ? Math.max(0.4, sp.fig.duration('death')) : 0;
+      if (sp.dead > 0.9 + fade) {
         sp.root.destroy({ children: true });
         sp.wind.destroy();
         sp.plate?.destroy();
@@ -930,15 +940,30 @@ export class QuestView {
       const ab = e.windup ? sp.def.abilities?.[e.windup.index] : undefined;
       const windup = e.windup && ab ? Math.max(0, Math.min(1, 1 - e.windup.remaining / Math.max(0.01, ab.windup))) : null;
       sp.g.clear();
-      drawEnemy(sp.g, sp.def.look, { t: this.time + sp.uid * 0.37, windup, stunned: e.stunned > 0, attack: sp.lunge });
+      const creature = this.art?.forLook(sp.def.look);
+      if (creature && !sp.fig) {
+        sp.fig = new CreatureFigure(creature, lookSize(sp.def.look).h * CREATURE_H);
+        sp.root.addChild(sp.fig);
+      }
+      if (sp.fig) {
+        drawEnemyShadow(sp.g, sp.def.look);
+        const since = this.time - sp.attackAt;
+        if (sp.dead >= 0) sp.fig.play('death', sp.dead);
+        // A wind-up holds the attack's raised pose, rising with the charge.
+        else if (windup !== null) sp.fig.play('attack', 0, windup * 0.45);
+        else if (sp.attackAt >= 0 && since < sp.fig.duration('attack')) sp.fig.play('attack', since);
+        else sp.fig.play('idle', e.stunned > 0 ? 0 : this.time + sp.uid * 0.37);
+      } else {
+        drawEnemy(sp.g, sp.def.look, { t: this.time + sp.uid * 0.37, windup, stunned: e.stunned > 0, attack: sp.lunge });
+      }
       const shakeX = (sp.hurt > 0 ? Math.sin(this.time * 90) * 3 * sp.hurt : 0) + (windup !== null ? Math.sin(this.time * 60) * (0.6 + windup * 1.6) : 0);
       const s = sp.fit;
       sp.root.position.set(sp.x + shakeX, sp.y);
       sp.root.scale.set(s);
       sp.root.zIndex = 10 - sp.row;
       if (sp.dead >= 0) {
-        sp.root.alpha = Math.max(0, 1 - sp.dead / 0.9);
-        sp.root.rotation = Math.min(1, sp.dead * 3) * 0.5;
+        sp.root.alpha = Math.max(0, 1 - Math.max(0, sp.dead - fade) / 0.9);
+        sp.root.rotation = sp.fig ? 0 : Math.min(1, sp.dead * 3) * 0.5;
       } else {
         sp.root.alpha = 1;
         sp.root.rotation = e.stunned > 0 ? Math.sin(this.time * 6) * 0.06 : 0;
@@ -989,6 +1014,7 @@ export class QuestView {
     const size = lookSize(sp.def.look);
     const top = sp.y - size.h * sp.fit;
     sp.lunge = 1;
+    sp.attackAt = this.time;
     switch (ab.effect) {
       case 'slam': {
         this.shake = 14;
@@ -1281,7 +1307,10 @@ export class QuestView {
     } else {
       const m = this.members.get(ev.target);
       const sp = this.enemies.get(ev.source);
-      if (sp) sp.lunge = 1;
+      if (sp) {
+        sp.lunge = 1;
+        sp.attackAt = this.time;
+      }
       if (!m) return;
       m.hurt = 1;
       const jitter = (Math.random() - 0.5) * 16;

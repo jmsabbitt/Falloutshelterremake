@@ -58,9 +58,15 @@ def hex_rgb(h: str) -> tuple[int, int, int]:
 # ----------------------------------------------------------------- keying
 
 
-def chroma_key(img: Image.Image) -> np.ndarray:
+def chroma_key(img: Image.Image, background: str = "green") -> np.ndarray:
     a = np.array(img.convert("RGB")).astype(int)
     r, g, b = a[..., 0], a[..., 1], a[..., 2]
+    if background == "magenta":
+        # For art with green in it (glowing creatures): key out #FF00FF instead.
+        dom = np.minimum(r, b) - g
+        alpha = np.clip((140 - dom) / 60.0, 0, 1)
+        spill = np.clip(np.minimum(r, b) - np.maximum(g, 0) - 20, 0, None) * 0.6 * (dom > 0)
+        return np.dstack([r - spill, g, b - spill, alpha * 255]).clip(0, 255).astype(np.uint8)
     dom = g - np.maximum(r, b)
     alpha = np.clip((140 - dom) / 60.0, 0, 1)
     # dark-green floor shadows some generators add under the feet
@@ -226,7 +232,13 @@ def torso_x(frame: np.ndarray, masks: dict[str, np.ndarray]) -> float:
     return float((cols * np.arange(m.shape[1])).sum() / max(1, cols.sum())) if xs.size else frame.shape[1] / 2
 
 
-def build_character(folder: Path) -> dict | None:
+def body_x(frame: np.ndarray) -> float:
+    """Horizontal centre of mass of a creature's silhouette."""
+    cols = (frame[..., 3] > 128).sum(axis=0)
+    return float((cols * np.arange(frame.shape[1])).sum() / max(1, cols.sum()))
+
+
+def build_character(folder: Path) -> tuple[str, dict] | None:
     cfg_path = folder / "sprite.json"
     if not cfg_path.exists():
         return None
@@ -235,6 +247,9 @@ def build_character(folder: Path) -> dict | None:
     rules = {**DEFAULT_REGIONS, **cfg.get("regions", {})}
     target = int(cfg.get("targetHeight", 128))
     ref_anim = cfg.get("referenceAnim", "walk")
+    # "kind": "creature" sheets (enemies) aren't recoloured: one full-colour layer.
+    creature = cfg.get("kind") == "creature"
+    layers = [] if creature else LAYERS
 
     # Load and cut every animation first.
     cut: dict[str, list[np.ndarray]] = {}
@@ -243,13 +258,22 @@ def build_character(folder: Path) -> dict | None:
         # "crop": [x0, y0, x1, y1] uses only part of the sheet (e.g. its first row).
         if "crop" in a:
             sheet = sheet.crop(tuple(a["crop"]))
-        keyed = chroma_key(sheet)
+        keyed = chroma_key(sheet, cfg.get("background", "green"))
+        # A ground line drawn under the frames would join them all: clear rows
+        # that are mostly covered but belong to no figure (a thin line).
+        solid = (keyed[..., 3] > 128).mean(axis=1) > 0.5
+        keyed[solid, 3] = 0
         # "split": "figures" cuts by connected shapes instead of by empty gaps.
         frames = find_figures(keyed) if a.get("split") == "figures" else find_frames(keyed)
         drop = set(a.get("drop", []))
         frames = [f for i, f in enumerate(frames) if i not in drop]
-        # "flip" mirrors frames (counted after dropping) that face the wrong way.
-        frames = [f[:, ::-1].copy() if i in a.get("flip", []) else f for i, f in enumerate(frames)]
+        # "take": n keeps the first n frames (e.g. only a sheet's first row).
+        if "take" in a:
+            frames = frames[: int(a["take"])]
+        # "flip" mirrors frames (counted after dropping) that face the wrong way;
+        # "mirror": true mirrors the whole sheet (creatures face left, toward the party).
+        flip = set(range(len(frames))) if a.get("mirror") else set(a.get("flip", []))
+        frames = [f[:, ::-1].copy() if i in flip else f for i, f in enumerate(frames)]
         if not frames:
             print(f"  ! {cid}/{name}: no frames found", file=sys.stderr)
             continue
@@ -262,7 +286,7 @@ def build_character(folder: Path) -> dict | None:
 
     out_dir = OUT / cid
     out_dir.mkdir(parents=True, exist_ok=True)
-    manifest = {"sex": cfg.get("sex"), "refHeight": target, "anims": {}}
+    manifest = {"refHeight": target, "anims": {}} if creature else {"sex": cfg.get("sex"), "refHeight": target, "anims": {}}
     lineup = []
     for name, frames in cut.items():
         a = cfg["anims"][name]
@@ -278,15 +302,15 @@ def build_character(folder: Path) -> dict | None:
             scale = ref_scale
         # An animation can override the character's colour rules (e.g. the fight sheet's hair).
         anim_rules = {k: {**rules[k], **v} for k, v in a.get("regions", {}).items()}
-        segs = [segment(f, {**rules, **anim_rules}) for f in frames]
-        anchors = [torso_x(f, m) for f, m in zip(frames, segs)]
+        segs = [None if creature else segment(f, {**rules, **anim_rules}) for f in frames]
+        anchors = [body_x(f) if creature else torso_x(f, m) for f, m in zip(frames, segs)]
         left = max(anc for anc in anchors)
         right = max(f.shape[1] - anc for f, anc in zip(frames, anchors))
         height = max(f.shape[0] for f in frames)
         cw, ch = int(np.ceil((left + right) * scale)) + 2, int(np.ceil(height * scale)) + 2
-        strips = {k: Image.new("RGBA", (cw * len(frames), ch)) for k in LAYERS + ["full"]}
+        strips = {k: Image.new("RGBA", (cw * len(frames), ch)) for k in layers + ["full"]}
         for i, (f, m, anc) in enumerate(zip(frames, segs, anchors)):
-            parts = layer_strips(f, m)
+            parts = {} if creature else layer_strips(f, m)
             parts["full"] = f
             ox = left - anc  # place the torso at the shared anchor
             oy = height - f.shape[0]  # feet on the baseline
@@ -312,7 +336,13 @@ def build_character(folder: Path) -> dict | None:
             "anchorY": 1.0,
             "files": files,
         }
-        preview(cid, name, strips, cw, ch, len(frames))
+        if creature:
+            sheet = Image.new("RGBA", strips["full"].size, (233, 217, 182, 255))
+            sheet.alpha_composite(strips["full"])
+            PREVIEWS.mkdir(parents=True, exist_ok=True)
+            sheet.save(PREVIEWS / f"{cid}_{name}.png")
+        else:
+            preview(cid, name, strips, cw, ch, len(frames))
         lineup.append((strips["full"], cw, ch, manifest["anims"][name]["anchorX"]))
     # Line-up: frame 0 of every animation on one ground line, to check they match in size.
     bg = (233, 217, 182, 255)
@@ -322,7 +352,7 @@ def build_character(folder: Path) -> dict | None:
         sheet.alpha_composite(strip.crop((0, 0, cw, ch)), (x, sheet.height - ch))
         x += cw + 8
     sheet.save(PREVIEWS / f"{cid}_lineup.png")
-    return {cid: manifest}
+    return ("creatures" if creature else "characters", {cid: manifest})
 
 
 def preview(cid: str, anim: str, strips: dict[str, Image.Image], cw: int, ch: int, n: int) -> None:
@@ -353,15 +383,14 @@ def main() -> int:
     if not RAW.exists():
         print("no art/raw folder; nothing to build")
         return 0
-    characters: dict = {}
+    manifest: dict = {"version": 1, "characters": {}, "creatures": {}}
     for folder in sorted(p for p in RAW.iterdir() if p.is_dir()):
         built = build_character(folder)
         if built:
-            characters.update(built)
+            manifest[built[0]].update(built[1])
     OUT.mkdir(parents=True, exist_ok=True)
-    manifest = {"version": 1, "characters": characters}
     (OUT / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n")
-    print(f"wrote {OUT / 'manifest.json'} ({len(characters)} character(s))")
+    print(f"wrote {OUT / 'manifest.json'} ({len(manifest['characters'])} character(s), {len(manifest['creatures'])} creature(s))")
     return 0
 
 

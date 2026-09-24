@@ -1,0 +1,32 @@
+{
+  "id": "hollowed",
+  "kind": "creature",
+  "background": "magenta",
+  "targetHeight": 160,
+  "referenceAnim": "idle",
+  "anims": {
+    "idle": {
+      "file": "idle.png",
+      "fps": 6,
+      "split": "figures",
+      "mirror": true
+    },
+    "attack": {
+      "file": "attack.png",
+      "fps": 10,
+      "loop": false,
+      "split": "figures",
+      "mirror": true,
+      "take": 6
+    },
+    "death": {
+      "file": "death.png",
+      "fps": 7,
+      "loop": false,
+      "split": "figures",
+      "mirror": true,
+      "take": 4,
+      "heightFrom": 0
+    }
+  }
+}

@@ -20,12 +20,15 @@ interface AnimManifest {
   anchorX: number;
   anchorY: number;
   idleFrame?: number;
+  /** Characters have every layer; creatures only "full". */
   files: Record<Layer | 'full', string>;
 }
 
 interface Manifest {
   version: number;
   characters: Record<string, { sex: 'f' | 'm'; refHeight: number; anims: Record<string, AnimManifest> }>;
+  /** Enemies, keyed by their look; one full-colour layer each ("full"). */
+  creatures?: Record<string, { refHeight: number; anims: Record<string, AnimManifest> }>;
 }
 
 export interface Anim {
@@ -65,12 +68,29 @@ export function residentTints(res: Resident, content: Content, child: boolean): 
   };
 }
 
+/** An enemy's art: untinted strips, facing left (toward the party). */
+export interface Creature {
+  id: string;
+  refHeight: number;
+  anims: Record<string, { frames: number; fps: number; loop: boolean; anchorX: number; anchorY: number; textures: Texture[] }>;
+}
+
 export class CharacterArt {
   private bySex = new Map<string, Character>();
+  private byLook = new Map<string, Creature>();
 
-  constructor(readonly characters: Character[]) {
+  constructor(
+    readonly characters: Character[],
+    creatures: Creature[] = [],
+  ) {
     // The first character listed for a body type is its default.
     for (const c of characters) if (!this.bySex.has(c.sex)) this.bySex.set(c.sex, c);
+    for (const c of creatures) this.byLook.set(c.id, c);
+  }
+
+  /** The art for an enemy look, or undefined to draw it with Graphics. */
+  forLook(look: string): Creature | undefined {
+    return this.byLook.get(look);
   }
 
   /** The character used for a resident, or undefined to use the placeholder. */
@@ -102,20 +122,40 @@ export class CharacterArt {
       }),
     );
     const characters = loaded.filter((c): c is Character => c !== null);
-    return characters.length ? new CharacterArt(characters) : null;
+    const creatures = (
+      await Promise.all(
+        Object.entries(manifest.creatures ?? {}).map(async ([id, c]) => {
+          try {
+            const anims: Creature['anims'] = {};
+            await Promise.all(
+              Object.entries(c.anims).map(async ([name, a]) => {
+                anims[name] = { frames: a.frames, fps: a.fps, loop: a.loop, anchorX: a.anchorX, anchorY: a.anchorY, textures: await loadStrip(base, a, a.files.full) };
+              }),
+            );
+            return { id, refHeight: c.refHeight, anims };
+          } catch (err) {
+            console.warn(`sprites: could not load ${id}`, err);
+            return null;
+          }
+        }),
+      )
+    ).filter((c): c is Creature => c !== null);
+    return characters.length || creatures.length ? new CharacterArt(characters, creatures) : null;
   }
+}
+
+/** One strip image cut into its frames. */
+async function loadStrip(base: string, a: AnimManifest, file: string): Promise<Texture[]> {
+  const strip = await Assets.load<Texture>(`${base}${file}`);
+  strip.source.scaleMode = 'linear';
+  return Array.from({ length: a.frames }, (_, i) => new Texture({ source: strip.source, frame: new Rectangle(i * a.frameW, 0, a.frameW, a.frameH) }));
 }
 
 async function loadAnim(base: string, a: AnimManifest): Promise<Anim> {
   const layers = {} as Record<Layer, Texture[]>;
   await Promise.all(
     LAYERS.map(async (layer) => {
-      const strip = await Assets.load<Texture>(`${base}${a.files[layer]}`);
-      strip.source.scaleMode = 'linear';
-      layers[layer] = Array.from(
-        { length: a.frames },
-        (_, i) => new Texture({ source: strip.source, frame: new Rectangle(i * a.frameW, 0, a.frameW, a.frameH) }),
-      );
+      layers[layer] = await loadStrip(base, a, a.files[layer]);
     }),
   );
   return { frames: a.frames, fps: a.fps, loop: a.loop, idleFrame: a.idleFrame ?? 0, anchorX: a.anchorX, anchorY: a.anchorY, layers };
@@ -213,5 +253,60 @@ export class Figure extends Container {
     LAYERS.forEach((layer, n) => {
       this.parts[n]!.texture = this.anim.layers[layer][i] ?? this.anim.layers[layer][0]!;
     });
+  }
+}
+
+/**
+ * An enemy drawn from creature art: idle loops, attack plays once from when
+ * it started (or holds part-way through during a wind-up), death plays once
+ * and holds. Sheets face left.
+ */
+export class CreatureFigure extends Container {
+  private sprite: Sprite;
+  private anim: Creature['anims'][string];
+  private animName = '';
+  private frame = -1;
+
+  constructor(
+    readonly creature: Creature,
+    /** Displayed height, in world units. */
+    height: number,
+  ) {
+    super();
+    this.anim = creature.anims.idle ?? (Object.values(creature.anims)[0] as Creature['anims'][string]);
+    this.sprite = new Sprite(this.anim.textures[0]);
+    this.addChild(this.sprite);
+    this.scale.set(height / creature.refHeight);
+    this.play('idle', 0);
+  }
+
+  /** Seconds one play-through of an animation takes (0 if the creature lacks it). */
+  duration(name: string): number {
+    const a = this.creature.anims[name];
+    return a ? a.frames / a.fps : 0;
+  }
+
+  /**
+   * Show an animation `t` seconds in. `hold` (0..1) instead shows that point
+   * of the clip, for a wind-up that holds the raised pose. Falls back to idle.
+   */
+  play(name: string, t: number, hold?: number): void {
+    const want = this.creature.anims[name] ? name : 'idle';
+    if (want !== this.animName && this.creature.anims[want]) {
+      this.animName = want;
+      this.anim = this.creature.anims[want]!;
+      this.sprite.anchor.set(this.anim.anchorX, this.anim.anchorY);
+      this.frame = -1;
+    }
+    const a = this.anim;
+    let i: number;
+    if (hold !== undefined && want === name) i = Math.min(a.frames - 1, Math.floor(hold * a.frames));
+    else {
+      const n = Math.floor(Math.max(0, t) * a.fps);
+      i = a.loop ? n % a.frames : Math.min(n, a.frames - 1);
+    }
+    if (i === this.frame) return;
+    this.frame = i;
+    this.sprite.texture = a.textures[i] ?? a.textures[0]!;
   }
 }

@@ -45,10 +45,14 @@ export function lookSize(look: string): LookSize {
   return SIZES[look] ?? FALLBACK;
 }
 
+/** The contact shadow under an enemy (also used under creature sprite art). */
+export function drawEnemyShadow(g: Graphics, look: string): void {
+  g.ellipse(0, 0, lookSize(look).w * 0.5, 4).fill({ color: 0x000000, alpha: 0.35 });
+}
+
 export function drawEnemy(g: Graphics, look: string, p: EnemyPose): void {
-  const { w } = lookSize(look);
   // Contact shadow first, so it sits under everything.
-  g.ellipse(0, 0, w * 0.5, 4).fill({ color: 0x000000, alpha: 0.35 });
+  drawEnemyShadow(g, look);
   switch (look) {
     case 'skitter':
       return skitter(g, p, 1.4);
