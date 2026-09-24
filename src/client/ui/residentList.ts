@@ -6,6 +6,7 @@
 import {
   effectiveMaxHp,
   effectiveStat,
+  idleAdults,
   isAway,
   isChild,
   residentsInRoom,
@@ -170,9 +171,9 @@ export class ResidentList {
   }
 
   /** What the list shows now: filtered, searched and sorted. */
-  visible(): RowInfo[] {
+  visible(info = this.info()): RowInfo[] {
     const q = this.query.trim().toLowerCase();
-    const all = this.info().filter((x) => this.matches(x, this.filter));
+    const all = info.filter((x) => this.matches(x, this.filter));
     const hits = q ? all.filter((x) => `${x.r.firstName} ${x.r.lastName}`.toLowerCase().includes(q)) : all;
     return this.sorted(hits);
   }
@@ -183,7 +184,7 @@ export class ResidentList {
     const { state } = this.game;
     const info = this.info();
     const counts = new Map(FILTERS.map((f) => [f.key, info.filter((x) => this.matches(x, f.key)).length]));
-    const rows = this.visible();
+    const rows = this.visible(info);
     // Drop picks for residents who are gone (laid to rest, founded away).
     const ids = new Set(state.residents.map((r) => r.id));
     for (const id of this.picked) if (!ids.has(id)) this.picked.delete(id);
@@ -358,7 +359,7 @@ export class ResidentList {
             ? `L${r.level}`
             : `${STAT_SHORT[k]} ${effectiveStat(content, r, k)}`;
     const tags = `${r.pregnancy ? ' 🤰' : ''}${r.courtship ? ' ♥' : ''}${r.hp < x.maxHp - 0.5 && !r.dead ? ' ✚' : ''}${tainted(r) ? ' ☢' : ''}`;
-    const sub = `${k === 'level' || k === 'name' || k === 'room' ? '' : `L${r.level} · `}${x.where}${k === 'mood' ? '' : ` · ${Math.round(r.happiness)}%`}`;
+    const sub = `${k === 'level' || k === 'name' || k === 'room' ? '' : `L${r.level} · `}${x.where}${k === 'mood' ? '' : ` · ☺ ${Math.round(r.happiness)}%`}`;
     return h(
       'div',
       {
@@ -437,7 +438,9 @@ export class ResidentList {
 
   private autoAssign(): void {
     const res = this.game.run({ type: 'autoAssign' });
-    this.host.toast(res.ok ? `⚙ Auto-assign: ${res.detail ?? 'done'}. Everyone is on the job that suits them best.` : `Auto-assign: ${res.reason}`, res.ok ? 'good' : 'bad');
+    const left = idleAdults(this.game.state).length;
+    const rest = left ? ` ${left} still idle: no free slots left in rooms that use a stat. Build or upgrade rooms.` : ' Nobody is idle now.';
+    this.host.toast(res.ok ? `⚙ Auto-assign: ${res.detail ?? 'done'}, each to the free job that suits them best.${rest}` : `Auto-assign: ${res.reason}.`, res.ok ? 'good' : 'bad');
     this.host.refresh();
   }
 
@@ -530,7 +533,14 @@ export class ResidentList {
         return { room, def, cap, crew, stat, avg, free: Math.max(0, cap - crew) };
       })
       .filter((x) => x.cap > 0)
-      .sort((a, b) => Number(b.free > 0) - Number(a.free > 0) || b.avg - a.avg || a.room.floor - b.room.floor || a.room.x - b.room.x);
+      .sort(
+        (a, b) =>
+          Number(b.free > 0) - Number(a.free > 0) ||
+          Number(b.free >= group.length) - Number(a.free >= group.length) ||
+          b.avg - a.avg ||
+          a.room.floor - b.room.floor ||
+          a.room.x - b.room.x,
+      );
     const items = rooms.map((x) =>
       h(
         'button',
@@ -555,7 +565,7 @@ export class ResidentList {
           'div',
           { class: 'modal explore-modal rl-room-modal' },
           h('h2', {}, `Assign ${group.length}`),
-          h('p', { class: 'muted small', style: 'margin-top:0' }, 'Rooms with space come first, best match for the group on top. The best at the job go in first if not everyone fits.'),
+          h('p', { class: 'muted small', style: 'margin-top:0' }, 'Rooms with space for everyone come first, then the best match for the group. If not everyone fits, the best at the job go in first.'),
           group.length ? h('div', { class: 'rl-rooms' }, ...items) : h('p', { class: 'short' }, 'Nobody picked can work right now (children, away or fallen).'),
           h('div', { class: 'row', style: 'justify-content:flex-end;margin-top:10px' }, h('button', { onclick: close }, 'Cancel')),
         ),

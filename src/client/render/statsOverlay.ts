@@ -87,14 +87,17 @@ export class StatsOverlay {
     for (const room of state.rooms) {
       if (room.type === 'elevator') continue;
       alive.add(room.id);
-      const lines = this.linesFor(room);
+      const r = this.view.roomRect(room);
+      // Narrow rooms on screen (single rooms on a phone) get the short wording.
+      const lines = this.linesFor(room, r.w * zoom < 150);
       const plate = this.plates.get(room.id) ?? this.createPlate(room.id);
       const key = lines.map((l) => `${l.text}#${l.color}`).join('|');
       if (key !== plate.key) this.draw(plate, lines, key);
-      const r = this.view.roomRect(room);
-      const w = plate.bg.width * s;
-      const hgt = plate.bg.height * s;
-      plate.root.scale.set(s);
+      // Never wider than the room, so neighbours' plates don't overlap.
+      const fit = Math.min(s, (r.w - 6) / Math.max(1, plate.bg.width));
+      const w = plate.bg.width * fit;
+      const hgt = plate.bg.height * fit;
+      plate.root.scale.set(fit);
       // Centre on the room; drop below the ready bubble when the room is tall enough on screen.
       plate.root.position.set(Math.round(r.x + (r.w - w) / 2), Math.round(r.y + Math.max(8, Math.min(r.h - hgt - 6, r.h * 0.5 - hgt / 2 + 10))));
     }
@@ -138,7 +141,7 @@ export class StatsOverlay {
   }
 
   /** What a room's plate says. */
-  private linesFor(room: Room): PlateLine[] {
+  private linesFor(room: Room, compact: boolean): PlateLine[] {
     const { state, content } = this.game;
     const def = roomDef(content, room);
     const cap = roomCapacity(content, room);
@@ -147,17 +150,18 @@ export class StatsOverlay {
     if (def.produces) {
       const secs = cycleSeconds(state, content, room);
       const perMin = isFinite(secs) && secs > 0 ? (batchOutput(content, room) * 60) / secs : 0;
-      out.push({ text: `+${rate(perMin)} ${def.produces.resource === 'medpatch' ? 'patch' : def.produces.resource}/min`, color: RESOURCE_COLORS[def.produces.resource] ?? INK });
+      const what = compact ? '' : ` ${def.produces.resource === 'medpatch' ? 'patch' : def.produces.resource}`;
+      out.push({ text: `+${rate(perMin)}${what}/min`, color: RESOURCE_COLORS[def.produces.resource] ?? INK });
     } else if (def.category === 'radio') {
       const left = Math.max(0, radioInterval(state, content, room) - room.timer);
-      out.push({ text: crew ? `Broadcast ${short(left)}` : 'Radio silent', color: 0xd9645b });
+      out.push({ text: crew ? `${compact ? 'Next' : 'Broadcast'} ${short(left)}` : compact ? 'Silent' : 'Radio silent', color: 0xd9645b });
     } else if (def.category === 'workshop') {
       const job = room.job;
       const p = job && job.total > 0 ? Math.round((1 - job.remaining / job.total) * 100) : 0;
-      out.push({ text: job ? (job.remaining <= 0 ? 'Item ready' : `Crafting ${p}%`) : 'No job', color: job ? GOLD : DIM });
+      out.push({ text: job ? (job.remaining <= 0 ? 'Item ready' : `${compact ? 'Craft' : 'Crafting'} ${p}%`) : 'No job', color: job ? GOLD : DIM });
     } else if (def.storage) {
       const amt = tableValue(def.storage.amount, room.level, room.segments);
-      out.push({ text: def.storage.resource === 'population' ? `${amt} beds` : `+${amt} storage`, color: DIM });
+      out.push({ text: def.storage.resource === 'population' ? `${amt} beds` : compact ? `Store +${amt}` : `+${amt} storage`, color: DIM });
     } else if (def.category === 'door') {
       out.push({ text: `Door ${def.doorHp?.[room.level - 1] ?? 0}`, color: DIM });
     }
