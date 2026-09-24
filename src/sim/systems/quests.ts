@@ -13,6 +13,7 @@ import { addScrip, resourceCapacity } from '../economy';
 import { bonus } from '../bonuses';
 import { bump, bumpMax, effectiveMaxHp, effectiveStat, grantXp, isAway, isChild } from '../residents';
 import { chance, nextFloat, nextInt, pick } from '../rng';
+import { traitCheckBonus, traitCombatMult, traitCritRingMult, traitDamageTakenMult } from './traits';
 import {
   STAT_KEYS,
   type ContractOffer,
@@ -277,7 +278,8 @@ export function critMultiplier(content: Content, quality: number): number {
 /** How fast the crit ring sweeps for this resident (sweeps per second); Sight slows it. */
 export function critRingSpeed(content: Content, r: Resident): number {
   const t = tuning(content);
-  return Math.max(t.critRingMin, t.critRingBase - t.critRingPerSight * effectiveStat(content, r, 'sight'));
+  // M6 trait hook (Steady Hands): traitCritRingMult slows the ring further.
+  return Math.max(t.critRingMin, t.critRingBase - t.critRingPerSight * effectiveStat(content, r, 'sight')) * traitCritRingMult(content, r);
 }
 
 /** Fraction of incoming damage a resident shrugs off (Grit, outfit included). */
@@ -687,7 +689,8 @@ function memberAttack(state: GameState, content: Content, q: Quest, m: QuestMemb
   const t = tuning(content);
   const e = pickTarget(content, q, m);
   if (!e) return;
-  damageEnemy(state, content, q, e, hitRoll(state, content, r) * partyMultiplier(content, q), r.id, false);
+  // M6 trait hook (Hothead, Egghead): traitCombatMult.
+  damageEnemy(state, content, q, e, hitRoll(state, content, r) * partyMultiplier(content, q) * traitCombatMult(content, r), r.id, false);
   m.crit = Math.min(1, m.crit + t.critPerHit + t.critPerHitPerFortune * effectiveStat(content, r, 'fortune'));
 }
 
@@ -696,6 +699,7 @@ function damageMember(state: GameState, content: Content, q: Quest, m: QuestMemb
   const t = tuning(content);
   let dmg = amount * (1 - damageReduction(content, r));
   if (m.taunt > 0) dmg *= 1 - t.tauntReduction;
+  dmg *= traitDamageTakenMult(content, r); // M6 trait hook (Hard Case)
   dmg = Math.max(1, Math.round(dmg));
   r.hp = Math.max(0, r.hp - dmg);
   state.events.push({ type: 'questHit', questId: q.id, from: 'enemy', source, target: r.id, amount: dmg, crit: false });
@@ -934,7 +938,8 @@ export function questChoose(state: GameState, content: Content, questId: number,
   if (!ev || !opt) return 'no such option';
   let success = true;
   if (opt.stat) {
-    const best = Math.max(0, ...standing(state, q).map(({ r }) => effectiveStat(content, r, opt.stat as StatKey)));
+    // M6 trait hook (Lucky Break): traitCheckBonus per member.
+    const best = Math.max(0, ...standing(state, q).map(({ r }) => effectiveStat(content, r, opt.stat as StatKey) + traitCheckBonus(content, r, 'questCheck')));
     success = best + nextInt(state.rng, 0, 4) >= (opt.difficulty ?? 0);
   }
   const outcome = success ? opt.success : (opt.failure ?? opt.success);

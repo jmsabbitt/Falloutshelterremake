@@ -18,6 +18,7 @@ import { chance, nextFloat, nextInt, pick } from '../rng';
 import type { Expedition, ExpeditionLoot, GameState, JournalEntry, JournalKind, Rarity, Resident, StatKey } from '../types';
 import { addFragment, addSalvage, fragmentsNeeded, knowsRecipe, unlockRecipe } from './inventory';
 import { grantItem, randomItemOf } from './items';
+import { traitCheckBonus, traitExplorerScripMult, traitExplorerTaintMult } from './traits';
 
 export const MAX_SUPPLIES = 25;
 export const MAX_EXPLORERS = 25;
@@ -269,7 +270,8 @@ export function checkRoll(state: GameState, content: Content, r: Resident, stat:
 }
 
 function passes(state: GameState, content: Content, r: Resident, check: Check): boolean {
-  return checkRoll(state, content, r, check.stat) >= check.difficulty;
+  // M6 trait hook (Lucky Break): flat bonus on checks.
+  return checkRoll(state, content, r, check.stat) + traitCheckBonus(content, r, 'explorerCheck') >= check.difficulty;
 }
 
 function giveXp(state: GameState, content: Content, e: Expedition, r: Resident, amount: number): void {
@@ -328,7 +330,8 @@ function checkHealth(state: GameState, content: Content, e: Expedition, r: Resid
 
 function hurt(state: GameState, content: Content, e: Expedition, r: Resident, damage: number, taint = 0): boolean {
   r.hp -= damage;
-  if (taint > 0 && !taintImmune(content, r)) r.taint = Math.min(r.maxHp, r.taint + scaledDamage(state, content, e, taint));
+  // M6 trait hook (Glare-Hardened): less taint from hazards.
+  if (taint > 0 && !taintImmune(content, r)) r.taint = Math.min(r.maxHp, r.taint + scaledDamage(state, content, e, taint) * traitExplorerTaintMult(content, r));
   return checkHealth(state, content, e, r);
 }
 
@@ -353,7 +356,8 @@ function accrueTaint(state: GameState, content: Content, e: Expedition, r: Resid
   const h0 = e.elapsed / 3600;
   const h1 = until / 3600;
   const amount = t.taintPerHour * danger * (h1 - h0 + (t.taintGrowthPerHour * (h1 * h1 - h0 * h0)) / 2);
-  r.taint = Math.min(r.maxHp, r.taint + amount * Math.max(0, 1 - bonus(state, content, 'explorerTaint')));
+  // M6 trait hook (Glare-Hardened): traitExplorerTaintMult.
+  r.taint = Math.min(r.maxHp, r.taint + amount * Math.max(0, 1 - bonus(state, content, 'explorerTaint')) * traitExplorerTaintMult(content, r));
 }
 
 // ------------------------------------------------------------------ loot
@@ -586,7 +590,8 @@ function doScripFind(state: GameState, content: Content, e: Expedition, r: Resid
   // Scales linearly with Fortune (research 03 §4.2), and a little with time out.
   const fortune = Math.max(1, effectiveStat(content, r, 'fortune'));
   const base = nextInt(state.rng, t.scripPerFortune[0], t.scripPerFortune[1]);
-  giveScrip(state, content, e, base * fortune * (1 + t.scripGrowthPerHour * hours(e)) * (1 + bonus(state, content, 'explorerScrip')), true);
+  // M6 trait hook (Loose Change): traitExplorerScripMult.
+  giveScrip(state, content, e, base * fortune * (1 + t.scripGrowthPerHour * hours(e)) * (1 + bonus(state, content, 'explorerScrip')) * traitExplorerScripMult(content, r), true);
 }
 
 function fire(state: GameState, content: Content, e: Expedition, r: Resident, region: RegionDef, key: EventTimer): void {
