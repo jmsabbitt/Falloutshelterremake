@@ -6,6 +6,7 @@ import {
   catchUp,
   deserialize,
   drainEvents,
+  foundHomestead,
   loadContent,
   newGame,
   serialize,
@@ -13,6 +14,7 @@ import {
   type Command,
   type CommandResult,
   type Content,
+  type FoundOptions,
   type GameEvent,
   type GameState,
 } from '../sim';
@@ -22,10 +24,14 @@ import { startIncident, startRaid } from '../sim/systems/incidents';
 import { grantItem } from '../sim/systems/items';
 import { addFragment, addSalvage, unlockRecipe } from '../sim/systems/inventory';
 import type { CrateTier, IncidentType } from '../sim';
+import { prestigeConsole } from './prestigeDev';
 import { questConsole } from './questDev';
-import { clearSave, readSave, writeSave } from './storage';
+import { clearSave, readSave, writeBackup, writeSave } from './storage';
 
 type Listener = (events: GameEvent[]) => void;
+
+/** M5: what founding a new homestead returns to the client. */
+export type FoundResult = { ok: true; legacy: number; backup: string; backedUp: boolean; oldNumber: number; stayers: number } | { ok: false; reason: string };
 
 /** Catch-up summary plus what happened to explorers while the player was away. */
 export interface AwaySummary extends CatchUpSummary {
@@ -45,6 +51,8 @@ export class Game {
   /** Set when a save was loaded and time was skipped. */
   lastCatchUp: AwaySummary | null = null;
   private listeners = new Set<Listener>();
+  /** Told when game.state is swapped for a different homestead (found, import, reset). */
+  private replaceListeners = new Set<() => void>();
   private lastSave = 0;
   /** Bumped whenever rooms change shape, so the renderer can rebuild static art. */
   layoutVersion = 0;
@@ -77,6 +85,49 @@ export class Game {
   on(fn: Listener): () => void {
     this.listeners.add(fn);
     return () => this.listeners.delete(fn);
+  }
+
+  /** Listen for game.state being replaced wholesale; the view and UI re-sync. */
+  onReplace(fn: () => void): () => void {
+    this.replaceListeners.add(fn);
+    return () => this.replaceListeners.delete(fn);
+  }
+
+  /**
+   * Swap in a different homestead: drop pending events, save at once, and
+   * tell the view and UI to throw away everything drawn for the old one.
+   */
+  replaceState(next: GameState): void {
+    this.state = next;
+    this.lastCatchUp = null;
+    drainEvents(this.state);
+    this.layoutVersion++;
+    this.save();
+    for (const fn of this.replaceListeners) fn();
+    this.flush();
+  }
+
+  /**
+   * M5: found a new homestead. Backs up the old save first (it can't be
+   * undone), then replaces the state. The old state is left untouched on failure.
+   */
+  found(opts: Omit<FoundOptions, 'now'>): FoundResult {
+    this.state.lastRealTime = Date.now();
+    const backup = serialize(this.state);
+    const old = this.state;
+    const backedUp = writeBackup(old.legacy.cycle, backup);
+    const res = foundHomestead(old, this.content, { ...opts, now: Date.now() });
+    if (!res.ok) return res;
+    const outpost = res.state.legacy.outposts.find((o) => o.cycle === old.legacy.cycle);
+    this.replaceState(res.state);
+    return { ok: true, legacy: res.legacy, backup, backedUp, oldNumber: old.homesteadNumber, stayers: outpost?.population ?? 0 };
+  }
+
+  /** M5: write a backup of the current save now (the Found flow does this before confirming). */
+  backupNow(): { json: string; ok: boolean } {
+    this.state.lastRealTime = Date.now();
+    const json = serialize(this.state);
+    return { json, ok: writeBackup(this.state.legacy.cycle, json) };
   }
 
   /** Called every frame with real elapsed seconds. */
@@ -143,17 +194,14 @@ export class Game {
   }
 
   importSave(json: string): void {
-    this.state = deserialize(json);
-    catchUp(this.state, this.content, Date.now());
-    this.layoutVersion++;
-    this.save();
-    this.flush();
+    const next = deserialize(json);
+    catchUp(next, this.content, Date.now());
+    this.replaceState(next);
   }
 
   reset(): void {
     clearSave();
-    this.state = newGame(this.content);
-    this.layoutVersion++;
+    this.replaceState(newGame(this.content));
     this.claimDaily();
     this.save();
   }
@@ -240,6 +288,8 @@ export class Game {
       reset: () => game.reset(),
       /** M4 quest helpers: office(), party(level, weapon), skip(), win(), crit(). */
       quest: questConsole(game),
+      /** M5 prestige helpers: charter(), legacy(n), found(siteId?). */
+      prestige: prestigeConsole(game),
     };
     console.info('%cHomestead dev console: window.homestead', 'color:#f2a541');
   }

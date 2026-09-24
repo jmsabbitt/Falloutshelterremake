@@ -37,3 +37,41 @@ export function downloadFile(name: string, text: string): void {
   a.click();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
+
+// M5: a copy of the old save is kept before each founding, since founding
+// can't be undone. One key per cycle; only the newest few are kept.
+const BACKUP_PREFIX = 'homestead.save.backup.';
+const BACKUPS_KEPT = 3;
+
+export function writeBackup(cycle: number, json: string): boolean {
+  try {
+    localStorage.setItem(`${BACKUP_PREFIX}${cycle}`, json);
+    const cycles = listBackups();
+    for (const c of cycles.slice(0, Math.max(0, cycles.length - BACKUPS_KEPT))) localStorage.removeItem(`${BACKUP_PREFIX}${c}`);
+    return localStorage.getItem(`${BACKUP_PREFIX}${cycle}`) === json;
+  } catch {
+    return false;
+  }
+}
+
+export function readBackup(cycle: number): string | null {
+  try {
+    return localStorage.getItem(`${BACKUP_PREFIX}${cycle}`);
+  } catch {
+    return null;
+  }
+}
+
+/** Cycles with a stored backup, oldest first. */
+export function listBackups(): number[] {
+  try {
+    const out: number[] = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (k?.startsWith(BACKUP_PREFIX)) out.push(Number(k.slice(BACKUP_PREFIX.length)));
+    }
+    return out.filter((n) => Number.isFinite(n)).sort((a, b) => a - b);
+  } catch {
+    return [];
+  }
+}
