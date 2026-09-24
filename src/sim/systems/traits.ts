@@ -123,6 +123,8 @@ interface Index {
   byId: Map<string, TraitDef>;
   /** Traits that change their roommates' happiness. */
   aura: Set<string>;
+  /** Traits with any production effect (workerMult skips everyone else). */
+  production: Set<string>;
 }
 
 // Lookups run every tick for every worker, so index the content once.
@@ -140,6 +142,7 @@ function index(content: Content): Index {
     ix = {
       byId: new Map(defs.map((d) => [d.id, d])),
       aura: new Set(defs.filter((d) => d.effects.some((e) => e.kind === 'roomHappiness')).map((d) => d.id)),
+      production: new Set(defs.filter((d) => d.effects.some((e) => e.kind === 'production')).map((d) => d.id)),
     };
     indexes.set(key, ix);
   }
@@ -340,9 +343,10 @@ function placedValue(state: GameState, content: Content, r: Resident, p: Place, 
 
 /** Multiplier on a worker's stat contribution to a room (traits and mastery). */
 export function workerMult(state: GameState, content: Content, r: Resident, room: Room): number {
-  const p = placeOf(state, content, r, room);
-  const traits = placedValue(state, content, r, p, 'production');
   const mastery = traitsContent(content).tuning.masteryTierBonus[masteryTier(content, r, room.type)] ?? 0;
+  const production = index(content).production;
+  let traits = 0;
+  if (r.traits?.some((id) => production.has(id))) traits = placedValue(state, content, r, placeOf(state, content, r, room), 'production');
   return Math.max(0.1, 1 + traits + mastery);
 }
 
@@ -427,6 +431,7 @@ export function traitCourtshipMult(content: Content, a: Resident, b: Resident): 
 /** Mastery tier (0 Apprentice, 1 Journeyman, 2 Master) for a room type. */
 export function masteryTier(content: Content, r: Resident, roomType: string): number {
   const seconds = r.mastery?.[roomType] ?? 0;
+  if (seconds <= 0) return 0;
   const tiers = traitsContent(content).tuning.masteryTierSeconds;
   let tier = 0;
   for (let i = 1; i < tiers.length; i++) if (seconds >= (tiers[i] ?? Infinity)) tier = i;
