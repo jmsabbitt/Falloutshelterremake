@@ -343,13 +343,13 @@ function runQuests(): void {
   const med = Math.min(5, Math.floor(s.resources.medpatch));
   const next = availableQuests(s, content).sort((a, b) => a.order - b.order)[0];
   const ids = team.map((r) => r.id);
-  // Go a couple of levels over, as the quest screen recommends.
-  if (next && avg >= next.level + 2) {
+  // Go once the team reaches the recommended level.
+  if (next && avg >= next.level) {
     applyCommand(s, content, { type: 'startQuest', questId: next.id, residentIds: ids, medpatch: med });
     return;
   }
   const offer = [...s.contracts.offers].sort((a, b) => a.level - b.level)[0];
-  if (offer && offer.level <= avg + 1) applyCommand(s, content, { type: 'startContract', contractId: offer.id, residentIds: ids, medpatch: med });
+  if (offer && offer.level <= avg + 3) applyCommand(s, content, { type: 'startContract', contractId: offer.id, residentIds: ids, medpatch: med });
 }
 
 const botStats: Record<string, number> = {};

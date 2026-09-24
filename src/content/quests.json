@@ -23,6 +23,7 @@
     "recoverHp": 0.15,
     "downedXp": 0.5,
     "tauntReduction": 0.5,
+    "recommendedOffset": 2,
     "partyScaleHp": 0.45,
     "partyScaleDamage": 0.6,
     "contracts": { "offers": 3, "refreshHours": 6, "unlockedBy": "act1_1", "levelSpread": 1 }
@@ -490,7 +491,7 @@
       "brief": "We have the door code, Warden, but it turns out we won't need it: 212's front door is standing wide open! That is against about forty regulations, and it's also very welcoming. Please pop in, say hello to HALCY-212, and find out why nobody is picking up.",
       "debrief": "Well, that was a lot of Hollowed for one lobby. HALCY-212 is still running, still cheerful, and still announcing that 'the Warden will be with you shortly'. It has been saying that for four months. We need to find that warden.",
       "requires": { "quests": ["act1_3"], "population": 28 },
-      "level": 6,
+      "level": 7,
       "travelMinutes": 12,
       "map": {
         "rooms": [

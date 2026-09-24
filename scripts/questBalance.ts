@@ -32,10 +32,11 @@ interface Setup {
 }
 
 const storySetups: Setup[] = [
-  { name: 'L-2 fists', gear: 'fists', offset: -2 },
+  // Offsets are from the quest's recommended level (its `level`).
+  { name: 'L-4 fists', gear: 'fists', offset: -4 },
+  { name: 'L-2 common', gear: 'common', offset: -2 },
   { name: 'L common', gear: 'common', offset: 0 },
-  { name: 'L+2 common', gear: 'common', offset: 2 },
-  { name: 'L+2 rare', gear: 'rare', offset: 2 },
+  { name: 'L rare', gear: 'rare', offset: 0 },
   { name: 'L20 rare', gear: 'rare', level: 20 },
 ];
 
@@ -175,13 +176,13 @@ for (const size of sizes) {
     if (size !== 3) continue;
     const [fists, , plus2, rare] = cells as [Cell, Cell, Cell, Cell];
     const avg = plus2.secs / runs;
-    check(plus2.wins / runs >= 0.9 && avg >= 60 && avg <= 180, `${def.id}: L+2 common wins ${pct(plus2.wins)} (>=90%) in ${Math.round(avg)}s (60-180s)`);
-    if (def.level >= 5) check(fists.wins / runs < 0.5, `${def.id}: L-2 fists wins ${pct(fists.wins)} (should usually lose)`);
+    check(plus2.wins / runs >= 0.9 && avg >= 60 && avg <= 180, `${def.id}: recommended level, common gear wins ${pct(plus2.wins)} (>=90%) in ${Math.round(avg)}s (60-180s)`);
+    if (def.level >= 5) check(fists.wins / runs < 0.5, `${def.id}: 4 levels under with fists wins ${pct(fists.wins)} (should usually lose)`);
     if (def.id === finale) {
       const boss = rare.bossFights ? rare.bossSecs / rare.bossFights : 0;
       check(
         rare.wins === runs && boss >= 45 && boss <= 120 && rare.bossDanger / Math.max(1, rare.bossFights) >= 0.5,
-        `${def.id} boss: L+2 rare wins ${pct(rare.wins)}, fight ${Math.round(boss)}s (45-120s), someone <50% HP in ${Math.round((100 * rare.bossDanger) / Math.max(1, rare.bossFights))}% of runs`,
+        `${def.id} boss: recommended level, rare gear wins ${pct(rare.wins)}, fight ${Math.round(boss)}s (45-120s), someone <50% HP in ${Math.round((100 * rare.bossDanger) / Math.max(1, rare.bossFights))}% of runs`,
       );
     }
   }

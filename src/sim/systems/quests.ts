@@ -193,6 +193,8 @@ export interface QuestTuning {
   partyScaleHp: number;
   partyScaleDamage: number;
   contracts: { offers: number; refreshHours: number; unlockedBy: string; levelSpread: number };
+  /** Levels between a quest's recommended level and the level its enemies fight at. */
+  recommendedOffset: number;
 }
 
 export interface QuestContent {
@@ -282,6 +284,15 @@ export function critRingSpeed(content: Content, r: Resident): number {
 export function damageReduction(content: Content, r: Resident): number {
   const t = tuning(content);
   return Math.min(t.maxReduction, t.gritReduction * effectiveStat(content, r, 'grit'));
+}
+
+/**
+ * A quest's `level` is the level we recommend for the party. Enemies are
+ * scaled as if the party were a little under it, so a party at the
+ * recommended level wins comfortably and one below it has a real fight.
+ */
+export function enemyLevel(content: Content, q: { level: number }): number {
+  return Math.max(1, q.level - tuning(content).recommendedOffset);
 }
 
 export function currentRoom(q: Quest): QuestRoom | undefined {
@@ -548,7 +559,7 @@ function partyScale(content: Content, q: Quest, base: number): number {
 
 function spawn(state: GameState, content: Content, q: Quest, ids: string[]): void {
   const t = tuning(content);
-  const scale = (1 + t.enemyHpPerLevel * (q.level - 1)) * partyScale(content, q, t.partyScaleHp);
+  const scale = (1 + t.enemyHpPerLevel * (enemyLevel(content, q) - 1)) * partyScale(content, q, t.partyScaleHp);
   for (const id of ids) {
     const def = enemyDef(content, id);
     const hp = Math.round(def.hp * scale);
@@ -696,7 +707,7 @@ function damageMember(state: GameState, content: Content, q: Quest, m: QuestMemb
 function enemyHit(state: GameState, content: Content, q: Quest, e: QuestEnemy): number {
   const t = tuning(content);
   const def = enemyDef(content, e.defId);
-  const scale = (1 + t.enemyDamagePerLevel * (q.level - 1)) * partyScale(content, q, t.partyScaleDamage);
+  const scale = (1 + t.enemyDamagePerLevel * (enemyLevel(content, q) - 1)) * partyScale(content, q, t.partyScaleDamage);
   return nextInt(state.rng, def.damage[0], def.damage[1]) * scale * (e.enraged > 0 ? e.enrageMult : 1);
 }
 
@@ -1048,7 +1059,8 @@ function contractLevel(state: GameState, content: Content): number {
   const top = levels.slice(0, 3);
   const avg = top.length ? top.reduce((a, b) => a + b, 0) / top.length : 1;
   const spread = tuning(content).contracts.levelSpread;
-  return Math.max(1, Math.round(avg + nextInt(state.rng, -spread, spread)));
+  // Offers are stated as a recommended level, a little above the team's average fight level.
+  return Math.max(1, Math.round(avg + tuning(content).recommendedOffset + nextInt(state.rng, -spread, spread)));
 }
 
 function bountyFor(state: GameState, content: Content, tpl: ContractTemplateDef): QuestReward {
