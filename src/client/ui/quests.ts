@@ -21,6 +21,7 @@ import {
 import type { QuestView } from '../render/questView';
 import type { VaultView } from '../render/vaultView';
 import { duration, fmt, h, morph } from './dom';
+import type { Loadout, Loadouts } from './loadouts';
 import { type QuestHost, QuestScreen } from './questScreen';
 import { bountyView, rewardChips } from './questText';
 
@@ -30,6 +31,8 @@ export interface QuestUIHost extends QuestHost {
   refreshPanel(): void;
   /** Open the build panel (no office yet). */
   openBuild(): void;
+  /** M6: saved parties. */
+  loadouts?: Loadouts;
 }
 
 type Target = { questId: string } | { contractId: number };
@@ -422,6 +425,12 @@ export class QuestUI {
           ...(['Tank', 'Damage', 'Support'] as const).map((role) => h('span', { class: roles.has(role) ? 'have' : 'miss' }, `${roles.has(role) ? '✓' : '·'} ${role}`)),
           h('span', {}, hasHaymaker ? ' · Haymaker can interrupt wind-ups' : ' · Tip: a Brawn resident brings Haymaker, which interrupts wind-ups'),
         ),
+        this.host.loadouts?.bar({
+          kind: 'party',
+          current: () => ({ ids: d.ids, medpatch: d.medpatch, purge: 0 }),
+          apply: (l) => this.applyLoadout(l),
+          rerender: again,
+        }) ?? null,
         h('div', { class: 'pick-list' }, ...rows),
         h(
           'div',
@@ -448,6 +457,26 @@ export class QuestUI {
     const old = this.host.modalHost.firstElementChild;
     if (old && old.querySelector('.party-modal')) morph(old, modal);
     else this.host.modalHost.replaceChildren(modal);
+  }
+
+  /** M6: put a saved party into the picker; anyone who can't go now is left out. */
+  private applyLoadout(l: Loadout): void {
+    const d = this.draft;
+    if (!d) return;
+    const { state, content } = this.game;
+    const t = questContent(content).tuning;
+    const ok: number[] = [];
+    const out: string[] = [];
+    for (const id of l.ids) {
+      const r = state.residents.find((x) => x.id === id);
+      const why = r ? canQuest(state, r) : 'gone';
+      if (r && why === null && ok.length < t.maxParty) ok.push(id);
+      else out.push(`${r?.firstName ?? 'Someone'} (${why ?? 'party full'})`);
+    }
+    d.ids = ok;
+    d.medpatch = Math.max(0, Math.min(l.medpatch, t.maxSupplies, Math.floor(state.resources.medpatch)));
+    if (out.length) this.host.toast(`Left out: ${out.join(', ')}`, 'bad');
+    this.renderPicker();
   }
 
   // ---------------------------------------------------------------- events

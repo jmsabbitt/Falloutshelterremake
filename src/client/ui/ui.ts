@@ -72,12 +72,12 @@ import type { Content } from '../../sim';
 import type { Game } from '../game';
 import type { QuestView } from '../render/questView';
 import type { VaultView } from '../render/vaultView';
-import { downloadFile } from '../storage';
 import { duration, fmt, h, morph } from './dom';
 import { LegacyUI } from './prestige';
+import { QolUI } from './qol';
 import { QuestUI } from './quests';
 
-type PanelKind = 'build' | 'room' | 'residents' | 'storage' | 'crates' | 'explore' | 'quests' | 'legacy' | 'achievements' | 'menu' | null;
+type PanelKind = 'build' | 'room' | 'residents' | 'storage' | 'crates' | 'explore' | 'quests' | 'legacy' | 'achievements' | 'menu' | 'notices' | null;
 type StorageTab = 'items' | 'salvage' | 'blueprints';
 
 /** Draft of the send-to-explore modal. */
@@ -146,7 +146,6 @@ export class UI {
   private residentId: number | null = null;
   /** When set, the storage panel is picking gear for this resident. */
   private equipFor: { residentId: number; slot: 'weapon' | 'outfit' } | null = null;
-  private sortBy: 'level' | StatKey | 'name' = 'level';
   private lastPanelRender = 0;
   private lastToolbarKey = '';
   /** What the open panel is showing; a change means a fresh render rather than a patch. */
@@ -163,6 +162,8 @@ export class UI {
   readonly quests: QuestUI;
   /** M5: Legacy panel, HUD chips and the Found flow. */
   readonly legacy: LegacyUI;
+  /** M6: resident list, notification centre, save slots, loadouts, stats overlay. */
+  readonly qol: QolUI;
 
   constructor(
     private game: Game,
@@ -171,9 +172,27 @@ export class UI {
   ) {
     this.root = document.getElementById('ui') as HTMLElement;
     this.root.append(this.hud, this.toasts, this.panelHost, this.hint, this.toolbar, this.modalHost);
+    this.qol = new QolUI({
+      game,
+      view,
+      hud: this.hud,
+      modalHost: this.modalHost,
+      toast: (text, kind) => this.toast(text, kind),
+      refresh: () => this.renderPanel(true),
+      openNotices: () => this.openPanel('notices'),
+      closePanel: () => this.closePanel(),
+      panel: () => this.panel,
+      selectedId: () => this.residentId,
+      select: (id) => {
+        this.residentId = id;
+        this.view.selectedResidentId = id;
+      },
+      detailCard: (r) => this.residentCard(r, true),
+    });
     this.quests = new QuestUI(
       {
         game,
+        loadouts: this.qol.loadouts,
         modalHost: this.modalHost,
         toast: (text, kind) => this.toast(text, kind),
         openQuests: () => this.openPanel('quests'),
@@ -205,6 +224,10 @@ export class UI {
 
   onRoomTap(room: Room): void {
     const { state } = this.game;
+    if (this.panel === 'residents' && this.qol.people.bulkCount()) {
+      this.qol.people.assignPicked(room);
+      return;
+    }
     if (this.residentId !== null && this.panel === 'residents') {
       this.assign(this.residentId, room);
       return;
@@ -235,10 +258,15 @@ export class UI {
   }
 
   onResidentTap(res: Resident): void {
+    if (this.panel === 'residents' && this.qol.people.bulk) {
+      this.qol.people.togglePick(res.id);
+      return;
+    }
     this.openPanel('residents');
     this.residentId = res.id;
     this.view.selectedResidentId = res.id;
     this.renderPanel(true);
+    this.qol.people.toTop();
   }
 
   onResidentDrop(residentId: number, room: Room | null): void {
@@ -276,6 +304,7 @@ export class UI {
     this.renderToolbar();
     this.quests.update();
     this.legacy.update();
+    this.qol.update();
     if (performance.now() - this.lastPanelRender > 500) this.renderPanel();
   }
 
@@ -356,6 +385,8 @@ export class UI {
       text = `Tap a green slot to build ${def?.name ?? ''} (${buildCost(state, this.game.content, this.view.buildMode)} scrip)`;
     } else if (this.equipFor) {
       text = 'Pick an item from storage to equip';
+    } else if (this.panel === 'residents' && this.qol.people.bulkCount()) {
+      text = `Tap a room to send the ${this.qol.people.bulkCount()} selected there`;
     } else if (this.residentId !== null && this.panel === 'residents') {
       const r = state.residents.find((x) => x.id === this.residentId);
       if (r && !r.dead && !isChild(state, r)) text = `Tap a room (or drag ${r.firstName}) to assign`;
@@ -431,6 +462,7 @@ export class UI {
       this.view.selectedRoomId = null;
     }
     if (kind === 'legacy') this.legacy.opened();
+    if (kind === 'notices') this.qol.notices.opened();
     this.panel = kind;
     this.renderToolbar();
     this.renderPanel(true);
@@ -471,6 +503,7 @@ export class UI {
       legacy: 'Legacy',
       achievements: 'Goals',
       menu: 'Menu',
+      notices: 'Notifications',
     };
     let body: HTMLElement;
     let title = titles[this.panel];
@@ -490,7 +523,10 @@ export class UI {
         break;
       }
       case 'residents':
-        body = this.residentsPanel();
+        body = this.qol.people.panel();
+        break;
+      case 'notices':
+        body = this.qol.notices.panel(() => this.renderPanel(true));
         break;
       case 'storage':
         body = this.storagePanel();
@@ -881,48 +917,6 @@ export class UI {
     const res = this.game.run(cmd);
     this.toast(res.ok ? okText : res.reason, res.ok ? 'good' : 'bad');
     this.renderPanel(true);
-  }
-
-  private residentsPanel(): HTMLElement {
-    const { state, content } = this.game;
-    const list = state.residents.filter((r) => !r.waiting);
-    const key = this.sortBy;
-    list.sort((a, b) => {
-      if (key === 'name') return a.firstName.localeCompare(b.firstName);
-      if (key === 'level') return b.level - a.level || a.id - b.id;
-      return effectiveStats(content, b)[key] - effectiveStats(content, a)[key] || a.id - b.id;
-    });
-    const tabs = h(
-      'div',
-      { class: 'tabs' },
-      ...(['level', 'name', ...STAT_KEYS] as const).map((k) =>
-        h(
-          'button',
-          {
-            class: this.sortBy === k ? 'active' : '',
-            onclick: () => {
-              this.sortBy = k;
-              this.renderPanel(true);
-            },
-          },
-          k === 'level' ? 'Level' : k === 'name' ? 'Name' : STAT_LABEL[k],
-        ),
-      ),
-    );
-    const idle = list.filter((r) => !r.dead && !isAway(r) && r.roomId === null && !isChild(state, r)).length;
-    const exploring = list.filter((r) => isAway(r)).length;
-    const kids = list.filter((r) => isChild(state, r)).length;
-    // Selected resident first, expanded.
-    const selected = list.find((r) => r.id === this.residentId);
-    const rest = list.filter((r) => r.id !== this.residentId);
-    return h(
-      'div',
-      { class: 'body' },
-      h('div', { class: 'muted', style: 'margin-bottom:6px' }, `${list.length} residents · ${idle} idle${exploring ? ` · ${exploring} exploring` : ''}${kids ? ` · ${kids} children` : ''}. Select one, then tap a room.`),
-      tabs,
-      selected ? this.residentCard(selected, true) : null,
-      ...rest.map((r) => this.residentCard(r, false)),
-    );
   }
 
   // ---------------------------------------------------------------- storage
@@ -1369,29 +1363,11 @@ export class UI {
   }
 
   private menuPanel(): HTMLElement {
-    const fileInput = h('input', { type: 'file', accept: 'application/json,.json', style: 'display:none' }) as HTMLInputElement;
-    fileInput.addEventListener('change', async () => {
-      const f = fileInput.files?.[0];
-      if (!f) return;
-      try {
-        this.game.importSave(await f.text());
-        this.toast('Save imported', 'good');
-      } catch (err) {
-        this.toast(`Import failed: ${(err as Error).message}`, 'bad');
-      }
-    });
     return h(
       'div',
       { class: 'body' },
-      h('p', { class: 'muted' }, 'The game saves automatically in this browser.'),
-      h(
-        'div',
-        { class: 'row', style: 'flex-wrap:wrap;justify-content:flex-start' },
-        h('button', { onclick: () => (this.game.save(), this.toast('Saved', 'good')) }, 'Save now'),
-        h('button', { onclick: () => downloadFile(`homestead-${this.game.state.homesteadNumber}.json`, this.game.exportSave()) }, 'Export save'),
-        h('button', { onclick: () => fileInput.click() }, 'Import save'),
-        fileInput,
-      ),
+      h('p', { class: 'muted', style: 'margin-top:0' }, 'The game saves automatically in this browser. Keep copies in the slots below, or export them to a file.'),
+      this.qol.saves.section(),
       h(
         'div',
         { class: 'row', style: 'margin-top:18px' },
@@ -1400,7 +1376,7 @@ export class UI {
           {
             class: 'danger',
             onclick: () => {
-              if (confirm('Start a brand new homestead? Your current save will be erased.')) {
+              if (confirm('Start a brand new homestead? Your current one is replaced. A copy is kept under Backups until the next load.')) {
                 this.game.reset();
                 this.closePanel();
                 this.showWelcome();
@@ -1410,7 +1386,7 @@ export class UI {
           'New homestead',
         ),
       ),
-      h('p', { class: 'muted', style: 'margin-top:18px' }, 'Homestead is an early prototype (milestone M5). Placeholder art. Developer console: window.homestead'),
+      h('p', { class: 'muted', style: 'margin-top:18px' }, 'Homestead is an early prototype (milestone M6). Placeholder art. Developer console: window.homestead'),
     );
   }
 
@@ -1702,6 +1678,17 @@ export class UI {
       this.openPanel('explore');
     };
 
+    const loadouts = this.qol.loadouts.bar({
+      kind: 'explore',
+      current: () => ({ ids: d.residentId !== null ? [d.residentId] : [], medpatch: d.medpatch, purge: d.purge, regionId: d.regionId }),
+      apply: (l) => {
+        const note = this.qol.loadouts.applyExplore(l, d, pickResident);
+        if (note) this.toast(note, 'bad');
+        again();
+      },
+      rerender: again,
+    });
+
     this.modalHost.replaceChildren(
       h(
         'div',
@@ -1710,6 +1697,7 @@ export class UI {
           'div',
           { class: 'modal explore-modal' },
           h('h2', {}, 'Into the Glarelands'),
+          loadouts,
           picker,
           summary,
           h('h3', { class: 'group' }, 'Region'),
@@ -1868,6 +1856,7 @@ export class UI {
     this.journalToasts(events);
     this.quests.onEvents(events);
     this.legacy.onEvents(events);
+    this.qol.onEvents(events);
     for (const ev of events) {
       if (ev.type === 'expeditionStarted') this.explorerOf.set(ev.expeditionId, ev.residentId);
       switch (ev.type) {
@@ -2014,6 +2003,7 @@ export class UI {
   private onStateReplaced(): void {
     if (this.quests.screen.isOpen) this.quests.screen.close();
     this.legacy.onStateReplaced();
+    this.qol.onStateReplaced();
     this.modalHost.replaceChildren();
     this.exploreDraft = null;
     this.explorerOf.clear();
