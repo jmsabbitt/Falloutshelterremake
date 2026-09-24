@@ -135,7 +135,7 @@ npm run sprites
 ```
 
 This writes:
-- `public/sprites/<id>/<anim>_<layer>.png` (the game layers)
+- `public/sprites/<id>/<anim>_<layer>.webp` (the game layers)
 - `public/sprites/manifest.json`
 - `art/previews/<id>_<anim>.png`: a contact sheet in several colour sets
 
