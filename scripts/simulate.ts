@@ -13,6 +13,9 @@ import {
   combatDamage,
   effectiveStat,
   foodDemandPerMin,
+  availableQuests,
+  canQuest,
+  isAway,
   isChild,
   loadContent,
   newGame,
@@ -30,6 +33,7 @@ import {
   type Resident,
   type Room,
 } from '../src/sim';
+import { playQuest } from '../src/sim/systems/questBot';
 
 const content = loadContent();
 const hours = Number(process.argv[2] ?? 48);
@@ -229,13 +233,15 @@ function botTurn(): void {
       if (best) applyCommand(s, content, { type: 'craft', roomId: shop.id, defId: best.defId });
     }
     if (freeSlots(shop) > 0) {
-      const helper = s.residents.find((r) => !r.dead && !r.waiting && !isChild(s, r) && r.roomId === null && r.expedition === null);
+      const helper = s.residents.find((r) => !r.dead && !r.waiting && !isChild(s, r) && r.roomId === null && !isAway(r));
       if (helper) applyCommand(s, content, { type: 'assign', residentId: helper.id, roomId: shop.id });
     }
   }
 
+  runQuests();
+
   // Jobs: fill production rooms with the best-matching idle adults.
-  const idle = s.residents.filter((r) => !r.dead && !r.waiting && !isChild(s, r) && r.roomId === null && r.expedition === null);
+  const idle = s.residents.filter((r) => !r.dead && !r.waiting && !isChild(s, r) && r.roomId === null && !isAway(r));
   const jobs = s.rooms.filter((r) => {
     const cat = roomDef(content, r).category;
     return (cat === 'production' || cat === 'radio') && freeSlots(r) > 0;
@@ -250,6 +256,45 @@ function botTurn(): void {
       })[0];
     if (best) applyCommand(s, content, { type: 'assign', residentId: r.id, roomId: best.id });
   }
+}
+
+/**
+ * Quests: build the Command Office at 18, send the three strongest on the
+ * next story quest once they are near its level, otherwise take a contract.
+ * On-site play is handed to the quest bot (which plays in real time).
+ */
+function runQuests(): void {
+  if (population(s) >= 18 && !s.rooms.some((r) => r.type === 'office')) tryBuild('office');
+  for (const q of s.quests) {
+    if (q.status === 'returned') {
+      applyCommand(s, content, { type: 'collectQuest', questId: q.id });
+      if (q.outcome) bump(`quest.${q.outcome}`);
+    } else if (q.status === 'onsite') questSeconds += playQuest(s, content, q.id);
+  }
+  const office = s.rooms.find((r) => r.type === 'office');
+  if (!office || s.quests.length >= (office.level)) return;
+  const door = s.rooms.find((r) => r.type === 'door');
+  const team = s.residents
+    .filter((r) => canQuest(s, r) === null && r.roomId !== door?.id && !r.dead)
+    .sort((a, b) => b.level + combatDamage(content, b) * 2 - (a.level + combatDamage(content, a) * 2))
+    .slice(0, 3);
+  if (team.length < 3) return;
+  const avg = team.reduce((a, r) => a + r.level, 0) / team.length;
+  const med = Math.min(5, Math.floor(s.resources.medpatch));
+  const next = availableQuests(s, content).sort((a, b) => a.order - b.order)[0];
+  const ids = team.map((r) => r.id);
+  if (next && avg >= next.level) {
+    applyCommand(s, content, { type: 'startQuest', questId: next.id, residentIds: ids, medpatch: med });
+    return;
+  }
+  const offer = [...s.contracts.offers].sort((a, b) => a.level - b.level)[0];
+  if (offer && offer.level <= avg + 1) applyCommand(s, content, { type: 'startContract', contractId: offer.id, residentIds: ids, medpatch: med });
+}
+
+const botStats: Record<string, number> = {};
+let questSeconds = 0;
+function bump(key: string): void {
+  botStats[key] = (botStats[key] ?? 0) + 1;
 }
 
 const row = (h: number) => {
@@ -280,5 +325,10 @@ console.log('deaths by cause:', Object.entries(s.stats).filter(([k]) => k.starts
 console.log('exploration:', ['expeditionsCompleted', 'explorerSeconds', 'glarelandsScrip', 'encountersWon', 'salvageFound', 'fragmentsFound', 'recipesLearned', 'itemsCrafted'].map((k) => `${k} ${Math.round(s.stats[k] ?? 0)}`).join(', '));
 console.log('salvage bin:', Object.entries(s.salvage).filter(([, n]) => n > 0).map(([k, n]) => `${k}×${n}`).join(' ') || 'empty', '· recipes', s.recipes.length);
 console.log('highest level', s.stats['highestLevel'], '· level-ups', s.stats['levelUps'], '· arrivals', ['wanderer', 'radio', 'crate'].map((k) => `${k} ${s.stats['arrivals.' + k] ?? 0}`).join(' '));
+console.log(
+  'quests:',
+  ['questsStarted', 'questsCompleted', 'storyQuestsCompleted', 'contractsCompleted', 'questWipes', 'bossesDefeated', 'questCrits', 'abilitiesUsed'].map((k) => `${k} ${s.stats[k] ?? 0}`).join(', '),
+  `· story done: ${s.questsDone.join(' ') || 'none'} · outcomes ${JSON.stringify(botStats)} · ${Math.round(questSeconds / 60)} min on site`,
+);
 const unused: Resident[] = s.residents.filter((r) => !r.dead && !r.waiting && !isChild(s, r) && r.roomId === null);
 console.log('idle adults at end:', unused.length);
