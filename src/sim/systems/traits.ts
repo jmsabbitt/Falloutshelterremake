@@ -497,10 +497,12 @@ export function tickMastery(state: GameState, content: Content, dt: number): voi
     if (dt <= 0 || !isWorking(state, r)) continue;
     const room = state.rooms.find((x) => x.id === r.roomId);
     if (!room || !roomDef(content, room).stat) continue;
-    const before = masteryTier(content, r, room.type);
-    r.mastery[room.type] = (r.mastery[room.type] ?? 0) + dt * masteryRate(content, r);
-    const after = masteryTier(content, r, room.type);
-    for (let tier = before + 1; tier <= after; tier++) {
+    const before = r.mastery[room.type] ?? 0;
+    const after = before + dt * masteryRate(content, r);
+    r.mastery[room.type] = after;
+    for (let tier = 1; tier <= top; tier++) {
+      const at = tiers[tier] ?? Infinity;
+      if (before >= at || after < at) continue;
       bump(state, 'masteryUps');
       if (tier === top) {
         bump(state, 'masteryMasters');
