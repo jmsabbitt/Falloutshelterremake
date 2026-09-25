@@ -23,6 +23,8 @@ export interface ToastOptions {
 export type ToastFn = (text: string, kind?: ToastKind, opts?: ToastOptions) => void;
 
 const MAX = 3;
+/** Phones and short landscape screens show fewer at once, so they don't bury the vault. */
+const maxToasts = (): number => (window.innerWidth < 600 || window.innerHeight < 500 ? 2 : MAX);
 const LIFE = { low: 3500, normal: 4200, warn: 6500 };
 
 interface Open {
@@ -60,7 +62,7 @@ export class Toasts {
 
   /** Over the limit: drop the lowest priority first, the oldest of those first. */
   private trim(): void {
-    while (this.el.children.length > MAX) {
+    while (this.el.children.length > maxToasts()) {
       const kids = [...this.el.children] as HTMLElement[];
       let victim = kids[kids.length - 1]!;
       for (let i = kids.length - 1; i >= 0; i--) {

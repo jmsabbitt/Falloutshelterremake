@@ -68,7 +68,14 @@ The client only changes the game through `applyCommand`. This keeps the simulati
   - *Factions:* the Long Road Caravan Co., the Scrapwright Guild, the Order of the Last Lamp, the Rustman clans and the rival Halcyon Homestead 9. You reach them through the Signal Mast. Reputation runs from Hostile to Allied. The Trading Post runs a trade board (50 offers, refreshed every 8 h), caravans take 1–3 residents and goods down a faction's road (online and offline, with ambushes), and you earn Influence to spend on offers and recruits. Hostile Rustmen raid more often.
   - *Act 2 "Neighbours":* 8 quests for the second homestead, ending in `act2_finale`, which the Charter now requires. There are faction-choice events and 6 faction contracts. It opens the Glass Flats, a harsher region with 17 enemies, 12 locations, 10 NPCs and 46 musings.
   - The game now has 141 achievements. Screenshots are in `docs/screens/m7/`; the contract is `docs/design/M7-spec.md`. Console: `homestead.m7.topside()`, `.meet()`, `.influence(n)`, `.weather(kind)`, `.arrive()`.
-- Next: **M8** (Mobile: Capacitor builds, touch polish, notifications).
+- **M8 (Mobile): playable on phones.**
+  - *App:* a Capacitor 8 shell for Android and iOS (`ai.avolis.homestead`). `npm run android:build` builds a debug APK, and CI does the same on every push (`.github/workflows/android.yml`). iOS is generated, with Swift Package Manager and no CocoaPods, and needs Xcode on a Mac to compile.
+  - *Web:* the build also installs as a PWA. It plays offline and the fonts are bundled.
+  - *Saves:* they are compressed (a population-100 save is about 7.7k characters) and mirrored to native storage, so the OS clearing the WebView can't lose them.
+  - *Notifications:* local notifications come from `upcomingReminders`, which predicts what finishes while the game is closed: explorers, caravans, quest parties, crafting, research, storage, births, fresh offers, the daily crate, digs and outposts. Each kind can be switched on or off, and there are quiet hours. Permission is asked the first time it matters.
+  - *Touch:* gestures are tuned (fling, pinch, double-tap zoom, hold to pick up a resident, edge scrolling while dragging). A room slides clear of its sheet. The Android back button closes things in order. Every tap target is at least 44 px, and swipe-down closes a sheet. There are landscape and tablet layouts, haptics, and an idle frame governor with a battery saver.
+  - Screenshots are in `docs/screens/m8/`, the contract is `docs/design/M8-spec.md`, and build notes are in `docs/mobile.md`.
+- Next: **M9+** (content: Acts 3+, more regions, creatures, legendary residents, custom rulesets).
 
 Quest tools: `npm run quest-balance` plays every quest with a scripted party across levels and gear. In the browser console, `homestead.quest.office()`, `.party(level, weapon)`, `.skip()` and `.win()` help testing.
 
