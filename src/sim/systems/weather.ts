@@ -23,6 +23,7 @@ import { bonus, type BonusEffect } from '../bonuses';
 import { roomDef } from '../grid';
 import { bump, bumpMax, effectiveMaxHp, effectiveStat, isAway, workersInRoom } from '../residents';
 import type { GameState, Room, WeatherKind, WeatherState } from '../types';
+import { ruleFlag } from './rulesets';
 
 export interface WeatherKindDef {
   name: string;
@@ -123,6 +124,8 @@ function roll(state: GameState, n: number, salt: number): number {
 
 /** The weather after `current`: a weighted pick among the other kinds, and its length in seconds. */
 export function nextWeather(state: GameState, content: Content, current: WeatherKind, n: number): WeatherState {
+  // Glass Sky (M9): the sky never clears.
+  if (ruleFlag(state, content, 'glassSky') && topsideContent(content).weather.kinds.taintstorm) return { kind: 'taintstorm', remaining: 3600 };
   const kinds = topsideContent(content).weather.kinds;
   const options = (Object.keys(kinds) as WeatherKind[]).filter((k) => k !== current && (kinds[k]?.weight ?? 0) > 0);
   const pool = options.length ? options : [current];

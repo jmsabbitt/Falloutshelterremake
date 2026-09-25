@@ -5,6 +5,7 @@ import { roomDef } from './grid';
 import { costMult } from './bonuses';
 import { livingResidents } from './residents';
 import type { GameState, ResourceKey, Room } from './types';
+import { rulesetMods } from './systems/rulesets';
 
 export function storageCapacity(state: GameState, content: Content, kind: StorageKind): number {
   const base = (content.balance.baseStorage as Record<string, number>)[kind] ?? 0;
@@ -13,12 +14,12 @@ export function storageCapacity(state: GameState, content: Content, kind: Storag
     const def = roomDef(content, room);
     if (def.storage?.resource === kind) total += tableValue(def.storage.amount, room.level, room.segments);
   }
-  if (kind === 'population') total = Math.min(total, content.balance.maxPopulation);
+  if (kind === 'population') total = Math.min(total, content.balance.maxPopulation, rulesetMods(state, content).populationCap);
   return total;
 }
 
 export function resourceCapacity(state: GameState, content: Content, key: ResourceKey): number {
-  return storageCapacity(state, content, key);
+  return Math.floor(storageCapacity(state, content, key) * rulesetMods(state, content).storage(key));
 }
 
 /**
@@ -75,5 +76,7 @@ export function refreshUnlocks(state: GameState, content: Content): void {
 }
 
 export function addScrip(state: GameState, content: Content, amount: number): void {
+  // Lean Times (M9) halves what comes in, not what goes out.
+  if (amount > 0) amount *= rulesetMods(state, content).scripIncome;
   state.scrip = Math.max(0, Math.min(content.balance.maxScrip, state.scrip + amount));
 }

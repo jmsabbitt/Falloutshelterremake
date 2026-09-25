@@ -17,6 +17,7 @@ import { bump, bumpMax } from '../residents';
 import { chance, nextFloat } from '../rng';
 import type { GameState, ResourceKey, Resident, Room } from '../types';
 import { isDeepFloor } from './deep';
+import { ruleFlag } from './rulesets';
 
 // ------------------------------------------------------------------ content types
 
@@ -187,6 +188,7 @@ function inSpan(hour: number, [from, to]: [number, number]): boolean {
 
 /** The current work shift (Night Owls and Early Birds care). */
 export function currentShift(state: GameState, content: Content): Shift {
+  if (ruleFlag(state, content, 'endlessNight')) return 'night';
   const h = homesteadHour(state, content);
   const shifts = traitsContent(content).tuning.shifts;
   if (inSpan(h, shifts.night)) return 'night';
