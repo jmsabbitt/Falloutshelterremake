@@ -342,7 +342,7 @@ If you would rather end up in Godot for sure, **Option B** is better than C: bui
 | M6 | Depth pass | Research tree, the Deep, traits and professions, automation, QoL tools | The mid-game after 100 has new goals |
 | M7 | Topside and factions | Surface layer, factions, trade, caravans, Act 2 | Homestead 2 has a new story and a living surface (done) |
 | M8 | Mobile | Capacitor builds, touch polish, notifications | Installable on a phone (done: debug APK, PWA) |
-| M9+ | Content | Acts 3+, more regions, creatures, legendary residents, custom rulesets | — |
+| M9+ | Content | Acts 3+, more regions, creatures, legendary residents, custom rulesets | M9 done: Act 3, the Stillwater, 11 legends, Collection Log and Seal, 4 new threats, rare-item paths, rulesets, Survival, Custom Game |
 
 Art and audio proceed in parallel. Placeholder art is fine through M4.
 

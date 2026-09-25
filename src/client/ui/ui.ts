@@ -96,6 +96,8 @@ import { Toasts, type ToastKind, type ToastOptions } from './toasts';
 import { TraitsUI } from './traits';
 import { FactionsUI, type FactionsTab } from './factions';
 import { TopsideUI } from './topside';
+import { reviveBlocked, reviveLabel, rulesHudChip, rulesTitle, survivalMark } from './rules';
+import { customGameButton } from './custom';
 import { LegendsUI } from './legends';
 import { CollectionUI } from './collection';
 import { m9Console } from '../m9Dev';
@@ -492,7 +494,7 @@ export class UI {
     const meters = h(
       'div',
       { class: 'hud-part hud-meters' },
-      h('div', { class: 'title', title: seal ? `Warden's Seal: ${seal}` : undefined }, seal ? h('span', { class: 'seal-mark' }, '✪ ') : null, `HOMESTEAD ${state.homesteadNumber}`),
+      h('div', { class: 'title', title: [seal ? `Warden's Seal: ${seal}` : '', rulesTitle(state, content) ?? ''].filter(Boolean).join(' · ') || undefined }, seal ? h('span', { class: 'seal-mark' }, '✪ ') : null, `HOMESTEAD ${state.homesteadNumber}${survivalMark(state)}`),
       meter('power', 'var(--power)', 'P'),
       meter('food', 'var(--food)', 'F'),
       meter('water', 'var(--water)', 'W'),
@@ -535,6 +537,7 @@ export class UI {
       this.research.hudChip(),
       this.deep.hudChip(),
       this.threat.hudChip(),
+      rulesHudChip(state, content, (t) => this.toast(t)),
       ...this.topside.hudChips(),
       ...this.legacy.hudChips(),
     );
@@ -1421,12 +1424,14 @@ export class UI {
           'button',
           {
             class: 'primary',
+            disabled: !!reviveBlocked(state),
+            title: reviveBlocked(state) ?? undefined,
             onclick: stop(() => {
               const res = this.game.run({ type: 'revive', residentId: r.id });
               this.toast(res.ok ? `${r.firstName} is back on their feet.` : res.reason, res.ok ? 'good' : 'bad');
             }),
           },
-          `Revive (${reviveCost(content, r)} scrip)`,
+          reviveLabel(state, fmt(reviveCost(content, r))),
         ),
         h(
           'button',
@@ -2122,10 +2127,11 @@ export class UI {
           'button',
           {
             class: 'primary',
-            disabled: state.scrip < cost,
+            disabled: state.scrip < cost || !!reviveBlocked(state),
+            title: reviveBlocked(state) ?? undefined,
             onclick: () => this.expCmd({ type: 'revive', residentId: r.id }, `${r.firstName} is back on their feet and exploring.`),
           },
-          `Revive (${fmt(cost)} scrip)`,
+          reviveLabel(state, fmt(cost)),
         ),
         h(
           'button',
@@ -2780,6 +2786,7 @@ export class UI {
         h('li', {}, 'Open your Supply Crates and arm your residents.'),
         h('li', {}, 'Build more rooms to grow.'),
       ),
+      h('p', { class: 'muted small', style: 'display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap' }, 'Just want to tinker?', customGameButton(() => this.modalHost.replaceChildren())),
     );
   }
 

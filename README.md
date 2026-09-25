@@ -75,7 +75,16 @@ The client only changes the game through `applyCommand`. This keeps the simulati
   - *Notifications:* local notifications come from `upcomingReminders`, which predicts what finishes while the game is closed: explorers, caravans, quest parties, crafting, research, storage, births, fresh offers, the daily crate, digs and outposts. Each kind can be switched on or off, and there are quiet hours. Permission is asked the first time it matters.
   - *Touch:* gestures are tuned (fling, pinch, double-tap zoom, hold to pick up a resident, edge scrolling while dragging). A room slides clear of its sheet. The Android back button closes things in order. Every tap target is at least 44 px, and swipe-down closes a sheet. There are landscape and tablet layouts, haptics, and an idle frame governor with a battery saver.
   - Screenshots are in `docs/screens/m8/`, the contract is `docs/design/M8-spec.md`, and build notes are in `docs/mobile.md`.
-- Next: **M9+** (content: Acts 3+, more regions, creatures, legendary residents, custom rulesets).
+- **M9 (Content): playable.**
+  - *Act 3, "The Seal":* 8 quests for the third homestead, ending in `act3_finale` (the Charter now needs it). It has a two-phase finale, 21 new enemies, 15 events and 5 contracts. It opens the **Stillwater**, the hardest region, with 15 enemies, 11 locations, 9 NPCs and 45 musings.
+  - *Legendary residents:* 11 named characters (for example Marla "Switchback" Voss, Doc Ferris, Rook, Captain Orla Brandt). Each has a signature trait and a two-quest personal questline that "awakens" them. They join through faction standing, the radio, Legendary crates, the Deep, a boss's first defeat, treasure caches or the story. You can recall them from outposts.
+  - *Collection Log and Warden's Seal:* a codex of items, legends, creatures, rooms and regions, with milestone crates. The Seal is earned with every other achievement; the ones for losing people are optional. The game now has 229 achievements.
+  - *New threats:* electrical surges, the Hollowed, Glassbacks (they jump rooms and drain power) and **Maulers**, which a noise-and-wealth meter on the Threat gauge summons with a warning.
+  - *Rare-item paths:* a guaranteed drop the first time each of the 24 bosses is defeated, treasure maps that lead to 5 caches, region-exclusive loot, and 14 loot-only items.
+  - *Rulesets and Survival:* 9 rulesets (Famine, Lean Times, Brownout, Short Fuse, No Radio, Iron Door, Endless Night, Glass Sky, Skeleton Crew) chosen when founding. Each is unlocked by prestige progress and pays extra Legacy. Survival means the fallen stay fallen.
+  - *Custom Game:* 7 presets or an advanced setup, a sandbox console, a ×1–×100 time scale, its own save slot and no achievements.
+  - Screenshots are in `docs/screens/m9/`; the contract is `docs/design/M9-spec.md`. Console: `homestead.m9.*` and `homestead.custom.*`.
+- Next: the true ending for homesteads 4+, more regions and creatures, bespoke legend art, and polish.
 
 Quest tools: `npm run quest-balance` plays every quest with a scripted party across levels and gear. In the browser console, `homestead.quest.office()`, `.party(level, weapon)`, `.skip()` and `.win()` help testing.
 
