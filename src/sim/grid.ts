@@ -16,6 +16,19 @@ export function roomDef(content: Content, room: Room): RoomDef {
   return def;
 }
 
+/** A surface building sitting right above the door counts as next to it. */
+function isTopsideLink(content: Content, door: Room, top: Room): boolean {
+  if (door.type !== 'door' || top.floor !== TOPSIDE_FLOOR) return false;
+  const dl = door.x;
+  const dr = door.x + roomCells(content, door) - 1;
+  const tl = top.x;
+  const tr = top.x + roomCells(content, top) - 1;
+  return tl <= dr && tr >= dl;
+}
+
+/** Surface buildings live on this row, above floor 0. */
+export const TOPSIDE_FLOOR = -1;
+
 export function roomCells(content: Content, room: Room): number {
   return roomDef(content, room).cells * room.segments;
 }
@@ -42,6 +55,9 @@ function neighbours(state: GameState, content: Content, room: Room): Room[] {
       const ol = other.x;
       const or = other.x + roomCells(content, other) - 1;
       if (or === left || ol === right) out.push(other);
+    } else if (isTopsideLink(content, room, other) || isTopsideLink(content, other, room)) {
+      // Topside buildings are reached through the door, from the ground above it.
+      out.push(other);
     } else if (
       isElevator &&
       other.type === 'elevator' &&
@@ -80,7 +96,8 @@ export function canPlace(state: GameState, content: Content, type: string, floor
   const def = content.rooms[type];
   if (!def) return { ok: false, reason: 'unknown room type' };
   const { cellsPerFloor } = content.balance.grid;
-  if (floor < 0 || floor >= totalFloors(state, content)) return { ok: false, reason: floor >= content.balance.grid.floors ? 'excavate deeper first' : 'out of bounds' };
+  if (def.topside ? floor !== TOPSIDE_FLOOR : floor < 0) return { ok: false, reason: def.topside ? 'surface buildings go topside' : 'out of bounds' };
+  if (floor >= totalFloors(state, content)) return { ok: false, reason: floor >= content.balance.grid.floors ? 'excavate deeper first' : 'out of bounds' };
   if (x < 0 || x + def.cells > cellsPerFloor) return { ok: false, reason: 'out of bounds' };
   if (def.minFloor !== undefined && floor < def.minFloor) return { ok: false, reason: 'only in the Deep' };
 

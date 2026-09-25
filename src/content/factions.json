@@ -1,0 +1,8 @@
+{
+  "_comment": "Factions, reputation, trade and caravans. Typed in src/sim/systems/factions.ts; see docs/design/M7-spec.md.",
+  "tuning": { "tradeRefreshHours": 8, "repTiers": [-50, 0, 25, 50, 80] },
+  "factions": [
+    { "id": "caravaners", "name": "The Long Road Caravan Co.", "description": "Traders who have walked every road that's left, twice.", "startRep": 0 }
+  ],
+  "achievements": []
+}

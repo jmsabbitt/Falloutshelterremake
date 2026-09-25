@@ -10,8 +10,14 @@
     {
       "cycle": 2,
       "population": 100,
-      "contracts": 15,
-      "text": "Halcyon Charter §12(b): a sponsored homestead that reaches one hundred and has proven itself useful to the neighbourhood may sponsor another. The ribbon is reusable."
+      "quests": ["act2_finale"],
+      "text": "Halcyon Charter §12(b): a sponsored homestead that reaches one hundred and has settled its dealings with the neighbours may sponsor another. The ribbon is reusable."
+    },
+    {
+      "cycle": 3,
+      "population": 120,
+      "contracts": 20,
+      "text": "Halcyon Charter §12(c): a homestead of the third generation that reaches one hundred and twenty, and keeps the roads busy, may sponsor another. HALCY is running out of ribbon."
     }
   ],
   "scoring": {

@@ -15,6 +15,7 @@ import { buyPerk, collectOutposts } from './systems/prestige';
 import { doResearch } from './systems/research';
 import { startExcavation, totalFloors } from './systems/deep';
 import { autoAssign, idleAdults } from './systems/assign';
+import { collectCaravan, recallCaravan, sendCaravan, trade } from './systems/factions';
 import { abandonQuest, collectQuest, questAbility, questChoose, questCrit, questHeal, questMove, questTarget, startQuest } from './systems/quests';
 import { performRush } from './systems/rush';
 import type { CrateTier, GameState, Resident, Room } from './types';
@@ -66,7 +67,12 @@ export type Command =
   | { type: 'excavate' }
   | { type: 'autoAssign' }
   /** Build elevators straight down from the deepest shaft, as far as scrip allows (or to `floor`). */
-  | { type: 'extendShaft'; floor?: number };
+  | { type: 'extendShaft'; floor?: number }
+  // M7
+  | { type: 'trade'; offerId: number }
+  | { type: 'sendCaravan'; factionId: string; residentIds: number[]; goods: { salvage?: Record<string, number>; food?: number; water?: number; medpatch?: number } }
+  | { type: 'recallCaravan'; caravanId: number }
+  | { type: 'collectCaravan'; caravanId: number };
 
 export type CommandResult = { ok: true; detail?: string } | { ok: false; reason: string };
 
@@ -411,6 +417,15 @@ function dispatch(state: GameState, content: Content, cmd: Command): CommandResu
       return result(doResearch(state, content, cmd.nodeId));
     case 'excavate':
       return result(startExcavation(state, content));
+    case 'trade':
+      return result(trade(state, content, cmd.offerId));
+    case 'sendCaravan':
+      return result(sendCaravan(state, content, cmd.factionId, cmd.residentIds, cmd.goods));
+    case 'recallCaravan':
+      return result(recallCaravan(state, content, cmd.caravanId));
+    case 'collectCaravan':
+      return result(collectCaravan(state, content, cmd.caravanId));
+
     case 'extendShaft': {
       const target = Math.min(cmd.floor ?? totalFloors(state, content) - 1, totalFloors(state, content) - 1);
       let built = 0;

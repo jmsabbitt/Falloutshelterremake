@@ -138,6 +138,7 @@ export function canFoundHomestead(state: GameState, content: Content): string | 
   if (!charterStatus(state, content).ready) return 'the Charter milestone is not reached yet';
   if (state.quests.length) return 'bring every quest party home first';
   if (state.expeditions.length) return 'bring every explorer home first';
+  if (state.caravans?.length) return 'bring every caravan home first';
   return null;
 }
 

@@ -1,0 +1,12 @@
+{
+  "_comment": "Topside: surface buildings (rooms with \"topside\": true on floor -1 in rooms.json) and weather. Typed in src/sim/systems/weather.ts; see docs/design/M7-spec.md.",
+  "weather": {
+    "kinds": {
+      "clear": { "name": "Clear skies", "weight": 5, "minutes": [40, 90], "production": 1 },
+      "dust": { "name": "Dust storm", "weight": 2, "minutes": [15, 40], "production": 0.6 },
+      "taintstorm": { "name": "Taint storm", "weight": 1, "minutes": [10, 25], "production": 0.8, "taintPerMin": 0.6 },
+      "heatwave": { "name": "Heatwave", "weight": 1, "minutes": [20, 45], "production": 1.1 }
+    }
+  },
+  "achievements": []
+}

@@ -70,6 +70,8 @@ export interface Resident {
   mastery: Record<string, number>;
   /** The job held before leaving on a trip, to go back to on return. */
   homeRoomId?: number | null;
+  /** M7: caravan id while away trading. */
+  caravan?: number | null;
 }
 
 // ------------------------------------------------------------------ M3: Glarelands
@@ -202,6 +204,10 @@ export interface QuestReward {
   purge?: number;
   /** Exploration regions unlocked. */
   regions?: string[];
+  /** M7: reputation change per faction id. */
+  rep?: Record<string, number>;
+  /** M7: Influence. */
+  influence?: number;
 }
 
 export type QuestRoomKind = 'start' | 'empty' | 'fight' | 'loot' | 'event' | 'boss';
@@ -297,7 +303,7 @@ export interface Quest {
   pendingEvent: string | null;
   /** Short narrative lines (event outcomes, finds), newest last. */
   log: string[];
-  loot: ExpeditionLoot & { crates: Partial<Record<CrateTier, number>>; medpatch: number; purge: number; xp: number; bosses?: number };
+  loot: ExpeditionLoot & { crates: Partial<Record<CrateTier, number>>; medpatch: number; purge: number; xp: number; bosses?: number; rep?: Record<string, number>; influence?: number };
   supplies: { medpatch: number };
   /** Seconds left on the party-wide damage buff (Rally). */
   rally: number;
@@ -374,6 +380,51 @@ export interface DeepState {
   discoveries: string[];
 }
 
+// ------------------------------------------------------------------ M7: topside and factions
+
+export type WeatherKind = 'clear' | 'dust' | 'taintstorm' | 'heatwave';
+
+export interface WeatherState {
+  kind: WeatherKind;
+  /** Seconds left of the current weather. */
+  remaining: number;
+}
+
+export interface FactionState {
+  /** -100..100. */
+  rep: number;
+  /** Contact made (signal mast, a quest, or a caravan). */
+  met: boolean;
+}
+
+export interface TradeOffer {
+  id: number;
+  factionId: string;
+  /** What the homestead gives (scrip, influence, resources, salvage or an item). */
+  give: QuestReward & { scrip?: number; influence?: number };
+  /** What it gets. */
+  get: QuestReward & { influence?: number };
+  /** Reputation needed. */
+  minRep: number;
+  /** Times it can still be taken before the refresh. */
+  stock: number;
+}
+
+export type CaravanStatus = 'travelling' | 'returning' | 'returned';
+
+export interface Caravan {
+  id: number;
+  factionId: string;
+  residentIds: number[];
+  /** Goods carried: salvage id -> count, and resources. */
+  goods: { salvage: Record<string, number>; food: number; water: number; medpatch: number };
+  status: CaravanStatus;
+  remaining: number;
+  total: number;
+  /** Paid out on collection. */
+  result: { scrip: number; influence: number; rep: number; items: string[]; log: string[] } | null;
+}
+
 export type GameEvent =
   | { type: 'collected'; roomId: number; resource: ResourceKey; amount: number; bonusScrip: number; /** Steady scrip paid per batch. */ baseScrip?: number }
   | { type: 'rushSucceeded'; roomId: number }
@@ -442,7 +493,14 @@ export type GameEvent =
   | { type: 'digFinished'; stratum: number }
   | { type: 'discovery'; discoveryId: string }
   | { type: 'masteryUp'; residentId: number; roomType: string; tier: number }
-  | { type: 'autoAssigned'; count: number };
+  | { type: 'autoAssigned'; count: number }
+  // M7
+  | { type: 'weatherChanged'; kind: WeatherKind }
+  | { type: 'factionMet'; factionId: string }
+  | { type: 'repChanged'; factionId: string; rep: number; delta: number }
+  | { type: 'traded'; factionId: string; offerId: number }
+  | { type: 'caravanReturned'; caravanId: number }
+  | { type: 'caravanCollected'; caravanId: number };
 
 /** Lifetime counters. Feed achievements, the stats screen and balancing. */
 export type LifetimeStats = Record<string, number>;
@@ -486,6 +544,16 @@ export interface GameState {
   research: ResearchState;
   /** M6: excavation of the Deep. */
   deep: DeepState;
+  /** M7: surface weather (affects topside buildings). */
+  weather: WeatherState;
+  /** M7: faction reputation and contact. */
+  factions: Record<string, FactionState>;
+  /** M7: Influence, the diplomatic currency. */
+  influence: number;
+  /** M7: trade offers on the board, refreshed on a timer. */
+  trade: { offers: TradeOffer[]; refreshAt: number };
+  /** M7: caravans out trading. */
+  caravans: Caravan[];
   crates: Record<CrateTier, number>;
   crateTokens: number;
   /** Crates opened since the last legendary card (drives the pity guarantee). */

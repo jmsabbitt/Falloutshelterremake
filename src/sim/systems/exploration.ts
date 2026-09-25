@@ -647,6 +647,7 @@ export function canExplore(state: GameState, content: Content, r: Resident): str
   if (r.waiting) return 'let them in first';
   if (r.expedition !== null) return 'already out exploring';
   if (r.quest !== null) return 'away on a quest';
+  if ((r.caravan ?? null) !== null) return 'away with a caravan';
   if (isChild(state, r)) return 'children are too young to explore';
   if (r.pregnancy !== null) return 'too risky while expecting';
   if (state.expeditions.length >= MAX_EXPLORERS) return `no more than ${MAX_EXPLORERS} explorers at once`;

@@ -4,7 +4,7 @@
 import { newLegacy } from './legacy';
 import type { GameState } from './types';
 
-export const SAVE_VERSION = 6;
+export const SAVE_VERSION = 7;
 
 interface SaveFile {
   format: 'homestead-save';
@@ -88,6 +88,16 @@ const migrations: Record<number, Migration> = {
     rooms: (s['rooms'] as Record<string, unknown>[]).map((r) => ({ ...r, banked: 0 })),
     research: { points: 0, done: [] },
     deep: { strata: 0, dig: null, discoveries: [] },
+  }),
+  // v6 (M6) -> v7 (M7): topside weather, factions, Influence, trade, caravans.
+  6: (s) => ({
+    ...s,
+    residents: (s['residents'] as Record<string, unknown>[]).map((r) => ({ ...r, caravan: null })),
+    weather: { kind: 'clear', remaining: 3600 },
+    factions: {},
+    influence: 0,
+    trade: { offers: [], refreshAt: 0 },
+    caravans: [],
   }),
 };
 

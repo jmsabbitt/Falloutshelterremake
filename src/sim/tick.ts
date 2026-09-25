@@ -25,6 +25,8 @@ import { tickQuests } from './systems/quests';
 import { tickResearch } from './systems/research';
 import { tickDeep } from './systems/deep';
 import { tickMastery } from './systems/traits';
+import { tickWeather } from './systems/weather';
+import { tickFactions } from './systems/factions';
 import { tickRushStrain } from './systems/rush';
 import type { GameState } from './types';
 
@@ -57,6 +59,8 @@ function step(state: GameState, content: Content, dt: number, opts: StepOptions)
   tickResearch(state, content, dt, opts.offline);
   tickDeep(state, content, dt, opts.offline);
   tickMastery(state, content, dt);
+  tickWeather(state, content, dt, opts.offline);
+  tickFactions(state, content, dt);
   // Conveyor Belts (Legacy): finished batches collect themselves while playing.
   if (!opts.offline && bonus(state, content, 'autoCollect') > 0) {
     for (const room of state.rooms) {

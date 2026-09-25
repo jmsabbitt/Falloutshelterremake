@@ -33,6 +33,7 @@ import {
 import { earnCrate } from './crates';
 import { addFragment, addSalvage, fragmentsNeeded, knowsRecipe, unlockRecipe } from './inventory';
 import { leaveJob, returnToJob } from './assign';
+import { changeRep, factionDef, repOf } from './factions';
 import { grantItem, randomItemOf } from './items';
 
 // ------------------------------------------------------------------ content types
@@ -127,7 +128,8 @@ export interface QuestDef {
   giver: string;
   brief: string;
   debrief: string;
-  requires: { quests: string[]; population?: number };
+  /** cycle: homestead number in the prestige chain (Act 2 opens in the second). rep: minimum faction reputation. */
+  requires: { quests: string[]; population?: number; cycle?: number; rep?: { faction: string; min: number } };
   /** Enemy level: scales enemy HP and damage. The UI shows it as the recommended level. */
   level: number;
   partyMin?: number;
@@ -146,6 +148,10 @@ export interface ContractTemplateDef {
   map: QuestMapDef;
   /** What the bounty names up front. Legendary bounties are always fragments. */
   bounty: { rarity: 'rare' | 'legendary'; kind?: 'weapon' | 'outfit'; scrip: [number, number] };
+  /** M7: posted by a faction: success raises its reputation (and may pay Influence). */
+  faction?: string;
+  rep?: number;
+  influence?: number;
 }
 
 export interface AbilityDef {
@@ -254,6 +260,9 @@ export function questLocked(state: GameState, content: Content, def: QuestDef): 
   const missing = def.requires.quests.find((id) => !state.questsDone.includes(id));
   if (missing) return `finish "${questDef(content, missing)?.title ?? missing}" first`;
   if (def.requires.population && state.peakPopulation < def.requires.population) return `needs population ${def.requires.population}`;
+  if (def.requires.cycle && state.legacy.cycle < def.requires.cycle) return 'opens in a newly founded homestead';
+  const need = def.requires.rep;
+  if (need && repOf(state, content, need.faction) < need.min) return `needs ${factionDef(content, need.faction)?.name ?? need.faction} reputation ${need.min}`;
   return null;
 }
 
@@ -309,7 +318,7 @@ export function inCombat(q: Quest): boolean {
 // ------------------------------------------------------------------ starting
 
 function emptyLoot(): Quest['loot'] {
-  return { scrip: 0, items: [], salvage: {}, fragments: {}, recipes: [], crates: {}, medpatch: 0, purge: 0, xp: 0 };
+  return { scrip: 0, items: [], salvage: {}, fragments: {}, recipes: [], crates: {}, medpatch: 0, purge: 0, xp: 0, rep: {}, influence: 0 };
 }
 
 /** Build the run's rooms from a map definition: resolve pools, shuffle contents. */
@@ -530,6 +539,15 @@ export function rollReward(state: GameState, content: Content, q: Quest, reward:
   if (reward.purge) {
     loot.purge += reward.purge;
     parts.push(`${reward.purge} Purge`);
+  }
+  if (reward.influence) {
+    loot.influence = (loot.influence ?? 0) + reward.influence;
+    parts.push(`${reward.influence} Influence`);
+  }
+  for (const [faction, n] of Object.entries(reward.rep ?? {})) {
+    loot.rep = loot.rep ?? {};
+    loot.rep[faction] = (loot.rep[faction] ?? 0) + n;
+    parts.push(`${n > 0 ? '+' : ''}${n} ${factionDef(content, faction)?.name ?? faction} reputation`);
   }
   return parts.join(', ');
 }
@@ -1033,6 +1051,8 @@ export function collectQuest(state: GameState, content: Content, questId: number
     for (let i = 0; i < n; i++) earnCrate(state, tier, 'quest');
   }
   addScrip(state, content, loot.scrip);
+  state.influence += loot.influence ?? 0;
+  for (const [faction, n] of Object.entries(loot.rep ?? {})) changeRep(state, content, faction, n);
   for (const key of ['medpatch', 'purge'] as const) {
     const extra = loot[key] + (key === 'medpatch' ? q.supplies.medpatch : 0);
     const cap = resourceCapacity(state, content, key);
@@ -1086,6 +1106,10 @@ function contractLevel(state: GameState, content: Content): number {
 function bountyFor(state: GameState, content: Content, tpl: ContractTemplateDef): QuestReward {
   const b = tpl.bounty;
   const reward: QuestReward = { scrip: nextInt(state.rng, b.scrip[0], b.scrip[1]) };
+  if (tpl.faction) {
+    reward.rep = { [tpl.faction]: tpl.rep ?? 5 };
+    if (tpl.influence) reward.influence = tpl.influence;
+  }
   const candidates = Object.values(content.items).filter((d) => d.rarity === b.rarity && (!b.kind || d.kind === b.kind));
   const unknown = candidates.filter((d) => !knowsRecipe(state, content, d.id));
   if (b.rarity === 'legendary' && !unknown.length) {

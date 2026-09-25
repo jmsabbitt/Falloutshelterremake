@@ -150,6 +150,7 @@ export function createResident(state: GameState, content: Content, opts: CreateO
     quest: null,
     traits: rollTraits(state, content),
     mastery: {},
+    caravan: null,
   };
 }
 
@@ -240,7 +241,7 @@ export function livingResidents(state: GameState): Resident[] {
 
 /** Out exploring or on a quest: not in the homestead. */
 export function isAway(r: Resident): boolean {
-  return r.expedition !== null || r.quest !== null;
+  return r.expedition !== null || r.quest !== null || (r.caravan ?? null) !== null;
 }
 
 export function residentsInRoom(state: GameState, roomId: number): Resident[] {

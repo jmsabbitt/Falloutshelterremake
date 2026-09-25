@@ -14,6 +14,8 @@ import legacyJson from '../content/legacy.json';
 import researchJson from '../content/research.json';
 import deepJson from '../content/deep.json';
 import traitsJson from '../content/traits.json';
+import topsideJson from '../content/topside.json';
+import factionsJson from '../content/factions.json';
 import type { Rarity, ResourceKey, StatKey, Stats } from './types';
 
 export type RoomCategory = 'door' | 'elevator' | 'living' | 'production' | 'storage' | 'radio' | 'workshop' | 'office' | 'research';
@@ -50,6 +52,8 @@ export interface RoomDef {
   requiresResearch?: string;
   /** M6: lowest floor it can go on (deep-only rooms). */
   minFloor?: number;
+  /** M7: a surface building, built on floor -1 above the homestead. */
+  topside?: boolean;
 }
 
 export interface WeaponDef {
@@ -120,6 +124,9 @@ export interface Content {
   research: typeof researchJson;
   deep: typeof deepJson;
   traits: typeof traitsJson;
+  /** M7 (typed in systems/weather.ts and systems/factions.ts). */
+  topside: typeof topsideJson;
+  factions: typeof factionsJson;
 }
 
 function validate(content: Content): Content {
@@ -158,6 +165,8 @@ export function loadContent(): Content {
       ...((researchJson as { achievements?: AchievementDef[] }).achievements ?? []),
       ...((deepJson as { achievements?: AchievementDef[] }).achievements ?? []),
       ...((traitsJson as { achievements?: AchievementDef[] }).achievements ?? []),
+      ...((topsideJson as { achievements?: AchievementDef[] }).achievements ?? []),
+      ...((factionsJson as { achievements?: AchievementDef[] }).achievements ?? []),
     ],
     weapons: Object.fromEntries(weapons.map((w) => [w.id, w])),
     outfits: Object.fromEntries(outfits.map((o) => [o.id, o])),
@@ -172,6 +181,8 @@ export function loadContent(): Content {
     research: researchJson,
     deep: deepJson,
     traits: traitsJson,
+    topside: topsideJson,
+    factions: factionsJson,
   });
 }
 

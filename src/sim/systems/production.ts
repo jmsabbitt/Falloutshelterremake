@@ -11,6 +11,7 @@ import { bump, effectiveStat, grantXp, workersInRoom } from '../residents';
 import { chance, nextFloat } from '../rng';
 import type { GameState, Room } from '../types';
 import { workerMult } from './traits';
+import { weatherMult } from './weather';
 
 export function vaultHappiness(state: GameState): number {
   const living = state.residents.filter((r) => !r.dead && !r.waiting);
@@ -36,7 +37,7 @@ export function poolSize(content: Content, room: Room): number {
 
 /** Seconds per batch with the current crew, or Infinity if nobody works there. */
 export function cycleSeconds(state: GameState, content: Content, room: Room): number {
-  const rate = roomStatTotal(state, content, room) * (1 + happinessBonus(state, content)) * productionMult(state, content, roomDef(content, room).produces?.resource);
+  const rate = roomStatTotal(state, content, room) * (1 + happinessBonus(state, content)) * productionMult(state, content, roomDef(content, room).produces?.resource) * weatherMult(state, content, room);
   return rate > 0 ? poolSize(content, room) / rate : Infinity;
 }
 
@@ -58,7 +59,7 @@ export function tickProduction(state: GameState, content: Content, dt: number): 
     if (room.ready && (room.banked ?? 0) >= bank) continue;
     const res = def.produces.resource;
     if (!mults.has(res)) mults.set(res, productionMult(state, content, res));
-    const rate = roomStatTotal(state, content, room) * happy * (mults.get(res) as number);
+    const rate = roomStatTotal(state, content, room) * happy * (mults.get(res) as number) * weatherMult(state, content, room);
     if (rate <= 0) continue;
     room.pool += rate * dt;
     const size = poolSize(content, room);
