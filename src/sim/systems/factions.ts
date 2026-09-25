@@ -874,7 +874,12 @@ export function collectCaravan(state: GameState, content: Content, caravanId: nu
     addScrip(state, content, res.scrip);
     earnInfluence(state, res.influence);
     for (const id of res.items) grantItem(state, content, id);
-    if (res.rep) changeRep(state, content, c.factionId, res.rep);
+    if (res.rep) {
+      // Goodwill from trips tapers once a faction is friendly: Allied should take more than a road habit.
+      const now = repOf(state, content, c.factionId);
+      const taper = res.rep > 0 ? (now >= 60 ? 0.25 : now >= 25 ? 0.5 : 1) : 1;
+      changeRep(state, content, c.factionId, Math.round(res.rep * taper * 10) / 10);
+    }
     if (res.intro) changeRep(state, content, res.intro, 0);
     for (const r of members) {
       if (r.dead) continue;
