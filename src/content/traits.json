@@ -291,6 +291,207 @@
       "effects": [{ "kind": "damageTaken", "value": -0.12 }]
     }
   ],
+  "_legendaryTraitsComment": "M9 (stream L): signature traits of the legendary residents (legends.json), never rolled or inherited. Each legend starts with one; its _awakened version replaces it when their personal questline is done.",
+  "legendaryTraits": [
+    {
+      "id": "switchback",
+      "name": "Switchback",
+      "legend": "marla_voss",
+      "description": "Never takes the same road twice, which is how she keeps finding new things on it.",
+      "summary": "+30% scrip found exploring, +3 to exploration checks.",
+      "weight": 0,
+      "effects": [{ "kind": "explorerScrip", "value": 0.3 }, { "kind": "explorerCheck", "value": 3 }]
+    },
+    {
+      "id": "switchback_awakened",
+      "name": "Every Road Home",
+      "legend": "marla_voss",
+      "description": "Found the one road she never took. It went home. She is taking it anyway, the long way.",
+      "summary": "+45% scrip found exploring, +5 to exploration checks, shrugs off 25% of taint.",
+      "weight": 0,
+      "effects": [{ "kind": "explorerScrip", "value": 0.45 }, { "kind": "explorerCheck", "value": 5 }, { "kind": "explorerTaint", "value": 0.25 }]
+    },
+    {
+      "id": "guildmaster",
+      "name": "Guildmaster's Eye",
+      "legend": "ada_quill",
+      "description": "Can tell a good weld from across the room, and will tell you about a bad one from further.",
+      "summary": "+30% crafting speed in workshops, +25% mastery gain.",
+      "weight": 0,
+      "effects": [{ "kind": "production", "value": 0.3, "categories": ["workshop"] }, { "kind": "mastery", "value": 0.25 }]
+    },
+    {
+      "id": "guildmaster_awakened",
+      "name": "Master of the Guild",
+      "legend": "ada_quill",
+      "description": "Reinstated, with apologies, by a guild that finally read the minutes.",
+      "summary": "+45% crafting speed in workshops, +50% mastery gain, +4 happiness to workshop mates.",
+      "weight": 0,
+      "effects": [{ "kind": "production", "value": 0.45, "categories": ["workshop"] }, { "kind": "mastery", "value": 0.5 }, { "kind": "roomHappiness", "value": 4, "categories": ["workshop"] }]
+    },
+    {
+      "id": "cold_start",
+      "name": "Cold Start",
+      "legend": "seven",
+      "description": "Learned to think in a homestead where nobody thought about him. It made him very good at it.",
+      "summary": "+30% research in labs, +2 to quest checks.",
+      "weight": 0,
+      "effects": [{ "kind": "production", "value": 0.3, "categories": ["research"] }, { "kind": "questCheck", "value": 2 }]
+    },
+    {
+      "id": "cold_start_awakened",
+      "name": "Warm Start",
+      "legend": "seven",
+      "description": "Has a name, a birthday and a homestead now. He is still very good at thinking. He is also happy.",
+      "summary": "+45% research in labs, +3 to quest checks, +10 happiness.",
+      "weight": 0,
+      "effects": [{ "kind": "production", "value": 0.45, "categories": ["research"] }, { "kind": "questCheck", "value": 3 }, { "kind": "happiness", "value": 10 }]
+    },
+    {
+      "id": "night_shift_medic",
+      "name": "Longest Shift",
+      "legend": "doc_ferris",
+      "description": "Has been on call for two hundred years. His bedside manner has held up better than he has.",
+      "summary": "+35% Med-Patch and Purge output, +5 happiness to roommates.",
+      "weight": 0,
+      "effects": [{ "kind": "production", "value": 0.35, "resources": ["medpatch", "purge"] }, { "kind": "roomHappiness", "value": 5 }]
+    },
+    {
+      "id": "night_shift_medic_awakened",
+      "name": "Clocked Out",
+      "legend": "doc_ferris",
+      "description": "Finally handed over his shift. He came back the next morning anyway, rested and slightly insufferable.",
+      "summary": "+50% Med-Patch and Purge output, +8 happiness to roommates.",
+      "weight": 0,
+      "effects": [{ "kind": "production", "value": 0.5, "resources": ["medpatch", "purge"] }, { "kind": "roomHappiness", "value": 8 }]
+    },
+    {
+      "id": "house_edge",
+      "name": "House Edge",
+      "legend": "lucky_lou",
+      "description": "Believes the odds are a suggestion. So far, the odds agree.",
+      "summary": "Crit ring 30% slower (easier), +20% scrip found exploring, +2 to quest checks.",
+      "weight": 0,
+      "effects": [{ "kind": "critRing", "value": -0.3 }, { "kind": "explorerScrip", "value": 0.2 }, { "kind": "questCheck", "value": 2 }]
+    },
+    {
+      "id": "house_edge_awakened",
+      "name": "The House Always Wins",
+      "legend": "lucky_lou",
+      "description": "Won the last game worth winning. He is now, formally, the house.",
+      "summary": "Crit ring 45% slower (easier), +35% scrip found exploring, +3 to quest checks.",
+      "weight": 0,
+      "effects": [{ "kind": "critRing", "value": -0.45 }, { "kind": "explorerScrip", "value": 0.35 }, { "kind": "questCheck", "value": 3 }]
+    },
+    {
+      "id": "deep_born",
+      "name": "Deep-Born",
+      "legend": "pip",
+      "description": "Grew up where the pipes hum. Up here it is too quiet to think.",
+      "summary": "+30% output and +15 happiness on deep floors, shrugs off 30% of exploration taint.",
+      "weight": 0,
+      "effects": [{ "kind": "production", "value": 0.3, "when": "deep" }, { "kind": "happiness", "value": 15, "when": "deep" }, { "kind": "explorerTaint", "value": 0.3 }]
+    },
+    {
+      "id": "deep_born_awakened",
+      "name": "Keeper of Four",
+      "legend": "pip",
+      "description": "The pipes on Four answer to her now. HALCY has stopped asking how.",
+      "summary": "+45% output and +20 happiness on deep floors, shrugs off 50% of exploration taint.",
+      "weight": 0,
+      "effects": [{ "kind": "production", "value": 0.45, "when": "deep" }, { "kind": "happiness", "value": 20, "when": "deep" }, { "kind": "explorerTaint", "value": 0.5 }]
+    },
+    {
+      "id": "ring_champion",
+      "name": "Ring Champion",
+      "legend": "rook",
+      "description": "Fought in the Rustman ring for eleven years. Lost once. Was very gracious about it, eventually.",
+      "summary": "+30% damage in fights, 15% less damage taken on quests.",
+      "weight": 0,
+      "effects": [{ "kind": "combat", "value": 0.3 }, { "kind": "damageTaken", "value": -0.15 }]
+    },
+    {
+      "id": "ring_champion_awakened",
+      "name": "Champion of Two Rings",
+      "legend": "rook",
+      "description": "Champion of the clans and of the homestead. He wears both belts. They clash.",
+      "summary": "+45% damage in fights, 25% less damage taken on quests.",
+      "weight": 0,
+      "effects": [{ "kind": "combat", "value": 0.45 }, { "kind": "damageTaken", "value": -0.25 }]
+    },
+    {
+      "id": "seen_worse",
+      "name": "Seen Worse",
+      "legend": "granny_ash",
+      "description": "Whatever it is, she has seen worse, and she will tell you about it while it happens.",
+      "summary": "Shrugs off 50% of exploration taint, +6 happiness to roommates, 10% less damage taken on quests.",
+      "weight": 0,
+      "effects": [{ "kind": "explorerTaint", "value": 0.5 }, { "kind": "roomHappiness", "value": 6 }, { "kind": "damageTaken", "value": -0.1 }]
+    },
+    {
+      "id": "seen_worse_awakened",
+      "name": "Seen It All",
+      "legend": "granny_ash",
+      "description": "Has now, finally, seen everything. She says most of it was overrated.",
+      "summary": "Shrugs off 75% of exploration taint, +10 happiness to roommates, 15% less damage taken on quests.",
+      "weight": 0,
+      "effects": [{ "kind": "explorerTaint", "value": 0.75 }, { "kind": "roomHappiness", "value": 10 }, { "kind": "damageTaken", "value": -0.15 }]
+    },
+    {
+      "id": "lapsed_liturgy",
+      "name": "Lapsed Liturgy",
+      "legend": "brother_wick",
+      "description": "Kept the sermons, lost the doctrine. Attendance has never been better.",
+      "summary": "+8 happiness to roommates, +10 happiness of his own, +30% courtship speed.",
+      "weight": 0,
+      "effects": [{ "kind": "roomHappiness", "value": 8 }, { "kind": "happiness", "value": 10 }, { "kind": "courtship", "value": 0.3 }]
+    },
+    {
+      "id": "lapsed_liturgy_awakened",
+      "name": "A Light of His Own",
+      "legend": "brother_wick",
+      "description": "Lit his lamp at last, for a reason of his own. He will not say what. It burns very steadily.",
+      "summary": "+12 happiness to roommates, +15 happiness of his own, +50% courtship speed.",
+      "weight": 0,
+      "effects": [{ "kind": "roomHappiness", "value": 12 }, { "kind": "happiness", "value": 15 }, { "kind": "courtship", "value": 0.5 }]
+    },
+    {
+      "id": "holds_her_breath",
+      "name": "Holds Her Breath",
+      "legend": "june_halloran",
+      "description": "Can go four minutes without air, and considerably longer without small talk.",
+      "summary": "+30% output in water rooms, +2 to exploration checks.",
+      "weight": 0,
+      "effects": [{ "kind": "production", "value": 0.3, "resources": ["water"] }, { "kind": "explorerCheck", "value": 2 }]
+    },
+    {
+      "id": "holds_her_breath_awakened",
+      "name": "Deep End",
+      "legend": "june_halloran",
+      "description": "Dived the bottom of the Stillwater and came back up. She says the city said goodbye.",
+      "summary": "+45% output in water rooms, +4 to exploration checks, shrugs off 25% of taint.",
+      "weight": 0,
+      "effects": [{ "kind": "production", "value": 0.45, "resources": ["water"] }, { "kind": "explorerCheck", "value": 4 }, { "kind": "explorerTaint", "value": 0.25 }]
+    },
+    {
+      "id": "standing_orders",
+      "name": "Standing Orders",
+      "legend": "captain_orla",
+      "description": "Her last orders were to hold the line. Nobody ever told her where the line ended.",
+      "summary": "+25% damage in fights, 20% less damage taken on quests, +2 to quest checks.",
+      "weight": 0,
+      "effects": [{ "kind": "combat", "value": 0.25 }, { "kind": "damageTaken", "value": -0.2 }, { "kind": "questCheck", "value": 2 }]
+    },
+    {
+      "id": "standing_orders_awakened",
+      "name": "New Orders",
+      "legend": "captain_orla",
+      "description": "Wrote her own orders for the first time. They are short, and mostly about us.",
+      "summary": "+40% damage in fights, 30% less damage taken on quests, +3 to quest checks.",
+      "weight": 0,
+      "effects": [{ "kind": "combat", "value": 0.4 }, { "kind": "damageTaken", "value": -0.3 }, { "kind": "questCheck", "value": 3 }]
+    }
+  ],
   "achievements": [
     { "id": "trait_mastery1", "name": "Learning the Ropes", "description": "Have a resident make Journeyman in any job.", "tier": "bronze", "stat": "masteryUps", "target": 1 },
     { "id": "trait_mastery25", "name": "Seasoned Staff", "description": "Earn 25 mastery promotions.", "tier": "silver", "stat": "masteryUps", "target": 25 },

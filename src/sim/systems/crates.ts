@@ -10,6 +10,7 @@ import { chance, nextFloat } from '../rng';
 import type { CrateCard, CrateTier, GameEvent, GameState, Rarity, ResourceKey } from '../types';
 import { checkAchievements } from './achievements';
 import { grantItem, randomItemOf } from './items';
+import { crateLegends, legendsContent, recruitLegend } from './legends';
 
 interface Weighted {
   w: number;
@@ -90,6 +91,19 @@ function cardFrom(state: GameState, content: Content, entry: CardEntry): CrateCa
   return { kind: 'item', defId, rarity, sold };
 }
 
+/**
+ * M9: a Legendary Supply Crate may bring an unrecruited crate legend (Lucky
+ * Lou) as its final card. Rolls only while one is available.
+ */
+function crateLegendCard(state: GameState, content: Content): CrateCard | null {
+  const pool = crateLegends(state, content);
+  if (!pool.length || !chance(state.rng, legendsContent(content).tuning.crateChance)) return null;
+  const def = pool[0] as (typeof pool)[number];
+  if (recruitLegend(state, content, def.id, 'crate')) return null;
+  const res = state.residents.find((r) => r.legendary === def.id);
+  return res ? { kind: 'resident', residentId: res.id, rarity: 'legendary' } : null;
+}
+
 function isLegendary(card: CrateCard): boolean {
   return (card.kind === 'item' || card.kind === 'resident') && card.rarity === 'legendary';
 }
@@ -105,7 +119,8 @@ export function openCrate(state: GameState, content: Content, tier: CrateTier): 
   cards.push(cardFrom(state, content, roll(state, c.resourceCard as CardEntry[])));
   cards.push(cardFrom(state, content, roll(state, c.suppliesCard as CardEntry[])));
   const finalTable = tier === 'legendary' || pityHit ? c.legendaryCard : c.rareCard;
-  cards.push(cardFrom(state, content, roll(state, finalTable as CardEntry[])));
+  const legend = tier === 'legendary' ? crateLegendCard(state, content) : null;
+  cards.push(legend ?? cardFrom(state, content, roll(state, finalTable as CardEntry[])));
 
   state.pity = cards.some(isLegendary) ? 0 : state.pity + 1;
   bump(state, 'cratesOpened');

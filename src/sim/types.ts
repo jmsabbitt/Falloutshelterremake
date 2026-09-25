@@ -87,10 +87,14 @@ export interface RulesState {
 
 /** M9: legendary residents. Stream L owns the shape of this interface. */
 export interface LegendsState {
-  /** Legendary ids who have joined some homestead (carried across foundings). */
+  /** Legendary ids who have joined some homestead (carried across foundings). Each joins once per lifetime. */
   recruited: string[];
-  /** Personal questline progress etc. are up to stream L. */
-  [key: string]: unknown;
+  /** Legends on their way who found the door full (a population cap): they arrive once there is room. */
+  queued?: { id: string; source: string }[];
+  /** Legends who fell in a Survival homestead: gone for good. */
+  lost?: string[];
+  /** Doc Ferris's radio signal: counted seconds of staffed radio time and a private rng (step-size independent). */
+  radio?: { seconds: number; rng: [number, number, number, number] };
 }
 
 /** M9: a treasure map found while exploring, pointing at one cache. Stream C. */

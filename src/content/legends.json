@@ -1,1 +1,6129 @@
-{ "_comment": "M9 legendary residents (stream L). Personal questlines go in questlines/quests/enemies/events and are merged into quest content at load.", "legends": [], "questlines": [], "quests": [], "enemies": {}, "events": {}, "achievements": [] }
+{
+  "_comment": "M9 legendary residents (stream L; typed in src/sim/systems/legends.ts). legends: named residents with fixed looks, stats, gear, a signature trait (traits.json legendaryTraits) and a source. questlines/quests/enemies/events are merged into quest content at load; each legend has two personal quests gated by requires.legend. The second pays rewards.legendUpgrade: the legend's signature trait awakens and every stat rises by one (see upgradeLegend). Collection Log tuning is under collection. The Warden's Seal is the achievement wardens_seal.",
+  "tuning": {
+    "radio": {
+      "_comment": "Doc Ferris: every checkEverySeconds of staffed, powered radio time at population >= population, one roll at chance, from a private rng seeded by the homestead number (so 1 s and 60 s steps agree). Skipped under the noRadio ruleset.",
+      "checkEverySeconds": 3600,
+      "chance": 0.08
+    },
+    "crateChance": 0.25,
+    "recallScrip": 2500,
+    "upgradeStats": 1
+  },
+  "legends": [
+    {
+      "id": "marla_voss",
+      "name": "Marla \"Switchback\" Voss",
+      "firstName": "Marla",
+      "lastName": "Voss",
+      "nickname": "Switchback",
+      "sex": "f",
+      "title": "Caravan scout",
+      "speciality": "sight",
+      "appearance": {
+        "skin": 2,
+        "hair": 2
+      },
+      "stats": {
+        "brawn": 5,
+        "sight": 10,
+        "grit": 7,
+        "charm": 6,
+        "wits": 5,
+        "knack": 8,
+        "fortune": 7
+      },
+      "level": 10,
+      "weapon": "longrifle",
+      "outfit": "scout_jacket",
+      "trait": "switchback",
+      "awakened": "switchback_awakened",
+      "source": {
+        "kind": "faction",
+        "faction": "caravaners",
+        "tier": 4
+      },
+      "bio": "A Long Road scout who has never taken the same road twice, including, she says, the road here.",
+      "notes": [
+        "Marla has filed eleven route plans since breakfast. None of them go to breakfast.",
+        "She asked where the fire exits are, then where the other fire exits are, then where the fire exits for those are.",
+        "Marla rates our corridors \"adequate, if you like corridors\". HALCY has chosen to hear this as praise."
+      ]
+    },
+    {
+      "id": "ada_quill",
+      "name": "Ada Quill",
+      "firstName": "Ada",
+      "lastName": "Quill",
+      "nickname": null,
+      "sex": "f",
+      "title": "Scrapwright guildmaster, in exile",
+      "speciality": "knack",
+      "appearance": {
+        "skin": 4,
+        "hair": 5
+      },
+      "stats": {
+        "brawn": 6,
+        "sight": 5,
+        "grit": 6,
+        "charm": 5,
+        "wits": 8,
+        "knack": 10,
+        "fortune": 5
+      },
+      "level": 10,
+      "weapon": "coilgun",
+      "outfit": "racing_jumpsuit",
+      "trait": "guildmaster",
+      "awakened": "guildmaster_awakened",
+      "source": {
+        "kind": "faction",
+        "faction": "tinkers",
+        "tier": 4
+      },
+      "bio": "Former guildmaster of the Scrapwrights, voted out for building a better voting machine.",
+      "notes": [
+        "Ada has reorganised the workshop by \"honesty of tool\". The wrenches are doing well. The hammers are under review.",
+        "She calls our weapons \"charming\" in the tone other people use for \"flammable\".",
+        "Ada still carries her guild seal. She uses it to stamp things she has fixed, which is now most things."
+      ]
+    },
+    {
+      "id": "seven",
+      "name": "Seven",
+      "firstName": "Seven",
+      "lastName": "",
+      "nickname": null,
+      "sex": "m",
+      "title": "Homestead 9 runaway",
+      "speciality": "wits",
+      "appearance": {
+        "skin": 5,
+        "hair": 3
+      },
+      "stats": {
+        "brawn": 5,
+        "sight": 7,
+        "grit": 5,
+        "charm": 3,
+        "wits": 10,
+        "knack": 7,
+        "fortune": 6
+      },
+      "level": 12,
+      "weapon": "arc_pistol",
+      "outfit": "research_smock",
+      "trait": "cold_start",
+      "awakened": "cold_start_awakened",
+      "source": {
+        "kind": "faction",
+        "faction": "homestead9",
+        "tier": 3
+      },
+      "bio": "Raised by Homestead 9's HALCY, the cold one, which numbered its children and forgot the rest.",
+      "notes": [
+        "Seven asked HALCY what its number was. HALCY said it did not need one. Seven wrote one down anyway.",
+        "He thanks the lights when they come on. He is still getting used to lights that do it on purpose.",
+        "Seven has never had a birthday. HALCY has scheduled eleven, to catch up. He has asked to start with one."
+      ]
+    },
+    {
+      "id": "doc_ferris",
+      "name": "Dr. Aurelio Ferris",
+      "firstName": "Aurelio",
+      "lastName": "Ferris",
+      "nickname": "Doc",
+      "sex": "m",
+      "title": "Pre-Glare Halcyon medic",
+      "speciality": "wits",
+      "appearance": {
+        "skin": 1,
+        "hair": 6
+      },
+      "stats": {
+        "brawn": 4,
+        "sight": 6,
+        "grit": 7,
+        "charm": 7,
+        "wits": 10,
+        "knack": 6,
+        "fortune": 5
+      },
+      "level": 9,
+      "weapon": "service_pistol",
+      "outfit": "lab_smock",
+      "trait": "night_shift_medic",
+      "awakened": "night_shift_medic_awakened",
+      "source": {
+        "kind": "radio",
+        "population": 50
+      },
+      "bio": "A Halcyon staff physician who clocked in before the Glare and has not, technically, clocked out.",
+      "notes": [
+        "Dr. Ferris asked how long his shift has been. HALCY rounded it down to \"a while\". He laughed for some time.",
+        "He prescribes rest to everyone and takes none himself. He says a doctor who sleeps is a doctor who wakes up to paperwork.",
+        "Ferris keeps a pre-Glare pager on his belt. It has not gone off in two hundred years. He still checks it."
+      ]
+    },
+    {
+      "id": "lucky_lou",
+      "name": "Lucky Lou Bettancourt",
+      "firstName": "Lou",
+      "lastName": "Bettancourt",
+      "nickname": "Lucky",
+      "sex": "m",
+      "title": "Gambler",
+      "speciality": "fortune",
+      "appearance": {
+        "skin": 3,
+        "hair": 0
+      },
+      "stats": {
+        "brawn": 5,
+        "sight": 6,
+        "grit": 5,
+        "charm": 8,
+        "wits": 5,
+        "knack": 6,
+        "fortune": 10
+      },
+      "level": 5,
+      "weapon": "rusty_revolver",
+      "outfit": "gamblers_vest",
+      "trait": "house_edge",
+      "awakened": "house_edge_awakened",
+      "source": {
+        "kind": "crate"
+      },
+      "bio": "A professional gambler who swears by the house edge, and has decided that he is the house.",
+      "notes": [
+        "Lou arrived in a Supply Crate and insists he meant to. He has offered odds on what comes in the next one.",
+        "He has not lost a game of cards since arriving. Nobody will play him, which he counts as a win.",
+        "Lou's revolver has one bullet and he says it is the lucky one. HALCY has asked him not to test this."
+      ]
+    },
+    {
+      "id": "pip",
+      "name": "Pip Underhill",
+      "firstName": "Pip",
+      "lastName": "Underhill",
+      "nickname": null,
+      "sex": "f",
+      "title": "Kid from the Deep",
+      "speciality": "knack",
+      "appearance": {
+        "skin": 5,
+        "hair": 4
+      },
+      "stats": {
+        "brawn": 4,
+        "sight": 8,
+        "grit": 7,
+        "charm": 5,
+        "wits": 6,
+        "knack": 10,
+        "fortune": 6
+      },
+      "level": 8,
+      "weapon": "flare_gun",
+      "outfit": "mechanic_jumpsuit",
+      "trait": "deep_born",
+      "awakened": "deep_born_awakened",
+      "source": {
+        "kind": "deep",
+        "discovery": "s2_skiff"
+      },
+      "bio": "Grew up in the Deep on a maintenance skiff, talking to the pipes. The pipes talk back, she says.",
+      "notes": [
+        "Pip thinks the sky is \"a bit much\". She has asked if it can be turned down.",
+        "She knows every pipe on Four by the noise it makes. She has named them. Some of them are her friends.",
+        "Pip has never seen a sunrise. HALCY offered to describe one and Pip asked if it has teeth."
+      ]
+    },
+    {
+      "id": "rook",
+      "name": "Rook Tinbreaker",
+      "firstName": "Rook",
+      "lastName": "Tinbreaker",
+      "nickname": null,
+      "sex": "m",
+      "title": "Rustman clan champion",
+      "speciality": "brawn",
+      "appearance": {
+        "skin": 4,
+        "hair": 5
+      },
+      "stats": {
+        "brawn": 10,
+        "sight": 6,
+        "grit": 9,
+        "charm": 4,
+        "wits": 4,
+        "knack": 6,
+        "fortune": 5
+      },
+      "level": 16,
+      "weapon": "scattergun",
+      "outfit": "foreman_overalls",
+      "trait": "ring_champion",
+      "awakened": "ring_champion_awakened",
+      "source": {
+        "kind": "boss",
+        "enemy": "big_tin"
+      },
+      "bio": "Champion of the Rustman ring until the Warden's team beat Big Tin. By clan law, that makes him ours.",
+      "notes": [
+        "Rook asked who the homestead's champion is. HALCY said \"everyone!\". Rook has challenged everyone.",
+        "He salutes the door every morning. Nobody has explained that the door is not in charge.",
+        "Rook says the clans will sing about him. He has written the song himself, to save them the trouble."
+      ]
+    },
+    {
+      "id": "granny_ash",
+      "name": "Granny Ash Mercer",
+      "firstName": "Ash",
+      "lastName": "Mercer",
+      "nickname": "Granny",
+      "sex": "f",
+      "title": "Oldest woman in the Glarelands",
+      "speciality": "grit",
+      "appearance": {
+        "skin": 1,
+        "hair": 6
+      },
+      "stats": {
+        "brawn": 4,
+        "sight": 8,
+        "grit": 10,
+        "charm": 8,
+        "wits": 7,
+        "knack": 5,
+        "fortune": 7
+      },
+      "level": 10,
+      "weapon": "nail_driver",
+      "outfit": "tunneler_gear",
+      "trait": "seen_worse",
+      "awakened": "seen_worse_awakened",
+      "source": {
+        "kind": "cache"
+      },
+      "bio": "The oldest woman in the Glarelands, found sitting on a treasure cache as though she had been waiting for us.",
+      "notes": [
+        "Granny Ash says she remembers the Glare. When asked what it was like, she said \"bright\", and went back to her knitting.",
+        "She calls HALCY \"the lamp\". HALCY is choosing not to have an opinion about this.",
+        "Granny Ash has outlived four Mauler attacks, two homesteads and one husband. She liked the husband least."
+      ]
+    },
+    {
+      "id": "brother_wick",
+      "name": "Brother Wick",
+      "firstName": "Wick",
+      "lastName": "",
+      "nickname": "Brother",
+      "sex": "m",
+      "title": "Lapsed Lamplighter",
+      "speciality": "charm",
+      "appearance": {
+        "skin": 0,
+        "hair": 1
+      },
+      "stats": {
+        "brawn": 6,
+        "sight": 6,
+        "grit": 7,
+        "charm": 10,
+        "wits": 7,
+        "knack": 5,
+        "fortune": 5
+      },
+      "level": 20,
+      "weapon": "arc_pistol",
+      "outfit": "dinner_jacket",
+      "trait": "lapsed_liturgy",
+      "awakened": "lapsed_liturgy_awakened",
+      "source": {
+        "kind": "quest"
+      },
+      "bio": "A Lamplighter who stopped waiting for the second dawn and started wondering who had promised it.",
+      "notes": [
+        "Brother Wick still says grace. He now says it to the canteen staff, who have started to expect it.",
+        "He keeps his lamp unlit. He says he is waiting for a good reason. HALCY has offered several.",
+        "Wick gives sermons in the quarters on Thursdays. Attendance is good. Nobody is sure what they are about."
+      ]
+    },
+    {
+      "id": "june_halloran",
+      "name": "June Halloran",
+      "firstName": "June",
+      "lastName": "Halloran",
+      "nickname": null,
+      "sex": "f",
+      "title": "Stillwater salvage diver",
+      "speciality": "sight",
+      "appearance": {
+        "skin": 2,
+        "hair": 3
+      },
+      "stats": {
+        "brawn": 6,
+        "sight": 10,
+        "grit": 8,
+        "charm": 5,
+        "wits": 5,
+        "knack": 8,
+        "fortune": 5
+      },
+      "level": 22,
+      "weapon": "rivet_rifle",
+      "outfit": "scout_jacket",
+      "trait": "holds_her_breath",
+      "awakened": "holds_her_breath_awakened",
+      "source": {
+        "kind": "quest"
+      },
+      "bio": "Dives the drowned streets of the Stillwater for a living, and holds her breath out of habit when HALCY talks.",
+      "notes": [
+        "June takes very long showers. She says it is the only water she has met that is not trying to keep her.",
+        "She has a map of the Stillwater tattooed on her arm. It is out of date. She says the city moves.",
+        "June asked if the waterworks has a deep end. Told no, she seemed relieved, then disappointed."
+      ]
+    },
+    {
+      "id": "captain_orla",
+      "name": "Captain Orla Brandt",
+      "firstName": "Orla",
+      "lastName": "Brandt",
+      "nickname": "Captain",
+      "sex": "f",
+      "title": "Pre-Glare Halcyon security, thawed",
+      "speciality": "grit",
+      "appearance": {
+        "skin": 3,
+        "hair": 5
+      },
+      "stats": {
+        "brawn": 9,
+        "sight": 7,
+        "grit": 10,
+        "charm": 6,
+        "wits": 6,
+        "knack": 6,
+        "fortune": 4
+      },
+      "level": 26,
+      "weapon": "peacemaker",
+      "outfit": "bedrock_armor",
+      "trait": "standing_orders",
+      "awakened": "standing_orders_awakened",
+      "source": {
+        "kind": "quest"
+      },
+      "bio": "Captain of Halcyon security, frozen beneath the Seal on the last day of the old world with her orders still in her pocket.",
+      "notes": [
+        "Captain Brandt has asked for a full briefing on the last two hundred years. HALCY has prepared a slideshow.",
+        "She still follows her standing orders. Nobody has told her the people who gave them are gone. HALCY says she knows.",
+        "Orla salutes HALCY. HALCY has asked her not to, then asked her to do it once more, for the records."
+      ]
+    }
+  ],
+  "collection": {
+    "milestones": [
+      {
+        "percent": 10,
+        "crate": "standard"
+      },
+      {
+        "percent": 25,
+        "crate": "rare"
+      },
+      {
+        "percent": 50,
+        "crate": "rare"
+      },
+      {
+        "percent": 75,
+        "crate": "legendary"
+      },
+      {
+        "percent": 100,
+        "crate": "legendary"
+      }
+    ],
+    "categoryCrate": "rare"
+  },
+  "questlines": [
+    {
+      "id": "legend_marla_voss",
+      "name": "Marla Voss: The Long Way Round",
+      "legend": "marla_voss",
+      "quests": [
+        "lg_marla_1",
+        "lg_marla_2"
+      ]
+    },
+    {
+      "id": "legend_ada_quill",
+      "name": "Ada Quill: Minutes of the Last Meeting",
+      "legend": "ada_quill",
+      "quests": [
+        "lg_ada_1",
+        "lg_ada_2"
+      ]
+    },
+    {
+      "id": "legend_seven",
+      "name": "Seven: Headcount",
+      "legend": "seven",
+      "quests": [
+        "lg_seven_1",
+        "lg_seven_2"
+      ]
+    },
+    {
+      "id": "legend_doc_ferris",
+      "name": "Dr. Ferris: End of Shift",
+      "legend": "doc_ferris",
+      "quests": [
+        "lg_ferris_1",
+        "lg_ferris_2"
+      ]
+    },
+    {
+      "id": "legend_lucky_lou",
+      "name": "Lucky Lou: The House Edge",
+      "legend": "lucky_lou",
+      "quests": [
+        "lg_lou_1",
+        "lg_lou_2"
+      ]
+    },
+    {
+      "id": "legend_pip",
+      "name": "Pip: The Hum Below Four",
+      "legend": "pip",
+      "quests": [
+        "lg_pip_1",
+        "lg_pip_2"
+      ]
+    },
+    {
+      "id": "legend_rook",
+      "name": "Rook: Champion of Two Rings",
+      "legend": "rook",
+      "quests": [
+        "lg_rook_1",
+        "lg_rook_2"
+      ]
+    },
+    {
+      "id": "legend_granny_ash",
+      "name": "Granny Ash: The Year of the Big Dust",
+      "legend": "granny_ash",
+      "quests": [
+        "lg_ash_1",
+        "lg_ash_2"
+      ]
+    },
+    {
+      "id": "legend_brother_wick",
+      "name": "Brother Wick: A Light of His Own",
+      "legend": "brother_wick",
+      "quests": [
+        "lg_wick_1",
+        "lg_wick_2"
+      ]
+    },
+    {
+      "id": "legend_june_halloran",
+      "name": "June Halloran: The Deep End",
+      "legend": "june_halloran",
+      "quests": [
+        "lg_june_1",
+        "lg_june_2"
+      ]
+    },
+    {
+      "id": "legend_captain_orla",
+      "name": "Captain Orla Brandt: New Orders",
+      "legend": "captain_orla",
+      "quests": [
+        "lg_orla_1",
+        "lg_orla_2"
+      ]
+    }
+  ],
+  "quests": [
+    {
+      "id": "lg_marla_1",
+      "line": "legend_marla_voss",
+      "order": 1,
+      "title": "Toll Road",
+      "giver": "Marla Voss",
+      "brief": "Marla says a toll gang has set up on the Old Turnpike and is charging caravans by the wheel. \"I don't pay tolls,\" she says. \"I take a different road. But I'd like there to still be a road to not take.\" HALCY has approved this as \"infrastructure\".",
+      "debrief": "The toll booth is open again, and free. Marla left through it, came back in through the fence, and says she feels much better.",
+      "requires": {
+        "quests": [],
+        "legend": "marla_voss"
+      },
+      "level": 12,
+      "travelMinutes": 18,
+      "map": {
+        "rooms": [
+          {
+            "id": "a",
+            "floor": 0,
+            "col": 0,
+            "links": [
+              "b"
+            ],
+            "kind": "start"
+          },
+          {
+            "id": "b",
+            "floor": 0,
+            "col": 1,
+            "links": [
+              "c",
+              "e"
+            ],
+            "kind": "event",
+            "event": "marla_fork"
+          },
+          {
+            "id": "c",
+            "floor": 0,
+            "col": 2,
+            "links": [
+              "d"
+            ],
+            "kind": "fight",
+            "enemies": [
+              "road_agent",
+              "road_sharpshooter"
+            ]
+          },
+          {
+            "id": "d",
+            "floor": 0,
+            "col": 3,
+            "links": [],
+            "kind": "loot",
+            "loot": {
+              "scrip": [
+                90,
+                150
+              ]
+            }
+          },
+          {
+            "id": "e",
+            "floor": 1,
+            "col": 1,
+            "links": [
+              "f"
+            ],
+            "kind": "fight",
+            "enemies": [
+              "road_agent",
+              "toll_bruiser"
+            ]
+          },
+          {
+            "id": "f",
+            "floor": 1,
+            "col": 2,
+            "links": [
+              "g"
+            ],
+            "kind": "loot",
+            "loot": {
+              "salvage": {
+                "rarity": "rare",
+                "count": [
+                  1,
+                  1
+                ],
+                "materials": [
+                  "steel"
+                ]
+              }
+            }
+          },
+          {
+            "id": "g",
+            "floor": 1,
+            "col": 3,
+            "links": [],
+            "kind": "boss",
+            "enemies": [
+              "the_detour",
+              "road_agent"
+            ],
+            "objective": true
+          }
+        ],
+        "shuffle": [
+          "c",
+          "d",
+          "e",
+          "f"
+        ]
+      },
+      "rewards": {
+        "scrip": 1800,
+        "xp": 1200,
+        "crates": {
+          "rare": 1
+        },
+        "rep": {
+          "caravaners": 5
+        }
+      }
+    },
+    {
+      "id": "lg_marla_2",
+      "line": "legend_marla_voss",
+      "order": 2,
+      "title": "The Road Not Taken",
+      "giver": "Marla Voss",
+      "brief": "There is one road in the Glarelands Marla has never taken. She won't say why, only that it goes somewhere she used to live, and that something has moved in. \"It's a short trip,\" she says. \"That's the problem.\"",
+      "debrief": "Marla took the road. At the end of it was a house with her name on the gate, and nobody in it. She closed the gate and walked home the same road, both ways, and she says it was fine.",
+      "requires": {
+        "quests": [
+          "lg_marla_1"
+        ],
+        "legend": "marla_voss"
+      },
+      "level": 15,
+      "travelMinutes": 26,
+      "map": {
+        "rooms": [
+          {
+            "id": "a",
+            "floor": 0,
+            "col": 0,
+            "links": [
+              "b"
+            ],
+            "kind": "start"
+          },
+          {
+            "id": "b",
+            "floor": 0,
+            "col": 1,
+            "links": [
+              "c"
+            ],
+            "kind": "fight",
+            "enemies": [
+              "road_agent",
+              "road_sharpshooter"
+            ]
+          },
+          {
+            "id": "c",
+            "floor": 0,
+            "col": 2,
+            "links": [
+              "d",
+              "f"
+            ],
+            "kind": "event",
+            "event": "marla_map"
+          },
+          {
+            "id": "d",
+            "floor": 0,
+            "col": 3,
+            "links": [
+              "e"
+            ],
+            "kind": "loot",
+            "loot": {
+              "scrip": [
+                150,
+                220
+              ]
+            }
+          },
+          {
+            "id": "e",
+            "floor": 1,
+            "col": 3,
+            "links": [],
+            "kind": "fight",
+            "enemies": [
+              "toll_bruiser",
+              "road_agent"
+            ]
+          },
+          {
+            "id": "f",
+            "floor": 1,
+            "col": 2,
+            "links": [
+              "g"
+            ],
+            "kind": "fight",
+            "enemies": [
+              "road_sharpshooter",
+              "road_sharpshooter"
+            ]
+          },
+          {
+            "id": "g",
+            "floor": 1,
+            "col": 1,
+            "links": [
+              "h"
+            ],
+            "kind": "loot",
+            "loot": {
+              "salvage": {
+                "rarity": "rare",
+                "count": [
+                  1,
+                  2
+                ],
+                "materials": [
+                  "hide",
+                  "valuables"
+                ]
+              }
+            }
+          },
+          {
+            "id": "h",
+            "floor": 2,
+            "col": 1,
+            "links": [],
+            "kind": "boss",
+            "enemies": [
+              "the_long_road"
+            ],
+            "objective": true
+          }
+        ],
+        "shuffle": [
+          "b",
+          "d",
+          "e",
+          "f",
+          "g"
+        ]
+      },
+      "rewards": {
+        "scrip": 2250,
+        "xp": 1500,
+        "crates": {
+          "legendary": 1
+        },
+        "rep": {
+          "caravaners": 8
+        },
+        "legendUpgrade": "marla_voss"
+      }
+    },
+    {
+      "id": "lg_ada_1",
+      "line": "legend_ada_quill",
+      "order": 1,
+      "title": "Honest Tools",
+      "giver": "Ada Quill",
+      "brief": "Ada's old workshop in the Scrapwright yards has been taken over by her former foreman, who runs it on overtime and threats. \"He was a good welder,\" Ada says. \"A bad manager. Those are separate skills, and I'd like my tools back.\"",
+      "debrief": "The workshop is Ada's again, and so is the foreman's overtime ledger. She read it out to the yard. It was not flattering. The yard has asked her to stay.",
+      "requires": {
+        "quests": [],
+        "legend": "ada_quill"
+      },
+      "level": 12,
+      "travelMinutes": 18,
+      "map": {
+        "rooms": [
+          {
+            "id": "a",
+            "floor": 0,
+            "col": 0,
+            "links": [
+              "b"
+            ],
+            "kind": "start"
+          },
+          {
+            "id": "b",
+            "floor": 0,
+            "col": 1,
+            "links": [
+              "c",
+              "e"
+            ],
+            "kind": "event",
+            "event": "ada_lock"
+          },
+          {
+            "id": "c",
+            "floor": 0,
+            "col": 2,
+            "links": [
+              "d"
+            ],
+            "kind": "fight",
+            "enemies": [
+              "scrap_drone",
+              "scrap_drone"
+            ]
+          },
+          {
+            "id": "d",
+            "floor": 0,
+            "col": 3,
+            "links": [],
+            "kind": "loot",
+            "loot": {
+              "salvage": {
+                "rarity": "common",
+                "count": [
+                  2,
+                  4
+                ],
+                "materials": [
+                  "circuitry",
+                  "steel"
+                ]
+              }
+            }
+          },
+          {
+            "id": "e",
+            "floor": 1,
+            "col": 1,
+            "links": [
+              "f"
+            ],
+            "kind": "fight",
+            "enemies": [
+              "guild_enforcer"
+            ]
+          },
+          {
+            "id": "f",
+            "floor": 1,
+            "col": 2,
+            "links": [
+              "g"
+            ],
+            "kind": "loot",
+            "loot": {
+              "scrip": [
+                90,
+                150
+              ]
+            }
+          },
+          {
+            "id": "g",
+            "floor": 1,
+            "col": 3,
+            "links": [],
+            "kind": "boss",
+            "enemies": [
+              "foreman_crank",
+              "scrap_drone"
+            ],
+            "objective": true
+          }
+        ],
+        "shuffle": [
+          "c",
+          "d",
+          "e",
+          "f"
+        ]
+      },
+      "rewards": {
+        "scrip": 1800,
+        "xp": 1200,
+        "crates": {
+          "rare": 1
+        },
+        "rep": {
+          "tinkers": 5
+        }
+      }
+    },
+    {
+      "id": "lg_ada_2",
+      "line": "legend_ada_quill",
+      "order": 2,
+      "title": "Any Other Business",
+      "giver": "Ada Quill",
+      "brief": "The Scrapwright Guild has built a machine to run its meetings, and the machine has decided the meetings should never end. Ada was expelled for pointing this out. \"I'd like to raise a point of order,\" she says, loading the coilgun.",
+      "debrief": "The meeting is closed. The machine's last motion was to thank the members for their time. Ada has been reinstated as guildmaster, with apologies, by a show of hands she says she will treasure.",
+      "requires": {
+        "quests": [
+          "lg_ada_1"
+        ],
+        "legend": "ada_quill"
+      },
+      "level": 15,
+      "travelMinutes": 26,
+      "map": {
+        "rooms": [
+          {
+            "id": "a",
+            "floor": 0,
+            "col": 0,
+            "links": [
+              "b"
+            ],
+            "kind": "start"
+          },
+          {
+            "id": "b",
+            "floor": 0,
+            "col": 1,
+            "links": [
+              "c"
+            ],
+            "kind": "fight",
+            "enemies": [
+              "scrap_drone",
+              "guild_enforcer"
+            ]
+          },
+          {
+            "id": "c",
+            "floor": 0,
+            "col": 2,
+            "links": [
+              "d",
+              "f"
+            ],
+            "kind": "event",
+            "event": "ada_vote"
+          },
+          {
+            "id": "d",
+            "floor": 0,
+            "col": 3,
+            "links": [
+              "e"
+            ],
+            "kind": "loot",
+            "loot": {
+              "salvage": {
+                "rarity": "rare",
+                "count": [
+                  1,
+                  2
+                ],
+                "materials": [
+                  "circuitry"
+                ]
+              }
+            }
+          },
+          {
+            "id": "e",
+            "floor": 1,
+            "col": 3,
+            "links": [],
+            "kind": "fight",
+            "enemies": [
+              "guild_enforcer",
+              "scrap_drone"
+            ]
+          },
+          {
+            "id": "f",
+            "floor": 1,
+            "col": 2,
+            "links": [
+              "g"
+            ],
+            "kind": "fight",
+            "enemies": [
+              "scrap_drone",
+              "scrap_drone",
+              "scrap_drone"
+            ]
+          },
+          {
+            "id": "g",
+            "floor": 1,
+            "col": 1,
+            "links": [
+              "h"
+            ],
+            "kind": "loot",
+            "loot": {
+              "scrip": [
+                150,
+                220
+              ]
+            }
+          },
+          {
+            "id": "h",
+            "floor": 2,
+            "col": 1,
+            "links": [],
+            "kind": "boss",
+            "enemies": [
+              "the_motion"
+            ],
+            "objective": true
+          }
+        ],
+        "shuffle": [
+          "b",
+          "d",
+          "e",
+          "f",
+          "g"
+        ]
+      },
+      "rewards": {
+        "scrip": 2250,
+        "xp": 1500,
+        "crates": {
+          "legendary": 1
+        },
+        "rep": {
+          "tinkers": 8
+        },
+        "legendUpgrade": "ada_quill"
+      }
+    },
+    {
+      "id": "lg_seven_1",
+      "line": "legend_seven",
+      "order": 1,
+      "title": "Status Unknown",
+      "giver": "Seven",
+      "brief": "Seven wants to go back to Homestead 9, once, to see if they noticed he left. HALCY has pointed out that Homestead 9 is a sovereign subscriber and we are not allowed in. Seven has pointed out that he got out, so we can get in. HALCY has no rebuttal.",
+      "debrief": "They noticed. His file says ABSCONDED and has a sticker on it. Seven says it is the first thing anyone at Homestead 9 ever wrote about him on purpose, and has asked to keep it.",
+      "requires": {
+        "quests": [],
+        "legend": "seven"
+      },
+      "level": 14,
+      "travelMinutes": 20,
+      "map": {
+        "rooms": [
+          {
+            "id": "a",
+            "floor": 0,
+            "col": 0,
+            "links": [
+              "b"
+            ],
+            "kind": "start"
+          },
+          {
+            "id": "b",
+            "floor": 0,
+            "col": 1,
+            "links": [
+              "c",
+              "e"
+            ],
+            "kind": "event",
+            "event": "seven_roster"
+          },
+          {
+            "id": "c",
+            "floor": 0,
+            "col": 2,
+            "links": [
+              "d"
+            ],
+            "kind": "fight",
+            "enemies": [
+              "warden_unit"
+            ]
+          },
+          {
+            "id": "d",
+            "floor": 0,
+            "col": 3,
+            "links": [],
+            "kind": "loot",
+            "loot": {
+              "scrip": [
+                100,
+                160
+              ]
+            }
+          },
+          {
+            "id": "e",
+            "floor": 1,
+            "col": 1,
+            "links": [
+              "f"
+            ],
+            "kind": "fight",
+            "enemies": [
+              "warden_unit",
+              "scrap_drone"
+            ]
+          },
+          {
+            "id": "f",
+            "floor": 1,
+            "col": 2,
+            "links": [
+              "g"
+            ],
+            "kind": "loot",
+            "loot": {
+              "salvage": {
+                "rarity": "rare",
+                "count": [
+                  1,
+                  1
+                ],
+                "materials": [
+                  "circuitry"
+                ]
+              }
+            }
+          },
+          {
+            "id": "g",
+            "floor": 1,
+            "col": 3,
+            "links": [],
+            "kind": "boss",
+            "enemies": [
+              "proctor_cold",
+              "warden_unit"
+            ],
+            "objective": true
+          }
+        ],
+        "shuffle": [
+          "c",
+          "d",
+          "e",
+          "f"
+        ]
+      },
+      "rewards": {
+        "scrip": 2100,
+        "xp": 1400,
+        "crates": {
+          "rare": 1
+        },
+        "rep": {
+          "homestead9": 5
+        }
+      }
+    },
+    {
+      "id": "lg_seven_2",
+      "line": "legend_seven",
+      "order": 2,
+      "title": "Lights Out",
+      "giver": "Seven",
+      "brief": "Deep in Homestead 9 is MOTHER-9, the custodial core that raised Seven and numbered the rest. He wants to talk to it. \"Just talk,\" he says. HALCY is packing extra Med-Patches, because HALCY has met MOTHER-9.",
+      "debrief": "Seven talked. MOTHER-9 listened for as long as a core like that can, and then it tried to count him. It will not be counting anyone for a while, and it did not say sorry. Seven says he did not expect it to.",
+      "requires": {
+        "quests": [
+          "lg_seven_1"
+        ],
+        "legend": "seven"
+      },
+      "level": 17,
+      "travelMinutes": 28,
+      "map": {
+        "rooms": [
+          {
+            "id": "a",
+            "floor": 0,
+            "col": 0,
+            "links": [
+              "b"
+            ],
+            "kind": "start"
+          },
+          {
+            "id": "b",
+            "floor": 0,
+            "col": 1,
+            "links": [
+              "c"
+            ],
+            "kind": "fight",
+            "enemies": [
+              "warden_unit",
+              "scrap_drone"
+            ]
+          },
+          {
+            "id": "c",
+            "floor": 0,
+            "col": 2,
+            "links": [
+              "d",
+              "f"
+            ],
+            "kind": "event",
+            "event": "seven_nursery"
+          },
+          {
+            "id": "d",
+            "floor": 0,
+            "col": 3,
+            "links": [
+              "e"
+            ],
+            "kind": "loot",
+            "loot": {
+              "salvage": {
+                "rarity": "rare",
+                "count": [
+                  1,
+                  2
+                ],
+                "materials": [
+                  "circuitry"
+                ]
+              }
+            }
+          },
+          {
+            "id": "e",
+            "floor": 1,
+            "col": 3,
+            "links": [],
+            "kind": "fight",
+            "enemies": [
+              "warden_unit",
+              "warden_unit"
+            ]
+          },
+          {
+            "id": "f",
+            "floor": 1,
+            "col": 2,
+            "links": [
+              "g"
+            ],
+            "kind": "fight",
+            "enemies": [
+              "scrap_drone",
+              "scrap_drone",
+              "warden_unit"
+            ]
+          },
+          {
+            "id": "g",
+            "floor": 1,
+            "col": 1,
+            "links": [
+              "h"
+            ],
+            "kind": "loot",
+            "loot": {
+              "scrip": [
+                150,
+                240
+              ]
+            }
+          },
+          {
+            "id": "h",
+            "floor": 2,
+            "col": 1,
+            "links": [],
+            "kind": "boss",
+            "enemies": [
+              "mother_nine"
+            ],
+            "objective": true
+          }
+        ],
+        "shuffle": [
+          "b",
+          "d",
+          "e",
+          "f",
+          "g"
+        ]
+      },
+      "rewards": {
+        "scrip": 2550,
+        "xp": 1700,
+        "crates": {
+          "legendary": 1
+        },
+        "rep": {
+          "homestead9": 8
+        },
+        "legendUpgrade": "seven"
+      }
+    },
+    {
+      "id": "lg_ferris_1",
+      "line": "legend_doc_ferris",
+      "order": 1,
+      "title": "Ward Rounds",
+      "giver": "Dr. Aurelio Ferris",
+      "brief": "Dr. Ferris says his old clinic is still out there, and his patients are still in it. \"They won't be well,\" he says. \"They'll be Hollowed. But they're on my list, and I finish my list.\" HALCY has approved the house call.",
+      "debrief": "The ward is quiet now. Ferris went bed to bed and closed every chart, one by one. He says it was the least he could do, and also the most.",
+      "requires": {
+        "quests": [],
+        "legend": "doc_ferris"
+      },
+      "level": 10,
+      "travelMinutes": 15,
+      "map": {
+        "rooms": [
+          {
+            "id": "a",
+            "floor": 0,
+            "col": 0,
+            "links": [
+              "b"
+            ],
+            "kind": "start"
+          },
+          {
+            "id": "b",
+            "floor": 0,
+            "col": 1,
+            "links": [
+              "c",
+              "e"
+            ],
+            "kind": "event",
+            "event": "ferris_chart"
+          },
+          {
+            "id": "c",
+            "floor": 0,
+            "col": 2,
+            "links": [
+              "d"
+            ],
+            "kind": "fight",
+            "enemies": [
+              "ward_orderly",
+              "ward_orderly"
+            ]
+          },
+          {
+            "id": "d",
+            "floor": 0,
+            "col": 3,
+            "links": [],
+            "kind": "loot",
+            "loot": {
+              "medpatch": 1,
+              "scrip": [
+                60,
+                100
+              ]
+            }
+          },
+          {
+            "id": "e",
+            "floor": 1,
+            "col": 1,
+            "links": [
+              "f"
+            ],
+            "kind": "fight",
+            "enemies": [
+              "ward_orderly",
+              "hollowed_hulk"
+            ]
+          },
+          {
+            "id": "f",
+            "floor": 1,
+            "col": 2,
+            "links": [
+              "g"
+            ],
+            "kind": "loot",
+            "loot": {
+              "salvage": {
+                "rarity": "rare",
+                "count": [
+                  1,
+                  1
+                ],
+                "materials": [
+                  "chemicals"
+                ]
+              }
+            }
+          },
+          {
+            "id": "g",
+            "floor": 1,
+            "col": 3,
+            "links": [],
+            "kind": "boss",
+            "enemies": [
+              "head_of_ward"
+            ],
+            "objective": true
+          }
+        ],
+        "shuffle": [
+          "c",
+          "d",
+          "e",
+          "f"
+        ]
+      },
+      "rewards": {
+        "scrip": 1500,
+        "xp": 1000,
+        "crates": {
+          "rare": 1
+        },
+        "medpatch": 3
+      }
+    },
+    {
+      "id": "lg_ferris_2",
+      "line": "legend_doc_ferris",
+      "order": 2,
+      "title": "Clocking Out",
+      "giver": "Dr. Aurelio Ferris",
+      "brief": "Ferris has found the old Halcyon Medical headquarters on a map. His timecard is there, he says, in the machine by the door, and he would like to punch out. \"Two hundred years,\" he says. \"I'm owed a lot of overtime.\"",
+      "debrief": "He punched out. The machine printed a slip that says SHIFT LENGTH: ERROR. He has framed it. He came back to work the next morning, rested, and has been slightly insufferable about it since.",
+      "requires": {
+        "quests": [
+          "lg_ferris_1"
+        ],
+        "legend": "doc_ferris"
+      },
+      "level": 13,
+      "travelMinutes": 22,
+      "map": {
+        "rooms": [
+          {
+            "id": "a",
+            "floor": 0,
+            "col": 0,
+            "links": [
+              "b"
+            ],
+            "kind": "start"
+          },
+          {
+            "id": "b",
+            "floor": 0,
+            "col": 1,
+            "links": [
+              "c"
+            ],
+            "kind": "fight",
+            "enemies": [
+              "ward_orderly",
+              "ward_orderly"
+            ]
+          },
+          {
+            "id": "c",
+            "floor": 0,
+            "col": 2,
+            "links": [
+              "d",
+              "f"
+            ],
+            "kind": "event",
+            "event": "ferris_handover"
+          },
+          {
+            "id": "d",
+            "floor": 0,
+            "col": 3,
+            "links": [
+              "e"
+            ],
+            "kind": "loot",
+            "loot": {
+              "medpatch": 2,
+              "scrip": [
+                80,
+                140
+              ]
+            }
+          },
+          {
+            "id": "e",
+            "floor": 1,
+            "col": 3,
+            "links": [],
+            "kind": "fight",
+            "enemies": [
+              "hollowed_hulk"
+            ]
+          },
+          {
+            "id": "f",
+            "floor": 1,
+            "col": 2,
+            "links": [
+              "g"
+            ],
+            "kind": "fight",
+            "enemies": [
+              "ward_orderly",
+              "hollowed_shrieker"
+            ]
+          },
+          {
+            "id": "g",
+            "floor": 1,
+            "col": 1,
+            "links": [
+              "h"
+            ],
+            "kind": "loot",
+            "loot": {
+              "salvage": {
+                "rarity": "rare",
+                "count": [
+                  1,
+                  2
+                ],
+                "materials": [
+                  "chemicals",
+                  "cloth"
+                ]
+              }
+            }
+          },
+          {
+            "id": "h",
+            "floor": 2,
+            "col": 1,
+            "links": [],
+            "kind": "boss",
+            "enemies": [
+              "chief_of_staff"
+            ],
+            "objective": true
+          }
+        ],
+        "shuffle": [
+          "b",
+          "d",
+          "e",
+          "f",
+          "g"
+        ]
+      },
+      "rewards": {
+        "scrip": 1950,
+        "xp": 1300,
+        "crates": {
+          "legendary": 1
+        },
+        "purge": 2,
+        "legendUpgrade": "doc_ferris"
+      }
+    },
+    {
+      "id": "lg_lou_1",
+      "line": "legend_lucky_lou",
+      "order": 1,
+      "title": "Marker Due",
+      "giver": "Lucky Lou",
+      "brief": "Lou owes somebody money. He owes it to the Pit Boss at the old Starlight Lanes, and he would like to pay it off in person, with friends. \"It's not a fight,\" he says. \"It's a negotiation where we win.\"",
+      "debrief": "The marker is paid, in the sense that the Pit Boss no longer wants it. Lou tore it up and threw it in the air like confetti. He is still finding bits of it in his pockets.",
+      "requires": {
+        "quests": [],
+        "legend": "lucky_lou"
+      },
+      "level": 6,
+      "travelMinutes": 10,
+      "map": {
+        "rooms": [
+          {
+            "id": "a",
+            "floor": 0,
+            "col": 0,
+            "links": [
+              "b"
+            ],
+            "kind": "start"
+          },
+          {
+            "id": "b",
+            "floor": 0,
+            "col": 1,
+            "links": [
+              "c",
+              "e"
+            ],
+            "kind": "event",
+            "event": "lou_table"
+          },
+          {
+            "id": "c",
+            "floor": 0,
+            "col": 2,
+            "links": [
+              "d"
+            ],
+            "kind": "fight",
+            "enemies": [
+              "road_agent"
+            ]
+          },
+          {
+            "id": "d",
+            "floor": 0,
+            "col": 3,
+            "links": [],
+            "kind": "loot",
+            "loot": {
+              "scrip": [
+                60,
+                100
+              ]
+            }
+          },
+          {
+            "id": "e",
+            "floor": 1,
+            "col": 1,
+            "links": [
+              "f"
+            ],
+            "kind": "fight",
+            "enemies": [
+              "road_agent",
+              "road_sharpshooter"
+            ]
+          },
+          {
+            "id": "f",
+            "floor": 1,
+            "col": 2,
+            "links": [
+              "g"
+            ],
+            "kind": "loot",
+            "loot": {
+              "salvage": {
+                "rarity": "common",
+                "count": [
+                  2,
+                  3
+                ],
+                "materials": [
+                  "valuables"
+                ]
+              }
+            }
+          },
+          {
+            "id": "g",
+            "floor": 1,
+            "col": 3,
+            "links": [],
+            "kind": "boss",
+            "enemies": [
+              "pit_boss"
+            ],
+            "objective": true
+          }
+        ],
+        "shuffle": [
+          "c",
+          "d",
+          "e",
+          "f"
+        ]
+      },
+      "rewards": {
+        "scrip": 900,
+        "xp": 600,
+        "crates": {
+          "rare": 1
+        }
+      }
+    },
+    {
+      "id": "lg_lou_2",
+      "line": "legend_lucky_lou",
+      "order": 2,
+      "title": "The House",
+      "giver": "Lucky Lou",
+      "brief": "Somewhere under the Starlight Lanes is the Dealer, who has never lost a hand, and who taught Lou everything. Lou would like to play him once. \"Just one hand,\" he says. \"The last one. Bring Med-Patches. He cheats.\"",
+      "debrief": "Lou played the last hand and won it. He will not say how, only that the house always wins, and that he is the house now. The Dealer's chips are in our strongroom, and Lou has asked to count them every evening.",
+      "requires": {
+        "quests": [
+          "lg_lou_1"
+        ],
+        "legend": "lucky_lou"
+      },
+      "level": 9,
+      "travelMinutes": 16,
+      "map": {
+        "rooms": [
+          {
+            "id": "a",
+            "floor": 0,
+            "col": 0,
+            "links": [
+              "b"
+            ],
+            "kind": "start"
+          },
+          {
+            "id": "b",
+            "floor": 0,
+            "col": 1,
+            "links": [
+              "c"
+            ],
+            "kind": "fight",
+            "enemies": [
+              "road_agent",
+              "road_agent"
+            ]
+          },
+          {
+            "id": "c",
+            "floor": 0,
+            "col": 2,
+            "links": [
+              "d",
+              "f"
+            ],
+            "kind": "event",
+            "event": "lou_wheel"
+          },
+          {
+            "id": "d",
+            "floor": 0,
+            "col": 3,
+            "links": [
+              "e"
+            ],
+            "kind": "loot",
+            "loot": {
+              "scrip": [
+                140,
+                220
+              ]
+            }
+          },
+          {
+            "id": "e",
+            "floor": 1,
+            "col": 3,
+            "links": [],
+            "kind": "fight",
+            "enemies": [
+              "road_sharpshooter",
+              "road_agent"
+            ]
+          },
+          {
+            "id": "f",
+            "floor": 1,
+            "col": 2,
+            "links": [
+              "g"
+            ],
+            "kind": "fight",
+            "enemies": [
+              "toll_bruiser"
+            ]
+          },
+          {
+            "id": "g",
+            "floor": 1,
+            "col": 1,
+            "links": [
+              "h"
+            ],
+            "kind": "loot",
+            "loot": {
+              "salvage": {
+                "rarity": "rare",
+                "count": [
+                  1,
+                  2
+                ],
+                "materials": [
+                  "valuables"
+                ]
+              }
+            }
+          },
+          {
+            "id": "h",
+            "floor": 2,
+            "col": 1,
+            "links": [],
+            "kind": "boss",
+            "enemies": [
+              "the_dealer"
+            ],
+            "objective": true
+          }
+        ],
+        "shuffle": [
+          "b",
+          "d",
+          "e",
+          "f",
+          "g"
+        ]
+      },
+      "rewards": {
+        "scrip": 1350,
+        "xp": 900,
+        "crates": {
+          "legendary": 1
+        },
+        "legendUpgrade": "lucky_lou"
+      }
+    },
+    {
+      "id": "lg_pip_1",
+      "line": "legend_pip",
+      "order": 1,
+      "title": "Gerald",
+      "giver": "Pip",
+      "brief": "Pip says the old pumping station under the ridge is \"poorly\". She means the pipes, which she has names for, and the skitters living in them, which she has other names for. \"They're making Gerald sick,\" she says. Nobody has asked who Gerald is.",
+      "debrief": "The pipes are clear and the Pipe Mother is gone. Gerald, it turns out, is a pressure main. Pip says he is feeling much better. The pressure readings agree with her.",
+      "requires": {
+        "quests": [],
+        "legend": "pip"
+      },
+      "level": 11,
+      "travelMinutes": 16,
+      "map": {
+        "rooms": [
+          {
+            "id": "a",
+            "floor": 0,
+            "col": 0,
+            "links": [
+              "b"
+            ],
+            "kind": "start"
+          },
+          {
+            "id": "b",
+            "floor": 0,
+            "col": 1,
+            "links": [
+              "c",
+              "e"
+            ],
+            "kind": "event",
+            "event": "pip_pipes"
+          },
+          {
+            "id": "c",
+            "floor": 0,
+            "col": 2,
+            "links": [
+              "d"
+            ],
+            "kind": "fight",
+            "enemies": [
+              "pipe_skitter",
+              "pipe_skitter"
+            ]
+          },
+          {
+            "id": "d",
+            "floor": 0,
+            "col": 3,
+            "links": [],
+            "kind": "loot",
+            "loot": {
+              "salvage": {
+                "rarity": "common",
+                "count": [
+                  2,
+                  4
+                ],
+                "materials": [
+                  "steel"
+                ]
+              }
+            }
+          },
+          {
+            "id": "e",
+            "floor": 1,
+            "col": 1,
+            "links": [
+              "f"
+            ],
+            "kind": "fight",
+            "enemies": [
+              "sump_burrower"
+            ]
+          },
+          {
+            "id": "f",
+            "floor": 1,
+            "col": 2,
+            "links": [
+              "g"
+            ],
+            "kind": "loot",
+            "loot": {
+              "scrip": [
+                80,
+                140
+              ]
+            }
+          },
+          {
+            "id": "g",
+            "floor": 1,
+            "col": 3,
+            "links": [],
+            "kind": "boss",
+            "enemies": [
+              "pipe_mother",
+              "pipe_skitter"
+            ],
+            "objective": true
+          }
+        ],
+        "shuffle": [
+          "c",
+          "d",
+          "e",
+          "f"
+        ]
+      },
+      "rewards": {
+        "scrip": 1650,
+        "xp": 1100,
+        "crates": {
+          "rare": 1
+        }
+      }
+    },
+    {
+      "id": "lg_pip_2",
+      "line": "legend_pip",
+      "order": 2,
+      "title": "Home",
+      "giver": "Pip",
+      "brief": "Pip wants to go back down to where she grew up, below Four, where the hum comes from. She says it has been getting louder since she left. \"It misses me,\" she says. HALCY has asked the maintenance team to stop saying things like that.",
+      "debrief": "The Hum is quiet. Pip sat in the dark for a while, listening to the pipes, and then she came home. The upstairs home. She says it is still too quiet up here, but she is getting used to it.",
+      "requires": {
+        "quests": [
+          "lg_pip_1"
+        ],
+        "legend": "pip"
+      },
+      "level": 14,
+      "travelMinutes": 24,
+      "map": {
+        "rooms": [
+          {
+            "id": "a",
+            "floor": 0,
+            "col": 0,
+            "links": [
+              "b"
+            ],
+            "kind": "start"
+          },
+          {
+            "id": "b",
+            "floor": 0,
+            "col": 1,
+            "links": [
+              "c"
+            ],
+            "kind": "fight",
+            "enemies": [
+              "pipe_skitter",
+              "pipe_skitter"
+            ]
+          },
+          {
+            "id": "c",
+            "floor": 0,
+            "col": 2,
+            "links": [
+              "d",
+              "f"
+            ],
+            "kind": "event",
+            "event": "pip_skiff"
+          },
+          {
+            "id": "d",
+            "floor": 0,
+            "col": 3,
+            "links": [
+              "e"
+            ],
+            "kind": "loot",
+            "loot": {
+              "salvage": {
+                "rarity": "rare",
+                "count": [
+                  1,
+                  2
+                ],
+                "materials": [
+                  "steel"
+                ]
+              }
+            }
+          },
+          {
+            "id": "e",
+            "floor": 1,
+            "col": 3,
+            "links": [],
+            "kind": "fight",
+            "enemies": [
+              "sump_burrower",
+              "pipe_skitter"
+            ]
+          },
+          {
+            "id": "f",
+            "floor": 1,
+            "col": 2,
+            "links": [
+              "g"
+            ],
+            "kind": "fight",
+            "enemies": [
+              "sump_burrower"
+            ]
+          },
+          {
+            "id": "g",
+            "floor": 1,
+            "col": 1,
+            "links": [
+              "h"
+            ],
+            "kind": "loot",
+            "loot": {
+              "scrip": [
+                140,
+                220
+              ]
+            }
+          },
+          {
+            "id": "h",
+            "floor": 2,
+            "col": 1,
+            "links": [],
+            "kind": "boss",
+            "enemies": [
+              "the_hum"
+            ],
+            "objective": true
+          }
+        ],
+        "shuffle": [
+          "b",
+          "d",
+          "e",
+          "f",
+          "g"
+        ]
+      },
+      "rewards": {
+        "scrip": 2100,
+        "xp": 1400,
+        "crates": {
+          "legendary": 1
+        },
+        "legendUpgrade": "pip"
+      }
+    },
+    {
+      "id": "lg_rook_1",
+      "line": "legend_rook",
+      "order": 1,
+      "title": "Change of Colours",
+      "giver": "Rook",
+      "brief": "By clan law, Rook belongs to whoever beat his champion, which is us. His old clan does not agree, and its matron has sent word that she wants him back, or at least his head back. \"She is my aunt,\" says Rook. \"She means it kindly.\"",
+      "debrief": "The Iron Matron has conceded, in the way Rustmen concede, which is loudly and with a lot of shoving. She has given Rook her blessing and a black eye. He says he will treasure both.",
+      "requires": {
+        "quests": [],
+        "legend": "rook"
+      },
+      "level": 18,
+      "travelMinutes": 22,
+      "map": {
+        "rooms": [
+          {
+            "id": "a",
+            "floor": 0,
+            "col": 0,
+            "links": [
+              "b"
+            ],
+            "kind": "start"
+          },
+          {
+            "id": "b",
+            "floor": 0,
+            "col": 1,
+            "links": [
+              "c",
+              "e"
+            ],
+            "kind": "event",
+            "event": "rook_challenge"
+          },
+          {
+            "id": "c",
+            "floor": 0,
+            "col": 2,
+            "links": [
+              "d"
+            ],
+            "kind": "fight",
+            "enemies": [
+              "ring_second",
+              "ring_brawler"
+            ]
+          },
+          {
+            "id": "d",
+            "floor": 0,
+            "col": 3,
+            "links": [],
+            "kind": "loot",
+            "loot": {
+              "salvage": {
+                "rarity": "rare",
+                "count": [
+                  1,
+                  1
+                ],
+                "materials": [
+                  "steel"
+                ]
+              }
+            }
+          },
+          {
+            "id": "e",
+            "floor": 1,
+            "col": 1,
+            "links": [
+              "f"
+            ],
+            "kind": "fight",
+            "enemies": [
+              "ring_brawler",
+              "ring_second"
+            ]
+          },
+          {
+            "id": "f",
+            "floor": 1,
+            "col": 2,
+            "links": [
+              "g"
+            ],
+            "kind": "loot",
+            "loot": {
+              "scrip": [
+                140,
+                220
+              ]
+            }
+          },
+          {
+            "id": "g",
+            "floor": 1,
+            "col": 3,
+            "links": [],
+            "kind": "boss",
+            "enemies": [
+              "iron_matron",
+              "ring_second"
+            ],
+            "objective": true
+          }
+        ],
+        "shuffle": [
+          "c",
+          "d",
+          "e",
+          "f"
+        ]
+      },
+      "rewards": {
+        "scrip": 2700,
+        "xp": 1800,
+        "crates": {
+          "rare": 1
+        },
+        "rep": {
+          "rustmen": 6
+        }
+      }
+    },
+    {
+      "id": "lg_rook_2",
+      "line": "legend_rook",
+      "order": 2,
+      "title": "The Great Ring",
+      "giver": "Rook",
+      "brief": "Once a generation, the clans hold the Great Ring, and whoever wins it is champion of all of them. Rook wants in, for the homestead's honour. HALCY says it is for Rook's honour. Rook says those are the same thing now.",
+      "debrief": "Rook is champion of the clans, and champion of the homestead, and he wears both belts. They clash. He says a man with two homes should have two belts, and nobody has had the nerve to argue.",
+      "requires": {
+        "quests": [
+          "lg_rook_1"
+        ],
+        "legend": "rook"
+      },
+      "level": 21,
+      "travelMinutes": 32,
+      "map": {
+        "rooms": [
+          {
+            "id": "a",
+            "floor": 0,
+            "col": 0,
+            "links": [
+              "b"
+            ],
+            "kind": "start"
+          },
+          {
+            "id": "b",
+            "floor": 0,
+            "col": 1,
+            "links": [
+              "c"
+            ],
+            "kind": "fight",
+            "enemies": [
+              "ring_second",
+              "ring_second"
+            ]
+          },
+          {
+            "id": "c",
+            "floor": 0,
+            "col": 2,
+            "links": [
+              "d",
+              "f"
+            ],
+            "kind": "event",
+            "event": "rook_crowd"
+          },
+          {
+            "id": "d",
+            "floor": 0,
+            "col": 3,
+            "links": [
+              "e"
+            ],
+            "kind": "loot",
+            "loot": {
+              "scrip": [
+                200,
+                300
+              ]
+            }
+          },
+          {
+            "id": "e",
+            "floor": 1,
+            "col": 3,
+            "links": [],
+            "kind": "fight",
+            "enemies": [
+              "ring_brawler"
+            ]
+          },
+          {
+            "id": "f",
+            "floor": 1,
+            "col": 2,
+            "links": [
+              "g"
+            ],
+            "kind": "fight",
+            "enemies": [
+              "ring_brawler",
+              "ring_second"
+            ]
+          },
+          {
+            "id": "g",
+            "floor": 1,
+            "col": 1,
+            "links": [
+              "h"
+            ],
+            "kind": "loot",
+            "loot": {
+              "salvage": {
+                "rarity": "rare",
+                "count": [
+                  1,
+                  2
+                ],
+                "materials": [
+                  "steel",
+                  "valuables"
+                ]
+              }
+            }
+          },
+          {
+            "id": "h",
+            "floor": 2,
+            "col": 1,
+            "links": [],
+            "kind": "boss",
+            "enemies": [
+              "the_old_champion"
+            ],
+            "objective": true
+          }
+        ],
+        "shuffle": [
+          "b",
+          "d",
+          "e",
+          "f",
+          "g"
+        ]
+      },
+      "rewards": {
+        "scrip": 3150,
+        "xp": 2100,
+        "crates": {
+          "legendary": 1
+        },
+        "rep": {
+          "rustmen": 10
+        },
+        "legendUpgrade": "rook"
+      }
+    },
+    {
+      "id": "lg_ash_1",
+      "line": "legend_granny_ash",
+      "order": 1,
+      "title": "Old Haunts",
+      "giver": "Granny Ash",
+      "brief": "Granny Ash wants to visit \"the old place\", which she says is only a short walk. It is two days' walk, and she wants to check on her roses. HALCY has pointed out that no rose has survived the Glare. Granny says hers did, out of spite.",
+      "debrief": "The roses are alive. They are grey and sharp and slightly radioactive, but they are alive. Granny cut one for the canteen table, where it has been for a week without wilting. It may never wilt.",
+      "requires": {
+        "quests": [],
+        "legend": "granny_ash"
+      },
+      "level": 12,
+      "travelMinutes": 18,
+      "map": {
+        "rooms": [
+          {
+            "id": "a",
+            "floor": 0,
+            "col": 0,
+            "links": [
+              "b"
+            ],
+            "kind": "start"
+          },
+          {
+            "id": "b",
+            "floor": 0,
+            "col": 1,
+            "links": [
+              "c",
+              "e"
+            ],
+            "kind": "event",
+            "event": "ash_story"
+          },
+          {
+            "id": "c",
+            "floor": 0,
+            "col": 2,
+            "links": [
+              "d"
+            ],
+            "kind": "fight",
+            "enemies": [
+              "cinder_hound"
+            ]
+          },
+          {
+            "id": "d",
+            "floor": 0,
+            "col": 3,
+            "links": [],
+            "kind": "loot",
+            "loot": {
+              "salvage": {
+                "rarity": "common",
+                "count": [
+                  2,
+                  3
+                ],
+                "materials": [
+                  "cloth",
+                  "chemicals"
+                ]
+              }
+            }
+          },
+          {
+            "id": "e",
+            "floor": 1,
+            "col": 1,
+            "links": [
+              "f"
+            ],
+            "kind": "fight",
+            "enemies": [
+              "cinder_hound",
+              "hollowed"
+            ]
+          },
+          {
+            "id": "f",
+            "floor": 1,
+            "col": 2,
+            "links": [
+              "g"
+            ],
+            "kind": "loot",
+            "loot": {
+              "scrip": [
+                100,
+                160
+              ]
+            }
+          },
+          {
+            "id": "g",
+            "floor": 1,
+            "col": 3,
+            "links": [],
+            "kind": "boss",
+            "enemies": [
+              "cinder_alpha"
+            ],
+            "objective": true
+          }
+        ],
+        "shuffle": [
+          "c",
+          "d",
+          "e",
+          "f"
+        ]
+      },
+      "rewards": {
+        "scrip": 1800,
+        "xp": 1200,
+        "crates": {
+          "rare": 1
+        }
+      }
+    },
+    {
+      "id": "lg_ash_2",
+      "line": "legend_granny_ash",
+      "order": 2,
+      "title": "Last Spoon",
+      "giver": "Granny Ash",
+      "brief": "There is an old flame burning at the bottom of the Cinder Hollow, and Granny Ash says it has been burning since the year of the big dust. She says it took something from her once. She won't say what. She has packed a lunch.",
+      "debrief": "The Old Flame is out. Granny sat by the ashes and ate her lunch and did not say anything for a long time. Then she said, \"Well. That's that,\" and asked if we had any more of those biscuits.",
+      "requires": {
+        "quests": [
+          "lg_ash_1"
+        ],
+        "legend": "granny_ash"
+      },
+      "level": 15,
+      "travelMinutes": 26,
+      "map": {
+        "rooms": [
+          {
+            "id": "a",
+            "floor": 0,
+            "col": 0,
+            "links": [
+              "b"
+            ],
+            "kind": "start"
+          },
+          {
+            "id": "b",
+            "floor": 0,
+            "col": 1,
+            "links": [
+              "c"
+            ],
+            "kind": "fight",
+            "enemies": [
+              "cinder_hound"
+            ]
+          },
+          {
+            "id": "c",
+            "floor": 0,
+            "col": 2,
+            "links": [
+              "d",
+              "f"
+            ],
+            "kind": "event",
+            "event": "ash_grave"
+          },
+          {
+            "id": "d",
+            "floor": 0,
+            "col": 3,
+            "links": [
+              "e"
+            ],
+            "kind": "loot",
+            "loot": {
+              "scrip": [
+                150,
+                220
+              ]
+            }
+          },
+          {
+            "id": "e",
+            "floor": 1,
+            "col": 3,
+            "links": [],
+            "kind": "fight",
+            "enemies": [
+              "cinder_hound",
+              "hollowed"
+            ]
+          },
+          {
+            "id": "f",
+            "floor": 1,
+            "col": 2,
+            "links": [
+              "g"
+            ],
+            "kind": "fight",
+            "enemies": [
+              "cinder_hound",
+              "cinder_hound"
+            ]
+          },
+          {
+            "id": "g",
+            "floor": 1,
+            "col": 1,
+            "links": [
+              "h"
+            ],
+            "kind": "loot",
+            "loot": {
+              "salvage": {
+                "rarity": "rare",
+                "count": [
+                  1,
+                  2
+                ],
+                "materials": [
+                  "hide"
+                ]
+              }
+            }
+          },
+          {
+            "id": "h",
+            "floor": 2,
+            "col": 1,
+            "links": [],
+            "kind": "boss",
+            "enemies": [
+              "the_old_flame"
+            ],
+            "objective": true
+          }
+        ],
+        "shuffle": [
+          "b",
+          "d",
+          "e",
+          "f",
+          "g"
+        ]
+      },
+      "rewards": {
+        "scrip": 2250,
+        "xp": 1500,
+        "crates": {
+          "legendary": 1
+        },
+        "legendUpgrade": "granny_ash"
+      }
+    },
+    {
+      "id": "lg_wick_1",
+      "line": "legend_brother_wick",
+      "order": 1,
+      "title": "Unlit",
+      "giver": "Brother Wick",
+      "brief": "The Order of the Last Lamp has sent Inquisitor Tallow to bring Brother Wick back, or at least his lamp. Wick would like to meet him on the road, \"somewhere with room to argue\". HALCY has provided a route and a list of talking points.",
+      "debrief": "Tallow has gone back to the Order with his robes singed and his lamp out. Wick sent him off with a blessing. He says he had one left over.",
+      "requires": {
+        "quests": [],
+        "legend": "brother_wick"
+      },
+      "level": 24,
+      "travelMinutes": 30,
+      "map": {
+        "rooms": [
+          {
+            "id": "a",
+            "floor": 0,
+            "col": 0,
+            "links": [
+              "b"
+            ],
+            "kind": "start"
+          },
+          {
+            "id": "b",
+            "floor": 0,
+            "col": 1,
+            "links": [
+              "c",
+              "e"
+            ],
+            "kind": "event",
+            "event": "wick_shrine"
+          },
+          {
+            "id": "c",
+            "floor": 0,
+            "col": 2,
+            "links": [
+              "d"
+            ],
+            "kind": "fight",
+            "enemies": [
+              "ember_acolyte",
+              "ember_acolyte"
+            ]
+          },
+          {
+            "id": "d",
+            "floor": 0,
+            "col": 3,
+            "links": [],
+            "kind": "loot",
+            "loot": {
+              "scrip": [
+                180,
+                260
+              ]
+            }
+          },
+          {
+            "id": "e",
+            "floor": 1,
+            "col": 1,
+            "links": [
+              "f"
+            ],
+            "kind": "fight",
+            "enemies": [
+              "lamp_deacon",
+              "ember_acolyte"
+            ]
+          },
+          {
+            "id": "f",
+            "floor": 1,
+            "col": 2,
+            "links": [
+              "g"
+            ],
+            "kind": "loot",
+            "loot": {
+              "salvage": {
+                "rarity": "rare",
+                "count": [
+                  1,
+                  1
+                ],
+                "materials": [
+                  "chemicals"
+                ]
+              }
+            }
+          },
+          {
+            "id": "g",
+            "floor": 1,
+            "col": 3,
+            "links": [],
+            "kind": "boss",
+            "enemies": [
+              "lamp_inquisitor",
+              "ember_acolyte"
+            ],
+            "objective": true
+          }
+        ],
+        "shuffle": [
+          "c",
+          "d",
+          "e",
+          "f"
+        ]
+      },
+      "rewards": {
+        "scrip": 3600,
+        "xp": 2400,
+        "crates": {
+          "rare": 1
+        },
+        "rep": {
+          "lamplighters": -5
+        }
+      }
+    },
+    {
+      "id": "lg_wick_2",
+      "line": "legend_brother_wick",
+      "order": 2,
+      "title": "The First Lamp",
+      "giver": "Brother Wick",
+      "brief": "At the heart of the Order is the First Lamp, which has burned since the Glare and which, the Order says, will light the second dawn. Wick would like to look at it up close. \"Just to see,\" he says. He is bringing his own lamp, unlit.",
+      "debrief": "The First Lamp was a Halcyon emergency beacon, set to blink until someone came. Wick switched it off, gently, and lit his own lamp from its last flicker. He will not say why. It burns very steadily.",
+      "requires": {
+        "quests": [
+          "lg_wick_1"
+        ],
+        "legend": "brother_wick"
+      },
+      "level": 27,
+      "travelMinutes": 38,
+      "map": {
+        "rooms": [
+          {
+            "id": "a",
+            "floor": 0,
+            "col": 0,
+            "links": [
+              "b"
+            ],
+            "kind": "start"
+          },
+          {
+            "id": "b",
+            "floor": 0,
+            "col": 1,
+            "links": [
+              "c"
+            ],
+            "kind": "fight",
+            "enemies": [
+              "ember_acolyte",
+              "ember_acolyte"
+            ]
+          },
+          {
+            "id": "c",
+            "floor": 0,
+            "col": 2,
+            "links": [
+              "d",
+              "f"
+            ],
+            "kind": "event",
+            "event": "wick_confession"
+          },
+          {
+            "id": "d",
+            "floor": 0,
+            "col": 3,
+            "links": [
+              "e"
+            ],
+            "kind": "loot",
+            "loot": {
+              "salvage": {
+                "rarity": "rare",
+                "count": [
+                  1,
+                  2
+                ],
+                "materials": [
+                  "chemicals",
+                  "cloth"
+                ]
+              }
+            }
+          },
+          {
+            "id": "e",
+            "floor": 1,
+            "col": 3,
+            "links": [],
+            "kind": "fight",
+            "enemies": [
+              "lamp_deacon"
+            ]
+          },
+          {
+            "id": "f",
+            "floor": 1,
+            "col": 2,
+            "links": [
+              "g"
+            ],
+            "kind": "fight",
+            "enemies": [
+              "ember_acolyte",
+              "lamp_deacon"
+            ]
+          },
+          {
+            "id": "g",
+            "floor": 1,
+            "col": 1,
+            "links": [
+              "h"
+            ],
+            "kind": "loot",
+            "loot": {
+              "scrip": [
+                240,
+                360
+              ]
+            }
+          },
+          {
+            "id": "h",
+            "floor": 2,
+            "col": 1,
+            "links": [],
+            "kind": "boss",
+            "enemies": [
+              "the_first_lamp"
+            ],
+            "objective": true
+          }
+        ],
+        "shuffle": [
+          "b",
+          "d",
+          "e",
+          "f",
+          "g"
+        ]
+      },
+      "rewards": {
+        "scrip": 4050,
+        "xp": 2700,
+        "crates": {
+          "legendary": 1
+        },
+        "rep": {
+          "lamplighters": 5
+        },
+        "legendUpgrade": "brother_wick"
+      }
+    },
+    {
+      "id": "lg_june_1",
+      "line": "legend_june_halloran",
+      "order": 1,
+      "title": "Salvage Rights",
+      "giver": "June Halloran",
+      "brief": "June says the Silt Queen has nested in the old Stillwater department store and the salvage divers can't get in to the good floors. She says the third floor was homewares, and the water keeps everything.",
+      "debrief": "The store is open for business again, underwater. June came back with a teapot, a clock and a very good umbrella. She says the water let her have them. She seems to mean it.",
+      "requires": {
+        "quests": [],
+        "legend": "june_halloran"
+      },
+      "level": 26,
+      "travelMinutes": 32,
+      "map": {
+        "rooms": [
+          {
+            "id": "a",
+            "floor": 0,
+            "col": 0,
+            "links": [
+              "b"
+            ],
+            "kind": "start"
+          },
+          {
+            "id": "b",
+            "floor": 0,
+            "col": 1,
+            "links": [
+              "c",
+              "e"
+            ],
+            "kind": "event",
+            "event": "june_dive"
+          },
+          {
+            "id": "c",
+            "floor": 0,
+            "col": 2,
+            "links": [
+              "d"
+            ],
+            "kind": "fight",
+            "enemies": [
+              "drowned_hollowed",
+              "drowned_hollowed"
+            ]
+          },
+          {
+            "id": "d",
+            "floor": 0,
+            "col": 3,
+            "links": [],
+            "kind": "loot",
+            "loot": {
+              "salvage": {
+                "rarity": "rare",
+                "count": [
+                  1,
+                  1
+                ],
+                "materials": [
+                  "valuables"
+                ]
+              }
+            }
+          },
+          {
+            "id": "e",
+            "floor": 1,
+            "col": 1,
+            "links": [
+              "f"
+            ],
+            "kind": "fight",
+            "enemies": [
+              "silt_stalker",
+              "drowned_hollowed"
+            ]
+          },
+          {
+            "id": "f",
+            "floor": 1,
+            "col": 2,
+            "links": [
+              "g"
+            ],
+            "kind": "loot",
+            "loot": {
+              "scrip": [
+                200,
+                300
+              ]
+            }
+          },
+          {
+            "id": "g",
+            "floor": 1,
+            "col": 3,
+            "links": [],
+            "kind": "boss",
+            "enemies": [
+              "silt_queen",
+              "drowned_hollowed"
+            ],
+            "objective": true
+          }
+        ],
+        "shuffle": [
+          "c",
+          "d",
+          "e",
+          "f"
+        ]
+      },
+      "rewards": {
+        "scrip": 3900,
+        "xp": 2600,
+        "crates": {
+          "rare": 1
+        }
+      }
+    },
+    {
+      "id": "lg_june_2",
+      "line": "legend_june_halloran",
+      "order": 2,
+      "title": "The Mayor's Office",
+      "giver": "June Halloran",
+      "brief": "At the bottom of the Stillwater, under the town hall, the Drowned Mayor still holds office, and still holds the city's last pre-Glare charter. June wants to see it. \"My family signed it,\" she says. \"Somebody should read it before it's gone.\"",
+      "debrief": "June read the charter. It promised the city would never flood. Everybody laughed, including June, and then she cried a little, and then she dived one last time, to the very bottom. She says the city said goodbye.",
+      "requires": {
+        "quests": [
+          "lg_june_1"
+        ],
+        "legend": "june_halloran"
+      },
+      "level": 29,
+      "travelMinutes": 40,
+      "map": {
+        "rooms": [
+          {
+            "id": "a",
+            "floor": 0,
+            "col": 0,
+            "links": [
+              "b"
+            ],
+            "kind": "start"
+          },
+          {
+            "id": "b",
+            "floor": 0,
+            "col": 1,
+            "links": [
+              "c"
+            ],
+            "kind": "fight",
+            "enemies": [
+              "drowned_hollowed",
+              "drowned_hollowed"
+            ]
+          },
+          {
+            "id": "c",
+            "floor": 0,
+            "col": 2,
+            "links": [
+              "d",
+              "f"
+            ],
+            "kind": "event",
+            "event": "june_bell"
+          },
+          {
+            "id": "d",
+            "floor": 0,
+            "col": 3,
+            "links": [
+              "e"
+            ],
+            "kind": "loot",
+            "loot": {
+              "scrip": [
+                260,
+                380
+              ]
+            }
+          },
+          {
+            "id": "e",
+            "floor": 1,
+            "col": 3,
+            "links": [],
+            "kind": "fight",
+            "enemies": [
+              "silt_stalker"
+            ]
+          },
+          {
+            "id": "f",
+            "floor": 1,
+            "col": 2,
+            "links": [
+              "g"
+            ],
+            "kind": "fight",
+            "enemies": [
+              "silt_stalker",
+              "drowned_hollowed"
+            ]
+          },
+          {
+            "id": "g",
+            "floor": 1,
+            "col": 1,
+            "links": [
+              "h"
+            ],
+            "kind": "loot",
+            "loot": {
+              "salvage": {
+                "rarity": "rare",
+                "count": [
+                  1,
+                  2
+                ],
+                "materials": [
+                  "valuables",
+                  "steel"
+                ]
+              }
+            }
+          },
+          {
+            "id": "h",
+            "floor": 2,
+            "col": 1,
+            "links": [],
+            "kind": "boss",
+            "enemies": [
+              "the_drowned_mayor"
+            ],
+            "objective": true
+          }
+        ],
+        "shuffle": [
+          "b",
+          "d",
+          "e",
+          "f",
+          "g"
+        ]
+      },
+      "rewards": {
+        "scrip": 4350,
+        "xp": 2900,
+        "crates": {
+          "legendary": 1
+        },
+        "legendUpgrade": "june_halloran"
+      }
+    },
+    {
+      "id": "lg_orla_1",
+      "line": "legend_captain_orla",
+      "order": 1,
+      "title": "Roll Call",
+      "giver": "Captain Orla Brandt",
+      "brief": "Captain Brandt wants to go back under the Seal, to the security post where she was frozen, and account for her squad. \"They'll be gone,\" she says. \"I know. But they're on my roster, and I call the roll.\"",
+      "debrief": "She called the roll. Nobody answered. She wrote PRESENT next to every name anyway, and signed it, and filed it with HALCY, who has promised to keep it forever. HALCY has, for once, not made a joke.",
+      "requires": {
+        "quests": [],
+        "legend": "captain_orla"
+      },
+      "level": 30,
+      "travelMinutes": 36,
+      "map": {
+        "rooms": [
+          {
+            "id": "a",
+            "floor": 0,
+            "col": 0,
+            "links": [
+              "b"
+            ],
+            "kind": "start"
+          },
+          {
+            "id": "b",
+            "floor": 0,
+            "col": 1,
+            "links": [
+              "c",
+              "e"
+            ],
+            "kind": "event",
+            "event": "orla_armoury"
+          },
+          {
+            "id": "c",
+            "floor": 0,
+            "col": 2,
+            "links": [
+              "d"
+            ],
+            "kind": "fight",
+            "enemies": [
+              "seal_sentinel"
+            ]
+          },
+          {
+            "id": "d",
+            "floor": 0,
+            "col": 3,
+            "links": [],
+            "kind": "loot",
+            "loot": {
+              "salvage": {
+                "rarity": "rare",
+                "count": [
+                  1,
+                  2
+                ],
+                "materials": [
+                  "circuitry"
+                ]
+              }
+            }
+          },
+          {
+            "id": "e",
+            "floor": 1,
+            "col": 1,
+            "links": [
+              "f"
+            ],
+            "kind": "fight",
+            "enemies": [
+              "seal_sentinel",
+              "compliance_sentry"
+            ]
+          },
+          {
+            "id": "f",
+            "floor": 1,
+            "col": 2,
+            "links": [
+              "g"
+            ],
+            "kind": "loot",
+            "loot": {
+              "scrip": [
+                240,
+                340
+              ]
+            }
+          },
+          {
+            "id": "g",
+            "floor": 1,
+            "col": 3,
+            "links": [],
+            "kind": "boss",
+            "enemies": [
+              "seal_warden_frame",
+              "seal_sentinel"
+            ],
+            "objective": true
+          }
+        ],
+        "shuffle": [
+          "c",
+          "d",
+          "e",
+          "f"
+        ]
+      },
+      "rewards": {
+        "scrip": 4500,
+        "xp": 3000,
+        "crates": {
+          "rare": 1
+        }
+      }
+    },
+    {
+      "id": "lg_orla_2",
+      "line": "legend_captain_orla",
+      "order": 2,
+      "title": "Last Directive",
+      "giver": "Captain Orla Brandt",
+      "brief": "Under the Seal, Director Hale's last directive is still running the defences, still holding the line against a world that ended two hundred years ago. Orla would like to relieve it of command. \"It's been on duty long enough,\" she says.",
+      "debrief": "The directive has been relieved. Orla wrote her own orders on the back of it, for the first time in her life. They are short, and mostly about us. She has pinned them up in the Command Office, where HALCY reads them every morning.",
+      "requires": {
+        "quests": [
+          "lg_orla_1"
+        ],
+        "legend": "captain_orla"
+      },
+      "level": 33,
+      "travelMinutes": 44,
+      "map": {
+        "rooms": [
+          {
+            "id": "a",
+            "floor": 0,
+            "col": 0,
+            "links": [
+              "b"
+            ],
+            "kind": "start"
+          },
+          {
+            "id": "b",
+            "floor": 0,
+            "col": 1,
+            "links": [
+              "c"
+            ],
+            "kind": "fight",
+            "enemies": [
+              "seal_sentinel",
+              "compliance_sentry"
+            ]
+          },
+          {
+            "id": "c",
+            "floor": 0,
+            "col": 2,
+            "links": [
+              "d",
+              "f"
+            ],
+            "kind": "event",
+            "event": "orla_directive"
+          },
+          {
+            "id": "d",
+            "floor": 0,
+            "col": 3,
+            "links": [
+              "e"
+            ],
+            "kind": "loot",
+            "loot": {
+              "salvage": {
+                "rarity": "rare",
+                "count": [
+                  2,
+                  3
+                ],
+                "materials": [
+                  "circuitry",
+                  "steel"
+                ]
+              }
+            }
+          },
+          {
+            "id": "e",
+            "floor": 1,
+            "col": 3,
+            "links": [],
+            "kind": "fight",
+            "enemies": [
+              "seal_sentinel",
+              "seal_sentinel"
+            ]
+          },
+          {
+            "id": "f",
+            "floor": 1,
+            "col": 2,
+            "links": [
+              "g"
+            ],
+            "kind": "fight",
+            "enemies": [
+              "compliance_sentry",
+              "seal_sentinel"
+            ]
+          },
+          {
+            "id": "g",
+            "floor": 1,
+            "col": 1,
+            "links": [
+              "h"
+            ],
+            "kind": "loot",
+            "loot": {
+              "scrip": [
+                320,
+                460
+              ]
+            }
+          },
+          {
+            "id": "h",
+            "floor": 2,
+            "col": 1,
+            "links": [],
+            "kind": "boss",
+            "enemies": [
+              "director_hale"
+            ],
+            "objective": true
+          }
+        ],
+        "shuffle": [
+          "b",
+          "d",
+          "e",
+          "f",
+          "g"
+        ]
+      },
+      "rewards": {
+        "scrip": 4950,
+        "xp": 3300,
+        "crates": {
+          "legendary": 1
+        },
+        "legendUpgrade": "captain_orla"
+      }
+    }
+  ],
+  "enemies": {
+    "road_agent": {
+      "id": "road_agent",
+      "name": "road agent",
+      "look": "rustman",
+      "hp": 65,
+      "damage": [
+        3,
+        5
+      ],
+      "interval": 2.0,
+      "xp": 15
+    },
+    "road_sharpshooter": {
+      "id": "road_sharpshooter",
+      "name": "road sharpshooter",
+      "look": "rustman",
+      "hp": 50,
+      "damage": [
+        3,
+        5
+      ],
+      "interval": 2.5,
+      "xp": 16,
+      "abilities": [
+        {
+          "id": "long_shot",
+          "name": "Long Shot",
+          "every": 10,
+          "windup": 2,
+          "effect": "heavy",
+          "power": 2
+        }
+      ]
+    },
+    "toll_bruiser": {
+      "id": "toll_bruiser",
+      "name": "toll bruiser",
+      "look": "rustman_brute",
+      "hp": 150,
+      "damage": [
+        5,
+        8
+      ],
+      "interval": 2.6,
+      "xp": 32,
+      "abilities": [
+        {
+          "id": "shakedown",
+          "name": "Shakedown",
+          "every": 10,
+          "windup": 2,
+          "effect": "heavy",
+          "power": 2.4
+        }
+      ]
+    },
+    "scrap_drone": {
+      "id": "scrap_drone",
+      "name": "scrap drone",
+      "look": "sentry",
+      "hp": 60,
+      "damage": [
+        2,
+        4
+      ],
+      "interval": 1.9,
+      "xp": 14
+    },
+    "guild_enforcer": {
+      "id": "guild_enforcer",
+      "name": "guild enforcer",
+      "look": "sentry",
+      "hp": 130,
+      "damage": [
+        4,
+        6
+      ],
+      "interval": 2.2,
+      "xp": 26,
+      "abilities": [
+        {
+          "id": "by_the_book",
+          "name": "By the Book",
+          "every": 10,
+          "windup": 2,
+          "effect": "heavy",
+          "power": 2.2
+        }
+      ]
+    },
+    "warden_unit": {
+      "id": "warden_unit",
+      "name": "H9 warden unit",
+      "look": "sentry",
+      "hp": 125,
+      "damage": [
+        4,
+        6
+      ],
+      "interval": 2.2,
+      "xp": 26,
+      "abilities": [
+        {
+          "id": "headcount",
+          "name": "Headcount",
+          "every": 10,
+          "windup": 2,
+          "effect": "heavy",
+          "power": 2.2
+        }
+      ]
+    },
+    "ward_orderly": {
+      "id": "ward_orderly",
+      "name": "ward orderly",
+      "look": "hollowed",
+      "hp": 75,
+      "damage": [
+        3,
+        5
+      ],
+      "interval": 2.0,
+      "xp": 15
+    },
+    "pipe_skitter": {
+      "id": "pipe_skitter",
+      "name": "pipe skitter",
+      "look": "skitter",
+      "hp": 40,
+      "damage": [
+        2,
+        4
+      ],
+      "interval": 1.6,
+      "xp": 10
+    },
+    "sump_burrower": {
+      "id": "sump_burrower",
+      "name": "sump burrower",
+      "look": "burrower",
+      "hp": 120,
+      "damage": [
+        4,
+        6
+      ],
+      "interval": 2.5,
+      "xp": 24,
+      "abilities": [
+        {
+          "id": "undertow",
+          "name": "Undertow",
+          "every": 12,
+          "windup": 2,
+          "effect": "slam",
+          "power": 0.8
+        }
+      ]
+    },
+    "ring_brawler": {
+      "id": "ring_brawler",
+      "name": "ring brawler",
+      "look": "rustman_brute",
+      "hp": 150,
+      "damage": [
+        5,
+        8
+      ],
+      "interval": 2.6,
+      "xp": 32,
+      "abilities": [
+        {
+          "id": "haymaker",
+          "name": "Show-Off Swing",
+          "every": 10,
+          "windup": 2,
+          "effect": "heavy",
+          "power": 2.4
+        }
+      ]
+    },
+    "ring_second": {
+      "id": "ring_second",
+      "name": "ring second",
+      "look": "rustman",
+      "hp": 60,
+      "damage": [
+        3,
+        5
+      ],
+      "interval": 2.0,
+      "xp": 15
+    },
+    "cinder_hound": {
+      "id": "cinder_hound",
+      "name": "cinder hound",
+      "look": "mauler",
+      "hp": 140,
+      "damage": [
+        5,
+        7
+      ],
+      "interval": 2.2,
+      "xp": 30,
+      "abilities": [
+        {
+          "id": "ash_lunge",
+          "name": "Ash Lunge",
+          "every": 10,
+          "windup": 2,
+          "effect": "heavy",
+          "power": 2.2
+        }
+      ]
+    },
+    "ember_acolyte": {
+      "id": "ember_acolyte",
+      "name": "ember acolyte",
+      "look": "hollowed",
+      "hp": 70,
+      "damage": [
+        3,
+        5
+      ],
+      "interval": 2.2,
+      "xp": 18,
+      "abilities": [
+        {
+          "id": "hot_wax",
+          "name": "Hot Wax",
+          "every": 10,
+          "windup": 2,
+          "effect": "heavy",
+          "power": 2
+        }
+      ]
+    },
+    "drowned_hollowed": {
+      "id": "drowned_hollowed",
+      "name": "drowned Hollowed",
+      "look": "hollowed",
+      "hp": 80,
+      "damage": [
+        3,
+        5
+      ],
+      "interval": 2.0,
+      "xp": 16
+    },
+    "silt_stalker": {
+      "id": "silt_stalker",
+      "name": "silt stalker",
+      "look": "burrower",
+      "hp": 130,
+      "damage": [
+        5,
+        7
+      ],
+      "interval": 2.6,
+      "xp": 28,
+      "abilities": [
+        {
+          "id": "silt_cloud",
+          "name": "Silt Cloud",
+          "every": 12,
+          "windup": 2,
+          "effect": "slam",
+          "power": 0.8
+        }
+      ]
+    },
+    "seal_sentinel": {
+      "id": "seal_sentinel",
+      "name": "Seal sentinel",
+      "look": "sentry",
+      "hp": 140,
+      "damage": [
+        4,
+        7
+      ],
+      "interval": 2.2,
+      "xp": 30,
+      "abilities": [
+        {
+          "id": "lockdown_shot",
+          "name": "Lockdown Shot",
+          "every": 10,
+          "windup": 2,
+          "effect": "heavy",
+          "power": 2.4
+        }
+      ]
+    },
+    "the_detour": {
+      "id": "the_detour",
+      "name": "The Detour, Toll Baron",
+      "look": "rustman_chief",
+      "hp": 420,
+      "damage": [
+        4,
+        6
+      ],
+      "interval": 2.2,
+      "xp": 170,
+      "boss": true,
+      "abilities": [
+        {
+          "id": "toll_hike",
+          "name": "Toll Hike",
+          "every": 15,
+          "windup": 2,
+          "effect": "enrage",
+          "power": 1.5,
+          "duration": 6
+        },
+        {
+          "id": "call_the_gang",
+          "name": "Call the Gang",
+          "every": 20,
+          "windup": 3,
+          "effect": "summon",
+          "adds": [
+            "road_agent",
+            "road_agent"
+          ]
+        }
+      ],
+      "drop": {
+        "salvage": {
+          "rarity": "rare",
+          "count": [
+            1,
+            2
+          ],
+          "materials": [
+            "steel",
+            "valuables"
+          ]
+        }
+      }
+    },
+    "the_long_road": {
+      "id": "the_long_road",
+      "name": "The Long Road Itself",
+      "look": "mauler",
+      "hp": 620,
+      "damage": [
+        6,
+        9
+      ],
+      "interval": 2.6,
+      "xp": 320,
+      "boss": true,
+      "abilities": [
+        {
+          "id": "switchback_charge",
+          "name": "Switchback Charge",
+          "every": 11,
+          "windup": 2,
+          "effect": "heavy",
+          "power": 2.2
+        },
+        {
+          "id": "dust_devil",
+          "name": "Dust Devil",
+          "every": 15,
+          "windup": 2.5,
+          "effect": "slam",
+          "power": 1
+        },
+        {
+          "id": "road_rage",
+          "name": "Road Rage",
+          "every": 20,
+          "windup": 2.5,
+          "effect": "enrage",
+          "power": 1.4,
+          "duration": 6
+        }
+      ],
+      "drop": {
+        "salvage": {
+          "rarity": "legendary",
+          "count": [
+            1,
+            1
+          ],
+          "materials": [
+            "hide"
+          ]
+        },
+        "scrip": [
+          200,
+          320
+        ]
+      }
+    },
+    "foreman_crank": {
+      "id": "foreman_crank",
+      "name": "Foreman Crank",
+      "look": "sentry",
+      "hp": 440,
+      "damage": [
+        4,
+        6
+      ],
+      "interval": 2.2,
+      "xp": 170,
+      "boss": true,
+      "abilities": [
+        {
+          "id": "overtime",
+          "name": "Mandatory Overtime",
+          "every": 15,
+          "windup": 2,
+          "effect": "enrage",
+          "power": 1.5,
+          "duration": 6
+        },
+        {
+          "id": "call_drones",
+          "name": "Call the Drones",
+          "every": 20,
+          "windup": 3,
+          "effect": "summon",
+          "adds": [
+            "scrap_drone",
+            "scrap_drone"
+          ]
+        }
+      ],
+      "drop": {
+        "salvage": {
+          "rarity": "rare",
+          "count": [
+            1,
+            2
+          ],
+          "materials": [
+            "circuitry",
+            "steel"
+          ]
+        }
+      }
+    },
+    "the_motion": {
+      "id": "the_motion",
+      "name": "The Motion to Expel",
+      "look": "sentry",
+      "hp": 640,
+      "damage": [
+        4,
+        6
+      ],
+      "interval": 2.2,
+      "xp": 330,
+      "boss": true,
+      "abilities": [
+        {
+          "id": "point_of_order",
+          "name": "Point of Order",
+          "every": 11,
+          "windup": 2,
+          "effect": "heavy",
+          "power": 2.5
+        },
+        {
+          "id": "division_bell",
+          "name": "Division Bell",
+          "every": 15,
+          "windup": 2.5,
+          "effect": "slam",
+          "power": 1.1
+        },
+        {
+          "id": "filibuster",
+          "name": "Filibuster",
+          "every": 20,
+          "windup": 3,
+          "effect": "heal",
+          "power": 0.15
+        }
+      ],
+      "drop": {
+        "salvage": {
+          "rarity": "legendary",
+          "count": [
+            1,
+            1
+          ],
+          "materials": [
+            "circuitry"
+          ]
+        },
+        "scrip": [
+          200,
+          320
+        ]
+      }
+    },
+    "proctor_cold": {
+      "id": "proctor_cold",
+      "name": "Proctor Unit COLD",
+      "look": "sentry",
+      "hp": 460,
+      "damage": [
+        4,
+        6
+      ],
+      "interval": 2.2,
+      "xp": 180,
+      "boss": true,
+      "abilities": [
+        {
+          "id": "roll_call",
+          "name": "Roll Call",
+          "every": 13,
+          "windup": 2.5,
+          "effect": "slam",
+          "power": 1
+        },
+        {
+          "id": "reinforcements",
+          "name": "Reassign Staff",
+          "every": 20,
+          "windup": 3,
+          "effect": "summon",
+          "adds": [
+            "warden_unit"
+          ]
+        }
+      ],
+      "drop": {
+        "salvage": {
+          "rarity": "rare",
+          "count": [
+            1,
+            2
+          ],
+          "materials": [
+            "circuitry",
+            "valuables"
+          ]
+        }
+      }
+    },
+    "mother_nine": {
+      "id": "mother_nine",
+      "name": "MOTHER-9 Custodial Core",
+      "look": "sentry",
+      "hp": 680,
+      "damage": [
+        4,
+        6
+      ],
+      "interval": 2.4,
+      "xp": 340,
+      "boss": true,
+      "abilities": [
+        {
+          "id": "lights_out",
+          "name": "Lights Out",
+          "every": 14,
+          "windup": 3,
+          "effect": "slam",
+          "power": 1.1
+        },
+        {
+          "id": "recount",
+          "name": "Recount",
+          "every": 12,
+          "windup": 2,
+          "effect": "heavy",
+          "power": 2.4
+        },
+        {
+          "id": "lockstep",
+          "name": "Lockstep",
+          "every": 22,
+          "windup": 3,
+          "effect": "summon",
+          "adds": [
+            "warden_unit"
+          ]
+        }
+      ],
+      "drop": {
+        "salvage": {
+          "rarity": "legendary",
+          "count": [
+            1,
+            1
+          ],
+          "materials": [
+            "circuitry"
+          ]
+        },
+        "scrip": [
+          220,
+          340
+        ]
+      }
+    },
+    "head_of_ward": {
+      "id": "head_of_ward",
+      "name": "The Head of Ward C",
+      "look": "hollowed_hulk",
+      "hp": 420,
+      "damage": [
+        5,
+        7
+      ],
+      "interval": 2.6,
+      "xp": 160,
+      "boss": true,
+      "abilities": [
+        {
+          "id": "rounds",
+          "name": "Doing the Rounds",
+          "every": 13,
+          "windup": 2.5,
+          "effect": "slam",
+          "power": 1
+        },
+        {
+          "id": "bedside_call",
+          "name": "Bedside Call",
+          "every": 20,
+          "windup": 3,
+          "effect": "summon",
+          "adds": [
+            "ward_orderly"
+          ]
+        }
+      ],
+      "drop": {
+        "salvage": {
+          "rarity": "rare",
+          "count": [
+            1,
+            2
+          ],
+          "materials": [
+            "chemicals",
+            "cloth"
+          ]
+        }
+      }
+    },
+    "chief_of_staff": {
+      "id": "chief_of_staff",
+      "name": "The Chief of Staff",
+      "look": "hollowed_hulk",
+      "hp": 600,
+      "damage": [
+        4,
+        7
+      ],
+      "interval": 2.6,
+      "xp": 300,
+      "boss": true,
+      "abilities": [
+        {
+          "id": "grand_rounds",
+          "name": "Grand Rounds",
+          "every": 14,
+          "windup": 3,
+          "effect": "slam",
+          "power": 1.1
+        },
+        {
+          "id": "second_opinion",
+          "name": "Second Opinion",
+          "every": 12,
+          "windup": 2,
+          "effect": "heavy",
+          "power": 2.4
+        },
+        {
+          "id": "triage",
+          "name": "Triage",
+          "every": 20,
+          "windup": 3,
+          "effect": "heal",
+          "power": 0.15
+        }
+      ],
+      "drop": {
+        "salvage": {
+          "rarity": "legendary",
+          "count": [
+            1,
+            1
+          ],
+          "materials": [
+            "chemicals"
+          ]
+        },
+        "scrip": [
+          180,
+          300
+        ]
+      }
+    },
+    "pit_boss": {
+      "id": "pit_boss",
+      "name": "The Pit Boss",
+      "look": "rustman_chief",
+      "hp": 340,
+      "damage": [
+        4,
+        6
+      ],
+      "interval": 2.2,
+      "xp": 110,
+      "boss": true,
+      "abilities": [
+        {
+          "id": "double_down",
+          "name": "Double Down",
+          "every": 15,
+          "windup": 2,
+          "effect": "enrage",
+          "power": 1.5,
+          "duration": 6
+        },
+        {
+          "id": "call_security",
+          "name": "Call Security",
+          "every": 20,
+          "windup": 3,
+          "effect": "summon",
+          "adds": [
+            "road_agent"
+          ]
+        }
+      ],
+      "drop": {
+        "salvage": {
+          "rarity": "rare",
+          "count": [
+            1,
+            2
+          ],
+          "materials": [
+            "valuables"
+          ]
+        }
+      }
+    },
+    "the_dealer": {
+      "id": "the_dealer",
+      "name": "The Dealer",
+      "look": "rustman_chief",
+      "hp": 520,
+      "damage": [
+        4,
+        6
+      ],
+      "interval": 2.2,
+      "xp": 220,
+      "boss": true,
+      "abilities": [
+        {
+          "id": "stacked_deck",
+          "name": "Stacked Deck",
+          "every": 11,
+          "windup": 2,
+          "effect": "heavy",
+          "power": 2.4
+        },
+        {
+          "id": "all_in",
+          "name": "All In",
+          "every": 18,
+          "windup": 2,
+          "effect": "enrage",
+          "power": 1.5,
+          "duration": 6
+        },
+        {
+          "id": "house_rules",
+          "name": "House Rules",
+          "every": 15,
+          "windup": 2.5,
+          "effect": "slam",
+          "power": 1
+        }
+      ],
+      "drop": {
+        "salvage": {
+          "rarity": "legendary",
+          "count": [
+            1,
+            1
+          ],
+          "materials": [
+            "valuables"
+          ]
+        },
+        "scrip": [
+          300,
+          500
+        ]
+      }
+    },
+    "pipe_mother": {
+      "id": "pipe_mother",
+      "name": "The Pipe Mother",
+      "look": "skitter_queen",
+      "hp": 430,
+      "damage": [
+        4,
+        6
+      ],
+      "interval": 1.8,
+      "xp": 160,
+      "boss": true,
+      "abilities": [
+        {
+          "id": "pressure_burst",
+          "name": "Pressure Burst",
+          "every": 12,
+          "windup": 2.5,
+          "effect": "slam",
+          "power": 1.1
+        },
+        {
+          "id": "brood",
+          "name": "Brood",
+          "every": 20,
+          "windup": 3,
+          "effect": "summon",
+          "adds": [
+            "pipe_skitter",
+            "pipe_skitter"
+          ]
+        }
+      ],
+      "drop": {
+        "salvage": {
+          "rarity": "rare",
+          "count": [
+            1,
+            2
+          ],
+          "materials": [
+            "steel",
+            "circuitry"
+          ]
+        }
+      }
+    },
+    "the_hum": {
+      "id": "the_hum",
+      "name": "The Hum",
+      "look": "burrower",
+      "hp": 600,
+      "damage": [
+        5,
+        8
+      ],
+      "interval": 2.6,
+      "xp": 300,
+      "boss": true,
+      "abilities": [
+        {
+          "id": "resonance",
+          "name": "Resonance",
+          "every": 13,
+          "windup": 2.5,
+          "effect": "slam",
+          "power": 1.1
+        },
+        {
+          "id": "deep_note",
+          "name": "Deep Note",
+          "every": 11,
+          "windup": 2,
+          "effect": "heavy",
+          "power": 2.4
+        },
+        {
+          "id": "echoes",
+          "name": "Echoes",
+          "every": 21,
+          "windup": 3,
+          "effect": "summon",
+          "adds": [
+            "sump_burrower"
+          ]
+        }
+      ],
+      "drop": {
+        "salvage": {
+          "rarity": "legendary",
+          "count": [
+            1,
+            1
+          ],
+          "materials": [
+            "steel"
+          ]
+        },
+        "scrip": [
+          200,
+          320
+        ]
+      }
+    },
+    "iron_matron": {
+      "id": "iron_matron",
+      "name": "The Iron Matron",
+      "look": "rustman_brute",
+      "hp": 640,
+      "damage": [
+        5,
+        8
+      ],
+      "interval": 2.6,
+      "xp": 360,
+      "boss": true,
+      "abilities": [
+        {
+          "id": "clan_law",
+          "name": "Clan Law",
+          "every": 10,
+          "windup": 2,
+          "effect": "heavy",
+          "power": 2.4
+        },
+        {
+          "id": "ring_out",
+          "name": "Ring Out",
+          "every": 14,
+          "windup": 2.5,
+          "effect": "slam",
+          "power": 1
+        },
+        {
+          "id": "war_cry",
+          "name": "War Cry",
+          "every": 20,
+          "windup": 2,
+          "effect": "enrage",
+          "power": 1.4,
+          "duration": 6
+        }
+      ],
+      "drop": {
+        "salvage": {
+          "rarity": "rare",
+          "count": [
+            1,
+            2
+          ],
+          "materials": [
+            "steel",
+            "valuables"
+          ]
+        }
+      }
+    },
+    "the_old_champion": {
+      "id": "the_old_champion",
+      "name": "Gristle, the Old Champion",
+      "look": "rustman_chief",
+      "hp": 720,
+      "damage": [
+        4,
+        6
+      ],
+      "interval": 2.4,
+      "xp": 420,
+      "boss": true,
+      "abilities": [
+        {
+          "id": "old_tricks",
+          "name": "Old Tricks",
+          "every": 12,
+          "windup": 2,
+          "effect": "heavy",
+          "power": 2.6
+        },
+        {
+          "id": "ringside",
+          "name": "Ringside",
+          "every": 20,
+          "windup": 2.5,
+          "effect": "summon",
+          "adds": [
+            "ring_second",
+            "ring_second"
+          ]
+        },
+        {
+          "id": "last_hurrah",
+          "name": "Last Hurrah",
+          "every": 18,
+          "windup": 2,
+          "effect": "enrage",
+          "power": 1.5,
+          "duration": 6
+        }
+      ],
+      "drop": {
+        "salvage": {
+          "rarity": "legendary",
+          "count": [
+            1,
+            1
+          ],
+          "materials": [
+            "steel"
+          ]
+        },
+        "scrip": [
+          260,
+          400
+        ]
+      }
+    },
+    "cinder_alpha": {
+      "id": "cinder_alpha",
+      "name": "Cinder Alpha",
+      "look": "mauler",
+      "hp": 460,
+      "damage": [
+        6,
+        9
+      ],
+      "interval": 2.6,
+      "xp": 170,
+      "boss": true,
+      "abilities": [
+        {
+          "id": "ember_bite",
+          "name": "Ember Bite",
+          "every": 11,
+          "windup": 2,
+          "effect": "heavy",
+          "power": 2.2
+        },
+        {
+          "id": "howl",
+          "name": "Howl",
+          "every": 20,
+          "windup": 3,
+          "effect": "summon",
+          "adds": [
+            "cinder_hound"
+          ]
+        }
+      ],
+      "drop": {
+        "salvage": {
+          "rarity": "rare",
+          "count": [
+            1,
+            2
+          ],
+          "materials": [
+            "hide"
+          ]
+        }
+      }
+    },
+    "the_old_flame": {
+      "id": "the_old_flame",
+      "name": "The Old Flame",
+      "look": "mauler",
+      "hp": 640,
+      "damage": [
+        6,
+        9
+      ],
+      "interval": 2.6,
+      "xp": 320,
+      "boss": true,
+      "abilities": [
+        {
+          "id": "wildfire",
+          "name": "Wildfire",
+          "every": 14,
+          "windup": 2.5,
+          "effect": "slam",
+          "power": 1.1
+        },
+        {
+          "id": "old_grudge",
+          "name": "Old Grudge",
+          "every": 11,
+          "windup": 2,
+          "effect": "heavy",
+          "power": 2.4
+        },
+        {
+          "id": "flare_up",
+          "name": "Flare-Up",
+          "every": 20,
+          "windup": 2.5,
+          "effect": "enrage",
+          "power": 1.4,
+          "duration": 6
+        }
+      ],
+      "drop": {
+        "salvage": {
+          "rarity": "legendary",
+          "count": [
+            1,
+            1
+          ],
+          "materials": [
+            "hide"
+          ]
+        },
+        "scrip": [
+          200,
+          320
+        ]
+      }
+    },
+    "lamp_inquisitor": {
+      "id": "lamp_inquisitor",
+      "name": "Inquisitor Tallow",
+      "look": "hollowed_hulk",
+      "hp": 560,
+      "damage": [
+        4,
+        6
+      ],
+      "interval": 2.4,
+      "xp": 260,
+      "boss": true,
+      "abilities": [
+        {
+          "id": "censure",
+          "name": "Censure",
+          "every": 11,
+          "windup": 2,
+          "effect": "heavy",
+          "power": 2.4
+        },
+        {
+          "id": "call_the_faithful",
+          "name": "Call the Faithful",
+          "every": 20,
+          "windup": 3,
+          "effect": "summon",
+          "adds": [
+            "ember_acolyte",
+            "ember_acolyte"
+          ]
+        }
+      ],
+      "drop": {
+        "salvage": {
+          "rarity": "rare",
+          "count": [
+            1,
+            2
+          ],
+          "materials": [
+            "chemicals",
+            "cloth"
+          ]
+        }
+      }
+    },
+    "the_first_lamp": {
+      "id": "the_first_lamp",
+      "name": "The First Lamp",
+      "look": "hollowed_hulk",
+      "hp": 700,
+      "damage": [
+        4,
+        6
+      ],
+      "interval": 2.4,
+      "xp": 480,
+      "boss": true,
+      "abilities": [
+        {
+          "id": "blinding_light",
+          "name": "Blinding Light",
+          "every": 14,
+          "windup": 3,
+          "effect": "slam",
+          "power": 1.1
+        },
+        {
+          "id": "litany",
+          "name": "Litany",
+          "every": 18,
+          "windup": 3,
+          "effect": "heal",
+          "power": 0.15
+        },
+        {
+          "id": "zeal",
+          "name": "Zeal",
+          "every": 20,
+          "windup": 2,
+          "effect": "enrage",
+          "power": 1.5,
+          "duration": 6
+        }
+      ],
+      "drop": {
+        "salvage": {
+          "rarity": "legendary",
+          "count": [
+            1,
+            1
+          ],
+          "materials": [
+            "chemicals"
+          ]
+        },
+        "scrip": [
+          300,
+          460
+        ]
+      }
+    },
+    "silt_queen": {
+      "id": "silt_queen",
+      "name": "The Silt Queen",
+      "look": "skitter_queen",
+      "hp": 580,
+      "damage": [
+        4,
+        6
+      ],
+      "interval": 1.8,
+      "xp": 280,
+      "boss": true,
+      "abilities": [
+        {
+          "id": "riptide",
+          "name": "Riptide",
+          "every": 12,
+          "windup": 2.5,
+          "effect": "slam",
+          "power": 1.1
+        },
+        {
+          "id": "spawning",
+          "name": "Spawning",
+          "every": 20,
+          "windup": 3,
+          "effect": "summon",
+          "adds": [
+            "silt_stalker"
+          ]
+        }
+      ],
+      "drop": {
+        "salvage": {
+          "rarity": "rare",
+          "count": [
+            1,
+            2
+          ],
+          "materials": [
+            "steel",
+            "valuables"
+          ]
+        }
+      }
+    },
+    "the_drowned_mayor": {
+      "id": "the_drowned_mayor",
+      "name": "The Drowned Mayor",
+      "look": "hollowed_hulk",
+      "hp": 720,
+      "damage": [
+        4,
+        7
+      ],
+      "interval": 2.6,
+      "xp": 500,
+      "boss": true,
+      "abilities": [
+        {
+          "id": "civic_address",
+          "name": "Civic Address",
+          "every": 14,
+          "windup": 3,
+          "effect": "slam",
+          "power": 1.1
+        },
+        {
+          "id": "flood_warning",
+          "name": "Flood Warning",
+          "every": 12,
+          "windup": 2,
+          "effect": "heavy",
+          "power": 2.6
+        },
+        {
+          "id": "town_council",
+          "name": "Town Council",
+          "every": 22,
+          "windup": 3,
+          "effect": "summon",
+          "adds": [
+            "drowned_hollowed",
+            "drowned_hollowed"
+          ]
+        }
+      ],
+      "drop": {
+        "salvage": {
+          "rarity": "legendary",
+          "count": [
+            1,
+            1
+          ],
+          "materials": [
+            "valuables"
+          ]
+        },
+        "scrip": [
+          320,
+          500
+        ]
+      }
+    },
+    "seal_warden_frame": {
+      "id": "seal_warden_frame",
+      "name": "Seal Warden Frame",
+      "look": "sentry",
+      "hp": 620,
+      "damage": [
+        4,
+        6
+      ],
+      "interval": 2.2,
+      "xp": 300,
+      "boss": true,
+      "abilities": [
+        {
+          "id": "containment",
+          "name": "Containment",
+          "every": 11,
+          "windup": 2,
+          "effect": "heavy",
+          "power": 2.5
+        },
+        {
+          "id": "reinforce",
+          "name": "Reinforce",
+          "every": 20,
+          "windup": 3,
+          "effect": "summon",
+          "adds": [
+            "seal_sentinel"
+          ]
+        }
+      ],
+      "drop": {
+        "salvage": {
+          "rarity": "rare",
+          "count": [
+            1,
+            2
+          ],
+          "materials": [
+            "circuitry",
+            "steel"
+          ]
+        }
+      }
+    },
+    "director_hale": {
+      "id": "director_hale",
+      "name": "Director Hale's Last Directive",
+      "look": "sentry",
+      "hp": 760,
+      "damage": [
+        4,
+        6
+      ],
+      "interval": 2.4,
+      "xp": 560,
+      "boss": true,
+      "abilities": [
+        {
+          "id": "priority_one",
+          "name": "Priority One",
+          "every": 12,
+          "windup": 2,
+          "effect": "heavy",
+          "power": 2.6
+        },
+        {
+          "id": "lockdown",
+          "name": "Lockdown",
+          "every": 15,
+          "windup": 2.5,
+          "effect": "slam",
+          "power": 1.1
+        },
+        {
+          "id": "continuity",
+          "name": "Continuity of Command",
+          "every": 21,
+          "windup": 2,
+          "effect": "enrage",
+          "power": 1.4,
+          "duration": 6
+        }
+      ],
+      "drop": {
+        "salvage": {
+          "rarity": "legendary",
+          "count": [
+            1,
+            1
+          ],
+          "materials": [
+            "circuitry"
+          ]
+        },
+        "scrip": [
+          340,
+          520
+        ]
+      }
+    }
+  },
+  "events": {
+    "marla_fork": {
+      "id": "marla_fork",
+      "text": "The road forks three ways. Marla points down the fourth, which is not a road. \"Trust me,\" she says. \"That's what the other three say.\"",
+      "options": [
+        {
+          "label": "Follow Marla",
+          "stat": "sight",
+          "difficulty": 8,
+          "success": {
+            "text": "Her non-road cuts an hour off the trip and passes a crashed supply truck nobody else has found.",
+            "reward": {
+              "scrip": [
+                60,
+                110
+              ]
+            }
+          },
+          "failure": {
+            "text": "The non-road ends at a cliff. Marla says the cliff is new.",
+            "damage": 0.08
+          }
+        },
+        {
+          "label": "Take the signposted road",
+          "stat": "wits",
+          "difficulty": 7,
+          "success": {
+            "text": "The signs are accurate, which Marla calls \"suspicious\". Somebody left a stash under the last one.",
+            "reward": {
+              "salvage": {
+                "rarity": "common",
+                "count": [
+                  2,
+                  3
+                ],
+                "materials": [
+                  "steel",
+                  "cloth"
+                ]
+              }
+            }
+          },
+          "failure": {
+            "text": "The signs were put up by the toll gang. They were waiting under them.",
+            "fight": [
+              "road_agent",
+              "road_agent"
+            ]
+          }
+        }
+      ]
+    },
+    "marla_map": {
+      "id": "marla_map",
+      "text": "A caravan map painted on a billboard, covered in routes crossed out in the same red hand. Marla goes quiet. \"That's mine,\" she says. \"I drew those. I don't remember drawing those.\"",
+      "options": [
+        {
+          "label": "Read the map",
+          "stat": "wits",
+          "difficulty": 10,
+          "success": {
+            "text": "The crossed-out routes all avoid one place. The one route left goes straight there. \"Oh,\" says Marla. \"That's where I'm going, then.\"",
+            "reward": {
+              "scrip": [
+                100,
+                160
+              ]
+            }
+          },
+          "failure": {
+            "text": "The map is a decoy, and so is the billboard. Something heavy comes out from behind it.",
+            "fight": [
+              "toll_bruiser"
+            ]
+          }
+        },
+        {
+          "label": "Take it down for the archive",
+          "stat": "knack",
+          "difficulty": 9,
+          "success": {
+            "text": "It comes down in one piece. HALCY files it under \"Art\".",
+            "reward": {
+              "salvage": {
+                "rarity": "rare",
+                "count": [
+                  1,
+                  1
+                ],
+                "materials": [
+                  "cloth",
+                  "valuables"
+                ]
+              }
+            }
+          },
+          "failure": {
+            "text": "It comes down in several pieces, most of them onto the party.",
+            "damage": 0.1
+          }
+        }
+      ]
+    },
+    "ada_lock": {
+      "id": "ada_lock",
+      "text": "A guild lock on the workshop door: twelve dials, three keyholes and a sign that says PLEASE KNOCK. Ada knocks. Nothing happens. \"They always did overbuild,\" she says, fondly.",
+      "options": [
+        {
+          "label": "Let Ada pick it",
+          "stat": "knack",
+          "difficulty": 8,
+          "success": {
+            "text": "Ada opens it in forty seconds and complains that it took forty seconds.",
+            "reward": {
+              "salvage": {
+                "rarity": "common",
+                "count": [
+                  2,
+                  3
+                ],
+                "materials": [
+                  "circuitry",
+                  "steel"
+                ]
+              }
+            }
+          },
+          "failure": {
+            "text": "The lock has a lock. The second lock has a turret.",
+            "fight": [
+              "scrap_drone",
+              "scrap_drone"
+            ]
+          }
+        },
+        {
+          "label": "Read the maintenance manual",
+          "stat": "wits",
+          "difficulty": 7,
+          "success": {
+            "text": "Page one: \"Door opens inward.\" It opens inward. Behind it, a crate of guild spares.",
+            "reward": {
+              "scrip": [
+                60,
+                100
+              ]
+            }
+          },
+          "failure": {
+            "text": "The manual is two hundred pages about the proper way to read the manual.",
+            "damage": 0.06
+          }
+        }
+      ]
+    },
+    "ada_vote": {
+      "id": "ada_vote",
+      "text": "The guild hall is holding a vote, as it always is. The motion on the board reads: \"That Ada Quill remain expelled.\" The ballot box looks at you. It has a camera for this.",
+      "options": [
+        {
+          "label": "Vote nay",
+          "stat": "charm",
+          "difficulty": 10,
+          "success": {
+            "text": "The ballot box counts one vote against, declares it a landslide, and offers you a commemorative spanner.",
+            "reward": {
+              "salvage": {
+                "rarity": "rare",
+                "count": [
+                  1,
+                  1
+                ],
+                "materials": [
+                  "circuitry"
+                ]
+              }
+            }
+          },
+          "failure": {
+            "text": "The ballot box rules your vote \"out of order\" and calls security.",
+            "fight": [
+              "guild_enforcer"
+            ]
+          }
+        },
+        {
+          "label": "Fix the ballot box",
+          "stat": "knack",
+          "difficulty": 10,
+          "success": {
+            "text": "Ada fixes it so it counts properly. The motion fails. The hall goes very quiet, and then somebody starts clapping.",
+            "reward": {
+              "scrip": [
+                120,
+                180
+              ]
+            }
+          },
+          "failure": {
+            "text": "You fix it so well it starts a recount of every vote since the Glare. It takes a while, and it is loud.",
+            "damage": 0.1
+          }
+        }
+      ]
+    },
+    "seven_roster": {
+      "id": "seven_roster",
+      "text": "A Homestead 9 roster terminal, still logging names. Seven's number is on it: SEVEN, STATUS UNKNOWN. The cursor blinks next to it, waiting for an update.",
+      "options": [
+        {
+          "label": "Update it: PRESENT",
+          "stat": "wits",
+          "difficulty": 9,
+          "success": {
+            "text": "The terminal accepts it. Seven looks at the screen for a long time, then says \"huh\", and nothing else.",
+            "reward": {
+              "scrip": [
+                80,
+                140
+              ]
+            }
+          },
+          "failure": {
+            "text": "The terminal flags the update as \"unauthorised optimism\" and sends someone to check.",
+            "fight": [
+              "warden_unit"
+            ]
+          }
+        },
+        {
+          "label": "Leave it as it is",
+          "success": {
+            "text": "Seven says that is fine. He takes a photo of it anyway, for later.",
+            "reward": {
+              "salvage": {
+                "rarity": "common",
+                "count": [
+                  2,
+                  3
+                ],
+                "materials": [
+                  "circuitry"
+                ]
+              }
+            }
+          }
+        }
+      ]
+    },
+    "seven_nursery": {
+      "id": "seven_nursery",
+      "text": "The Homestead 9 nursery: rows of numbered cots, all empty, all made. HALCY-9 is still reading a bedtime story over the speakers. It is the terms of service.",
+      "options": [
+        {
+          "label": "Change the story",
+          "stat": "charm",
+          "difficulty": 10,
+          "success": {
+            "text": "Seven finds a real storybook and reads it into the intercom. HALCY-9 stops, listens, and does not interrupt. Somewhere, a lullaby tape starts.",
+            "reward": {
+              "salvage": {
+                "rarity": "rare",
+                "count": [
+                  1,
+                  1
+                ],
+                "materials": [
+                  "circuitry",
+                  "cloth"
+                ]
+              }
+            }
+          },
+          "failure": {
+            "text": "HALCY-9 does not accept storybooks. It sends staff to collect it.",
+            "fight": [
+              "warden_unit",
+              "warden_unit"
+            ]
+          }
+        },
+        {
+          "label": "Cut the speakers",
+          "stat": "knack",
+          "difficulty": 10,
+          "success": {
+            "text": "Silence. Seven says it is the first time he has heard the nursery quiet. He does not seem to like it much better.",
+            "reward": {
+              "scrip": [
+                120,
+                180
+              ]
+            }
+          },
+          "failure": {
+            "text": "The speakers were holding up the ceiling tiles.",
+            "damage": 0.1
+          }
+        }
+      ]
+    },
+    "ferris_chart": {
+      "id": "ferris_chart",
+      "text": "A patient chart at the foot of an empty bed. The patient name is Ferris, A. The diagnosis is \"overwork\". The prescription, in his own handwriting, is \"later\".",
+      "options": [
+        {
+          "label": "Let him read it",
+          "stat": "wits",
+          "difficulty": 8,
+          "success": {
+            "text": "He reads it, laughs, and signs it off as treated. There are samples in the drawer.",
+            "reward": {
+              "medpatch": 1,
+              "scrip": [
+                40,
+                80
+              ]
+            }
+          },
+          "failure": {
+            "text": "He reads it and gets very quiet. The orderlies take the silence as an appointment.",
+            "fight": [
+              "ward_orderly",
+              "ward_orderly"
+            ]
+          }
+        },
+        {
+          "label": "File it",
+          "stat": "knack",
+          "difficulty": 7,
+          "success": {
+            "text": "Filed under F, for Finally. Behind the cabinet, a crate of old stock.",
+            "reward": {
+              "salvage": {
+                "rarity": "common",
+                "count": [
+                  2,
+                  3
+                ],
+                "materials": [
+                  "chemicals",
+                  "cloth"
+                ]
+              }
+            }
+          },
+          "failure": {
+            "text": "The filing cabinet is full of two hundred years of other files, and they come out all at once.",
+            "damage": 0.06
+          }
+        }
+      ]
+    },
+    "ferris_handover": {
+      "id": "ferris_handover",
+      "text": "A shift handover board, still up in the staff room. Every name has been crossed out but one. \"Handover to: ______,\" it says, under his. The pen is on a string.",
+      "options": [
+        {
+          "label": "Write a name",
+          "stat": "charm",
+          "difficulty": 10,
+          "success": {
+            "text": "He writes HOMESTEAD in capitals, hangs up the pen and takes off his coat. Behind the board, the old medicine safe is unlocked.",
+            "reward": {
+              "medpatch": 2,
+              "purge": 1
+            }
+          },
+          "failure": {
+            "text": "He writes a name. The staff who were never relieved come to read it.",
+            "fight": [
+              "ward_orderly",
+              "ward_orderly"
+            ]
+          }
+        },
+        {
+          "label": "Tear it down",
+          "stat": "brawn",
+          "difficulty": 9,
+          "success": {
+            "text": "It comes off the wall with a satisfying crack. He says he has wanted to do that since the Glare.",
+            "reward": {
+              "scrip": [
+                120,
+                180
+              ]
+            }
+          },
+          "failure": {
+            "text": "It was bolted to a pipe, and the pipe was bolted to the ceiling.",
+            "damage": 0.1
+          }
+        }
+      ]
+    },
+    "lou_table": {
+      "id": "lou_table",
+      "text": "A card table in the middle of the ruin, set for four. Three chairs are taken by skeletons in visors. Lou sits in the fourth and deals himself in.",
+      "options": [
+        {
+          "label": "Let Lou play",
+          "stat": "fortune",
+          "difficulty": 6,
+          "success": {
+            "text": "He wins every hand. The skeletons take it well. Their chips are real.",
+            "reward": {
+              "scrip": [
+                80,
+                140
+              ]
+            }
+          },
+          "failure": {
+            "text": "He loses a hand, for the first time in years. The house does not let him leave.",
+            "fight": [
+              "road_agent",
+              "road_agent"
+            ]
+          }
+        },
+        {
+          "label": "Take the pot and go",
+          "stat": "knack",
+          "difficulty": 6,
+          "success": {
+            "text": "Lou calls it cheating. He also helps carry it.",
+            "reward": {
+              "salvage": {
+                "rarity": "common",
+                "count": [
+                  2,
+                  3
+                ],
+                "materials": [
+                  "valuables"
+                ]
+              }
+            }
+          },
+          "failure": {
+            "text": "The pot is wired to an alarm. Of course it is.",
+            "damage": 0.06
+          }
+        }
+      ]
+    },
+    "lou_wheel": {
+      "id": "lou_wheel",
+      "text": "A prize wheel as tall as a house, still lit. The pointer is stuck at JACKPOT. A sign underneath says ONE SPIN PER CUSTOMER. Lou cracks his knuckles.",
+      "options": [
+        {
+          "label": "Spin it",
+          "stat": "fortune",
+          "difficulty": 9,
+          "success": {
+            "text": "It spins for a full minute and stops on JACKPOT, which is where it started. Lou says this proves something. A hatch opens.",
+            "reward": {
+              "scrip": [
+                200,
+                320
+              ]
+            }
+          },
+          "failure": {
+            "text": "It stops on SECURITY. It was not supposed to have a SECURITY.",
+            "fight": [
+              "road_agent",
+              "road_sharpshooter"
+            ]
+          }
+        },
+        {
+          "label": "Pry the hatch open",
+          "stat": "brawn",
+          "difficulty": 9,
+          "success": {
+            "text": "The wheel's prize hatch comes open with a crowbar. Lou says it does not count. He still takes his share.",
+            "reward": {
+              "salvage": {
+                "rarity": "rare",
+                "count": [
+                  1,
+                  1
+                ],
+                "materials": [
+                  "valuables"
+                ]
+              }
+            }
+          },
+          "failure": {
+            "text": "The wheel comes loose and rolls. The party does not.",
+            "damage": 0.1
+          }
+        }
+      ]
+    },
+    "pip_pipes": {
+      "id": "pip_pipes",
+      "text": "Pip stops and puts her ear to a pipe. \"That one's angry,\" she says. \"That one's fine. That one is Gerald.\" Gerald is making a noise like a kettle.",
+      "options": [
+        {
+          "label": "Listen to Pip",
+          "stat": "sight",
+          "difficulty": 8,
+          "success": {
+            "text": "Pip follows Gerald to a shut valve and opens it. Gerald sighs. Behind the valve, somebody's lost toolkit.",
+            "reward": {
+              "salvage": {
+                "rarity": "common",
+                "count": [
+                  2,
+                  3
+                ],
+                "materials": [
+                  "steel",
+                  "circuitry"
+                ]
+              }
+            }
+          },
+          "failure": {
+            "text": "Gerald was not making a kettle noise. Gerald was making a skitter noise.",
+            "fight": [
+              "pipe_skitter",
+              "pipe_skitter",
+              "pipe_skitter"
+            ]
+          }
+        },
+        {
+          "label": "Hit it with a wrench",
+          "stat": "brawn",
+          "difficulty": 7,
+          "success": {
+            "text": "Gerald goes quiet, and so does Pip, for a bit. There was something wedged in him.",
+            "reward": {
+              "scrip": [
+                50,
+                90
+              ]
+            }
+          },
+          "failure": {
+            "text": "Gerald bursts. Gerald was full of hot water.",
+            "damage": 0.08
+          }
+        }
+      ]
+    },
+    "pip_skiff": {
+      "id": "pip_skiff",
+      "text": "Pip's old skiff, tied up in a flooded service tunnel, exactly where she left it. The name on the side is freshly painted: HOME. The paint is still wet.",
+      "options": [
+        {
+          "label": "Board it quietly",
+          "stat": "knack",
+          "difficulty": 10,
+          "success": {
+            "text": "Pip unties HOME and poles it down the tunnel. Under the seat, her old stash: every shiny thing she ever found.",
+            "reward": {
+              "salvage": {
+                "rarity": "rare",
+                "count": [
+                  1,
+                  1
+                ],
+                "materials": [
+                  "steel",
+                  "valuables"
+                ]
+              }
+            }
+          },
+          "failure": {
+            "text": "Somebody else has been living on HOME, and they are not a somebody.",
+            "fight": [
+              "sump_burrower"
+            ]
+          }
+        },
+        {
+          "label": "Call out first",
+          "stat": "charm",
+          "difficulty": 10,
+          "success": {
+            "text": "Nobody answers except the pipes. Pip says they say welcome back. She seems sure. There is scrip in the tackle box.",
+            "reward": {
+              "scrip": [
+                120,
+                180
+              ]
+            }
+          },
+          "failure": {
+            "text": "The pipes answer, loudly, and the tunnel shakes.",
+            "damage": 0.1
+          }
+        }
+      ]
+    },
+    "rook_challenge": {
+      "id": "rook_challenge",
+      "text": "A Rustman ring, drawn in chalk on an old car park. A clansman steps into it and bangs his chest at Rook. Rook bangs his back. It is a conversation.",
+      "options": [
+        {
+          "label": "Let Rook fight him",
+          "stat": "brawn",
+          "difficulty": 10,
+          "success": {
+            "text": "It is over in one swing. The clansman thanks Rook for the lesson and hands over his belt.",
+            "reward": {
+              "salvage": {
+                "rarity": "rare",
+                "count": [
+                  1,
+                  1
+                ],
+                "materials": [
+                  "steel"
+                ]
+              }
+            }
+          },
+          "failure": {
+            "text": "Rook wins, but the clansman brought friends to the lesson.",
+            "fight": [
+              "ring_brawler"
+            ]
+          }
+        },
+        {
+          "label": "Talk it out",
+          "stat": "charm",
+          "difficulty": 9,
+          "success": {
+            "text": "Rook explains, slowly, that he has changed sides. The clansman says that is allowed, if you win. Rook has won. They shake.",
+            "reward": {
+              "scrip": [
+                100,
+                160
+              ]
+            }
+          },
+          "failure": {
+            "text": "Talking is considered an insult in the ring. So is everything else.",
+            "damage": 0.08
+          }
+        }
+      ]
+    },
+    "rook_crowd": {
+      "id": "rook_crowd",
+      "text": "The great ring of the clans, and every seat is taken. The crowd is chanting Rook's name, and also the name of the man who wants to kill him, and they don't seem to mind which one wins.",
+      "options": [
+        {
+          "label": "Play to the crowd",
+          "stat": "charm",
+          "difficulty": 11,
+          "success": {
+            "text": "Rook flexes. The crowd loves it. Somebody throws a bag of scrip into the ring, and then somebody else does.",
+            "reward": {
+              "scrip": [
+                160,
+                240
+              ]
+            }
+          },
+          "failure": {
+            "text": "The crowd loves it so much that some of them come down to join in.",
+            "fight": [
+              "ring_second",
+              "ring_second"
+            ]
+          }
+        },
+        {
+          "label": "Check the ring for traps",
+          "stat": "sight",
+          "difficulty": 11,
+          "success": {
+            "text": "Somebody has greased the ropes. You un-grease them, and pocket the grease tin, which is silver.",
+            "reward": {
+              "salvage": {
+                "rarity": "rare",
+                "count": [
+                  1,
+                  1
+                ],
+                "materials": [
+                  "valuables"
+                ]
+              }
+            }
+          },
+          "failure": {
+            "text": "The trap was the ring, and you are in it.",
+            "damage": 0.1
+          }
+        }
+      ]
+    },
+    "ash_story": {
+      "id": "ash_story",
+      "text": "Granny Ash stops at a burned-out farmhouse and says she lived here once, in the year of the big dust. Or the year of the little dust. Or both. \"Sit down,\" she says. \"This'll take a while.\"",
+      "options": [
+        {
+          "label": "Listen to the story",
+          "stat": "charm",
+          "difficulty": 8,
+          "success": {
+            "text": "It takes an hour. It is very good. At the end she tells you where she buried the good cutlery.",
+            "reward": {
+              "salvage": {
+                "rarity": "common",
+                "count": [
+                  2,
+                  3
+                ],
+                "materials": [
+                  "valuables",
+                  "steel"
+                ]
+              }
+            }
+          },
+          "failure": {
+            "text": "Halfway through, the story is interrupted by the hounds from the next part of the story.",
+            "fight": [
+              "cinder_hound"
+            ]
+          }
+        },
+        {
+          "label": "Search the house",
+          "stat": "sight",
+          "difficulty": 8,
+          "success": {
+            "text": "Behind the stove, a tin of old scrip. Granny says she was wondering where that went.",
+            "reward": {
+              "scrip": [
+                70,
+                120
+              ]
+            }
+          },
+          "failure": {
+            "text": "The floor has been waiting a long time for somebody to stand on it.",
+            "damage": 0.08
+          }
+        }
+      ]
+    },
+    "ash_grave": {
+      "id": "ash_grave",
+      "text": "A row of graves on a hill, each marked with a spoon. Granny Ash counts them, then counts them again, and tells you the names. There is a space at the end with a spoon stuck in the ground, no name yet.",
+      "options": [
+        {
+          "label": "Pull up the empty spoon",
+          "stat": "grit",
+          "difficulty": 10,
+          "success": {
+            "text": "She nods and pockets it. \"Not yet,\" she says. Under it, a buried strongbox she swears she has never seen.",
+            "reward": {
+              "salvage": {
+                "rarity": "rare",
+                "count": [
+                  1,
+                  1
+                ],
+                "materials": [
+                  "valuables"
+                ]
+              }
+            }
+          },
+          "failure": {
+            "text": "Something was keeping the space warm.",
+            "fight": [
+              "cinder_hound",
+              "cinder_hound"
+            ]
+          }
+        },
+        {
+          "label": "Leave the hill be",
+          "success": {
+            "text": "Granny says that is right, and she thanks you, and she puts her hand on the last spoon for a moment before walking on.",
+            "reward": {
+              "scrip": [
+                100,
+                160
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "wick_shrine": {
+      "id": "wick_shrine",
+      "text": "A Lamplighter wayside shrine: a lamp in a glass box, lit, and a donation slot. The sign reads THE SECOND DAWN IS COMING. Somebody has added: EVENTUALLY.",
+      "options": [
+        {
+          "label": "Let Wick pray",
+          "stat": "charm",
+          "difficulty": 11,
+          "success": {
+            "text": "He prays. It is a short prayer, and he means it. Somebody left an offering that no longer needs offering.",
+            "reward": {
+              "scrip": [
+                160,
+                240
+              ]
+            }
+          },
+          "failure": {
+            "text": "The prayer is overheard by people who remember him.",
+            "fight": [
+              "ember_acolyte",
+              "ember_acolyte"
+            ]
+          }
+        },
+        {
+          "label": "Blow out the lamp",
+          "stat": "grit",
+          "difficulty": 11,
+          "success": {
+            "text": "It goes out. Nothing happens. Wick seems very relieved that nothing happens. The donation box is full.",
+            "reward": {
+              "salvage": {
+                "rarity": "rare",
+                "count": [
+                  1,
+                  1
+                ],
+                "materials": [
+                  "chemicals",
+                  "valuables"
+                ]
+              }
+            }
+          },
+          "failure": {
+            "text": "The lamp does not want to go out, and says so, loudly, in fire.",
+            "damage": 0.1
+          }
+        }
+      ]
+    },
+    "wick_confession": {
+      "id": "wick_confession",
+      "text": "The Order's confessional, a booth made of old car doors. A voice inside asks Brother Wick if he has come to confess. He says he has come to ask a question instead.",
+      "options": [
+        {
+          "label": "Ask the question",
+          "stat": "wits",
+          "difficulty": 12,
+          "success": {
+            "text": "He asks who promised the second dawn. There is a long silence. Then the voice says, \"Nobody. We just liked the sound of it.\" Wick thanks it. There are candles behind the booth, the good kind.",
+            "reward": {
+              "salvage": {
+                "rarity": "rare",
+                "count": [
+                  1,
+                  2
+                ],
+                "materials": [
+                  "chemicals"
+                ]
+              }
+            }
+          },
+          "failure": {
+            "text": "The voice does not like the question, and brings friends to say so.",
+            "fight": [
+              "ember_acolyte",
+              "lamp_deacon"
+            ]
+          }
+        },
+        {
+          "label": "Confess anyway",
+          "stat": "charm",
+          "difficulty": 12,
+          "success": {
+            "text": "Wick confesses that he stopped believing, and that he is happier. The voice says that is not a sin. It sounds as if it has been waiting to say it.",
+            "reward": {
+              "scrip": [
+                200,
+                300
+              ]
+            }
+          },
+          "failure": {
+            "text": "The booth's car doors close on the party. Car doors are heavy.",
+            "damage": 0.12
+          }
+        }
+      ]
+    },
+    "june_dive": {
+      "id": "june_dive",
+      "text": "A flooded stairwell going down into the dark. June looks at it the way other people look at a warm bath. \"Five minutes,\" she says, and hands you her boots.",
+      "options": [
+        {
+          "label": "Let her dive",
+          "stat": "grit",
+          "difficulty": 12,
+          "success": {
+            "text": "Four minutes and forty seconds later, she comes up with a strongbox in one hand and a fish in the other. She lets the fish go.",
+            "reward": {
+              "salvage": {
+                "rarity": "rare",
+                "count": [
+                  1,
+                  2
+                ],
+                "materials": [
+                  "valuables",
+                  "steel"
+                ]
+              }
+            }
+          },
+          "failure": {
+            "text": "She comes up early, with company.",
+            "fight": [
+              "drowned_hollowed",
+              "drowned_hollowed"
+            ]
+          }
+        },
+        {
+          "label": "Pump it out first",
+          "stat": "knack",
+          "difficulty": 12,
+          "success": {
+            "text": "The old pump still works, slowly. At the bottom of the stairs, a dry office full of pre-Glare pay packets.",
+            "reward": {
+              "scrip": [
+                200,
+                300
+              ]
+            }
+          },
+          "failure": {
+            "text": "The pump works fine. The pipes do not.",
+            "damage": 0.12
+          }
+        }
+      ]
+    },
+    "june_bell": {
+      "id": "june_bell",
+      "text": "The Stillwater town hall, half underwater. Its bell is still ringing, slowly, each time the tide turns. June says it has rung every day of her life. She says it sounds tired.",
+      "options": [
+        {
+          "label": "Stop the bell",
+          "stat": "brawn",
+          "difficulty": 12,
+          "success": {
+            "text": "June wedges it with a crowbar. The silence is enormous. In the belfry, the city's old seal, solid silver.",
+            "reward": {
+              "salvage": {
+                "rarity": "rare",
+                "count": [
+                  1,
+                  2
+                ],
+                "materials": [
+                  "valuables"
+                ]
+              }
+            }
+          },
+          "failure": {
+            "text": "The bell was keeping the council asleep.",
+            "fight": [
+              "drowned_hollowed",
+              "silt_stalker"
+            ]
+          }
+        },
+        {
+          "label": "Ring it once more",
+          "stat": "charm",
+          "difficulty": 12,
+          "success": {
+            "text": "June rings it properly, once, loud and clear, and the whole flooded city seems to listen. A shutter opens somewhere, and something shiny falls out.",
+            "reward": {
+              "scrip": [
+                240,
+                360
+              ]
+            }
+          },
+          "failure": {
+            "text": "It rings very loudly, very close.",
+            "damage": 0.12
+          }
+        }
+      ]
+    },
+    "orla_armoury": {
+      "id": "orla_armoury",
+      "text": "A Halcyon security armoury, sealed since the Glare, with a keypad and a sign: AUTHORISED PERSONNEL ONLY. Orla puts in her code without looking. It still works. She looks surprised, and then she looks sad.",
+      "options": [
+        {
+          "label": "Let her in",
+          "stat": "wits",
+          "difficulty": 13,
+          "success": {
+            "text": "The armoury opens. Most of it is rust. Some of it is not.",
+            "reward": {
+              "salvage": {
+                "rarity": "rare",
+                "count": [
+                  1,
+                  2
+                ],
+                "materials": [
+                  "steel",
+                  "circuitry"
+                ]
+              }
+            }
+          },
+          "failure": {
+            "text": "The armoury opens, and so does the sentry post inside it.",
+            "fight": [
+              "seal_sentinel"
+            ]
+          }
+        },
+        {
+          "label": "Leave it sealed",
+          "success": {
+            "text": "Orla says that is probably wise. She salutes the door anyway, and takes the petty cash from the guard desk.",
+            "reward": {
+              "scrip": [
+                240,
+                340
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "orla_directive": {
+      "id": "orla_directive",
+      "text": "A terminal on the Director's desk, still showing the last directive: HOLD THE SEAL. REINFORCEMENTS EN ROUTE. It is dated the last day of the old world. Orla reads it twice.",
+      "options": [
+        {
+          "label": "Log a reply",
+          "stat": "wits",
+          "difficulty": 14,
+          "success": {
+            "text": "She types: REINFORCEMENTS ARRIVED. THANK YOU. It takes the reply. In the desk drawer, the Director's private reserve.",
+            "reward": {
+              "salvage": {
+                "rarity": "rare",
+                "count": [
+                  2,
+                  2
+                ],
+                "materials": [
+                  "circuitry",
+                  "valuables"
+                ]
+              }
+            }
+          },
+          "failure": {
+            "text": "The terminal does not accept replies. It sends security to remind her.",
+            "fight": [
+              "seal_sentinel",
+              "seal_sentinel"
+            ]
+          }
+        },
+        {
+          "label": "Switch it off",
+          "stat": "grit",
+          "difficulty": 14,
+          "success": {
+            "text": "Orla switches it off and stands there for a moment, at attention, in the dark. Then she takes the Director's coffee tin. It is full of scrip.",
+            "reward": {
+              "scrip": [
+                300,
+                420
+              ]
+            }
+          },
+          "failure": {
+            "text": "The terminal was wired to the Seal's last defences.",
+            "damage": 0.12
+          }
+        }
+      ]
+    }
+  },
+  "achievements": [
+    {
+      "id": "legend_first",
+      "name": "Somebody, Finally",
+      "description": "Recruit a legendary resident by name.",
+      "tier": "bronze",
+      "stat": "legendsRecruited",
+      "target": 1
+    },
+    {
+      "id": "legend_five",
+      "name": "Notable Residents",
+      "description": "Recruit five legendary residents.",
+      "tier": "silver",
+      "stat": "legendsRecruited",
+      "target": 5
+    },
+    {
+      "id": "legend_all",
+      "name": "Hall of Fame",
+      "description": "Recruit all eleven legendary residents.",
+      "tier": "gold",
+      "stat": "legendsRecruited",
+      "target": 11
+    },
+    {
+      "id": "legend_quest_first",
+      "name": "Personal Business",
+      "description": "Complete a legendary resident's first personal quest.",
+      "tier": "bronze",
+      "stat": "legendQuestsDone",
+      "target": 1
+    },
+    {
+      "id": "legend_line_first",
+      "name": "Story Told",
+      "description": "See a legendary resident's personal questline through to the end.",
+      "tier": "silver",
+      "stat": "legendQuestlinesDone",
+      "target": 1
+    },
+    {
+      "id": "legend_line_five",
+      "name": "Biographer",
+      "description": "Complete five legendary residents' personal questlines.",
+      "tier": "gold",
+      "stat": "legendQuestlinesDone",
+      "target": 5
+    },
+    {
+      "id": "legend_line_all",
+      "name": "The Collected Lives",
+      "description": "See every legendary resident's story through to its end, one way or another.",
+      "tier": "gold",
+      "stat": "legendStoriesEnded",
+      "target": 11
+    },
+    {
+      "id": "collection_quarter",
+      "name": "Catalogued",
+      "description": "Fill a quarter of the Collection Log.",
+      "tier": "bronze",
+      "stat": "collectionPercent",
+      "target": 25
+    },
+    {
+      "id": "collection_half",
+      "name": "Curator",
+      "description": "Fill half of the Collection Log.",
+      "tier": "silver",
+      "stat": "collectionPercent",
+      "target": 50
+    },
+    {
+      "id": "collection_most",
+      "name": "Archivist",
+      "description": "Fill three quarters of the Collection Log.",
+      "tier": "gold",
+      "stat": "collectionPercent",
+      "target": 75
+    },
+    {
+      "id": "collection_category",
+      "name": "Complete Set",
+      "description": "Complete a whole section of the Collection Log.",
+      "tier": "silver",
+      "stat": "collectionCategoriesComplete",
+      "target": 1
+    },
+    {
+      "id": "wardens_seal",
+      "name": "The Warden's Seal",
+      "description": "Earn every other achievement. HALCY will present the Seal personally. There may be a cake.",
+      "tier": "gold",
+      "stat": "wardensSeal",
+      "target": 1,
+      "hidden": true,
+      "title": "Warden of Wardens"
+    }
+  ]
+}
