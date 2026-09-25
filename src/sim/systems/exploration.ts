@@ -18,7 +18,9 @@ import { chance, nextFloat, nextInt, pick } from '../rng';
 import type { Expedition, ExpeditionLoot, GameState, JournalEntry, JournalKind, Rarity, Resident, StatKey } from '../types';
 import { addFragment, addSalvage, fragmentsNeeded, knowsRecipe, unlockRecipe } from './inventory';
 import { leaveJob, returnToJob } from './assign';
-import { grantItem, randomItemOf } from './items';
+import { grantItem } from './items';
+import { deliverCarried, dropCarried, isLootOnly, rollCacheDig, rollRegionExclusive, rollTreasureMap, tickLoot } from './loot';
+import { rulesetMods } from './rulesets';
 import { traitCheckBonus, traitExplorerScripMult, traitExplorerTaintMult } from './traits';
 
 export const MAX_SUPPLIES = 25;
@@ -334,7 +336,7 @@ function checkHealth(state: GameState, content: Content, e: Expedition, r: Resid
 function hurt(state: GameState, content: Content, e: Expedition, r: Resident, damage: number, taint = 0): boolean {
   r.hp -= damage;
   // M6 trait hook (Glare-Hardened): less taint from hazards.
-  if (taint > 0 && !taintImmune(content, r)) r.taint = Math.min(r.maxHp, r.taint + scaledDamage(state, content, e, taint) * traitExplorerTaintMult(content, r) * Math.max(0, 1 - bonus(state, content, 'explorerTaint')));
+  if (taint > 0 && !taintImmune(content, r)) r.taint = Math.min(r.maxHp, r.taint + scaledDamage(state, content, e, taint) * traitExplorerTaintMult(content, r) * Math.max(0, 1 - bonus(state, content, 'explorerTaint')) * rulesetMods(state, content).explorerTaint);
   return checkHealth(state, content, e, r);
 }
 
@@ -360,7 +362,8 @@ function accrueTaint(state: GameState, content: Content, e: Expedition, r: Resid
   const h1 = until / 3600;
   const amount = t.taintPerHour * danger * (h1 - h0 + (t.taintGrowthPerHour * (h1 * h1 - h0 * h0)) / 2);
   // M6 trait hook (Glare-Hardened): traitExplorerTaintMult.
-  r.taint = Math.min(r.maxHp, r.taint + amount * Math.max(0, 1 - bonus(state, content, 'explorerTaint')) * traitExplorerTaintMult(content, r));
+  // M9: rulesets (Glass Sky) scale explorer taint.
+  r.taint = Math.min(r.maxHp, r.taint + amount * Math.max(0, 1 - bonus(state, content, 'explorerTaint')) * traitExplorerTaintMult(content, r) * rulesetMods(state, content).explorerTaint);
 }
 
 // ------------------------------------------------------------------ loot
@@ -376,7 +379,7 @@ function remainingCarry(state: GameState, content: Content, e: Expedition): numb
 
 function unknownRecipes(state: GameState, content: Content, e: Expedition, rarity: Rarity, kind?: 'weapon' | 'outfit'): string[] {
   return Object.values(content.items)
-    .filter((d) => d.rarity === rarity && (!kind || d.kind === kind))
+    .filter((d) => d.rarity === rarity && (!kind || d.kind === kind) && !isLootOnly(content, d.id))
     .map((d) => d.id)
     .filter((id) => !knowsRecipe(state, content, id) && !e.loot.recipes.includes(id))
     .filter((id) => (state.fragments[id] ?? 0) + (e.loot.fragments[id] ?? 0) < fragmentsNeeded(content, id));
@@ -450,7 +453,25 @@ function findItem(state: GameState, content: Content, e: Expedition, r: Resident
     if (chance(state.rng, t.rareRecipe) && giveRecipe(state, content, e, 'rare')) return;
   }
   const kind = forced?.kind ?? (chance(state.rng, 0.5) ? 'weapon' : 'outfit');
-  giveItem(state, content, e, r, randomItemOf(state, content, kind, rarity));
+  giveItem(state, content, e, r, randomFindable(state, content, kind, rarity));
+}
+
+/** A random weapon or outfit of this rarity, never a lootOnly one (M9: those come from loot.ts paths). */
+function randomFindable(state: GameState, content: Content, kind: 'weapon' | 'outfit', rarity: Rarity): string {
+  const pool = Object.values(kind === 'weapon' ? content.weapons : content.outfits).filter((d) => d.rarity === rarity && !isLootOnly(content, d.id));
+  return pick(state.rng, pool).id;
+}
+
+/**
+ * M9 item find: sometimes a region exclusive instead of the usual find, and
+ * separately a rare chance of a treasure map (revealed when they get home).
+ */
+function itemFind(state: GameState, content: Content, e: Expedition, r: Resident, region: RegionDef): void {
+  const exclusive = rollRegionExclusive(state, content, e);
+  if (exclusive) giveItem(state, content, e, r, exclusive);
+  else findItem(state, content, e, r);
+  const map = rollTreasureMap(state, content, e, (id) => !!regionDef(content, id));
+  if (map !== null) writeJournal(state, content, e, 'find', map, true);
 }
 
 function salvageRarity(state: GameState, content: Content, e: Expedition, base: Rarity): Rarity {
@@ -601,9 +622,14 @@ function doScripFind(state: GameState, content: Content, e: Expedition, r: Resid
 
 function fire(state: GameState, content: Content, e: Expedition, r: Resident, region: RegionDef, key: EventTimer): void {
   switch (key) {
-    case 'item': return findItem(state, content, e, r);
+    case 'item': return itemFind(state, content, e, r, region);
     case 'salvage': return doSalvageEvent(state, content, e, r, region);
-    case 'encounter': return doEncounter(state, content, e, r, region);
+    case 'encounter': {
+      // M9: with a map to this region, an encounter may be the dig instead.
+      const dug = rollCacheDig(state, content, e);
+      if (dug !== null) return writeJournal(state, content, e, 'find', dug, true);
+      return doEncounter(state, content, e, r, region);
+    }
     case 'scrip': return doScripFind(state, content, e, r);
     case 'musing': return doMusing(state, content, e);
   }
@@ -733,6 +759,8 @@ export function collectExpedition(state: GameState, content: Content, expedition
   const e = findExpedition(state, expeditionId);
   if (!e) return 'no such expedition';
   if (e.status !== 'returned') return 'they are not home yet';
+  // M9: maps are revealed and dug-up caches unpacked on the way in.
+  deliverCarried(state, content, e);
   const loot = e.loot;
   for (const defId of loot.items) grantItem(state, content, defId);
   for (const [id, n] of Object.entries(loot.salvage)) addSalvage(state, content, id, n);
@@ -760,12 +788,14 @@ export function collectExpedition(state: GameState, content: Content, expedition
 
 /** Advance every expedition by dt seconds. Runs online and offline. */
 export function tickExpeditions(state: GameState, content: Content, dt: number): void {
+  tickLoot(state);
   if (dt <= 0 || state.expeditions.length === 0) return;
   for (const e of [...state.expeditions]) {
     const r = findResident(state, e.residentId);
     if (!r) {
       // The resident is gone for good (laid to rest while away): so is the trip.
       state.expeditions = state.expeditions.filter((x) => x !== e);
+      dropCarried(state, e.id);
       continue;
     }
     if (e.status === 'returning') {

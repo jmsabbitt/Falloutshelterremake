@@ -1,1 +1,93 @@
-{ "_comment": "M9 rare-item paths (stream C): boss first-kill drops, treasure maps and caches, region exclusives. See systems/loot.ts.", "bossFirstKill": {}, "caches": [], "achievements": [] }
+{
+  "_comment": "M9 rare-item paths (stream C): boss first-kill drops, treasure maps and caches, region exclusives. See systems/loot.ts. Items marked lootOnly in items.json only come from here.",
+  "bossFirstKill": {
+    "relay_boss": "broodsilk_coveralls",
+    "burrower_matriarch": "tunneler_gear",
+    "rust_tollman": "gamblers_vest",
+    "rust_warlord": "barons_greatcoat",
+    "hollowed_supervisor": "hawkeye_duster",
+    "mauler": "mauler_tusk",
+    "moth_choir": "silver_tongue_suit",
+    "lamp_solenne": "wick_gun",
+    "assessor_9c": "coilgun",
+    "readiness_officer": "professors_tweed",
+    "custodian_frame": "custodial_baton",
+    "kiln_mother": "bedrock_armor",
+    "shatterjaw": "titan_harness",
+    "chief_sprocket": "quicksilver_suit",
+    "big_tin": "tin_knuckles"
+  },
+  "repeatChance": 0.05,
+  "firstKillLog": "{boss} was carrying {item}. HALCY has logged it as a first-time acquisition.",
+  "repeatLog": "{boss} had another {item}. Apparently they come in sets.",
+  "maps": {
+    "_comment": "Rolled on every item find (about hourly). digChance is rolled on every encounter once the explorer has been out digMinMinute minutes in a region with an undug map.",
+    "base": 0.02,
+    "perHour": 0.01,
+    "max": 0.08,
+    "digChance": 0.35,
+    "digMinMinute": 20,
+    "foundLog": [
+      "Found a map folded into a boot. Someone marked an X and wrote 'DO NOT TELL DEREK'. I am telling the homestead.",
+      "A map, drawn on the back of a Halcyon safety poster. There is an X. There is always an X.",
+      "Traded a stranger two buttons for a map. The X is circled three times, which I take as a guarantee."
+    ]
+  },
+  "caches": [
+    {
+      "id": "drover_stash",
+      "name": "The Drover's Stash",
+      "regionId": "dustbowl",
+      "text": "Dug under the dead cottonwood, just like the map said. A tin trunk, a pick, and a note: 'Took the long way home.'",
+      "reward": { "items": ["prospector_pick"], "scrip": [150, 250] }
+    },
+    {
+      "id": "ash_cellar",
+      "name": "The Root Cellar",
+      "regionId": "dustbowl",
+      "text": "The X was a cellar door. Under it: jars of pickles, a rocking chair and a very old woman who asked whether I had eaten. She is coming home with me. She says it was her idea.",
+      "reward": { "legend": "granny_ash", "scrip": [60, 120], "salvage": { "rarity": "rare", "count": [1, 2], "materials": ["cloth", "valuables"] } }
+    },
+    {
+      "id": "survey_capsule",
+      "name": "Halcyon Survey Capsule",
+      "regionId": "glassflats",
+      "text": "Dug a Halcyon survey capsule out of the glass. Sealed, labelled, and filed under 'Open After The Glare'. Close enough.",
+      "reward": { "items": ["surveyor_duster"], "salvage": { "rarity": "rare", "count": [2, 3], "materials": ["circuitry"] } }
+    },
+    {
+      "id": "shard_hoard",
+      "name": "The Shard Hoard",
+      "regionId": "glassflats",
+      "text": "Something had been hoarding shiny things under a crystal ledge. It had good taste and has, fortunately, moved out.",
+      "reward": { "salvage": { "rarity": "legendary", "count": [1, 2], "materials": ["valuables", "circuitry"] }, "scrip": [200, 350] }
+    },
+    {
+      "id": "pumphouse_strongbox",
+      "name": "The Pumphouse Strongbox",
+      "regionId": "stillwater",
+      "text": "Held my breath, went down, came up with a strongbox from the old pumphouse. Inside, bone dry: a Halcyon Peacemaker and a very smug gasket.",
+      "reward": { "items": ["peacemaker"], "scrip": [250, 400] }
+    }
+  ],
+  "cacheCollectLog": "Dug up {cache}.",
+  "regionExclusives": {
+    "_comment": "Rolled on every item find in that region. These items are lootOnly, so nothing else drops them.",
+    "dustbowl": { "chance": 0.05, "items": ["dust_devil", "drover_poncho"] },
+    "glassflats": { "chance": 0.06, "items": ["glasscutter", "mirrorweave_cloak"] },
+    "stillwater": { "chance": 0.07, "items": ["salvage_harpoon", "diving_bell_suit"] }
+  },
+  "achievements": [
+    { "id": "surge_first", "name": "Grounded", "description": "Ground an electrical surge.", "tier": "bronze", "stat": "incidentsResolved.surge", "target": 1 },
+    { "id": "hollowed_first", "name": "Please Take a Number", "description": "Turn back the Hollowed.", "tier": "bronze", "stat": "incidentsResolved.hollowed", "target": 1 },
+    { "id": "glassbacks_first", "name": "Pest Control, Crystalline", "description": "Squash a glassback swarm before it wanders off.", "tier": "silver", "stat": "incidentsResolved.glassbacks", "target": 1 },
+    { "id": "mauler_first", "name": "Apex Paperwork", "description": "Bring down a Mauler inside the homestead.", "tier": "silver", "stat": "incidentsResolved.maulers", "target": 1 },
+    { "id": "mauler_5", "name": "Top of the Food Chain", "description": "Bring down 5 Maulers inside the homestead.", "tier": "gold", "stat": "incidentsResolved.maulers", "target": 5 },
+    { "id": "first_kill_1", "name": "First Edition", "description": "Claim a boss's first-kill prize.", "tier": "bronze", "stat": "bossFirstKills", "target": 1 },
+    { "id": "first_kill_10", "name": "Complete Set", "description": "Claim 10 different first-kill prizes.", "tier": "gold", "stat": "bossFirstKills", "target": 10 },
+    { "id": "map_first", "name": "X Marks the Spot", "description": "Bring home a treasure map.", "tier": "bronze", "stat": "treasureMaps", "target": 1 },
+    { "id": "cache_first", "name": "Finders Keepers", "description": "Dig up a treasure cache.", "tier": "bronze", "stat": "cachesDug", "target": 1 },
+    { "id": "cache_5", "name": "Amateur Archaeology", "description": "Dig up 5 treasure caches.", "tier": "silver", "stat": "cachesDug", "target": 5 },
+    { "id": "exclusive_3", "name": "Local Colour", "description": "Find 3 region-exclusive items in the Glarelands.", "tier": "silver", "stat": "regionExclusives", "target": 3 }
+  ]
+}
