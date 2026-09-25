@@ -5,7 +5,7 @@
 // directly; a summary at the end checks them.
 // Usage: npm run quest-balance [-- runs [sizes [filter]]]  (default 20 runs, party sizes 3,1;
 // filter keeps only quests and contracts whose id starts with one of its comma-separated prefixes,
-// e.g. act2,c_kiln)
+// e.g. act2,c_kiln). Act 3 quests run at their own cycle (3).
 import { advance, applyCommand, loadContent, newGame, questContent, type GameState, type Quest } from '../src/sim';
 import { hpPerLevel } from '../src/sim/residents';
 import { playQuest } from '../src/sim/systems/questBot';
@@ -65,8 +65,8 @@ function game(seed: number, level: number, weapon: string | null, size: number):
     ids.push(r.id);
   }
   s.questsDone = [];
-  s.peakPopulation = 100; // population gates are not what is being tested
-  s.legacy.cycle = 2; // Act 2 opens in the second homestead
+  s.peakPopulation = 1000; // population gates are not what is being tested
+  s.legacy.cycle = 3; // late acts open in later homesteads; runStory sets the quest's own cycle
   return { s, ids };
 }
 
@@ -105,6 +105,9 @@ function runStory(questId: string, level: number, weapon: string | null, size: n
   const { s, ids } = game(seed, level, weapon, size);
   const def = questContent(content).quests.find((q) => q.id === questId)!;
   s.questsDone = [...def.requires.quests];
+  s.legacy.cycle = Math.max(1, def.requires.cycle ?? 1);
+  // Legend questlines need their legend at home; seat them as the party leader.
+  if (def.requires.legend) s.residents.find((x) => x.id === ids[0])!.legendary = def.requires.legend;
   const r = applyCommand(s, content, { type: 'startQuest', questId, residentIds: ids, medpatch: MEDPATCH });
   if (!r.ok) throw new Error(r.reason);
   const q = s.quests[0]!;
