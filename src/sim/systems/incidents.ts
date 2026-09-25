@@ -20,10 +20,11 @@ import { addScrip, population } from '../economy';
 import { connectedRoomIds, floorOccupancy, roomCells, roomDef } from '../grid';
 import { bonus, incidentRate } from '../bonuses';
 import { bump, combatDamage, effectiveStat, fleesIncidents, grantXp, livingResidents } from '../residents';
-import { chance, nextInt, pick } from '../rng';
+import { chance, nextFloat, nextInt, pick } from '../rng';
 import type { GameState, Incident, IncidentType, Resident, Room, StatKey } from '../types';
 import { deepIncidentChance, deepIncidentScale, isDeepFloor, stratumOf } from './deep';
 import { traitDamageTakenMult } from './traits';
+import { raidRateMult } from './factions';
 import { raidDefense } from './weather';
 
 export interface IncidentDef {
@@ -93,6 +94,22 @@ export function settleIncidentsOffline(state: GameState, content: Content, dt: n
     bump(state, 'incidentsSettled');
     state.events.push({ type: 'incidentResolved', incidentId: inc.id, roomId: inc.roomId, incident: inc.type, loot: 0 });
   }
+}
+
+/**
+ * Choose which incident happens. Rustmen weigh more or less by the clans'
+ * reputation (factions.raidRateMult); without raiders in the running the
+ * old uniform pick is kept, so the rng sequence doesn't change.
+ */
+function pickIncidentType<T extends IncidentType>(state: GameState, content: Content, options: T[]): T {
+  if (!options.includes('rustmen' as T)) return pick(state.rng, options);
+  const weights = options.map((t) => (t === 'rustmen' ? raidRateMult(state, content) : 1));
+  let x = nextFloat(state.rng) * weights.reduce((a, b) => a + b, 0);
+  for (let i = 0; i < options.length; i++) {
+    x -= weights[i] as number;
+    if (x < 0) return options[i] as T;
+  }
+  return options[options.length - 1] as T;
 }
 
 /** Rooms that can host incidents: not the door, not elevators. */
@@ -246,7 +263,7 @@ export function tickIncidentTimer(state: GameState, content: Content, dt: number
   scheduleIncident(state, content);
   if (maybeDeepIncident(state, content, rooms)) return;
   if (!options.length) return;
-  const type = pick(state.rng, options);
+  const type = pickIncidentType(state, content, options);
   if (type === 'rustmen') startRaid(state, content);
   else startIncident(state, content, type, pick(state.rng, incidentDef(content, type).needsDirt ? dirtRooms : rooms));
 }

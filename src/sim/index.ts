@@ -147,7 +147,37 @@ export {
 } from './systems/traits';
 export { autoAssign, idleAdults } from './systems/assign';
 export { isTopside, weatherMult, raidDefense, stormShielding, signalRange, topsideContent } from './systems/weather';
-export { changeRep, repOf, factionDef, factionsContent } from './systems/factions';
+export {
+  changeRep,
+  repOf,
+  factionDef,
+  factionsContent,
+  repTier,
+  factionTier,
+  isMet,
+  raidRateMult,
+  hasTradingPost,
+  tradingPostStaffed,
+  signalLevel,
+  contactLocked,
+  tradeOffers,
+  refreshTrade,
+  offerItemFor,
+  recruitsHired,
+  hireRecruit,
+  canCaravan,
+  caravanSlots,
+  goodsUnits,
+  carryLimit as caravanCarryLimit,
+  goodsValue,
+  caravanEstimate,
+  type FactionOffer,
+  type OfferSide,
+  type CaravanResult,
+  type CaravanEstimate,
+  type RepTier,
+  type FactionDef,
+} from './systems/factions';
 export { TOPSIDE_FLOOR } from './grid';
 export { threatRating, type ThreatRating, type ThreatFactor } from './systems/threat';
 export { knowsRecipe, fragmentsNeeded, salvageCount, SALVAGE_CAP } from './systems/inventory';

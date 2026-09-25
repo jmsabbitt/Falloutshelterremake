@@ -439,7 +439,7 @@ export type GameEvent =
   | { type: 'residentDied'; residentId: number }
   | { type: 'residentRevived'; residentId: number }
   | { type: 'residentAdmitted'; residentId: number }
-  | { type: 'residentArrived'; residentId: number; source: 'radio' | 'wanderer' | 'crate' }
+  | { type: 'residentArrived'; residentId: number; source: 'radio' | 'wanderer' | 'crate' | 'recruit' }
   | { type: 'courtshipStarted'; motherId: number; fatherId: number }
   | { type: 'pregnancy'; motherId: number; fatherId: number }
   | { type: 'birth'; childId: number; motherId: number }
