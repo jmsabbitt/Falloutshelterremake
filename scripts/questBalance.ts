@@ -3,7 +3,9 @@
 // boss-fight length and danger. Story setups are relative to each quest's
 // level, so the M4 balance targets (docs/design/M4-spec.md) can be read off
 // directly; a summary at the end checks them.
-// Usage: npm run quest-balance [-- runs [sizes]]  (default 20 runs, party sizes 3,1)
+// Usage: npm run quest-balance [-- runs [sizes [filter]]]  (default 20 runs, party sizes 3,1;
+// filter keeps only quests and contracts whose id starts with one of its comma-separated prefixes,
+// e.g. act2,c_kiln)
 import { advance, applyCommand, loadContent, newGame, questContent, type GameState, type Quest } from '../src/sim';
 import { hpPerLevel } from '../src/sim/residents';
 import { playQuest } from '../src/sim/systems/questBot';
@@ -12,6 +14,8 @@ import { enemyDef, refreshContracts } from '../src/sim/systems/quests';
 const content = loadContent();
 const runs = Number(process.argv[2] ?? 20);
 const sizes = (process.argv[3] ?? '3,1').split(',').map(Number);
+const prefixes = (process.argv[4] ?? '').split(',').filter(Boolean);
+const wanted = (id: string) => !prefixes.length || prefixes.some((p) => id.startsWith(p));
 const MEDPATCH = 5;
 
 type Gear = 'fists' | 'common' | 'rare';
@@ -62,6 +66,7 @@ function game(seed: number, level: number, weapon: string | null, size: number):
   }
   s.questsDone = [];
   s.peakPopulation = 100; // population gates are not what is being tested
+  s.legacy.cycle = 2; // Act 2 opens in the second homestead
   return { s, ids };
 }
 
@@ -160,9 +165,10 @@ function check(ok: boolean, text: string): void {
   checks.push(`${ok ? 'ok  ' : 'MISS'} ${text}`);
 }
 
-const quests = questContent(content).quests;
-const act1 = questContent(content).questlines.find((l) => l.id === 'act1')?.quests ?? [];
-const finale = act1[act1.length - 1];
+const quests = questContent(content).quests.filter((q) => wanted(q.id));
+const contracts = questContent(content).contracts.filter((c) => wanted(c.id));
+/** The last quest of every questline is its finale boss. */
+const finales = new Set(questContent(content).questlines.map((l) => l.quests[l.quests.length - 1]));
 
 for (const size of sizes) {
   console.log(`\n=== party of ${size}: story (setups relative to the quest's level) ===`);
@@ -178,7 +184,7 @@ for (const size of sizes) {
     const avg = plus2.secs / runs;
     check(plus2.wins / runs >= 0.9 && avg >= 60 && avg <= 180, `${def.id}: recommended level, common gear wins ${pct(plus2.wins)} (>=90%) in ${Math.round(avg)}s (60-180s)`);
     if (def.level >= 5) check(fists.wins / runs < 0.5, `${def.id}: 4 levels under with fists wins ${pct(fists.wins)} (should usually lose)`);
-    if (def.id === finale) {
+    if (finales.has(def.id)) {
       const boss = rare.bossFights ? rare.bossSecs / rare.bossFights : 0;
       check(
         rare.wins === runs && boss >= 45 && boss <= 120 && rare.bossDanger / Math.max(1, rare.bossFights) >= 0.5,
@@ -189,7 +195,7 @@ for (const size of sizes) {
 
   console.log(`\n=== party of ${size}: contracts at the party's own level ===`);
   console.log(''.padEnd(22), contractLevels.map((l) => `L${l} ${contractGear(l)}`.padEnd(44)).join('| '));
-  for (const tpl of questContent(content).contracts) {
+  for (const tpl of contracts) {
     const cells = contractLevels.map((level) => cell((seed) => runContract(tpl.id, level, weaponFor(contractGear(level), level), size, seed)));
     console.log(tpl.id.padEnd(22), cells.map((c) => fmt(c).padEnd(44)).join('| '));
     if (size !== 3) continue;

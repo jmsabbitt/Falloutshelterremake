@@ -1856,6 +1856,1417 @@
           "fail": "The vault door swung shut behind me. Took hours to pry it open. Grabbed a trinket on the way out."
         }
       ]
+    },
+    {
+      "id": "glassflats",
+      "name": "The Glass Flats",
+      "description": "A desert the Glare fused into one green window, melted from underneath. Lamplighter pilgrims, clan wells, Scrapwright prospectors and Homestead 9 survey crews, all headed for the Groundworks wellhead in the middle.",
+      "danger": 1.5,
+      "enemies": [
+        {
+          "id": "glass_skitter",
+          "name": "glass skitter",
+          "stat": "knack",
+          "difficulty": 8,
+          "minMinute": 1,
+          "maxMinute": 300,
+          "damage": 8,
+          "xp": 320,
+          "drop": {
+            "materials": [
+              "chemicals"
+            ],
+            "rarity": "common",
+            "chance": 0.3,
+            "count": [
+              1,
+              1
+            ]
+          },
+          "encounter": [
+            "A glass skitter. You can see its lunch through it. Its lunch was another glass skitter.",
+            "Something went tink-tink-tink across the glass behind me. A skitter, see-through and hungry."
+          ],
+          "win": [
+            "Cracked a glass skitter with my heel. It shattered like a very rude ornament.",
+            "Beat off a glass skitter. Swept up the pieces. Pocketed the shiny ones."
+          ],
+          "retreat": [
+            "The glass skitter was faster than me on its own floor. Home advantage.",
+            "Retreated from a glass skitter. I'll be finding its bits in my boots for a week."
+          ]
+        },
+        {
+          "id": "sunblind_kite",
+          "name": "sunblind kite",
+          "stat": "sight",
+          "difficulty": 10,
+          "minMinute": 1,
+          "maxMinute": 360,
+          "damage": 9,
+          "xp": 360,
+          "drop": {
+            "materials": [
+              "hide"
+            ],
+            "rarity": "common",
+            "chance": 0.3,
+            "count": [
+              1,
+              1
+            ]
+          },
+          "encounter": [
+            "A sunblind kite is circling. It can't see me. It's circling anyway, on principle.",
+            "Spotted a sunblind kite diving at its own reflection in the glass. Then at me."
+          ],
+          "win": [
+            "The kite dived. I side-stepped. The glass did the rest.",
+            "Waved my jacket at the sunblind kite until it decided I was a very large bird. It left."
+          ],
+          "retreat": [
+            "The kite hit me on its third try. It was aiming for the second.",
+            "Lost a fight to a blind bird. The Glass Flats don't care about my feelings."
+          ]
+        },
+        {
+          "id": "glint_jackals",
+          "name": "pack of glint-jackals",
+          "stat": "sight",
+          "difficulty": 12,
+          "minMinute": 10,
+          "maxMinute": 420,
+          "damage": 9,
+          "xp": 400,
+          "drop": {
+            "materials": [
+              "hide"
+            ],
+            "rarity": "common",
+            "chance": 0.3,
+            "count": [
+              1,
+              1
+            ]
+          },
+          "encounter": [
+            "Glint-jackals, five of them, grinning. The glass makes it look like fifty.",
+            "A pack of glint-jackals is following my reflection. I'm hoping they pick the reflection."
+          ],
+          "win": [
+            "Picked off the lead glint-jackal. The rest remembered an appointment.",
+            "Out-stared a glint-jackal pack. They yipped something rude and went off to bother a Rustman."
+          ],
+          "retreat": [
+            "The glint-jackals chased me until I stopped being fun. That took a while.",
+            "Ran from the glint-jackals. Their laughter followed me for a mile."
+          ]
+        },
+        {
+          "id": "lamp_zealot",
+          "name": "Lamplighter zealot",
+          "stat": "charm",
+          "difficulty": 13,
+          "minMinute": 20,
+          "maxMinute": 480,
+          "damage": 10,
+          "xp": 420,
+          "drop": {
+            "materials": [
+              "cloth"
+            ],
+            "rarity": "common",
+            "chance": 0.3,
+            "count": [
+              1,
+              1
+            ]
+          },
+          "encounter": [
+            "A Lamplighter zealot with a burning censer wants to know if I've accepted the Dawn.",
+            "A zealot in welding goggles is shouting at the sun to hurry up. Then he noticed me."
+          ],
+          "win": [
+            "Talked the zealot down. He blessed my ankles and went back to shouting at the sun.",
+            "Told the zealot I was already saved, by Halcyon, on a subscription. He was so confused he let me go."
+          ],
+          "retreat": [
+            "The zealot decided I needed purifying. The censer was very hot about it.",
+            "Argued theology with a zealot. He argued back with a lamp."
+          ]
+        },
+        {
+          "id": "prism_spitter",
+          "name": "prism spitter",
+          "stat": "grit",
+          "difficulty": 15,
+          "minMinute": 40,
+          "maxMinute": 600,
+          "damage": 11,
+          "xp": 460,
+          "drop": {
+            "materials": [
+              "chemicals"
+            ],
+            "rarity": "common",
+            "chance": 0.3,
+            "count": [
+              1,
+              1
+            ]
+          },
+          "encounter": [
+            "A prism spitter, all angles, catching the sun and pointing it at me.",
+            "Something just spat a rainbow at my boot, and the boot is smoking."
+          ],
+          "win": [
+            "Walked through the prism spitter's rainbow and stepped on the prism spitter.",
+            "Toughed out a prism spitter's light show and cracked its lens."
+          ],
+          "retreat": [
+            "The prism spitter lit up my coat. I gave it the coat and left.",
+            "Retreated from a prism spitter. I'm seeing spots. They're in colours."
+          ]
+        },
+        {
+          "id": "clan_outriders",
+          "name": "clan outriders",
+          "stat": "brawn",
+          "difficulty": 17,
+          "minMinute": 60,
+          "maxMinute": 800,
+          "damage": 12,
+          "xp": 500,
+          "drop": {
+            "materials": [
+              "steel"
+            ],
+            "rarity": "common",
+            "chance": 0.3,
+            "count": [
+              1,
+              1
+            ]
+          },
+          "encounter": [
+            "Clan outriders on a car with no engine, pushed by three very fit Rustmen.",
+            "Two clan outriders want to know which clan I'm with. The wrong answer is any of them."
+          ],
+          "win": [
+            "Pushed the outriders' car over, with them in it. They took it well, for Rustmen.",
+            "Beat the clan outriders in an honest brawl. They respect that. They also want a rematch."
+          ],
+          "retreat": [
+            "The outriders took my scrip and gave me a receipt. The receipt was a punch.",
+            "Lost to the clan outriders. They cheered for me anyway, which somehow hurts more."
+          ]
+        },
+        {
+          "id": "survey_drone",
+          "name": "Homestead 9 survey drone",
+          "stat": "wits",
+          "difficulty": 19,
+          "minMinute": 90,
+          "maxMinute": 1000,
+          "damage": 13,
+          "xp": 560,
+          "drop": {
+            "materials": [
+              "circuitry"
+            ],
+            "rarity": "common",
+            "chance": 0.3,
+            "count": [
+              1,
+              2
+            ]
+          },
+          "encounter": [
+            "A grey Homestead 9 survey drone has flagged me as 'an irregularity'.",
+            "A survey drone from Homestead 9 is measuring me. It doesn't like my dimensions."
+          ],
+          "win": [
+            "Fed the survey drone a false reading. It filed me as a rock and flew off.",
+            "Outsmarted the Homestead 9 drone and kept its batteries as a souvenir."
+          ],
+          "retreat": [
+            "The survey drone fined me for trespassing in a desert. Then it zapped me for arguing.",
+            "Retreated from the drone. It logged my retreat as 'compliant behaviour'. I hate that."
+          ]
+        },
+        {
+          "id": "glassback",
+          "name": "glassback burrower",
+          "stat": "brawn",
+          "difficulty": 21,
+          "minMinute": 120,
+          "maxMinute": 1200,
+          "damage": 14,
+          "xp": 620,
+          "drop": {
+            "materials": [
+              "hide"
+            ],
+            "rarity": "common",
+            "chance": 0.3,
+            "count": [
+              1,
+              2
+            ]
+          },
+          "encounter": [
+            "A glassback burrower surfaced right under me. The ground cracked like ice.",
+            "The glass is bulging. Something with a shell of green glass is coming up to say hello."
+          ],
+          "win": [
+            "Wrestled a glassback burrower back into its hole and stood on the lid.",
+            "Cracked a glassback burrower's shell. It sounded like a church window."
+          ],
+          "retreat": [
+            "The glassback burrower flipped me over. I lay there like a beetle until it got bored.",
+            "Ran from a glassback burrower. The ground ran with me. That's the problem with glass."
+          ]
+        },
+        {
+          "id": "mirror_eel",
+          "name": "mirror eel",
+          "stat": "grit",
+          "difficulty": 23,
+          "minMinute": 180,
+          "maxMinute": 1500,
+          "damage": 15,
+          "xp": 680,
+          "drop": {
+            "materials": [
+              "hide"
+            ],
+            "rarity": "common",
+            "chance": 0.3,
+            "count": [
+              1,
+              2
+            ]
+          },
+          "encounter": [
+            "Something is swimming under the glass. Under solid glass. It's following my shadow.",
+            "A mirror eel. It lives in the reflection somehow, and it's coming up through it."
+          ],
+          "win": [
+            "The mirror eel bit and I bit back, figuratively. It went back to the other side.",
+            "Stood my ground against a mirror eel until it slid back under the glass, sulking."
+          ],
+          "retreat": [
+            "The mirror eel grabbed my ankle through the ground. I don't want to talk about how.",
+            "Lost to a mirror eel. I've decided never to look down again."
+          ]
+        },
+        {
+          "id": "kiln_crawlers",
+          "name": "kiln crawlers",
+          "stat": "knack",
+          "difficulty": 25,
+          "minMinute": 240,
+          "maxMinute": 1800,
+          "damage": 16,
+          "xp": 760,
+          "drop": {
+            "materials": [
+              "chemicals"
+            ],
+            "rarity": "common",
+            "chance": 0.3,
+            "count": [
+              1,
+              3
+            ]
+          },
+          "encounter": [
+            "Kiln crawlers, glowing orange, pouring out of a crack in the glass like lava with legs.",
+            "The crack in front of me is hot, and full of kiln crawlers, and they've seen me."
+          ],
+          "win": [
+            "Rigged a trap from a canteen and some wire. The kiln crawlers hissed and fizzled out.",
+            "Cooled off a nest of kiln crawlers with some quick thinking and all my water."
+          ],
+          "retreat": [
+            "The kiln crawlers climbed my boots and my boots melted. I left on my socks.",
+            "Too many kiln crawlers. I'm cooked, slightly, on one side."
+          ]
+        },
+        {
+          "id": "hollowed_pilgrims",
+          "name": "procession of Hollowed pilgrims",
+          "stat": "charm",
+          "difficulty": 27,
+          "minMinute": 360,
+          "maxMinute": 2400,
+          "damage": 17,
+          "xp": 840,
+          "drop": {
+            "materials": [
+              "cloth"
+            ],
+            "rarity": "common",
+            "chance": 0.3,
+            "count": [
+              1,
+              3
+            ]
+          },
+          "encounter": [
+            "A procession of Hollowed pilgrims, still in their goggles, still walking to the wellhead.",
+            "Hollowed pilgrims, dozens, humming a hymn with no tune left in it."
+          ],
+          "win": [
+            "Hummed their hymn back at them. The Hollowed pilgrims shuffled past, satisfied.",
+            "Led the Hollowed pilgrims the long way round a dune, and slipped off while they walked."
+          ],
+          "retreat": [
+            "The pilgrims decided I was a lamp. They wanted to light me.",
+            "Lost my nerve with the Hollowed pilgrims. I've lost other things too, like a sleeve."
+          ]
+        },
+        {
+          "id": "compliance_patrol",
+          "name": "Homestead 9 compliance patrol",
+          "stat": "wits",
+          "difficulty": 29,
+          "minMinute": 480,
+          "maxMinute": 3000,
+          "damage": 18,
+          "xp": 920,
+          "drop": {
+            "materials": [
+              "circuitry"
+            ],
+            "rarity": "rare",
+            "chance": 0.2,
+            "count": [
+              1,
+              1
+            ]
+          },
+          "encounter": [
+            "A Homestead 9 compliance patrol wants my paperwork. I don't have paperwork. I have a hat.",
+            "Grey sentries in a line, marching in step. The one in front is holding a clipboard."
+          ],
+          "win": [
+            "Talked the patrol into auditing each other. They're still at it.",
+            "Filled in the patrol's form so thoroughly that they had to take it back to base to read it."
+          ],
+          "retreat": [
+            "The compliance patrol found me non-compliant, and then found me with a stick.",
+            "Ran from the compliance patrol. They filed it as 'voluntary departure'."
+          ]
+        },
+        {
+          "id": "clan_warband",
+          "name": "clan warband",
+          "stat": "brawn",
+          "difficulty": 31,
+          "minMinute": 700,
+          "maxMinute": 3800,
+          "damage": 19,
+          "xp": 1000,
+          "drop": {
+            "materials": [
+              "steel",
+              "valuables"
+            ],
+            "rarity": "rare",
+            "chance": 0.25,
+            "count": [
+              1,
+              1
+            ]
+          },
+          "encounter": [
+            "A clan warband on the dunes, beating hubcaps like drums. They want a fight. They're polite about it.",
+            "A full clan warband, twenty Rustmen and one very tired pack-tortoise, is heading my way."
+          ],
+          "win": [
+            "Beat the warband's champion in a fair fight. The warband clapped, and paid up.",
+            "Held the line against a clan warband until they decided I was more fun as a friend."
+          ],
+          "retreat": [
+            "The warband beat me fair and square and then gave me a lift halfway home. Rustmen.",
+            "Lost to the clan warband. They wrote a song about it. It rhymes 'homestead' with 'nearly dead'."
+          ]
+        },
+        {
+          "id": "lamp_deacon",
+          "name": "Lamplighter deacon and choir",
+          "stat": "charm",
+          "difficulty": 34,
+          "minMinute": 900,
+          "maxMinute": 4700,
+          "damage": 21,
+          "xp": 1120,
+          "drop": {
+            "materials": [
+              "cloth"
+            ],
+            "rarity": "rare",
+            "chance": 0.3,
+            "count": [
+              1,
+              1
+            ]
+          },
+          "encounter": [
+            "A Lamplighter deacon and his choir, lamps held high, singing the Dawn back up.",
+            "The deacon points at me. The choir stops. That's never good in a choir."
+          ],
+          "win": [
+            "Sang the deacon's choir down in a hymn-off. The Order respects a strong baritone.",
+            "Convinced the deacon that I was a sign. He wasn't sure of what, but he let me pass."
+          ],
+          "retreat": [
+            "The deacon blessed me with a lamp, hard, on the head.",
+            "Lost a hymn-off to the Lamplighter choir. They have forty voices. I have one, and it's hoarse."
+          ]
+        },
+        {
+          "id": "glassback_mauler",
+          "name": "glassback mauler",
+          "stat": "fortune",
+          "difficulty": 38,
+          "minMinute": 1200,
+          "maxMinute": 7000,
+          "damage": 24,
+          "xp": 1300,
+          "drop": {
+            "materials": [
+              "hide"
+            ],
+            "rarity": "rare",
+            "chance": 0.35,
+            "count": [
+              1,
+              1
+            ]
+          },
+          "encounter": [
+            "A mauler with a back of fused green glass, glinting like a chandelier with teeth.",
+            "A glassback mauler, the size of a delivery van. The sun is coming off its back in knives."
+          ],
+          "win": [
+            "The glassback mauler charged, slipped on its own glass, and slid off into the distance.",
+            "Pure luck: the mauler's back caught the sun and blinded it just as it pounced. I didn't wait."
+          ],
+          "retreat": [
+            "The glassback mauler tossed me like a salad. I landed in a better part of the desert.",
+            "Lost to a glassback mauler. I'm alive, which I think it considers a draw."
+          ]
+        },
+        {
+          "id": "kiln_mother",
+          "name": "Kiln Mother",
+          "stat": "grit",
+          "difficulty": 42,
+          "minMinute": 1800,
+          "maxMinute": null,
+          "damage": 27,
+          "xp": 1500,
+          "drop": {
+            "materials": [
+              "chemicals"
+            ],
+            "rarity": "rare",
+            "chance": 0.5,
+            "count": [
+              1,
+              2
+            ]
+          },
+          "encounter": [
+            "A Kiln Mother, the queen of the kiln crawlers, rising from a crack in the ground, hot as a furnace.",
+            "The ground is glowing orange. Then the ground stands up. It's a Kiln Mother."
+          ],
+          "win": [
+            "Stood firm in the Kiln Mother's heat until she cooled off and sank back underground.",
+            "Waited out the Kiln Mother behind a slab of glass. Took a slab of her shell as she left."
+          ],
+          "retreat": [
+            "The Kiln Mother's heat drove me back a mile. My eyebrows went further.",
+            "Retreated from the Kiln Mother. My canteen boiled. So did my temper."
+          ]
+        },
+        {
+          "id": "shape_under_glass",
+          "name": "shape under the glass",
+          "stat": "fortune",
+          "difficulty": 48,
+          "minMinute": 2600,
+          "maxMinute": null,
+          "damage": 32,
+          "xp": 1900,
+          "drop": {
+            "materials": [
+              "valuables"
+            ],
+            "rarity": "legendary",
+            "chance": 0.4,
+            "count": [
+              1,
+              1
+            ]
+          },
+          "encounter": [
+            "Something enormous is moving under the glass. Not swimming. Turning over, like something asleep.",
+            "The glass under me is warm, and something below it is lit, and it's looking up."
+          ],
+          "win": [
+            "Kept very still until the shape under the glass sank away. Something shiny had floated up where it was.",
+            "The shape under the glass passed by. It didn't notice me. That was luck, and I know it."
+          ],
+          "retreat": [
+            "The glass cracked under something rising, and I ran, and I didn't look back, and I'm glad.",
+            "The shape under the glass knocked on the ground, three times, right under my feet. I left."
+          ]
+        }
+      ],
+      "locations": [
+        {
+          "id": "sunrise_motor_inn",
+          "name": "Sunrise Motor Inn",
+          "stat": "fortune",
+          "difficulty": 9,
+          "minMinute": 1,
+          "maxMinute": null,
+          "xp": 300,
+          "damage": 7,
+          "taint": 0,
+          "reward": {
+            "scrip": [
+              20,
+              50
+            ],
+            "item": {
+              "chance": 0.2,
+              "rarity": "common"
+            }
+          },
+          "text": "Found the Sunrise Motor Inn. The sign still says VACANCY. The pool is solid glass, with a lilo set in it.",
+          "win": "Checked every room at the Sunrise. Tips under the pillows, and a working iron.",
+          "fail": "The Sunrise's front desk bell rang by itself. I checked out immediately."
+        },
+        {
+          "id": "melted_billboard",
+          "name": "melted billboard",
+          "stat": "sight",
+          "difficulty": 10,
+          "minMinute": 1,
+          "maxMinute": null,
+          "xp": 320,
+          "damage": 7,
+          "taint": 0,
+          "reward": {
+            "scrip": [
+              15,
+              40
+            ],
+            "item": {
+              "chance": 0.2,
+              "rarity": "common"
+            }
+          },
+          "text": "A billboard melted into a long drip: HALCYON: ALWAYS LOOKING UP! The paint ran downwards, towards the ground.",
+          "win": "Climbed the billboard. The maintenance box at the top was full of a sign-painter's stash.",
+          "fail": "The billboard's ladder set crooked in the Glare. So did I, briefly, at the bottom."
+        },
+        {
+          "id": "pilgrim_camp",
+          "name": "abandoned pilgrim camp",
+          "stat": "knack",
+          "difficulty": 11,
+          "minMinute": 10,
+          "maxMinute": null,
+          "xp": 340,
+          "damage": 7,
+          "taint": 0,
+          "reward": {
+            "medpatch": 1,
+            "scrip": [
+              20,
+              50
+            ]
+          },
+          "text": "An abandoned Lamplighter camp: bedrolls, cold lamps and prayer flags cut from Halcyon bunting.",
+          "win": "Went through the camp. The pilgrims left in a hurry and left their first-aid box.",
+          "fail": "Tripped a Lamplighter alarm: forty tin cans on a string and a hymn on a loop."
+        },
+        {
+          "id": "clan_well",
+          "name": "clan well",
+          "stat": "charm",
+          "difficulty": 12,
+          "minMinute": 20,
+          "maxMinute": null,
+          "xp": 360,
+          "damage": 8,
+          "taint": 0,
+          "reward": {
+            "purge": 1,
+            "heal": 0.3
+          },
+          "text": "A clan well, guarded by one sleepy Rustman and a sign: WATER 1 SCRIP. FREE IF YOU'RE FUNNY.",
+          "win": "Told the Rustman a joke about Halcyon. He laughed so hard he threw in a Purge tab.",
+          "fail": "My joke died. The Rustman charged me double and then threw the bucket."
+        },
+        {
+          "id": "solar_greenhouse",
+          "name": "Halcyon Solar Greenhouse",
+          "stat": "wits",
+          "difficulty": 14,
+          "minMinute": 40,
+          "maxMinute": null,
+          "xp": 400,
+          "damage": 8,
+          "taint": 0,
+          "reward": {
+            "scrip": [
+              10,
+              30
+            ],
+            "salvage": {
+              "rarity": "common",
+              "count": [
+                2,
+                4
+              ],
+              "materials": [
+                "chemicals",
+                "cloth"
+              ]
+            }
+          },
+          "text": "A Halcyon Solar Greenhouse, every pane fused into one bubble. Inside, the tomatoes are thriving and slightly luminous.",
+          "win": "Found the greenhouse's control room. Fertiliser, seed packets and a very glossy manual.",
+          "fail": "Opened the wrong vent. The tomatoes and I both got a lot of sun."
+        },
+        {
+          "id": "glass_cathedral",
+          "name": "the Glass Cathedral",
+          "stat": "charm",
+          "difficulty": 16,
+          "minMinute": 60,
+          "maxMinute": null,
+          "xp": 440,
+          "damage": 6,
+          "taint": 8,
+          "reward": {
+            "medpatch": 2,
+            "scrip": [
+              30,
+              70
+            ]
+          },
+          "text": "The Glass Cathedral: a Halcyon parking garage the Glare melted into arches. The Lamplighters hold services here at noon, facing the floor.",
+          "win": "Sat through a noon service. The Lamplighters shared their bread and their Med-Patches.",
+          "fail": "Sneezed during the silent prayer. The whole congregation turned and glared, with the Glare."
+        },
+        {
+          "id": "survey_post",
+          "name": "Homestead 9 survey post",
+          "stat": "wits",
+          "difficulty": 18,
+          "minMinute": 90,
+          "maxMinute": null,
+          "xp": 480,
+          "damage": 9,
+          "taint": 0,
+          "reward": {
+            "scrip": [
+              20,
+              60
+            ],
+            "item": {
+              "chance": 0.3,
+              "rarity": "rare"
+            }
+          },
+          "text": "A Homestead 9 survey post: a grey tent, a grey flag and a grey sign reading NO LOITERING. NO WONDERING.",
+          "win": "Wondered my way into the survey post's stores. Nobody was on shift. Nobody is ever on shift.",
+          "fail": "The survey post's door asked me for a form. It asked me again, with a spike."
+        },
+        {
+          "id": "scrapwright_depot",
+          "name": "Scrapwright depot",
+          "stat": "knack",
+          "difficulty": 20,
+          "minMinute": 120,
+          "maxMinute": null,
+          "xp": 520,
+          "damage": 10,
+          "taint": 0,
+          "reward": {
+            "salvage": {
+              "rarity": "rare",
+              "count": [
+                1,
+                2
+              ],
+              "materials": [
+                "circuitry",
+                "steel"
+              ]
+            }
+          },
+          "text": "A Scrapwright Guild depot built inside an overturned monorail car. Nine locks, and one sticker: GONE FISHING (FOR PARTS).",
+          "win": "Picked all nine locks. Left a thank-you note and a spare bolt, as Guild custom demands.",
+          "fail": "Lock number eight was a trap. Lock number nine was a worse trap."
+        },
+        {
+          "id": "green_mirror",
+          "name": "the Green Mirror",
+          "stat": "grit",
+          "difficulty": 24,
+          "minMinute": 300,
+          "maxMinute": null,
+          "xp": 600,
+          "damage": 10,
+          "taint": 12,
+          "reward": {
+            "salvage": {
+              "rarity": "rare",
+              "count": [
+                1,
+                2
+              ],
+              "materials": [
+                "chemicals"
+              ]
+            },
+            "fragment": {
+              "chance": 0.25,
+              "rarity": "rare"
+            }
+          },
+          "text": "The Green Mirror: a lake of glass so smooth the sky looks twice as big. Something under it swims in the reflection.",
+          "win": "Crossed the Green Mirror on my knees, slowly, and pried up something the lake had kept.",
+          "fail": "Halfway across the Green Mirror the reflection stopped copying me. I came back the long way."
+        },
+        {
+          "id": "town_under_glass",
+          "name": "the town under the glass",
+          "stat": "sight",
+          "difficulty": 27,
+          "minMinute": 600,
+          "maxMinute": null,
+          "xp": 660,
+          "damage": 12,
+          "taint": 0,
+          "reward": {
+            "scrip": [
+              50,
+              120
+            ],
+            "item": {
+              "chance": 0.4,
+              "rarity": "rare"
+            }
+          },
+          "text": "A whole town sealed under a sheet of glass like a paperweight. Main Street, the diner, the milk float: all perfect, all facing up.",
+          "win": "Found a skylight into the town hall. The lost property box had waited a long time for someone.",
+          "fail": "The glass over Main Street gave. I got a very close look at the diner, and it got a close look at me."
+        },
+        {
+          "id": "groundworks_pumphouse",
+          "name": "Groundworks pump house",
+          "stat": "wits",
+          "difficulty": 32,
+          "minMinute": 1500,
+          "maxMinute": null,
+          "xp": 800,
+          "damage": 16,
+          "taint": 0,
+          "reward": {
+            "scrip": [
+              80,
+              180
+            ],
+            "fragment": {
+              "chance": 0.3,
+              "rarity": "legendary"
+            }
+          },
+          "text": "A Halcyon Groundworks pump house, humming. The pipes run down, not up. The clipboard by the door has today's date on it.",
+          "win": "Read the pump house logs. Water goes in. Warmth comes out. I took the logbook, and the safe.",
+          "fail": "The pumps changed rhythm when I walked in. Knock, knock, knock. I walked out quickly."
+        },
+        {
+          "id": "wellhead_rim",
+          "name": "the wellhead rim",
+          "stat": "grit",
+          "difficulty": 38,
+          "minMinute": 3000,
+          "maxMinute": null,
+          "xp": 1000,
+          "damage": 20,
+          "taint": 20,
+          "reward": {
+            "salvage": {
+              "rarity": "legendary",
+              "count": [
+                1,
+                1
+              ],
+              "materials": [
+                "circuitry",
+                "steel"
+              ]
+            },
+            "fragment": {
+              "chance": 0.6,
+              "rarity": "legendary"
+            }
+          },
+          "text": "The rim of the Groundworks wellhead: a shaft as wide as a stadium, breathing warm air out slowly, in and out.",
+          "win": "Crawled along the rim to an old Halcyon survey hut. Everything in it was addressed to the Tenant.",
+          "fail": "The wellhead breathed in while I was standing on the edge. I very nearly went with it."
+        }
+      ],
+      "npcs": [
+        {
+          "id": "long_road_outrider",
+          "name": "Long Road outrider",
+          "stat": "charm",
+          "difficulty": 9,
+          "minMinute": 1,
+          "maxMinute": null,
+          "xp": 300,
+          "damage": 0,
+          "taint": 0,
+          "reward": {
+            "scrip": [
+              40,
+              40
+            ]
+          },
+          "text": "Met a Long Road outrider on a pack-tortoise, making an unhurried two miles an hour.",
+          "win": "Swapped news with the outrider. She paid me for the road ahead and wished me a slow journey, which is a blessing out here.",
+          "fail": "The outrider's tortoise ate my map. She apologised on its behalf."
+        },
+        {
+          "id": "lamp_pilgrim",
+          "name": "Lamplighter pilgrim",
+          "stat": "charm",
+          "difficulty": 10,
+          "minMinute": 1,
+          "maxMinute": null,
+          "xp": 320,
+          "damage": 0,
+          "taint": 0,
+          "reward": {
+            "purge": 1,
+            "scrip": [
+              10,
+              10
+            ]
+          },
+          "text": "A Lamplighter pilgrim in welding goggles, walking to the middle of the Flats, humming.",
+          "win": "Walked with the pilgrim a while. She gave me a Purge tab 'for when the Dawn gets too close'.",
+          "fail": "The pilgrim decided I was a sign from the Dawn and followed me for three hours, taking notes."
+        },
+        {
+          "id": "scrap_prospector",
+          "name": "Scrapwright prospector",
+          "stat": "knack",
+          "difficulty": 12,
+          "minMinute": 10,
+          "maxMinute": null,
+          "xp": 360,
+          "damage": 0,
+          "taint": 0,
+          "reward": {
+            "salvage": {
+              "rarity": "common",
+              "count": [
+                1,
+                3
+              ],
+              "materials": [
+                "circuitry",
+                "steel"
+              ]
+            }
+          },
+          "text": "A Scrapwright prospector with a metal detector, a magnifying glass and strong opinions about both.",
+          "win": "Fixed the prospector's detector. The Guild pays its debts in parts, promptly.",
+          "fail": "Fixed the prospector's detector. It now only detects me. He was not pleased."
+        },
+        {
+          "id": "water_seller",
+          "name": "clan water-seller",
+          "stat": "charm",
+          "difficulty": 14,
+          "minMinute": 20,
+          "maxMinute": null,
+          "xp": 400,
+          "damage": 0,
+          "taint": 0,
+          "reward": {
+            "heal": 0.4,
+            "medpatch": 1
+          },
+          "text": "A clan water-seller with a barrel on a shopping cart. 'Clean water,' he says. 'Mostly clean. Clean-ish.'",
+          "win": "Haggled the water-seller down to free. He threw in a Med-Patch out of sheer respect.",
+          "fail": "Bought the water. It was clean-ish, leaning towards ish."
+        },
+        {
+          "id": "h9_surveyor",
+          "name": "Homestead 9 surveyor",
+          "stat": "wits",
+          "difficulty": 16,
+          "minMinute": 40,
+          "maxMinute": null,
+          "xp": 440,
+          "damage": 0,
+          "taint": 0,
+          "reward": {
+            "scrip": [
+              70,
+              70
+            ]
+          },
+          "text": "A Homestead 9 surveyor in a grey jumpsuit, measuring the glass. She doesn't blink as often as I'd like.",
+          "win": "Checked her sums for her. There was an error. She paid me to keep it between us, which I suspect is a first for Nine.",
+          "fail": "She measured me instead, filed me under 'debris' and walked on."
+        },
+        {
+          "id": "glass_blower",
+          "name": "glass-blower",
+          "stat": "knack",
+          "difficulty": 18,
+          "minMinute": 60,
+          "maxMinute": null,
+          "xp": 480,
+          "damage": 0,
+          "taint": 0,
+          "reward": {
+            "scrip": [
+              30,
+              30
+            ],
+            "item": {
+              "chance": 0.4,
+              "rarity": "rare"
+            }
+          },
+          "text": "A glass-blower who works with a big lens and the sun. She makes lovely bottles. She has no eyebrows.",
+          "win": "Held the lens steady for the glass-blower. She traded me something from under her cart.",
+          "fail": "Held the lens slightly wrong. Now I have no eyebrows either."
+        },
+        {
+          "id": "tier_zero_runaway",
+          "name": "Tier Zero runaway",
+          "stat": "charm",
+          "difficulty": 20,
+          "minMinute": 120,
+          "maxMinute": null,
+          "xp": 520,
+          "damage": 0,
+          "taint": 0,
+          "reward": {
+            "scrip": [
+              60,
+              60
+            ],
+            "fragment": {
+              "chance": 0.35,
+              "rarity": "rare"
+            }
+          },
+          "text": "A runaway from Homestead 9, still in grey, practising blinking. 'They teach you to wait,' he says. 'I'm tired of waiting.'",
+          "win": "Told him about the Long Road. He gave me a blueprint he stole on the way out, for luck.",
+          "fail": "He heard a sentry in the distance and ran. I don't think he'll stop for a while."
+        },
+        {
+          "id": "tortoise_hermit",
+          "name": "tortoise hermit",
+          "stat": "fortune",
+          "difficulty": 22,
+          "minMinute": 240,
+          "maxMinute": null,
+          "xp": 560,
+          "damage": 0,
+          "taint": 0,
+          "reward": {
+            "scrip": [
+              120,
+              120
+            ]
+          },
+          "text": "A hermit living inside the shell of a giant tortoise. The tortoise is still alive, and not thrilled about it.",
+          "win": "Guessed the tortoise's name first try (Gerald). The hermit paid up, as the bet required.",
+          "fail": "Guessed the tortoise's name wrong. Gerald bit me."
+        },
+        {
+          "id": "clan_storyteller",
+          "name": "clan storyteller",
+          "stat": "wits",
+          "difficulty": 24,
+          "minMinute": 480,
+          "maxMinute": null,
+          "xp": 640,
+          "damage": 0,
+          "taint": 0,
+          "reward": {
+            "scrip": [
+              100,
+              100
+            ],
+            "item": {
+              "chance": 0.3,
+              "rarity": "rare"
+            }
+          },
+          "text": "An old clan storyteller by a fire. She tells me about the morning the ground lit up: where she stood, and which way the light went. Up.",
+          "win": "Listened properly and asked good questions. She gave me her grandson's old kit, since he 'won't be needing it'.",
+          "fail": "I asked her if she was sure the light went up. She didn't like that, and she has a very long memory."
+        },
+        {
+          "id": "halcy9_kiosk",
+          "name": "HALCY-9 kiosk",
+          "stat": "wits",
+          "difficulty": 30,
+          "minMinute": 1500,
+          "maxMinute": null,
+          "xp": 880,
+          "damage": 0,
+          "taint": 0,
+          "reward": {
+            "scrip": [
+              200,
+              200
+            ],
+            "fragment": {
+              "chance": 0.3,
+              "rarity": "legendary"
+            }
+          },
+          "text": "A HALCY-9 kiosk in the middle of nowhere, still taking comments. The comment box is full of sand.",
+          "win": "Hacked the kiosk with a paperclip and a complaint. It refunded me for a lifetime of service.",
+          "fail": "The kiosk logged my complaint and forwarded it to a sentry for resolution."
+        }
+      ],
+      "salvage": [
+        {
+          "id": "glass_shards",
+          "name": "field of glass shards",
+          "stat": "sight",
+          "difficulty": 9,
+          "minMinute": 1,
+          "maxMinute": 400,
+          "xp": 300,
+          "damage": 0,
+          "taint": 0,
+          "reward": {
+            "salvage": {
+              "rarity": "common",
+              "count": [
+                3,
+                5
+              ],
+              "materials": [
+                "chemicals",
+                "valuables"
+              ]
+            }
+          },
+          "text": "A field of loose glass shards, every one a different green.",
+          "win": "Picked out the good shards. Some of them had things set inside: rings, buttons, a key.",
+          "fail": "Cut my hands up picking through the shards. Only grabbed a few."
+        },
+        {
+          "id": "buried_car",
+          "name": "car under the glass",
+          "stat": "brawn",
+          "difficulty": 11,
+          "minMinute": 1,
+          "maxMinute": 700,
+          "xp": 320,
+          "damage": 0,
+          "taint": 0,
+          "reward": {
+            "salvage": {
+              "rarity": "common",
+              "count": [
+                4,
+                6
+              ],
+              "materials": [
+                "steel",
+                "adhesive"
+              ]
+            }
+          },
+          "text": "A car set in the glass up to its door handles, like a fly in amber.",
+          "win": "Chipped the car free and stripped it. Good steel, and a full tube of glue in the glovebox.",
+          "fail": "The car's door came off and the rest of the car stayed put. Took what I could."
+        },
+        {
+          "id": "pilgrim_offerings",
+          "name": "pile of pilgrim offerings",
+          "stat": "fortune",
+          "difficulty": 13,
+          "minMinute": 30,
+          "maxMinute": 900,
+          "xp": 360,
+          "damage": 0,
+          "taint": 0,
+          "reward": {
+            "salvage": {
+              "rarity": "common",
+              "count": [
+                3,
+                5
+              ],
+              "materials": [
+                "valuables",
+                "cloth"
+              ]
+            }
+          },
+          "text": "A pile of offerings left by Lamplighter pilgrims: scarves, trinkets, tins and a wedding ring.",
+          "win": "Took only what the Dawn wasn't using. The Dawn wasn't using most of it.",
+          "fail": "A pilgrim caught me at it. We came to an arrangement: I left with less."
+        },
+        {
+          "id": "survey_cache",
+          "name": "survey team cache",
+          "stat": "wits",
+          "difficulty": 15,
+          "minMinute": 60,
+          "maxMinute": 1200,
+          "xp": 400,
+          "damage": 0,
+          "taint": 0,
+          "reward": {
+            "salvage": {
+              "rarity": "common",
+              "count": [
+                3,
+                5
+              ],
+              "materials": [
+                "circuitry"
+              ]
+            }
+          },
+          "text": "A Homestead 9 survey cache, bolted to the glass and labelled PROPERTY OF NINE (DO NOT WONDER).",
+          "win": "Worked out the cache's combination from the survey team's handwriting. Nine is very consistent.",
+          "fail": "The cache locked down after two wrong guesses. I kept what I'd already grabbed."
+        },
+        {
+          "id": "solar_farm",
+          "name": "shattered solar farm",
+          "stat": "knack",
+          "difficulty": 18,
+          "minMinute": 120,
+          "maxMinute": 1800,
+          "xp": 440,
+          "damage": 0,
+          "taint": 0,
+          "reward": {
+            "salvage": {
+              "rarity": "rare",
+              "count": [
+                1,
+                2
+              ],
+              "materials": [
+                "circuitry"
+              ]
+            }
+          },
+          "text": "A Halcyon solar farm, every panel shattered from underneath. The frames all bent upwards.",
+          "win": "Pulled the good cells out of the solar farm's control box. The Scrapwrights will want to hear about this.",
+          "fail": "The control box was live. So, briefly, was I."
+        },
+        {
+          "id": "clan_scrapheap",
+          "name": "clan scrapheap",
+          "stat": "brawn",
+          "difficulty": 21,
+          "minMinute": 200,
+          "maxMinute": 2400,
+          "xp": 480,
+          "damage": 0,
+          "taint": 0,
+          "reward": {
+            "salvage": {
+              "rarity": "rare",
+              "count": [
+                1,
+                3
+              ],
+              "materials": [
+                "steel",
+                "adhesive"
+              ]
+            }
+          },
+          "text": "A clan scrapheap, stacked forty feet high and guarded by a sign that says TAKE ONLY WHAT YOU CAN LIFT.",
+          "win": "Lifted a great deal. The clans respect that.",
+          "fail": "The heap shifted. I lifted what fell on me, which was less than I'd hoped."
+        },
+        {
+          "id": "crawler_nest",
+          "name": "kiln crawler nest",
+          "stat": "grit",
+          "difficulty": 25,
+          "minMinute": 400,
+          "maxMinute": 3000,
+          "xp": 520,
+          "damage": 0,
+          "taint": 0,
+          "reward": {
+            "salvage": {
+              "rarity": "rare",
+              "count": [
+                1,
+                2
+              ],
+              "materials": [
+                "hide"
+              ]
+            }
+          },
+          "text": "An empty kiln crawler nest, still warm, lined with moulted shells.",
+          "win": "Gathered the best moults while the nest was cooling. Tough stuff, and fireproof.",
+          "fail": "The nest was only mostly empty. Left with a handful and a burn."
+        },
+        {
+          "id": "groundworks_locker",
+          "name": "Groundworks tool locker",
+          "stat": "wits",
+          "difficulty": 29,
+          "minMinute": 900,
+          "maxMinute": null,
+          "xp": 600,
+          "damage": 0,
+          "taint": 0,
+          "reward": {
+            "salvage": {
+              "rarity": "rare",
+              "count": [
+                2,
+                3
+              ],
+              "materials": [
+                "steel",
+                "circuitry"
+              ]
+            }
+          },
+          "text": "A Halcyon Groundworks tool locker standing alone on the glass, stencilled NIGHT SHIFT ONLY.",
+          "win": "The locker's code was on a sticky note inside the door. Halcyon security at its finest.",
+          "fail": "The locker's alarm plays the Halcyon jingle. I left before the second chorus."
+        },
+        {
+          "id": "glass_core",
+          "name": "glass core",
+          "stat": "knack",
+          "difficulty": 35,
+          "minMinute": 2000,
+          "maxMinute": null,
+          "xp": 680,
+          "damage": 0,
+          "taint": 0,
+          "reward": {
+            "salvage": {
+              "rarity": "legendary",
+              "count": [
+                1,
+                1
+              ],
+              "materials": [
+                "chemicals"
+              ]
+            }
+          },
+          "text": "A pillar of glass as thick as a tree, with something bright frozen in the middle of it.",
+          "win": "Cored the pillar with a borrowed Scrapwright drill. What came out was still warm.",
+          "fail": "The drill slipped. The pillar sang for an hour, and I got nothing but a headache."
+        },
+        {
+          "id": "wellhead_valve",
+          "name": "wellhead valve room",
+          "stat": "wits",
+          "difficulty": 42,
+          "minMinute": 3200,
+          "maxMinute": null,
+          "xp": 760,
+          "damage": 0,
+          "taint": 0,
+          "reward": {
+            "salvage": {
+              "rarity": "legendary",
+              "count": [
+                1,
+                1
+              ],
+              "materials": [
+                "circuitry",
+                "steel"
+              ]
+            }
+          },
+          "text": "A valve room on the side of the Groundworks wellhead. Every dial is marked in homesteads, not gallons.",
+          "win": "Found the manual and followed it exactly. The valve room gave up a part Halcyon never meant to be found.",
+          "fail": "Turned the wrong valve. Somewhere very far below, something turned over."
+        }
+      ],
+      "musings": [
+        "The ground out here is glass for miles. Every step I take, a worse-looking me takes one underneath.",
+        "Waved at my reflection in the Flats. It waved back a second late. I've decided not to think about that.",
+        "The Lamplighters say the Dawn is coming back. The Rustmen say that's why they carry umbrellas.",
+        "Sunglasses are not optional in the Glass Flats. They are also not sufficient.",
+        "Passed a pilgrim walking towards the middle of the Flats. She said she'd see me at the Dawn. I hope not.",
+        "Found a set of footprints in the glass, set there forever. They were running.",
+        "HALCY asked me how the Flats are. I said shiny. It said 'wonderful!' It did not sound like it meant wonderful.",
+        "It's very quiet out here, apart from the tinkling. There is always, always tinkling.",
+        "A Homestead 9 drone flew past, looked at me and wrote something down. I wrote something about it too.",
+        "The Scrapwrights say the glass is worth a fortune. The glass says nothing, which I respect.",
+        "My boots squeak on the glass. It sounds like the desert is laughing at me, politely.",
+        "Saw a mirage of a homestead door. It opened, and a mirage of HALCY said 'welcome home'. Worst mirage yet.",
+        "The sun comes up twice out here: once in the sky, once in the ground. The second one is the one that worries me.",
+        "Traded a Rustman two tins of peaches for a hat with a brim. Best deal of my life.",
+        "Every bubble in the glass points up. I keep noticing. I'd like to stop noticing.",
+        "Found a Halcyon brochure pinned under a rock. Somebody had underlined 'safely below by six' three times.",
+        "The Flats get cold at night, except underfoot. Underfoot stays warm. Always warm.",
+        "A pack-tortoise overtook me today. I'm not proud.",
+        "Lamplighter prayer flags on every dune, faded to pink. They all flap towards the wellhead.",
+        "Tried to cook an egg on the glass. It cooked. I didn't have an egg, so it was a very small victory.",
+        "Stopped to rest and heard knocking under the ground. Three knocks. I rested somewhere else.",
+        "A Rustman asked which clan I was with. I said Halcyon. He laughed so hard he forgot to rob me.",
+        "The horizon out here is so flat I can see tomorrow. It looks about the same.",
+        "Found a gas station sealed under the glass. The prices were from before the Glare. I cried a little.",
+        "The Scrapwright I met says every machine on the Flats was switched off from underneath. He sounded impressed.",
+        "My shadow is the only shade for miles. I've started to resent it.",
+        "Heard a hymn on the wind. Couldn't tell if it was the Lamplighters or the Hollowed. Couldn't tell if it mattered.",
+        "HALCY reminded me to drink water. It's the most useful thing it's said all week. I didn't have any water.",
+        "Passed a Homestead 9 survey marker. It said: YOU ARE HERE. NINE KNOWS.",
+        "Wrote my name in the dust on the glass. By morning the wind had written something else. It was not my name.",
+        "A kite has been circling me for an hour. I think it's lonely. I think it's also hungry.",
+        "The Long Road caravans leave little cairns of stones at every fork. Mine was three empty tins. It counts.",
+        "Every Halcyon sign out here is melted, but every one still has a smile. That's corporate branding.",
+        "Found a child's drawing sealed in the glass: a house, a family, a big sun. The sun is underneath the house.",
+        "Glass Flats rule one: don't lick anything. Glass Flats rule two: seriously.",
+        "Slept in the shade of a dune. Woke up to a glint-jackal sleeping in the shade of me.",
+        "I think the Lamplighters are wrong about the Dawn. I think the Rustmen are right about the umbrellas.",
+        "Met a pilgrim coming back from the wellhead. He wouldn't say what he saw. He just kept saying 'warm'.",
+        "The Flats make everything echo. I sneezed an hour ago and it's still going.",
+        "The clans say the Glass Flats used to be called Sunnyvale Estates. They say it like a joke. It isn't one.",
+        "Found a Groundworks hard hat with a lamp still lit. I didn't take it. It felt like it was on duty.",
+        "My compass points at the wellhead, no matter which way I hold it. I've stopped asking it for directions.",
+        "Some nights the glass glows faintly from below, like a nightlight. A very, very large nightlight.",
+        "HALCY went quiet when I told it where I was. Then it played a jingle. Then it went quiet again.",
+        "Counted nine grey sentries on the ridge today, all facing the wellhead, all perfectly still. Like they were waiting.",
+        "The Scrapwrights say you can hear the Tenant if you put your ear to the glass. I haven't. I won't. I might."
+      ]
     }
   ],
   "tuning": {

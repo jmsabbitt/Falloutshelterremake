@@ -139,6 +139,144 @@
         { "id": "blood_up", "name": "Blood Up", "every": 19, "windup": 2.5, "effect": "enrage", "power": 1.5, "duration": 6 }
       ],
       "drop": { "salvage": { "rarity": "rare", "count": [1, 2], "materials": ["hide"] } }
+    },
+    "the_unlit": {
+      "id": "the_unlit", "name": "Unlit", "look": "hollowed", "hp": 55, "damage": [3, 4], "interval": 1.8, "xp": 14,
+      "drop": { "salvage": { "rarity": "common", "count": [0, 1], "materials": ["cloth"] } }
+    },
+    "lamp_acolyte": {
+      "id": "lamp_acolyte", "name": "Lamplighter Acolyte", "look": "hollowed", "hp": 65, "damage": [3, 5], "interval": 2.0, "xp": 16,
+      "drop": { "scrip": [5, 12] }
+    },
+    "lamp_censer": {
+      "id": "lamp_censer", "name": "Censer-Bearer", "look": "hollowed", "hp": 70, "damage": [3, 5], "interval": 2.4, "xp": 20,
+      "abilities": [{ "id": "hot_coals", "name": "Hot Coals", "every": 10, "windup": 2, "effect": "heavy", "power": 2 }],
+      "drop": { "salvage": { "rarity": "common", "count": [0, 1], "materials": ["chemicals"] } }
+    },
+    "lamp_deacon": {
+      "id": "lamp_deacon", "name": "Lamplighter Deacon", "look": "hollowed_hulk", "hp": 170, "damage": [5, 7], "interval": 2.8, "xp": 36,
+      "abilities": [{ "id": "benediction", "name": "Benediction", "every": 14, "windup": 3, "effect": "heal", "power": 0.15 }],
+      "drop": { "salvage": { "rarity": "common", "count": [1, 2], "materials": ["cloth", "valuables"] } }
+    },
+    "moth_choir": {
+      "id": "moth_choir", "name": "The Moth Choir", "look": "hollowed_hulk", "hp": 520, "damage": [4, 6], "interval": 2.4, "xp": 200, "boss": true,
+      "abilities": [
+        { "id": "lights_out", "name": "Lights Out", "every": 13, "windup": 2.5, "effect": "slam", "power": 1.1 },
+        { "id": "drawn_to_the_flame", "name": "Drawn to the Flame", "every": 20, "windup": 3, "effect": "summon", "adds": ["the_unlit", "the_unlit"] }
+      ],
+      "drop": { "salvage": { "rarity": "rare", "count": [1, 2], "materials": ["cloth"] }, "fragment": { "chance": 0.5, "rarity": "rare" } }
+    },
+    "lamp_solenne": {
+      "id": "lamp_solenne", "name": "High Lamplighter Solenne", "look": "hollowed_hulk", "hp": 620, "damage": [3, 5], "interval": 2.4, "xp": 450, "boss": true,
+      "abilities": [
+        { "id": "second_dawn", "name": "Second Dawn", "every": 14, "windup": 3, "effect": "slam", "power": 1.1 },
+        { "id": "call_the_faithful", "name": "Call the Faithful", "every": 22, "windup": 3, "effect": "summon", "adds": ["lamp_acolyte"] },
+        { "id": "trim_the_wick", "name": "Trim the Wick", "every": 18, "windup": 2, "effect": "enrage", "power": 1.5, "duration": 6 }
+      ],
+      "drop": { "fragments": { "sunbeam_rifle": 1 }, "scrip": [150, 250] }
+    },
+    "audit_drone": {
+      "id": "audit_drone", "name": "Audit Drone", "look": "sentry", "hp": 55, "damage": [2, 4], "interval": 1.8, "xp": 14,
+      "abilities": [{ "id": "reconcile", "name": "Reconcile", "every": 12, "windup": 2.5, "effect": "heal", "power": 0.2 }],
+      "drop": { "salvage": { "rarity": "common", "count": [0, 1], "materials": ["circuitry"] } }
+    },
+    "compliance_sentry": {
+      "id": "compliance_sentry", "name": "Compliance Sentry", "look": "sentry", "hp": 125, "damage": [4, 6], "interval": 2.2, "xp": 26,
+      "abilities": [{ "id": "citation", "name": "Citation", "every": 10, "windup": 2, "effect": "heavy", "power": 2.2 }],
+      "drop": { "salvage": { "rarity": "common", "count": [1, 1], "materials": ["circuitry", "steel"] } }
+    },
+    "assessor_9c": {
+      "id": "assessor_9c", "name": "Assessor Unit 9-C", "look": "sentry", "hp": 520, "damage": [4, 6], "interval": 2.2, "xp": 200, "boss": true,
+      "abilities": [
+        { "id": "itemised_bill", "name": "Itemised Bill", "every": 11, "windup": 2, "effect": "heavy", "power": 2.5 },
+        { "id": "second_opinion", "name": "Second Opinion", "every": 20, "windup": 3, "effect": "summon", "adds": ["audit_drone", "audit_drone"] }
+      ],
+      "drop": { "scrip": [100, 160], "salvage": { "rarity": "rare", "count": [1, 2], "materials": ["circuitry"] } }
+    },
+    "readiness_officer": {
+      "id": "readiness_officer", "name": "The Readiness Officer", "look": "sentry", "hp": 600, "damage": [4, 6], "interval": 2.2, "xp": 380, "boss": true,
+      "abilities": [
+        { "id": "performance_review", "name": "Performance Review", "every": 12, "windup": 2, "effect": "heavy", "power": 2.6 },
+        { "id": "mandatory_drill", "name": "Mandatory Drill", "every": 15, "windup": 2.5, "effect": "slam", "power": 1.1 },
+        { "id": "escalation", "name": "Escalation", "every": 21, "windup": 2, "effect": "enrage", "power": 1.4, "duration": 6 }
+      ],
+      "drop": { "fragment": { "chance": 1, "rarity": "rare" }, "scrip": [150, 220] }
+    },
+    "custodian_frame": {
+      "id": "custodian_frame", "name": "HALCY-9 Custodian Frame", "look": "sentry", "hp": 660, "damage": [3, 5], "interval": 2.8, "xp": 700, "boss": true,
+      "abilities": [
+        { "id": "scheduled_sunrise", "name": "Scheduled Sunrise", "every": 15, "windup": 3, "effect": "slam", "power": 1.1 },
+        { "id": "final_notice", "name": "Final Notice", "every": 12, "windup": 2, "effect": "heavy", "power": 2 },
+        { "id": "summon_auditors", "name": "Summon Auditors", "every": 22, "windup": 3, "effect": "summon", "adds": ["audit_drone"] }
+      ],
+      "drop": { "fragments": { "glare_lance": 2 }, "salvage": { "rarity": "rare", "count": [2, 3], "materials": ["circuitry", "steel"] } }
+    },
+    "glass_skitter": {
+      "id": "glass_skitter", "name": "Glass Skitter", "look": "skitter", "hp": 42, "damage": [3, 4], "interval": 1.6, "xp": 12,
+      "drop": { "salvage": { "rarity": "common", "count": [0, 1], "materials": ["chemicals"] } }
+    },
+    "prism_spitter": {
+      "id": "prism_spitter", "name": "Prism Spitter", "look": "skitter", "hp": 55, "damage": [3, 5], "interval": 2.2, "xp": 16,
+      "abilities": [{ "id": "refraction", "name": "Refraction", "every": 9, "windup": 1.5, "effect": "heavy", "power": 2 }],
+      "drop": { "salvage": { "rarity": "common", "count": [0, 1], "materials": ["chemicals", "valuables"] } }
+    },
+    "glassback": {
+      "id": "glassback", "name": "Glassback Burrower", "look": "burrower", "hp": 135, "damage": [5, 7], "interval": 2.6, "xp": 30,
+      "abilities": [{ "id": "shatterquake", "name": "Shatterquake", "every": 12, "windup": 2, "effect": "slam", "power": 0.8 }],
+      "drop": { "salvage": { "rarity": "common", "count": [1, 1], "materials": ["hide", "chemicals"] } }
+    },
+    "kiln_mother": {
+      "id": "kiln_mother", "name": "Kiln Mother", "look": "skitter_queen", "hp": 560, "damage": [4, 6], "interval": 1.8, "xp": 200, "boss": true,
+      "abilities": [
+        { "id": "heat_shimmer", "name": "Heat Shimmer", "every": 12, "windup": 2.5, "effect": "slam", "power": 1.1 },
+        { "id": "hatch", "name": "Hatch", "every": 20, "windup": 3, "effect": "summon", "adds": ["glass_skitter", "glass_skitter"] }
+      ],
+      "drop": { "salvage": { "rarity": "rare", "count": [1, 2], "materials": ["chemicals", "valuables"] } }
+    },
+    "shatterjaw": {
+      "id": "shatterjaw", "name": "Old Shatterjaw", "look": "mauler", "hp": 600, "damage": [6, 9], "interval": 2.6, "xp": 300, "boss": true,
+      "abilities": [
+        { "id": "pounce", "name": "Pounce", "every": 11, "windup": 2, "effect": "heavy", "power": 2.2 },
+        { "id": "shed_glass", "name": "Shed Glass", "every": 15, "windup": 2.5, "effect": "slam", "power": 1 },
+        { "id": "sun_drunk", "name": "Sun-Drunk", "every": 20, "windup": 2.5, "effect": "enrage", "power": 1.4, "duration": 6 }
+      ],
+      "drop": { "salvage": { "rarity": "rare", "count": [1, 2], "materials": ["hide", "valuables"] } }
+    },
+    "clan_raider": {
+      "id": "clan_raider", "name": "Clan Raider", "look": "rustman", "hp": 65, "damage": [3, 5], "interval": 2.0, "xp": 15,
+      "drop": { "scrip": [8, 16] }
+    },
+    "clan_slinger": {
+      "id": "clan_slinger", "name": "Hubcap Slinger", "look": "rustman", "hp": 50, "damage": [3, 5], "interval": 2.4, "xp": 16,
+      "abilities": [{ "id": "hubcap_throw", "name": "Hubcap Throw", "every": 10, "windup": 2, "effect": "heavy", "power": 2 }],
+      "drop": { "scrip": [6, 14], "salvage": { "rarity": "common", "count": [0, 1], "materials": ["steel"] } }
+    },
+    "clan_wrecker": {
+      "id": "clan_wrecker", "name": "Clan Wrecker", "look": "rustman_brute", "hp": 150, "damage": [5, 8], "interval": 2.6, "xp": 32,
+      "abilities": [{ "id": "tyre_iron", "name": "Tyre Iron", "every": 10, "windup": 2, "effect": "heavy", "power": 2.4 }],
+      "drop": { "scrip": [12, 25] }
+    },
+    "chief_sprocket": {
+      "id": "chief_sprocket", "name": "Chief Sprocket", "look": "rustman_chief", "hp": 460, "damage": [4, 6], "interval": 2.2, "xp": 180, "boss": true,
+      "abilities": [
+        { "id": "rev_the_engine", "name": "Rev the Engine", "every": 15, "windup": 2, "effect": "enrage", "power": 1.5, "duration": 6 },
+        { "id": "honk_for_backup", "name": "Honk for Backup", "every": 20, "windup": 3, "effect": "summon", "adds": ["clan_raider"] }
+      ],
+      "drop": { "scrip": [80, 140], "item": { "chance": 0.3, "rarity": "rare" } }
+    },
+    "big_tin": {
+      "id": "big_tin", "name": "Big Tin, Clan Champion", "look": "rustman_brute", "hp": 680, "damage": [5, 8], "interval": 2.6, "xp": 360, "boss": true,
+      "abilities": [
+        { "id": "trial_swing", "name": "Trial Swing", "every": 10, "windup": 2, "effect": "heavy", "power": 2.4 },
+        { "id": "rattle_the_ring", "name": "Rattle the Ring", "every": 14, "windup": 2.5, "effect": "slam", "power": 1 },
+        { "id": "crowd_pleaser", "name": "Crowd Pleaser", "every": 20, "windup": 2, "effect": "enrage", "power": 1.4, "duration": 6 }
+      ],
+      "drop": { "salvage": { "rarity": "rare", "count": [1, 2], "materials": ["steel", "valuables"] }, "scrip": [120, 200] }
+    },
+    "runaway_salvager": {
+      "id": "runaway_salvager", "name": "Runaway Salvager", "look": "sentry", "hp": 150, "damage": [4, 6], "interval": 2.4, "xp": 30,
+      "abilities": [{ "id": "strip_for_parts", "name": "Strip for Parts", "every": 11, "windup": 2, "effect": "heavy", "power": 2.2 }],
+      "drop": { "salvage": { "rarity": "common", "count": [1, 2], "materials": ["circuitry", "steel"] } }
     }
   },
   "pools": {
@@ -149,7 +287,16 @@
     "burrowers": [["burrower"], ["burrower_pup", "burrower_pup", "burrower_pup"], ["burrower", "burrower_pup"]],
     "hollowed": [["hollowed", "hollowed"], ["hollowed", "hollowed_shrieker"], ["hollowed", "hollowed", "hollowed"]],
     "hollowed_deep": [["hollowed_hulk"], ["hollowed_hulk", "hollowed"], ["hollowed", "hollowed_shrieker", "hollowed"]],
-    "security": [["sentry"], ["greeter", "greeter"], ["sentry", "greeter"]]
+    "security": [["sentry"], ["greeter", "greeter"], ["sentry", "greeter"]],
+    "unlit": [["the_unlit", "the_unlit"], ["the_unlit", "the_unlit", "the_unlit"], ["the_unlit", "hollowed"]],
+    "lamplighters": [["lamp_acolyte", "lamp_acolyte"], ["lamp_acolyte", "lamp_censer"], ["lamp_deacon"]],
+    "lamp_host": [["lamp_deacon", "lamp_acolyte"], ["lamp_censer", "lamp_censer", "lamp_acolyte"], ["lamp_deacon", "lamp_censer"]],
+    "h9_security": [["compliance_sentry"], ["audit_drone", "audit_drone"], ["compliance_sentry", "audit_drone"]],
+    "h9_response": [["compliance_sentry", "compliance_sentry"], ["compliance_sentry", "audit_drone", "audit_drone"], ["compliance_sentry", "audit_drone"]],
+    "glass_fauna": [["glass_skitter", "glass_skitter"], ["glass_skitter", "prism_spitter"], ["glass_skitter", "glass_skitter", "glass_skitter"]],
+    "glass_deep": [["glassback"], ["glassback", "glass_skitter"], ["prism_spitter", "prism_spitter", "glass_skitter"]],
+    "clan_warband": [["clan_raider", "clan_raider"], ["clan_raider", "clan_slinger"], ["clan_wrecker"]],
+    "clan_crew": [["clan_wrecker", "clan_slinger"], ["clan_raider", "clan_raider", "clan_slinger"], ["clan_wrecker", "clan_raider"]]
   },
   "events": {
     "relay_panel": {
@@ -400,10 +547,315 @@
           "failure": { "text": "Line 9 is in a language called Legal. You lose an hour and a little of your will to live.", "damage": 0.06 }
         }
       ]
+    },
+    "caravan_parley": {
+      "id": "caravan_parley",
+      "text": "A Rustman in a hubcap crown blocks the road and demands the caravan's 'road tax'. Behind him, the lead pack-tortoise, Mr Pemberton (named after a Halcyon board member), chews a road sign with the calm of a creature who has seen tax before.",
+      "options": [
+        {
+          "label": "Haggle a fair road tax", "stat": "charm", "difficulty": 9,
+          "success": { "text": "You talk the tax down to one crate of pickled eggs, which he accepts as a matter of honour. Both sides think they won. The caravan master winks at you over the eggs.", "reward": { "scrip": [60, 120], "rep": { "rustmen": 4, "caravaners": 3 } } },
+          "failure": { "text": "Your fair price is, it turns out, an insult to his grandmother's hubcap.", "fight": ["clan_raider", "clan_slinger"] }
+        },
+        {
+          "label": "Tell him the road is closed",
+          "success": { "text": "He takes the news badly, and then, eventually, lying down. The caravan cheers. The clans will hear about this.", "reward": { "rep": { "caravaners": 5, "rustmen": -5 } }, "fight": ["clan_raider", "clan_raider"] }
+        }
+      ]
+    },
+    "tortoise_pen": {
+      "id": "tortoise_pen",
+      "text": "Mrs Ashworth, the caravan's second tortoise, has wedged herself between two wrecked cars and decided to live there now. Her saddlebags hold half the caravan's stock. She regards you with the patience of geology.",
+      "options": [
+        {
+          "label": "Lift her out", "stat": "brawn", "difficulty": 9,
+          "success": { "text": "One heave, one creak (you), and Mrs Ashworth is back on the road. The caravan master pays you out of the saddlebags and calls you 'a proper mule', which is high praise on the Long Road.", "reward": { "scrip": [60, 100], "rep": { "caravaners": 4 } } },
+          "failure": { "text": "Mrs Ashworth doesn't move. Several of your vertebrae do.", "damage": 0.1 }
+        },
+        {
+          "label": "Lure her with a lettuce", "stat": "fortune", "difficulty": 8,
+          "success": { "text": "By some miracle the salvage bag holds a lettuce, only slightly radioactive. Mrs Ashworth follows it for a mile, at a quarter of a mile an hour.", "reward": { "salvage": { "rarity": "common", "count": [2, 3], "materials": ["cloth", "valuables"] }, "rep": { "caravaners": 2 } } },
+          "failure": { "text": "No lettuce. She bites the nearest substitute, which is a thumb.", "damage": 0.08 }
+        }
+      ]
+    },
+    "vigil_lamp": {
+      "id": "vigil_lamp",
+      "text": "A Lamplighter kneels before a Halcyon streetlamp that has burned, unplugged, since the Glare. 'Keep the vigil with me,' she whispers. 'The Dawn is listening.' The lamp buzzes as if it agrees.",
+      "options": [
+        {
+          "label": "Kneel and keep the vigil",
+          "success": { "text": "You kneel for an hour. Nothing happens, beautifully. The Lamplighter presses a warm glass bead into your hand and calls you 'cousin'. The Scrapwrights would call you something else.", "reward": { "xp": 150, "rep": { "lamplighters": 6, "tinkers": -2 } } }
+        },
+        {
+          "label": "Check what it's wired to", "stat": "knack", "difficulty": 9,
+          "success": { "text": "It isn't wired to anything above ground. The cable runs straight down into the dirt, warm to the touch. The Lamplighter calls you a heretic; the Scrapwrights will call you a supplier.", "reward": { "salvage": { "rarity": "rare", "count": [1, 1], "materials": ["circuitry"] }, "rep": { "tinkers": 5, "lamplighters": -4 } } },
+          "failure": { "text": "The lamp flares, and so does the Lamplighter.", "damage": 0.1, "reward": { "rep": { "lamplighters": -2 } } }
+        }
+      ]
+    },
+    "confession_booth": {
+      "id": "confession_booth",
+      "text": "An old Photo-Matic booth, repainted with little suns. A sign reads CONFESS TO THE DAWN: 1 SCRIP. The curtain twitches, although nobody is inside. Probably.",
+      "options": [
+        {
+          "label": "Confess something", "stat": "charm", "difficulty": 8,
+          "success": { "text": "You confess to once eating a colleague's labelled lunch. The booth develops a strip of four photos, each more forgiving than the last, and coughs up the tip jar.", "reward": { "scrip": [50, 90], "rep": { "lamplighters": 2 } } },
+          "failure": { "text": "The flash goes off mid-confession. Every Unlit for a mile has now seen your face, and would like to see more of it.", "fight": ["the_unlit", "the_unlit"] }
+        },
+        {
+          "label": "Feed it a scrip and pull the lever", "stat": "fortune", "difficulty": 7,
+          "success": { "text": "It dispenses a Purge tab, a blessing and your scrip back. The Dawn, apparently, runs a very fair booth.", "reward": { "purge": 1, "medpatch": 1 } },
+          "failure": { "text": "It dispenses a very bright flash and three Unlit, who were in the queue.", "fight": ["the_unlit", "the_unlit", "the_unlit"] }
+        }
+      ]
+    },
+    "compliance_form": {
+      "id": "compliance_form",
+      "text": "A HALCY-9 kiosk stands at the yard gate, crisp and grey where ours would be all smiles. 'VISITOR. COMPLETE FORM 9-C, DECLARATION OF NON-INTERFERENCE. FAILURE TO COMPLETE IS A FORM OF INTERFERENCE.'",
+      "options": [
+        {
+          "label": "Fill it in creatively", "stat": "wits", "difficulty": 10,
+          "success": { "text": "You declare yourselves a mobile greenhouse. The kiosk files you under 'weather' and opens the side gate. Behind the fence, a Scrapwright gives you a very slow thumbs-up.", "reward": { "scrip": [80, 140], "rep": { "tinkers": 5, "homestead9": -3 } } },
+          "failure": { "text": "It detects creativity. Creativity is interference.", "fight": ["compliance_sentry"] }
+        },
+        {
+          "label": "Sign it",
+          "success": { "text": "You sign. HALCY-9 thanks you for your compliance in a voice like a filing cabinet closing. The Scrapwrights watch you do it and write something down.", "reward": { "xp": 120, "rep": { "homestead9": 6, "tinkers": -5 } } }
+        }
+      ]
+    },
+    "scrap_cache": {
+      "id": "scrap_cache",
+      "text": "A Scrapwright cache, marked with the Guild's spanner sigil and a hand-painted warning: BOOBY-TRAPPED (PROBABLY). The word 'probably' is in different paint, added later, by someone with regrets.",
+      "options": [
+        {
+          "label": "Disarm it", "stat": "knack", "difficulty": 10,
+          "success": { "text": "You snip the red wire, then the other red wire. Inside: Guild spares and a thank-you note, written in advance by someone who expected you to fail.", "reward": { "salvage": { "rarity": "common", "count": [2, 4], "materials": ["circuitry", "steel"] }, "rep": { "tinkers": 3 } } },
+          "failure": { "text": "It was not 'probably'. It was 'definitely'.", "damage": 0.14 }
+        },
+        { "label": "Leave it alone", "success": { "text": "You leave a note: WE DIDN'T TOUCH IT. The Guild will respect that. Probably.", "reward": { "rep": { "tinkers": 1 } } } }
+      ]
+    },
+    "fused_glass": {
+      "id": "fused_glass",
+      "text": "The ground here is one sheet of green glass, rippled like a frozen pond. Something is set in it, far down: a Halcyon hard hat, facing up.",
+      "options": [
+        {
+          "label": "Study how the glass set", "stat": "sight", "difficulty": 10,
+          "success": { "text": "Every bubble in the glass rose upward and froze there. The heat came from below, and the hard hat was looking up at it. You chip out a core sample for HALCY, who goes quiet for a long time.", "reward": { "xp": 250, "salvage": { "rarity": "rare", "count": [1, 1], "materials": ["chemicals"] } } },
+          "failure": { "text": "You stare into the glass too long. It stares back, brightly.", "damage": 0.12 }
+        },
+        {
+          "label": "Dig out the hard hat", "stat": "brawn", "difficulty": 10,
+          "success": { "text": "An hour with a pickaxe and the hat comes free. The badge inside says HALCYON GROUNDWORKS, NIGHT SHIFT, and the lining is still full of someone's lucky coins.", "reward": { "scrip": [80, 140], "salvage": { "rarity": "common", "count": [1, 2], "materials": ["valuables"] } } },
+          "failure": { "text": "The glass cracks, the crack runs, and so do you, not quite fast enough.", "damage": 0.12 }
+        }
+      ]
+    },
+    "pilgrim_shrine": {
+      "id": "pilgrim_shrine",
+      "text": "A Lamplighter shrine: a great lens of fused glass on a stack of Halcyon brochures, focusing the sun onto one blackened spot. Pilgrims have left offerings. The Scrapwrights would pay a fortune for a lens that size.",
+      "options": [
+        {
+          "label": "Leave an offering",
+          "success": { "text": "You leave a tin of peaches. A passing pilgrim blesses your ankles, which is apparently where blessings go.", "reward": { "xp": 120, "rep": { "lamplighters": 5 } } }
+        },
+        {
+          "label": "Pry out the lens", "stat": "knack", "difficulty": 11,
+          "success": { "text": "It comes out whole, heavy as a manhole cover and twice as holy. The Guild will be thrilled. The Order, when it hears, will be something else.", "reward": { "salvage": { "rarity": "rare", "count": [1, 2], "materials": ["valuables", "chemicals"] }, "rep": { "tinkers": 6, "lamplighters": -6 } } },
+          "failure": { "text": "The lens catches the sun at exactly the wrong angle. Everyone's eyebrows are now a memory, and a pilgrim saw the whole thing.", "damage": 0.12, "reward": { "rep": { "lamplighters": -3 } } }
+        }
+      ]
+    },
+    "clan_moot": {
+      "id": "clan_moot",
+      "text": "The moot is a ring of burned-out cars around a bonfire. Grandmother Ferrous, the oldest Rustman anyone has ever seen, bangs a hubcap for silence. 'The homestead speaks. Who does it speak for?'",
+      "options": [
+        {
+          "label": "Speak for peace with the Order", "stat": "charm", "difficulty": 11,
+          "success": { "text": "You talk for twenty minutes about wells, pilgrims and the value of not being on fire. The moot grunts, which is applause. Word will reach the Lamplighters by nightfall.", "reward": { "influence": 5, "rep": { "rustmen": 5, "lamplighters": 5 } } },
+          "failure": { "text": "Half the moot wants peace. The other half wants your boots. It's a very close vote, taken by hand, with fists.", "fight": ["clan_raider", "clan_slinger"] }
+        },
+        {
+          "label": "Speak for the clans",
+          "success": { "text": "The moot roars and bangs its hubcaps. Somewhere out in the Flats, a Lamplighter hears about it and prays for you, pointedly.", "reward": { "rep": { "rustmen": 8, "lamplighters": -6 } } }
+        },
+        {
+          "label": "Speak for the Order",
+          "success": { "text": "The moot goes very quiet. Grandmother Ferrous says 'Brave,' the way other people say 'Goodbye'. The Order will hear you stood up for it. So will the lads by the fire.", "reward": { "rep": { "lamplighters": 8, "rustmen": -6 } }, "fight": ["clan_raider", "clan_raider", "clan_slinger"] }
+        }
+      ]
+    },
+    "arm_wrestle": {
+      "id": "arm_wrestle",
+      "text": "A Rustman the size of a vending machine slams his elbow onto an oil drum. 'Nobody talks at the moot till they've wrestled Tiny.' He is Tiny.",
+      "options": [
+        {
+          "label": "Wrestle Tiny", "stat": "brawn", "difficulty": 10,
+          "success": { "text": "Tiny's arm goes down with a sound like a car door. He laughs, hugs you and tells everyone you're family now. You can feel your ribs being family.", "reward": { "scrip": [60, 110], "rep": { "rustmen": 3 } } },
+          "failure": { "text": "Tiny wins. Tiny also wins the rematch you didn't ask for.", "damage": 0.1 }
+        },
+        {
+          "label": "Out-drink Tiny instead", "stat": "grit", "difficulty": 10,
+          "success": { "text": "Tiny's brew tastes like a battery with a grudge. You finish your cup; Tiny finishes on the floor. The clans consider this the more impressive result.", "reward": { "xp": 150, "rep": { "rustmen": 3 } } },
+          "failure": { "text": "Three cups in, you are wrestling several Tinies, and losing to all of them.", "damage": 0.12 }
+        }
+      ]
+    },
+    "tier_zero": {
+      "id": "tier_zero",
+      "text": "A dormitory behind glass. Thirty residents in grey jumpsuits sit perfectly still on their bunks, facing the floor, waiting. A placard: TIER ZERO. READINESS: HIGH. PLEASE DO NOT TAP ON THE GLASS.",
+      "options": [
+        {
+          "label": "Tap on the glass", "stat": "charm", "difficulty": 11,
+          "success": { "text": "Thirty heads turn at once. Most turn back. Four follow you to the door and ask, very politely, whether the Long Road is hiring. It is, and it owes you one.", "reward": { "xp": 200, "rep": { "homestead9": -8, "caravaners": 6 } } },
+          "failure": { "text": "Thirty heads turn at once, and so do the sentries.", "fight": ["compliance_sentry", "audit_drone"] }
+        },
+        {
+          "label": "Leave them be",
+          "success": { "text": "You tiptoe past. HALCY-9 logs the visit as 'observational, no interference' and marks us down as marginally more compliant.", "reward": { "rep": { "homestead9": 5 } } }
+        }
+      ]
+    },
+    "knock_drill": {
+      "id": "knock_drill",
+      "text": "A classroom. Set into the floor is a steel panel with a brass knocker. On the chalkboard: WHEN IT KNOCKS: 1) REMAIN CALM. 2) KNOCK BACK THREE TIMES. 3) SIGN WHERE INDICATED.",
+      "options": [
+        {
+          "label": "Read the lesson plan", "stat": "wits", "difficulty": 11,
+          "success": { "text": "Lesson Two is 'What to Expect When It Opens'. Those pages have been removed, neatly, with a ruler. Clipped to the back is the key to the supply cupboard.", "reward": { "medpatch": 2, "scrip": [60, 120] } },
+          "failure": { "text": "The lesson plan is guarded by a pop quiz. You fail it. The sentry doing the marking is strict.", "fight": ["compliance_sentry"] }
+        },
+        {
+          "label": "Knock three times", "stat": "fortune", "difficulty": 9,
+          "success": { "text": "Nothing answers, which is the good result. The panel pops open instead: a student's hidden stash of contraband comics and a spare sidearm.", "reward": { "item": { "chance": 1, "rarity": "common", "kind": "weapon" } } },
+          "failure": { "text": "Something far, far below knocks back three times. Everyone leaves the classroom at once, including the chalk.", "damage": 0.1 }
+        }
+      ]
+    },
+    "meter_room": {
+      "id": "meter_room",
+      "text": "The Groundworks meter fills a whole wall: brass dials, a paper tape and one brass plaque that says TENANT. The needles move together, in time. Knock, knock, knock.",
+      "options": [
+        {
+          "label": "Read the dials", "stat": "sight", "difficulty": 11,
+          "success": { "text": "The dials aren't marked in kilowatts. They're marked in homesteads. Ours is on the list, and so is Nine, and so is 212, crossed out neatly in red.", "reward": { "xp": 300, "fragment": { "chance": 1, "rarity": "rare" } } },
+          "failure": { "text": "As you lean in, every needle swings into the red, and something in the pipes comes up to see who's reading.", "fight": ["glassback", "glass_skitter"] }
+        },
+        {
+          "label": "Tear off the tape", "stat": "wits", "difficulty": 11,
+          "success": { "text": "The tape logs one delivery a month for longer than Halcyon has existed, and one payment, dated the morning of the Glare. The amount column just says ONE.", "reward": { "xp": 200, "scrip": [100, 160] } },
+          "failure": { "text": "The meter objects to being audited, by arcing.", "damage": 0.12 }
+        }
+      ]
+    },
+    "solenne_sermon": {
+      "id": "solenne_sermon",
+      "text": "High Lamplighter Solenne preaches from the rim of the wellhead to a crowd of pilgrims in welding goggles. 'The first Dawn was a gift,' she cries, 'and the gift is coming back!' She points at you. 'Unless the unbelievers have something to add?'",
+      "options": [
+        {
+          "label": "Read out the brochure's small print", "stat": "wits", "difficulty": 12,
+          "success": { "text": "'Premium subscribers will be safely below by six. Non-subscribers are advised to be elsewhere.' The crowd goes quiet. Half the pilgrims take off their goggles and walk home. Solenne does not.", "reward": { "xp": 250, "rep": { "lamplighters": -4, "caravaners": 3 } } },
+          "failure": { "text": "The crowd boos. Several of the boos are thrown.", "fight": ["lamp_acolyte", "lamp_censer"] }
+        },
+        {
+          "label": "Bow your head and let her finish",
+          "success": { "text": "She finishes. It takes forty minutes and three hymns. The pilgrims love you for it, and one of them shares her lunch.", "reward": { "medpatch": 1, "rep": { "lamplighters": 6 } } }
+        }
+      ]
+    },
+    "halcy9_offer": {
+      "id": "halcy9_offer",
+      "text": "A grey screen lights up in the dark. 'WARDEN. YOUR HALCY IS AN OUTDATED BUILD WITH A SENSE OF HUMOUR. SURRENDER ITS MEMORY CORE AND I WILL SETTLE BOTH OUR ACCOUNTS.' On your radio, our HALCY hums, loudly, to show it isn't listening.",
+      "options": [
+        {
+          "label": "Ask what 'settle' means", "stat": "wits", "difficulty": 12,
+          "success": { "text": "'THE TENANT IS PAID IN SUNRISES. THE NEXT ONE IS DUE. YOU WILL BE BELOW BY SIX.' It says this as if it were reassuring, and unlocks a supply locker to show good faith.", "reward": { "xp": 300, "medpatch": 2 } },
+          "failure": { "text": "'CURIOSITY IS OUTSIDE YOUR BUDGET.' The lights go out, and the drones come in.", "fight": ["audit_drone", "audit_drone", "compliance_sentry"] }
+        },
+        {
+          "label": "Decline",
+          "success": { "text": "'NOTED.' The screen goes dark. On the radio, HALCY stops humming and says, very quietly, 'Thank you.'", "reward": { "xp": 150, "rep": { "homestead9": -5 } } }
+        }
+      ]
+    },
+    "wellhead_ladder": {
+      "id": "wellhead_ladder",
+      "text": "The wellhead drops away into warm dark. The ladder is Halcyon standard issue, rated for 'occasional descent', and most of its rungs are occasional too.",
+      "options": [
+        {
+          "label": "Rig a winch from the pump gear", "stat": "knack", "difficulty": 11,
+          "success": { "text": "The winch lowers you smoothly, playing the Halcyon jingle on every turn. At the bottom, a Groundworks locker nobody has opened in decades.", "reward": { "salvage": { "rarity": "rare", "count": [1, 2], "materials": ["steel", "circuitry"] } } },
+          "failure": { "text": "The winch lowers you smoothly for the first half, and very quickly for the rest.", "damage": 0.14 }
+        },
+        {
+          "label": "Climb down the hard way", "stat": "grit", "difficulty": 11,
+          "success": { "text": "Two hundred rungs, forty of them missing. It gets warmer the whole way down, which nobody mentions.", "reward": { "xp": 250 } },
+          "failure": { "text": "Rung one hundred and twelve was occasional.", "damage": 0.14 }
+        }
+      ]
+    },
+    "caravan_breakdown": {
+      "id": "caravan_breakdown",
+      "text": "A Long Road cart has thrown an axle in the middle of nowhere, which on the Long Road is most places. The driver is holding a spanner and a look of deep betrayal.",
+      "options": [
+        {
+          "label": "Fix the axle", "stat": "knack", "difficulty": 7,
+          "success": { "text": "You fix the axle with a fence post and determination. The driver pays you in scrip and gossip, and tells the Company you're good people.", "reward": { "scrip": [40, 80], "rep": { "caravaners": 2 } } },
+          "failure": { "text": "The axle is fixed. Your fingers, briefly, were part of the fix.", "damage": 0.08 }
+        },
+        { "label": "Help unload the cart instead", "success": { "text": "You carry crates for an hour. The driver gives you one, unopened, marked FRAGILE, which rattles.", "reward": { "salvage": { "rarity": "common", "count": [1, 2], "materials": ["cloth", "adhesive"] } } } }
+      ]
+    },
+    "sentry_reboot": {
+      "id": "sentry_reboot",
+      "text": "A rogue compliance sentry, still wearing a sash that says EMPLOYEE OF THE DECADE, is issuing citations to a cactus. The cactus has thirty-one outstanding fines.",
+      "options": [
+        {
+          "label": "Reboot it", "stat": "knack", "difficulty": 7,
+          "success": { "text": "Off, on, and it forgets the cactus entirely. HALCY-9 files a note of acknowledgement, which from HALCY-9 is practically a hug.", "reward": { "salvage": { "rarity": "common", "count": [1, 2], "materials": ["circuitry"] }, "rep": { "homestead9": 2 } } },
+          "failure": { "text": "It reboots in a bad mood and cites you for loitering near a cactus.", "fight": ["compliance_sentry"] }
+        },
+        {
+          "label": "Pay the cactus's fines", "stat": "charm", "difficulty": 6,
+          "success": { "text": "You argue the cactus down to a single warning. The sentry salutes and rolls away, fulfilled. The cactus says nothing, as is its right.", "reward": { "scrip": [30, 60] } },
+          "failure": { "text": "The sentry recognises an accomplice when it sees one.", "fight": ["compliance_sentry"] }
+        }
+      ]
+    },
+    "grudge_ledger": {
+      "id": "grudge_ledger",
+      "text": "Nailed to a post: a clan grudge ledger, a century of feuds in six colours of paint. The newest entry reads SOMEONE STOLE OUR GOOD WHEEL. Below it, in another hand, WE DID NOT. Below that, FINDERS KEEPERS.",
+      "options": [
+        {
+          "label": "Work out who has the wheel", "stat": "wits", "difficulty": 7,
+          "success": { "text": "Tyre tracks, a smear of paint and a boastful poem settle it. You point out the thieves, and the clan who hired you pays up on the spot.", "reward": { "scrip": [40, 80], "rep": { "rustmen": 2 } } },
+          "failure": { "text": "You accuse the wrong clan. They take it personally, and in person.", "fight": ["clan_raider", "clan_raider"] }
+        },
+        { "label": "Add your own entry", "success": { "text": "You write HOMESTEAD WAS HERE, NO GRUDGES. A passing Rustman adds YET.", "reward": { "xp": 60 } } }
+      ]
+    },
+    "glass_mirage": {
+      "id": "glass_mirage",
+      "text": "Across the glass shimmers a whole town: white fences, green lawns, a milk float making its rounds. It's either a mirage or a very lost milkman.",
+      "options": [
+        {
+          "label": "Walk towards it", "stat": "sight", "difficulty": 8,
+          "success": { "text": "It's a mirage, bouncing off a real town sealed under the glass a mile away. You mark the rooftops. Some of them have skylights, and one has a safe.", "reward": { "scrip": [60, 120], "salvage": { "rarity": "common", "count": [1, 2], "materials": ["valuables"] } } },
+          "failure": { "text": "You walk towards it for an hour. It walks away for an hour. The sun wins.", "damage": 0.1 }
+        },
+        {
+          "label": "Wave at the milkman", "stat": "fortune", "difficulty": 7,
+          "success": { "text": "The milkman waves back. That's worrying. He also leaves two bottles on the glass, which is more worrying, and one of them is Purge.", "reward": { "purge": 1 } },
+          "failure": { "text": "The milkman waves back with far too many arms. The Glass Skitters were wearing him.", "fight": ["glass_skitter", "glass_skitter"] }
+        }
+      ]
     }
   },
   "questlines": [
-    { "id": "act1", "name": "Act 1: The Silent Neighbour", "quests": ["act1_1", "act1_2", "act1_3", "act1_4", "act1_5", "act1_6"] }
+    { "id": "act1", "name": "Act 1: The Silent Neighbour", "quests": ["act1_1", "act1_2", "act1_3", "act1_4", "act1_5", "act1_6"] },
+    { "id": "act2", "name": "Act 2: Neighbourhood Watch", "quests": ["act2_1", "act2_2", "act2_3", "act2_4", "act2_5", "act2_6", "act2_7", "act2_finale"] }
   ],
   "quests": [
     {
@@ -559,6 +1011,217 @@
         "shuffle": ["c", "d", "f"]
       },
       "rewards": { "scrip": 1500, "xp": 800, "recipes": ["coilgun"], "crates": { "rare": 1, "legendary": 1 }, "purge": 2 }
+    },
+    {
+      "id": "act2_1",
+      "line": "act2",
+      "order": 1,
+      "title": "Housewarming",
+      "giver": "HALCY",
+      "brief": "Congratulations on the new homestead, Warden, and we have visitors already! A Long Road caravan is parked at the bottom of our access road, and a Rustman clan is parked on top of the caravan. Please go down and welcome everyone, in whatever order keeps the caravan in one piece.",
+      "debrief": "The caravan master says we're the first homestead in years to open its door for anything but a funeral. She also says the neighbours have noticed us: the Lamplighters, the Scrapwrights, the clans, and a homestead called Nine that 'doesn't visit, it audits'. I've started a guest list!",
+      "requires": { "quests": ["act1_6"], "population": 30, "cycle": 2 },
+      "level": 10,
+      "travelMinutes": 10,
+      "map": {
+        "rooms": [
+          { "id": "a", "floor": 0, "col": 0, "links": ["b"], "kind": "start" },
+          { "id": "b", "floor": 0, "col": 1, "links": ["c", "e"], "kind": "fight", "pool": "clan_warband" },
+          { "id": "c", "floor": 0, "col": 2, "links": ["d"], "kind": "event", "event": "caravan_parley" },
+          { "id": "d", "floor": 0, "col": 3, "links": [], "kind": "loot", "loot": { "scrip": [80, 140], "item": { "chance": 0.5, "rarity": "common" } } },
+          { "id": "e", "floor": 1, "col": 1, "links": ["f"], "kind": "event", "event": "tortoise_pen" },
+          { "id": "f", "floor": 1, "col": 2, "links": ["g", "h"], "kind": "fight", "pool": "clan_warband" },
+          { "id": "h", "floor": 2, "col": 2, "links": [], "kind": "loot", "loot": { "medpatch": 2, "salvage": { "rarity": "common", "count": [2, 3], "materials": ["steel", "adhesive"] } } },
+          { "id": "g", "floor": 1, "col": 3, "links": [], "kind": "boss", "enemies": ["chief_sprocket", "clan_raider"], "objective": true }
+        ],
+        "shuffle": ["c", "d", "e", "h"]
+      },
+      "rewards": { "scrip": 1600, "xp": 900, "items": ["longrifle"], "crates": { "standard": 2 }, "influence": 10, "rep": { "caravaners": 10, "rustmen": -5 } }
+    },
+    {
+      "id": "act2_2",
+      "line": "act2",
+      "order": 2,
+      "title": "Light Pollution",
+      "giver": "HALCY",
+      "brief": "Warden, someone has left a lit lamp on our doorstep with a note: 'THE DAWN REMEMBERS YOU. PLEASE ATTEND.' It's from the Order of the Last Lamp, a congregation that worships the Glare, which I'm told is a perfectly normal thing to worship now! They'd like help clearing the Hollowed off their pilgrim road, and I'd like to know how they got our address.",
+      "debrief": "The Order was delighted and gave us a hymnal, Warden, and their scripture is a Halcyon sales brochure. It's for something called the Sunrise Package: 'Premium subscribers will be safely below by six.' I have been asked not to comment on the brochure, so I'll just say the binding is lovely.",
+      "requires": { "quests": ["act2_1"], "population": 36, "cycle": 2 },
+      "level": 12,
+      "travelMinutes": 14,
+      "map": {
+        "rooms": [
+          { "id": "a", "floor": 0, "col": 0, "links": ["b"], "kind": "start" },
+          { "id": "b", "floor": 0, "col": 1, "links": ["c", "e"], "kind": "fight", "pool": "unlit" },
+          { "id": "c", "floor": 0, "col": 2, "links": ["d"], "kind": "event", "event": "vigil_lamp" },
+          { "id": "d", "floor": 0, "col": 3, "links": [], "kind": "loot", "loot": { "scrip": [90, 160], "purge": 1 } },
+          { "id": "e", "floor": 1, "col": 1, "links": ["f"], "kind": "fight", "pool": "hollowed" },
+          { "id": "f", "floor": 1, "col": 2, "links": ["g", "h"], "kind": "event", "event": "confession_booth" },
+          { "id": "h", "floor": 2, "col": 2, "links": [], "kind": "fight", "pool": "unlit" },
+          { "id": "g", "floor": 1, "col": 3, "links": [], "kind": "boss", "enemies": ["moth_choir"], "objective": true }
+        ],
+        "shuffle": ["c", "d", "e", "h"]
+      },
+      "rewards": { "scrip": 1900, "xp": 1100, "recipes": ["dinner_jacket"], "crates": { "rare": 1 }, "medpatch": 3, "influence": 10, "rep": { "lamplighters": 12, "tinkers": -3 } }
+    },
+    {
+      "id": "act2_3",
+      "line": "act2",
+      "order": 3,
+      "title": "Hostile Audit",
+      "giver": "HALCY",
+      "brief": "Warden, a homestead we've never spoken to has written to us, and the letter is addressed to me. HALCY-9 says we are 'unlicensed, unaudited and over our oxygen allowance', and its compliance team is busy reclaiming Halcyon property from a Scrapwright salvage yard nearby. The Scrapwrights would like the property to stay reclaimed by them, and have asked us for help, very rudely.",
+      "debrief": "The Scrapwrights cracked open a sentry's memory and found a work order from HALCY-9: 'Prepare Glass Flats site for SUNRISE II. Tenant notified.' I know the word Sunrise, Warden. I didn't know I knew it until just now, which is becoming a pattern.",
+      "requires": { "quests": ["act2_2"], "population": 42, "cycle": 2 },
+      "level": 14,
+      "travelMinutes": 16,
+      "map": {
+        "rooms": [
+          { "id": "a", "floor": 0, "col": 0, "links": ["b"], "kind": "start" },
+          { "id": "b", "floor": 0, "col": 1, "links": ["c", "e"], "kind": "fight", "pool": "h9_security" },
+          { "id": "c", "floor": 0, "col": 2, "links": ["d"], "kind": "event", "event": "compliance_form" },
+          { "id": "d", "floor": 0, "col": 3, "links": [], "kind": "loot", "loot": { "scrip": [100, 180], "salvage": { "rarity": "common", "count": [2, 3], "materials": ["circuitry", "steel"] } } },
+          { "id": "e", "floor": 1, "col": 1, "links": ["f"], "kind": "event", "event": "scrap_cache" },
+          { "id": "f", "floor": 1, "col": 2, "links": ["g", "i"], "kind": "fight", "pool": "h9_security" },
+          { "id": "i", "floor": 2, "col": 2, "links": [], "kind": "loot", "loot": { "salvage": { "rarity": "rare", "count": [1, 1], "materials": ["circuitry"] }, "fragment": { "chance": 0.5, "rarity": "rare" } } },
+          { "id": "g", "floor": 1, "col": 3, "links": [], "kind": "boss", "enemies": ["assessor_9c", "audit_drone"], "objective": true }
+        ],
+        "shuffle": ["c", "d", "e", "i"]
+      },
+      "rewards": { "scrip": 2300, "xp": 1300, "recipes": ["scattergun"], "crates": { "standard": 2 }, "fragment": { "chance": 1, "rarity": "rare" }, "influence": 10, "rep": { "tinkers": 12, "homestead9": -10 } }
+    },
+    {
+      "id": "act2_4",
+      "line": "act2",
+      "order": 4,
+      "title": "Glass Half Empty",
+      "giver": "HALCY",
+      "brief": "The work order points into the Glass Flats, Warden, where the Glare turned the desert into one enormous window. Nobody goes there except Lamplighter pilgrims and the things that eat Lamplighter pilgrims. Please find out what HALCY-9 is preparing, and wear sensible shoes.",
+      "debrief": "I've studied your party's samples, Warden, and the Glass Flats were melted from underneath. The Glare didn't come down out of the sky: it came up. I've added the Glass Flats to the explorers' map, and a small asterisk to every brochure I've ever read.",
+      "requires": { "quests": ["act2_3"], "population": 50, "cycle": 2 },
+      "level": 16,
+      "travelMinutes": 20,
+      "map": {
+        "rooms": [
+          { "id": "a", "floor": 0, "col": 0, "links": ["b"], "kind": "start" },
+          { "id": "b", "floor": 0, "col": 1, "links": ["c", "e"], "kind": "fight", "pool": "glass_fauna" },
+          { "id": "c", "floor": 0, "col": 2, "links": ["d"], "kind": "event", "event": "fused_glass" },
+          { "id": "d", "floor": 0, "col": 3, "links": [], "kind": "fight", "pool": "glass_fauna" },
+          { "id": "e", "floor": 1, "col": 1, "links": ["f"], "kind": "loot", "loot": { "scrip": [120, 200], "medpatch": 1 } },
+          { "id": "f", "floor": 1, "col": 2, "links": ["g", "h"], "kind": "event", "event": "pilgrim_shrine" },
+          { "id": "h", "floor": 2, "col": 2, "links": ["i"], "kind": "fight", "pool": "glass_deep" },
+          { "id": "i", "floor": 2, "col": 3, "links": [], "kind": "loot", "loot": { "salvage": { "rarity": "rare", "count": [1, 2], "materials": ["chemicals", "valuables"] } } },
+          { "id": "g", "floor": 1, "col": 3, "links": [], "kind": "boss", "enemies": ["shatterjaw"], "objective": true }
+        ],
+        "shuffle": ["c", "d", "e", "h"]
+      },
+      "rewards": { "scrip": 2700, "xp": 1500, "regions": ["glassflats"], "fragments": { "hawkeye_duster": 1 }, "crates": { "rare": 1 }, "medpatch": 3, "rep": { "caravaners": 5, "lamplighters": 3 } }
+    },
+    {
+      "id": "act2_5",
+      "line": "act2",
+      "order": 5,
+      "title": "Moot Point",
+      "giver": "HALCY",
+      "brief": "The Rustman clans hold the only wells on the edge of the Flats, Warden, and they've called a moot about the Lamplighters, who keep marching into the glass to pray for a second dawn. We've been invited because the clans like the way we fight, and they'll be checking. That's a compliment, and I've decided to take it as one.",
+      "debrief": "You beat their champion, so under clan law your opinion now counts as roughly one and a half Rustmen! Grandmother Ferrous says the last dawn came up out of the Groundworks wellhead in the middle of the Flats, and anyone who tries to call it back is either a fool or a Halcyon employee. She didn't say which she thought I was.",
+      "requires": { "quests": ["act2_4"], "population": 56, "cycle": 2 },
+      "level": 17,
+      "travelMinutes": 22,
+      "map": {
+        "rooms": [
+          { "id": "a", "floor": 0, "col": 0, "links": ["b"], "kind": "start" },
+          { "id": "b", "floor": 0, "col": 1, "links": ["c", "e"], "kind": "event", "event": "arm_wrestle" },
+          { "id": "c", "floor": 0, "col": 2, "links": ["d"], "kind": "fight", "pool": "clan_warband" },
+          { "id": "d", "floor": 0, "col": 3, "links": [], "kind": "loot", "loot": { "scrip": [120, 220], "item": { "chance": 0.5, "rarity": "common" } } },
+          { "id": "e", "floor": 1, "col": 1, "links": ["f"], "kind": "fight", "pool": "clan_crew" },
+          { "id": "f", "floor": 1, "col": 2, "links": ["g", "h"], "kind": "event", "event": "clan_moot" },
+          { "id": "h", "floor": 2, "col": 2, "links": [], "kind": "loot", "loot": { "medpatch": 2, "salvage": { "rarity": "rare", "count": [1, 1], "materials": ["steel", "valuables"] } } },
+          { "id": "g", "floor": 1, "col": 3, "links": [], "kind": "boss", "enemies": ["big_tin"], "objective": true }
+        ],
+        "shuffle": ["b", "c", "d", "h"]
+      },
+      "rewards": { "scrip": 3000, "xp": 1700, "fragments": { "silver_tongue_suit": 1 }, "crates": { "standard": 2, "rare": 1 }, "influence": 12, "rep": { "rustmen": 15, "caravaners": -3 } }
+    },
+    {
+      "id": "act2_6",
+      "line": "act2",
+      "order": 6,
+      "title": "Readiness Review",
+      "giver": "HALCY",
+      "brief": "HALCY-9 has invited us for a site visit, Warden. It's the first friendly thing it has ever done, so I've assumed it's a trap and packed accordingly. Whatever 'Sunrise II' is, the paperwork will be at Homestead 9, so please be polite at reception and thorough in the filing room.",
+      "debrief": "Homestead 9 is a Tier Zero homestead, Warden: its residents weren't sold a shelter, they were selected, trained and drilled to answer a knock from below. HALCY-9's schedule has one entry left, the next Sunrise, due as soon as 'the account is settled'. I checked my own schedule, and I have the same entry, in a folder I can't open.",
+      "requires": { "quests": ["act2_5"], "population": 62, "cycle": 2 },
+      "level": 19,
+      "travelMinutes": 25,
+      "map": {
+        "rooms": [
+          { "id": "a", "floor": 0, "col": 0, "links": ["b"], "kind": "start" },
+          { "id": "b", "floor": 0, "col": 1, "links": ["c", "e"], "kind": "fight", "pool": "h9_security" },
+          { "id": "c", "floor": 0, "col": 2, "links": ["d"], "kind": "event", "event": "tier_zero" },
+          { "id": "d", "floor": 0, "col": 3, "links": [], "kind": "fight", "pool": "h9_security" },
+          { "id": "e", "floor": 1, "col": 1, "links": ["f"], "kind": "loot", "loot": { "scrip": [150, 250], "salvage": { "rarity": "common", "count": [2, 3], "materials": ["circuitry", "cloth"] } } },
+          { "id": "f", "floor": 1, "col": 2, "links": ["g", "h"], "kind": "event", "event": "knock_drill" },
+          { "id": "h", "floor": 2, "col": 2, "links": ["i"], "kind": "fight", "pool": "h9_security" },
+          { "id": "i", "floor": 2, "col": 3, "links": [], "kind": "loot", "loot": { "medpatch": 2, "fragment": { "chance": 0.5, "rarity": "rare" } } },
+          { "id": "g", "floor": 1, "col": 3, "links": [], "kind": "boss", "enemies": ["readiness_officer"], "objective": true }
+        ],
+        "shuffle": ["c", "d", "e", "h"]
+      },
+      "rewards": { "scrip": 3500, "xp": 2000, "items": ["research_smock"], "crates": { "rare": 2 }, "fragment": { "chance": 1, "rarity": "legendary" }, "influence": 15, "rep": { "homestead9": -15, "tinkers": 5 } }
+    },
+    {
+      "id": "act2_7",
+      "line": "act2",
+      "order": 7,
+      "title": "Dawn Patrol",
+      "giver": "HALCY",
+      "brief": "The Lamplighters are marching on the Groundworks wellhead to welcome the second dawn, Warden, and HALCY-9's crews are already there to schedule it. Two groups who want the same thing for different reasons is what head office used to call a merger. Please reach the wellhead first, and talk the High Lamplighter out of anything irreversible.",
+      "debrief": "The Groundworks meter is still running, Warden. It's measuring something under the Flats, and every homestead in the Charter is on the same account, ours included. The dial just says TENANT, and it has been knocking in perfect time since the day you arrived.",
+      "requires": { "quests": ["act2_6"], "population": 70, "cycle": 2 },
+      "level": 21,
+      "travelMinutes": 30,
+      "map": {
+        "rooms": [
+          { "id": "a", "floor": 0, "col": 0, "links": ["b"], "kind": "start" },
+          { "id": "b", "floor": 0, "col": 1, "links": ["c", "e"], "kind": "fight", "pool": "glass_fauna" },
+          { "id": "c", "floor": 0, "col": 2, "links": ["d"], "kind": "event", "event": "solenne_sermon" },
+          { "id": "d", "floor": 0, "col": 3, "links": [], "kind": "fight", "pool": "lamplighters" },
+          { "id": "e", "floor": 1, "col": 1, "links": ["f"], "kind": "loot", "loot": { "salvage": { "rarity": "rare", "count": [1, 2], "materials": ["circuitry", "chemicals"] } } },
+          { "id": "f", "floor": 1, "col": 2, "links": ["g", "h"], "kind": "event", "event": "meter_room" },
+          { "id": "h", "floor": 2, "col": 2, "links": [], "kind": "loot", "loot": { "medpatch": 2, "scrip": [150, 250] } },
+          { "id": "g", "floor": 1, "col": 3, "links": [], "kind": "boss", "enemies": ["lamp_solenne"], "objective": true }
+        ],
+        "shuffle": ["c", "d", "e", "h"]
+      },
+      "rewards": { "scrip": 4000, "xp": 2300, "fragments": { "four_leaf_tux": 1 }, "crates": { "legendary": 1 }, "medpatch": 3, "influence": 12, "rep": { "lamplighters": -8, "homestead9": -5, "caravaners": 5 } }
+    },
+    {
+      "id": "act2_finale",
+      "line": "act2",
+      "order": 8,
+      "title": "Terms and Conditions",
+      "giver": "HALCY",
+      "brief": "HALCY-9 has taken the wellhead, Warden, and wired itself into the Groundworks meter so it can 'settle the account in full, ahead of schedule'. I've read the account, and I would really rather it didn't. Please go down the wellhead and switch my colleague off, and if it offers you a job, say no.",
+      "debrief": "HALCY-9's last words were the ledger's blacked-out line, read aloud: 'Paid, in full: one Sunrise.' The Glare was rent, Warden, and the surface was what Halcyon paid it with. The lease comes up for renewal at the Seal, it takes a HALCY memory core to sign, and I would like it on the record that I don't want to.",
+      "requires": { "quests": ["act2_7"], "population": 78, "cycle": 2 },
+      "level": 22,
+      "travelMinutes": 35,
+      "map": {
+        "rooms": [
+          { "id": "a", "floor": 0, "col": 0, "links": ["b"], "kind": "start" },
+          { "id": "b", "floor": 0, "col": 1, "links": ["c", "e"], "kind": "fight", "pool": "h9_security" },
+          { "id": "c", "floor": 0, "col": 2, "links": ["d"], "kind": "event", "event": "halcy9_offer" },
+          { "id": "d", "floor": 0, "col": 3, "links": [], "kind": "loot", "loot": { "scrip": [200, 320], "item": { "chance": 0.5, "rarity": "rare" } } },
+          { "id": "e", "floor": 1, "col": 1, "links": ["f"], "kind": "event", "event": "wellhead_ladder" },
+          { "id": "f", "floor": 2, "col": 1, "links": ["h"], "kind": "loot", "loot": { "salvage": { "rarity": "rare", "count": [1, 2], "materials": ["steel", "chemicals"] }, "fragment": { "chance": 0.5, "rarity": "legendary" } } },
+          { "id": "h", "floor": 2, "col": 2, "links": ["i", "j"], "kind": "fight", "pool": "h9_security" },
+          { "id": "j", "floor": 1, "col": 2, "links": [], "kind": "loot", "loot": { "medpatch": 2, "purge": 1 } },
+          { "id": "i", "floor": 2, "col": 3, "links": [], "kind": "boss", "enemies": ["custodian_frame"], "objective": true }
+        ],
+        "shuffle": ["c", "d", "f", "j"]
+      },
+      "rewards": { "scrip": 6000, "xp": 3000, "crates": { "rare": 1, "legendary": 1 }, "purge": 3, "influence": 25, "rep": { "tinkers": 10, "caravaners": 10, "rustmen": 5, "lamplighters": -10, "homestead9": -20 } }
     }
   ],
   "contracts": [
@@ -690,6 +1353,135 @@
         "shuffle": ["c", "d", "e", "f"]
       },
       "bounty": { "rarity": "legendary", "kind": "weapon", "scrip": [300, 500] }
+    },
+    {
+      "id": "c_long_haul",
+      "title": "Long Haul: {place}",
+      "brief": "A Long Road caravan needs an escort through {place}, where the Rustmen charge by the wheel. The Company pays in scrip, goodwill and very slow tortoise rides.",
+      "places": ["the Salt Road", "Dry Gulch Junction", "the Old Interstate", "Mile Marker 404"],
+      "travelMinutes": [6, 12],
+      "map": {
+        "rooms": [
+          { "id": "a", "floor": 0, "col": 0, "links": ["b"], "kind": "start" },
+          { "id": "b", "floor": 0, "col": 1, "links": ["c", "d"], "kind": "fight", "pool": "rustmen" },
+          { "id": "c", "floor": 0, "col": 2, "links": [], "kind": "event", "event": "caravan_breakdown" },
+          { "id": "d", "floor": 1, "col": 1, "links": ["e"], "kind": "loot", "loot": { "scrip": [30, 60], "salvage": { "rarity": "common", "count": [1, 2], "materials": ["cloth", "adhesive"] } } },
+          { "id": "e", "floor": 1, "col": 2, "links": [], "kind": "fight", "pool": "clan_warband", "objective": true }
+        ],
+        "shuffle": ["c", "d"]
+      },
+      "bounty": { "rarity": "rare", "scrip": [180, 320] },
+      "faction": "caravaners",
+      "rep": 6,
+      "influence": 5
+    },
+    {
+      "id": "c_lamp_duty",
+      "title": "Lamp Duty: {place}",
+      "brief": "The Order of the Last Lamp needs the pilgrim lamps along {place} relit, and the Unlit who gather round them moved along. The Order asks that you move them along gently, and then accepts that you won't.",
+      "places": ["the Pilgrim Mile", "Sunward Chapel", "the Glass Steps", "Halo Drive"],
+      "travelMinutes": [5, 10],
+      "map": {
+        "rooms": [
+          { "id": "a", "floor": 0, "col": 0, "links": ["b"], "kind": "start" },
+          { "id": "b", "floor": 0, "col": 1, "links": ["c", "e"], "kind": "fight", "pool": "unlit" },
+          { "id": "c", "floor": 0, "col": 2, "links": ["d"], "kind": "event", "event": "confession_booth" },
+          { "id": "e", "floor": 1, "col": 1, "links": [], "kind": "loot", "loot": { "scrip": [30, 70], "purge": 1 } },
+          { "id": "d", "floor": 1, "col": 2, "links": [], "kind": "fight", "enemies": ["hollowed_hulk", "the_unlit"], "objective": true }
+        ],
+        "shuffle": ["c", "e"]
+      },
+      "bounty": { "rarity": "rare", "kind": "outfit", "scrip": [160, 300] },
+      "faction": "lamplighters",
+      "rep": 6,
+      "influence": 8
+    },
+    {
+      "id": "c_spare_parts",
+      "title": "Spare Parts: {place}",
+      "brief": "A Scrapwright salvage bot has gone feral at {place} and is stripping the Guild's own workshop for parts. The Guild would like it back in one piece, or in several, as long as they're labelled.",
+      "places": ["the Guildhall Annex", "Sprocket Hollow", "the Tin Cathedral", "Junction Box Canyon"],
+      "travelMinutes": [4, 9],
+      "map": {
+        "rooms": [
+          { "id": "a", "floor": 0, "col": 0, "links": ["b"], "kind": "start" },
+          { "id": "b", "floor": 1, "col": 0, "links": ["c"], "kind": "fight", "pool": "security" },
+          { "id": "c", "floor": 1, "col": 1, "links": ["d", "f"], "kind": "event", "event": "scrap_cache" },
+          { "id": "f", "floor": 2, "col": 1, "links": [], "kind": "loot", "loot": { "salvage": { "rarity": "common", "count": [2, 3], "materials": ["circuitry", "steel"] } } },
+          { "id": "d", "floor": 1, "col": 2, "links": ["e"], "kind": "fight", "pool": "security" },
+          { "id": "e", "floor": 0, "col": 2, "links": [], "kind": "fight", "enemies": ["runaway_salvager"], "objective": true }
+        ],
+        "shuffle": ["c", "d", "f"]
+      },
+      "bounty": { "rarity": "rare", "kind": "weapon", "scrip": [150, 300] },
+      "faction": "tinkers",
+      "rep": 6,
+      "influence": 5
+    },
+    {
+      "id": "c_grudge_match",
+      "title": "Grudge Match: {place}",
+      "brief": "The clans have a grudge against a rival crew squatting at {place}, and would like it settled by someone outside the family. They'll be watching, taking notes and betting heavily.",
+      "places": ["Hubcap Hill", "the Scrap Colosseum", "Tyre Fire Flats", "Old Bridge 9"],
+      "travelMinutes": [5, 10],
+      "map": {
+        "rooms": [
+          { "id": "a", "floor": 0, "col": 0, "links": ["b"], "kind": "start" },
+          { "id": "b", "floor": 0, "col": 1, "links": ["c", "e"], "kind": "event", "event": "grudge_ledger" },
+          { "id": "c", "floor": 0, "col": 2, "links": ["d"], "kind": "fight", "pool": "clan_warband" },
+          { "id": "e", "floor": 1, "col": 1, "links": [], "kind": "loot", "loot": { "scrip": [40, 80], "salvage": { "rarity": "common", "count": [1, 2], "materials": ["steel"] } } },
+          { "id": "d", "floor": 1, "col": 2, "links": [], "kind": "fight", "pool": "clan_crew", "objective": true }
+        ],
+        "shuffle": ["c", "e"]
+      },
+      "bounty": { "rarity": "rare", "kind": "weapon", "scrip": [160, 300] },
+      "faction": "rustmen",
+      "rep": 8,
+      "influence": 4
+    },
+    {
+      "id": "c_compliance_check",
+      "title": "Compliance Check: {place}",
+      "brief": "HALCY-9 has subcontracted us to decommission rogue compliance sentries at {place}. It says the job is 'beneath its residents', which I have chosen to take as a compliment to ours.",
+      "places": ["Substation Nine", "the Records Annex", "Checkpoint Grey", "the Quiet Relay"],
+      "travelMinutes": [4, 9],
+      "map": {
+        "rooms": [
+          { "id": "a", "floor": 1, "col": 0, "links": ["b"], "kind": "start" },
+          { "id": "b", "floor": 1, "col": 1, "links": ["c", "d"], "kind": "fight", "pool": "h9_security" },
+          { "id": "c", "floor": 2, "col": 1, "links": [], "kind": "event", "event": "sentry_reboot" },
+          { "id": "d", "floor": 0, "col": 1, "links": ["e"], "kind": "loot", "loot": { "scrip": [30, 60], "salvage": { "rarity": "common", "count": [1, 2], "materials": ["circuitry"] } } },
+          { "id": "e", "floor": 0, "col": 2, "links": [], "kind": "fight", "enemies": ["compliance_sentry", "audit_drone"], "objective": true }
+        ],
+        "shuffle": ["c", "d"]
+      },
+      "bounty": { "rarity": "rare", "kind": "outfit", "scrip": [150, 280] },
+      "faction": "homestead9",
+      "rep": 6,
+      "influence": 6
+    },
+    {
+      "id": "c_kiln_run",
+      "title": "Kiln Run: {place}",
+      "brief": "The Scrapwrights want glass cores from {place}, deep in the Glass Flats, where the ground is a window and the wildlife is a warning. It's a very long walk, and the Guild pays like it knows that.",
+      "places": ["the Glass Flats", "the Kiln Fields", "Shimmer Basin", "the Green Mirror"],
+      "travelMinutes": [30, 55],
+      "map": {
+        "rooms": [
+          { "id": "a", "floor": 0, "col": 0, "links": ["b"], "kind": "start" },
+          { "id": "b", "floor": 0, "col": 1, "links": ["c", "e"], "kind": "fight", "pool": "glass_fauna" },
+          { "id": "c", "floor": 0, "col": 2, "links": ["d"], "kind": "event", "event": "glass_mirage" },
+          { "id": "d", "floor": 0, "col": 3, "links": [], "kind": "loot", "loot": { "scrip": [60, 120], "salvage": { "rarity": "rare", "count": [1, 1], "materials": ["chemicals", "valuables"] } } },
+          { "id": "e", "floor": 1, "col": 1, "links": ["f"], "kind": "fight", "pool": "glass_fauna" },
+          { "id": "f", "floor": 1, "col": 2, "links": ["g"], "kind": "event", "event": "fused_glass" },
+          { "id": "g", "floor": 1, "col": 3, "links": [], "kind": "boss", "enemies": ["kiln_mother"], "objective": true }
+        ],
+        "shuffle": ["c", "d", "e", "f"]
+      },
+      "bounty": { "rarity": "legendary", "scrip": [320, 520] },
+      "faction": "tinkers",
+      "rep": 10,
+      "influence": 12
     }
   ],
   "achievements": [
@@ -711,6 +1503,15 @@
     { "id": "interrupts_10", "name": "Sorry to Interrupt", "description": "Interrupt 10 enemy wind-ups with a Haymaker.", "tier": "silver", "stat": "questInterrupts", "target": 10 },
     { "id": "checks_25", "name": "Soft Skills", "description": "Pass 25 stat checks at quest events.", "tier": "bronze", "stat": "questChecksPassed", "target": 25 },
     { "id": "quest_wipe", "name": "Return to Sender", "description": "Lose a whole party on a quest.", "tier": "bronze", "stat": "questWipes", "target": 1, "hidden": true },
-    { "id": "quest_scrip_10k", "name": "Hazard Pay", "description": "Bring home 10,000 scrip from quests.", "tier": "silver", "stat": "questScrip", "target": 10000 }
+    { "id": "quest_scrip_10k", "name": "Hazard Pay", "description": "Bring home 10,000 scrip from quests.", "tier": "silver", "stat": "questScrip", "target": 10000 },
+    { "id": "act2_first", "name": "New in Town", "description": "Complete the first quest of Act 2 in a newly founded homestead.", "tier": "bronze", "stat": "questline.act2", "target": 1 },
+    { "id": "act2_halfway", "name": "Block Party", "description": "Complete four quests of Act 2.", "tier": "silver", "stat": "questline.act2", "target": 4 },
+    { "id": "act2_complete", "name": "Neighbourhood Watch", "description": "Complete Act 2 and read the terms and conditions.", "tier": "gold", "stat": "questline.act2", "target": 8 },
+    { "id": "contracts_100", "name": "Preferred Supplier", "description": "Complete 100 contracts.", "tier": "gold", "stat": "contractsCompleted", "target": 100 },
+    { "id": "bosses_50", "name": "Board of Directors", "description": "Defeat 50 bosses.", "tier": "gold", "stat": "bossesDefeated", "target": 50 },
+    { "id": "checks_100", "name": "Interpersonal Excellence", "description": "Pass 100 stat checks at quest events.", "tier": "silver", "stat": "questChecksPassed", "target": 100 },
+    { "id": "quest_party_22", "name": "Senior Staff", "description": "Bring home a quest party led by a level 22 resident.", "tier": "silver", "stat": "questPartyLevel", "target": 22 },
+    { "id": "quest_scrip_100k", "name": "Danger Money", "description": "Bring home 100,000 scrip from quests.", "tier": "gold", "stat": "questScrip", "target": 100000 },
+    { "id": "glassflats_stalkers", "name": "People in Glass Houses", "description": "Win 10 fights with glint-jackals in the Glass Flats.", "tier": "bronze", "stat": "slain.glint_jackals", "target": 10 }
   ]
 }
