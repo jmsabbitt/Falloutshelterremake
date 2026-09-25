@@ -1,9 +1,11 @@
 // Content checks for src/content/quests.json: every reference resolves, every
-// map is walkable, and the Act 1 questline can actually be finished.
+// map is walkable, and the Act 1 and Act 2 questlines can actually be finished.
+// Also checks the Act 2 region (the Glass Flats) in exploration.json.
 import { describe, expect, it } from 'vitest';
 import { advance, applyCommand, loadContent, newGame, questContent, STAT_KEYS, type QuestReward } from '../src/sim';
 import { playQuest } from '../src/sim/systems/questBot';
-import { refreshContracts, type QuestMapDef } from '../src/sim/systems/quests';
+import { questLocked, refreshContracts, type QuestDef, type QuestMapDef } from '../src/sim/systems/quests';
+import { regionDef } from '../src/sim/systems/exploration';
 import questsJson from '../src/content/quests.json';
 
 const content = loadContent();
@@ -14,10 +16,13 @@ const MATERIALS = ['circuitry', 'hide', 'adhesive', 'cloth', 'chemicals', 'steel
 const CRATES = ['standard', 'rare', 'legendary'];
 /** Counters the engine bumps that quest achievements may use. */
 const COUNTERS = [
-  'questsStarted', 'questsCompleted', 'storyQuestsCompleted', 'contractsCompleted', 'questline.act1',
+  'questsStarted', 'questsCompleted', 'storyQuestsCompleted', 'contractsCompleted', 'questline.act1', 'questline.act2',
   'questEnemiesDefeated', 'bossesDefeated', 'questCrits', 'perfectCrits', 'abilitiesUsed', 'questInterrupts',
   'questChecksPassed', 'questChecksFailed', 'questWipes', 'questScrip', 'questPartyLevel', 'medpatchesUsed',
 ];
+
+/** Faction ids fixed by docs/design/M7-spec.md (defined by factions.json). */
+const FACTIONS = ['caravaners', 'lamplighters', 'tinkers', 'rustmen', 'homestead9'];
 
 interface NamedMap {
   name: string;
@@ -242,11 +247,179 @@ describe('Act 1', () => {
   });
 });
 
+/** A homestead with an office and three residents at `level`, ready to start `def`. */
+function questGame(def: QuestDef, level: number, weapon: string, cycle: number) {
+  const s = newGame(content, { seed: 77, now: 0 });
+  applyCommand(s, content, { type: 'admitAll' });
+  s.nextIncidentAt = 1e12;
+  s.nextWandererAt = 1e12;
+  s.resources.medpatch = 10;
+  s.peakPopulation = 100;
+  s.legacy.cycle = cycle;
+  s.rooms.push({ id: s.nextId++, type: 'office', floor: 0, x: 13, segments: 1, level: 1, pool: 0, ready: false, powered: true, timer: 0, job: null, banked: 0 });
+  const party = s.residents.slice(0, 3);
+  for (const r of party) {
+    r.level = level;
+    r.maxHp = r.hp = 105 + 8 * level;
+    r.weapon = weapon;
+  }
+  s.questsDone = [...def.requires.quests];
+  return { s, party };
+}
+
+describe('Act 2', () => {
+  const line = qc.questlines.find((l) => l.id === 'act2')!;
+  const act2 = qc.quests.filter((q) => q.line === 'act2').sort((a, b) => a.order - b.order);
+
+  it('the questline lists 7-8 quests in order, each requiring the one before, ending in act2_finale', () => {
+    expect(line).toBeDefined();
+    expect(line.quests).toEqual(act2.map((q) => q.id));
+    expect(act2.length).toBeGreaterThanOrEqual(7);
+    expect(act2.length).toBeLessThanOrEqual(8);
+    expect(line.quests[line.quests.length - 1]).toBe('act2_finale');
+    // Act 2 follows on from Act 1, whose progress carries over to the new homestead.
+    act2.forEach((q, i) => expect(q.requires.quests, q.id).toEqual([i ? act2[i - 1]!.id : 'act1_6']));
+    for (let i = 1; i < act2.length; i++) expect(act2[i]!.level, act2[i]!.id).toBeGreaterThan(act2[i - 1]!.level);
+    expect(act2[0]!.level).toBeGreaterThanOrEqual(10);
+    expect(act2[act2.length - 1]!.level).toBeLessThanOrEqual(22);
+    for (const q of act2) {
+      expect(q.requires.cycle, q.id).toBe(2);
+      expect(q.requires.population, q.id).toBeGreaterThanOrEqual(30);
+      expect(q.requires.population, q.id).toBeLessThanOrEqual(80);
+    }
+  });
+
+  it('only opens in a second homestead', () => {
+    const def = act2[0]!;
+    expect(questLocked(questGame(def, 12, 'coilgun', 1).s, content, def)).toMatch(/newly founded/);
+    expect(questLocked(questGame(def, 12, 'coilgun', 2).s, content, def)).toBeNull();
+  });
+
+  it('unlocks the Glass Flats, and pays reputation both ways', () => {
+    expect(act2.some((q) => q.rewards.regions?.includes('glassflats'))).toBe(true);
+    const deltas = act2.flatMap((q) => Object.values(q.rewards.rep ?? {}));
+    expect(deltas.some((n) => n > 0)).toBe(true);
+    expect(deltas.some((n) => n < 0)).toBe(true);
+    expect(act2.filter((q) => q.rewards.rep).length).toBeGreaterThanOrEqual(act2.length - 1);
+  });
+
+  it('events offer choices that favour one faction over another', () => {
+    const choices = Object.values(qc.events).filter((ev) =>
+      ev.options.some((o) => {
+        const rep = Object.values({ ...o.success.reward?.rep });
+        return rep.some((n) => n > 0) && rep.some((n) => n < 0);
+      }),
+    );
+    expect(choices.length).toBeGreaterThanOrEqual(5);
+    for (const q of act2) expect(q.map.rooms.some((r) => r.kind === 'event'), q.id).toBe(true);
+  });
+
+  it('ends with a boss that has at least two telegraphed mechanics and a legendary drop', () => {
+    const finale = qc.quests.find((q) => q.id === 'act2_finale')!;
+    const room = finale.map.rooms.find((r) => r.objective)!;
+    expect(room.kind).toBe('boss');
+    const boss = (room.enemies ?? []).map((id) => qc.enemies[id]!).find((e) => e.boss)!;
+    expect(boss).toBeDefined();
+    expect(new Set(boss.abilities?.map((a) => a.effect)).size).toBeGreaterThanOrEqual(2);
+    expect(Object.keys(boss.drop?.fragments ?? {}).some((id) => content.items[id]?.rarity === 'legendary')).toBe(true);
+  });
+
+  it('a strong party (level 24, rare weapons) finishes every Act 2 quest', () => {
+    for (const def of act2) {
+      const { s, party } = questGame(def, 24, 'coilgun', 2);
+      const res = applyCommand(s, content, { type: 'startQuest', questId: def.id, residentIds: party.map((r) => r.id), medpatch: 5 });
+      expect(res, def.id).toEqual({ ok: true });
+      const q = s.quests[0]!;
+      advance(s, content, q.travelTotal + 1);
+      playQuest(s, content, q.id);
+      expect(q.outcome, def.id).toBe('success');
+      expect(q.rooms.every((r) => r.visited), `${def.id} fully explored`).toBe(true);
+      advance(s, content, q.travelTotal + 1);
+      expect(applyCommand(s, content, { type: 'collectQuest', questId: q.id }).ok).toBe(true);
+      expect(s.questsDone).toContain(def.id);
+      for (const region of def.rewards.regions ?? []) expect(s.regionsUnlocked).toContain(region);
+    }
+  });
+});
+
+describe('factions', () => {
+  it('every faction id used by quests, events and contracts is one of the five', () => {
+    for (const { where, r } of rewards()) for (const id of Object.keys(r.rep ?? {})) expect(FACTIONS, `${where} rep ${id}`).toContain(id);
+    for (const q of qc.quests) if (q.requires.rep) expect(FACTIONS, `${q.id} requires`).toContain(q.requires.rep.faction);
+    for (const c of qc.contracts) if (c.faction) expect(FACTIONS, `${c.id} faction`).toContain(c.faction);
+  });
+
+  it('every faction posts at least one contract, paying reputation and Influence', () => {
+    const posted = qc.contracts.filter((c) => c.faction);
+    expect(posted.length).toBeGreaterThanOrEqual(5);
+    for (const f of FACTIONS) expect(posted.some((c) => c.faction === f), f).toBe(true);
+    for (const c of posted) {
+      expect(c.rep ?? 0, c.id).toBeGreaterThan(0);
+      expect(c.influence ?? 0, c.id).toBeGreaterThan(0);
+    }
+  });
+
+  it('a faction contract puts its reputation and Influence in the bounty', () => {
+    const s = newGame(content, { seed: 5, now: 0 });
+    applyCommand(s, content, { type: 'admitAll' });
+    const tpl = qc.contracts.find((c) => c.faction)!;
+    for (let i = 0; i < 50 && !s.contracts.offers.some((o) => o.templateId === tpl.id); i++) refreshContracts(s, content);
+    const offer = s.contracts.offers.find((o) => o.templateId === tpl.id)!;
+    expect(offer).toBeDefined();
+    expect(offer.bounty.rep).toEqual({ [tpl.faction!]: tpl.rep });
+    expect(offer.bounty.influence).toBe(tpl.influence);
+  });
+});
+
+describe('the Glass Flats', () => {
+  const region = regionDef(content, 'glassflats')!;
+  const dustbowl = regionDef(content, 'dustbowl')!;
+
+  it('is harsher than the Dustbowl, with enough to find', () => {
+    expect(region).toBeDefined();
+    expect(region.danger).toBeGreaterThan(dustbowl.danger);
+    expect(region.enemies.length).toBeGreaterThanOrEqual(12);
+    expect(region.locations.length).toBeGreaterThanOrEqual(10);
+    expect(region.npcs.length).toBeGreaterThanOrEqual(8);
+    expect(region.salvage.length).toBeGreaterThanOrEqual(8);
+    const musings = (region as unknown as { musings?: string[] }).musings ?? [];
+    expect(musings.length).toBeGreaterThanOrEqual(40);
+    expect(new Set(musings).size).toBe(musings.length);
+    const top = (xs: { difficulty: number }[]) => Math.max(...xs.map((x) => x.difficulty));
+    expect(top(region.enemies)).toBeGreaterThan(top(dustbowl.enemies));
+  });
+
+  it('has lines for everything, real materials and unique ids', () => {
+    for (const foe of region.enemies) {
+      expect(foe.encounter.length && foe.win.length && foe.retreat.length, foe.id).toBeTruthy();
+      expect(foe.maxMinute === null || foe.maxMinute > foe.minMinute, foe.id).toBe(true);
+      expect(STAT_KEYS).toContain(foe.stat);
+      for (const m of foe.drop?.materials ?? []) expect(MATERIALS, `${foe.id} drop`).toContain(m);
+    }
+    for (const ev of [...region.locations, ...region.npcs, ...region.salvage]) {
+      expect(ev.text && ev.win && ev.fail, ev.id).toBeTruthy();
+      expect(STAT_KEYS).toContain(ev.stat);
+      for (const m of ev.reward.salvage?.materials ?? []) expect(MATERIALS, `${ev.id} reward`).toContain(m);
+    }
+    for (const ev of region.salvage) expect(ev.reward.salvage, ev.id).toBeDefined();
+    const ids = [...region.enemies, ...region.locations, ...region.npcs, ...region.salvage].map((x) => x.id);
+    expect(new Set(ids).size).toBe(ids.length);
+  });
+
+  it('carries faction flavour and uses only our own names', () => {
+    const text = JSON.stringify(region);
+    for (const word of ['Long Road', 'Lamplighter', 'Scrapwright', 'clan', 'Homestead 9']) expect(text, word).toContain(word);
+    const banned = /fallout|vault|nuka|pip-?boy|deathclaw|radroach|mole ?rat|overseer|brahmin|mirelurk|enclave|brotherhood|super mutant|ghoul|bottle ?caps?\b|stimpak|rad-?away/i;
+    expect(text.match(banned)?.[0] ?? null).toBeNull();
+  });
+});
+
 describe('contracts and events', () => {
   it('has enough variety', () => {
-    expect(Object.keys(qc.enemies).length).toBeGreaterThanOrEqual(12);
-    expect(Object.keys(qc.events).length).toBeGreaterThanOrEqual(15);
-    expect(qc.contracts.length).toBeGreaterThanOrEqual(6);
+    // Act 1 set 12 enemies, 15 events and 6 contracts; Act 2 adds at least 10, 10 and 5.
+    expect(Object.keys(qc.enemies).length).toBeGreaterThanOrEqual(22);
+    expect(Object.keys(qc.events).length).toBeGreaterThanOrEqual(25);
+    expect(qc.contracts.length).toBeGreaterThanOrEqual(11);
     const stats = new Set(Object.values(qc.events).flatMap((e) => e.options.map((o) => o.stat).filter(Boolean)));
     for (const k of STAT_KEYS) expect(stats, `an event checks ${k}`).toContain(k);
     const looks = new Set(Object.values(qc.enemies).map((e) => e.look));
@@ -298,8 +471,9 @@ describe('achievements and writing', () => {
   it('quest achievements use real counters, and every achievement id is unique', () => {
     const own = (questsJson as { achievements: { id: string; stat: string; tier: string; target: number }[] }).achievements;
     expect(own.length).toBeGreaterThanOrEqual(12);
+    const glassFoes = (regionDef(content, 'glassflats')?.enemies ?? []).map((e) => `slain.${e.id}`);
     for (const a of own) {
-      expect(COUNTERS, a.id).toContain(a.stat);
+      expect([...COUNTERS, ...glassFoes], a.id).toContain(a.stat);
       expect(['bronze', 'silver', 'gold']).toContain(a.tier);
       expect(a.target).toBeGreaterThan(0);
     }
