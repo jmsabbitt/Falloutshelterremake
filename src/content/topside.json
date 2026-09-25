@@ -1,12 +1,115 @@
 {
-  "_comment": "Topside: surface buildings (rooms with \"topside\": true on floor -1 in rooms.json) and weather. Typed in src/sim/systems/weather.ts; see docs/design/M7-spec.md.",
+  "_comment": "Topside: surface buildings (rooms with \"topside\": true on floor -1 in rooms.json) and weather. Typed in src/sim/systems/weather.ts; see docs/design/M7-spec.md. weather.kinds[k].production is the default multiplier for topside rooms; buildings[type][kind] overrides it per building. Penalties (multipliers below 1) shrink by the weatherproofing bonus; topsideOutput adds on top. Storm taint is per minute for anyone in a topside room, online only, cut by stormShielding plus the best staffed watchtower's shelter share, and never pushes taint past storm.taintCap x max HP. Watchtowers: each staffed tower gives its level's share, scaled by crew Sight / sightForFull (at most 1); shares from several towers add up to the caps.",
   "weather": {
     "kinds": {
-      "clear": { "name": "Clear skies", "weight": 5, "minutes": [40, 90], "production": 1 },
-      "dust": { "name": "Dust storm", "weight": 2, "minutes": [15, 40], "production": 0.6 },
-      "taintstorm": { "name": "Taint storm", "weight": 1, "minutes": [10, 25], "production": 0.8, "taintPerMin": 0.6 },
-      "heatwave": { "name": "Heatwave", "weight": 1, "minutes": [20, 45], "production": 1.1 }
+      "clear": {
+        "name": "Clear skies",
+        "description": "Sunshine, a light breeze and a Glare index of 'mild'. Halcyon Meteorology recommends a picnic, at your own risk.",
+        "weight": 5,
+        "minutes": [40, 90],
+        "production": 1
+      },
+      "dust": {
+        "name": "Dust storm",
+        "description": "A wall of grit off the Glarelands. Solar panels sulk, crops choke, and the turbines have the time of their lives.",
+        "weight": 2,
+        "minutes": [15, 40],
+        "production": 0.6
+      },
+      "taintstorm": {
+        "name": "Taint storm",
+        "description": "Green rain and a sky that hums. Anyone working topside soaks up Glare. Please remember your complimentary poncho.",
+        "weight": 1,
+        "minutes": [10, 25],
+        "production": 0.8,
+        "taintPerMin": 0.8
+      },
+      "heatwave": {
+        "name": "Heatwave",
+        "description": "The sun has been promoted. Solar output soars; everything wet or green would like a word with management.",
+        "weight": 1,
+        "minutes": [20, 45],
+        "production": 1.1
+      }
     }
   },
-  "achievements": []
+  "buildings": {
+    "solar_array": { "clear": 1, "dust": 0.35, "taintstorm": 0.6, "heatwave": 1.4 },
+    "wind_turbine": { "clear": 1, "dust": 1.1, "taintstorm": 1, "heatwave": 0.85 },
+    "rain_catcher": { "clear": 1, "dust": 0.5, "taintstorm": 1.15, "heatwave": 0.6 },
+    "farm_plots": { "clear": 1, "dust": 0.6, "taintstorm": 0.7, "heatwave": 0.85 }
+  },
+  "storm": {
+    "taintCap": 0.5,
+    "maxShielding": 0.9
+  },
+  "watchtower": {
+    "sightForFull": 10,
+    "doorShare": [0.15, 0.22, 0.3],
+    "damageShare": [0.1, 0.15, 0.2],
+    "warnSeconds": [20, 35, 50],
+    "stormShelter": [0.2, 0.3, 0.4],
+    "maxDoorShare": 0.5,
+    "maxDamageShare": 0.35,
+    "maxWarnSeconds": 90
+  },
+  "achievements": [
+    {
+      "id": "topside_first",
+      "name": "Room With a View",
+      "description": "Build your first surface building. Mind the sky.",
+      "tier": "bronze",
+      "stat": "topsideBuildings",
+      "target": 1
+    },
+    {
+      "id": "topside_sprawl",
+      "name": "Suburban Sprawl",
+      "description": "Have 8 surface buildings at once.",
+      "tier": "silver",
+      "stat": "topsideBuildings",
+      "target": 8
+    },
+    {
+      "id": "weather_watcher",
+      "name": "Small Talk",
+      "description": "See the weather change 25 times. Lovely weather we're having, whatever it is.",
+      "tier": "bronze",
+      "stat": "weatherChanges",
+      "target": 25
+    },
+    {
+      "id": "storms_weathered",
+      "name": "Umbrella Policy",
+      "description": "Ride out 10 taint storms with buildings topside.",
+      "tier": "silver",
+      "stat": "stormsWeathered",
+      "target": 10
+    },
+    {
+      "id": "storm_taint",
+      "name": "Hardy Perennials",
+      "description": "Topside workers absorb 100 Glare from taint storms. Halcyon thanks them for their service.",
+      "tier": "bronze",
+      "stat": "stormTaint",
+      "target": 100,
+      "hidden": true
+    },
+    {
+      "id": "watchtower_3",
+      "name": "Eyes on the Horizon",
+      "description": "Staff a Sentinel Spire (a level 3 Watchtower).",
+      "tier": "silver",
+      "stat": "watchtowerLevel",
+      "target": 3
+    },
+    {
+      "id": "research_topside",
+      "name": "Fair-Weather Friend",
+      "description": "Complete every Topside project in one homestead.",
+      "tier": "gold",
+      "stat": "researchDoneHomestead.topside",
+      "target": 6
+    }
+  ]
 }

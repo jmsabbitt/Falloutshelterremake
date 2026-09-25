@@ -8,7 +8,8 @@
     {"id": "defense", "name": "Defense", "description": "Tougher doors, steadier nerves and fewer trips to the Clinic."},
     {"id": "automation", "name": "Automation", "description": "The homestead looks after itself, so the Warden can look after the homestead."},
     {"id": "expeditions", "name": "Expeditions", "description": "Further, safer and richer trips into the Glarelands."},
-    {"id": "deep", "name": "Deep Works", "description": "Surveys, taps and farms below the twenty-five charter floors."}
+    {"id": "deep", "name": "Deep Works", "description": "Surveys, taps and farms below the twenty-five charter floors."},
+    {"id": "topside", "name": "Topside", "description": "Buildings, weather and neighbours on the surface, where the Glare lives."}
   ],
   "nodes": [
     {"id": "dynamo_tuning", "branch": "industry", "tier": 1, "name": "Dynamo Tuning", "description": "Generators produce 10% more power. The procedure is one firm tap with the regulation wrench, in the regulation spot.", "cost": 45, "requires": [], "effects": [{"effect": "productionPower", "value": 0.1}]},
@@ -56,13 +57,19 @@
     {"id": "pneumatic_drills", "branch": "deep", "tier": 3, "name": "Pneumatic Drills", "description": "Excavation runs 25% faster. Louder, too, but the rock was never going to complain.", "cost": 2500, "requires": ["deep_survey_2"], "effects": [{"effect": "digSpeed", "value": 0.25}]},
     {"id": "deep_survey_3", "branch": "deep", "tier": 3, "name": "Third Stratum Survey", "description": "Opens excavation of the third stratum. The old Halcyon plans stop here and start again, in a different hand, forty metres lower.", "cost": 3000, "requires": ["deep_survey_2"]},
     {"id": "ore_refining", "branch": "deep", "tier": 3, "name": "Ore Refining", "description": "Unlocks the Ore Refinery, a deep room that turns Knack and raw rock into steel, circuitry and the occasional surprise.", "cost": 3200, "requires": ["deep_survey_2"], "unlocks": {"rooms": ["refinery"]}},
-    {"id": "deep_survey_4", "branch": "deep", "tier": 4, "name": "Fourth Stratum Survey", "description": "Opens excavation of the fourth stratum. Every copy of the old plans has this page removed. Halcyon regrets any inconvenience.", "cost": 14000, "requires": ["deep_survey_3"]}
+    {"id": "deep_survey_4", "branch": "deep", "tier": 4, "name": "Fourth Stratum Survey", "description": "Opens excavation of the fourth stratum. Every copy of the old plans has this page removed. Halcyon regrets any inconvenience.", "cost": 14000, "requires": ["deep_survey_3"]},
+    {"id": "topside_survey", "branch": "topside", "tier": 1, "name": "Topside Survey", "description": "Unlocks surface buildings above the door: solar, wind, rain, farms, a watchtower, a trading post and a signal mast. The survey team came back. Most of them came back.", "cost": 70, "requires": [], "unlocks": {"rooms": ["solar_array", "wind_turbine", "rain_catcher", "farm_plots", "watchtower", "trading_post", "signal_mast"]}},
+    {"id": "weather_seals", "branch": "topside", "tier": 2, "name": "Weather Seals", "description": "Surface buildings lose 40% less output to bad weather. Rubber gaskets, a stiff upper lip and plenty of Halcyon Brand Sealant.", "cost": 560, "requires": ["topside_survey"], "effects": [{"effect": "weatherproofing", "value": 0.4}]},
+    {"id": "glare_awnings", "branch": "topside", "tier": 2, "name": "Glare Awnings", "description": "Residents working topside take 40% less Glare from taint storms. Striped canvas, lead-lined, in a cheerful seaside pattern.", "cost": 600, "requires": ["topside_survey"], "effects": [{"effect": "stormShielding", "value": 0.4}]},
+    {"id": "signal_booster", "branch": "topside", "tier": 3, "name": "Signal Booster", "description": "The Signal Mast reaches one level further, so neighbours hear you sooner. Whether they like what they hear is a matter for the Charm department.", "cost": 2800, "requires": ["weather_seals"], "effects": [{"effect": "signalRange", "value": 1}]},
+    {"id": "storm_drills", "branch": "topside", "tier": 3, "name": "Storm Drills", "description": "Taint storms hurt topside workers 35% less and bad weather costs 30% less output. Residents learn to run for the hatch in under nine seconds, singing.", "cost": 3000, "requires": ["weather_seals", "glare_awnings"], "effects": [{"effect": "stormShielding", "value": 0.35}, {"effect": "weatherproofing", "value": 0.3}]},
+    {"id": "heliotropic_mounts", "branch": "topside", "tier": 3, "name": "Heliotropic Mounts", "description": "Surface production buildings make 15% more. Every panel, blade and turnip now faces the sun, like a good employee.", "cost": 3200, "requires": ["weather_seals"], "effects": [{"effect": "topsideOutput", "value": 0.15}]}
   ],
   "achievements": [
     {"id": "research_first", "name": "Peer Reviewed", "description": "Complete your first research.", "tier": "bronze", "stat": "researchDone", "target": 1},
     {"id": "research_10", "name": "Continuing Education", "description": "Complete 10 research projects.", "tier": "silver", "stat": "researchDone", "target": 10},
     {"id": "research_25", "name": "Tenure Track", "description": "Complete 25 research projects.", "tier": "silver", "stat": "researchDone", "target": 25},
-    {"id": "research_all", "name": "Halcyon Fellowship", "description": "Complete all 46 research projects in one homestead.", "tier": "gold", "stat": "researchDoneHomestead", "target": 46},
+    {"id": "research_all", "name": "Halcyon Fellowship", "description": "Complete all 52 research projects in one homestead.", "tier": "gold", "stat": "researchDoneHomestead", "target": 52},
     {"id": "research_tier4", "name": "Blue-Sky Thinking", "description": "Complete a tier 4 research project.", "tier": "gold", "stat": "researchTier4", "target": 1},
     {"id": "research_points", "name": "Brain Trust", "description": "Produce 25,000 research points.", "tier": "silver", "stat": "researchPoints", "target": 25000},
     {"id": "research_deep", "name": "Deep Works Diploma", "description": "Complete every Deep Works project in one homestead.", "tier": "gold", "stat": "researchDoneHomestead.deep", "target": 8},

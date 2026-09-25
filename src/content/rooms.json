@@ -829,5 +829,281 @@
         ]
       ]
     }
+  },
+  {
+    "id": "solar_array",
+    "name": "Solar Array",
+    "levelNames": [
+      "Solar Array",
+      "Sunfield",
+      "Heliostat Farm"
+    ],
+    "category": "production",
+    "stat": "sight",
+    "unlockPop": 30,
+    "buildable": true,
+    "requiresResearch": "topside_survey",
+    "topside": true,
+    "cost": {
+      "base": 1500,
+      "perBuilt": 300
+    },
+    "upgrade": [
+      3500,
+      10500
+    ],
+    "cells": 3,
+    "maxSegments": 3,
+    "capacityPerSegment": 2,
+    "usesPower": false,
+    "produces": {
+      "resource": "power",
+      "poolBase": 1320,
+      "output": [
+        [
+          13,
+          28,
+          57
+        ],
+        [
+          16,
+          33,
+          68
+        ],
+        [
+          20,
+          41,
+          86
+        ]
+      ]
+    }
+  },
+  {
+    "id": "wind_turbine",
+    "name": "Wind Turbine",
+    "levelNames": [
+      "Wind Turbine",
+      "Wind Farm",
+      "Gale Works"
+    ],
+    "category": "production",
+    "stat": "brawn",
+    "unlockPop": 30,
+    "buildable": true,
+    "requiresResearch": "topside_survey",
+    "topside": true,
+    "cost": {
+      "base": 1500,
+      "perBuilt": 300
+    },
+    "upgrade": [
+      3500,
+      10500
+    ],
+    "cells": 3,
+    "maxSegments": 3,
+    "capacityPerSegment": 2,
+    "usesPower": false,
+    "produces": {
+      "resource": "power",
+      "poolBase": 1320,
+      "output": [
+        [
+          12,
+          25,
+          53
+        ],
+        [
+          14,
+          30,
+          62
+        ],
+        [
+          18,
+          37,
+          79
+        ]
+      ]
+    }
+  },
+  {
+    "id": "rain_catcher",
+    "name": "Rain Catcher",
+    "levelNames": [
+      "Rain Catcher",
+      "Dew Harvester",
+      "Cloud Cistern"
+    ],
+    "category": "production",
+    "stat": "wits",
+    "unlockPop": 30,
+    "buildable": true,
+    "requiresResearch": "topside_survey",
+    "topside": true,
+    "cost": {
+      "base": 1500,
+      "perBuilt": 300
+    },
+    "upgrade": [
+      3500,
+      10500
+    ],
+    "cells": 3,
+    "maxSegments": 3,
+    "capacityPerSegment": 2,
+    "usesPower": false,
+    "produces": {
+      "resource": "water",
+      "poolBase": 960,
+      "output": [
+        [
+          10,
+          23,
+          36
+        ],
+        [
+          13,
+          29,
+          44
+        ],
+        [
+          16,
+          34,
+          52
+        ]
+      ]
+    }
+  },
+  {
+    "id": "farm_plots",
+    "name": "Farm Plots",
+    "levelNames": [
+      "Farm Plots",
+      "Victory Garden",
+      "Agricultural Showcase"
+    ],
+    "category": "production",
+    "stat": "knack",
+    "unlockPop": 30,
+    "buildable": true,
+    "requiresResearch": "topside_survey",
+    "topside": true,
+    "cost": {
+      "base": 1500,
+      "perBuilt": 300
+    },
+    "upgrade": [
+      3500,
+      10500
+    ],
+    "cells": 3,
+    "maxSegments": 3,
+    "capacityPerSegment": 2,
+    "usesPower": false,
+    "produces": {
+      "resource": "food",
+      "poolBase": 960,
+      "output": [
+        [
+          10,
+          23,
+          36
+        ],
+        [
+          13,
+          29,
+          44
+        ],
+        [
+          16,
+          34,
+          52
+        ]
+      ]
+    }
+  },
+  {
+    "id": "watchtower",
+    "name": "Watchtower",
+    "levelNames": [
+      "Watchtower",
+      "Lookout Post",
+      "Sentinel Spire"
+    ],
+    "category": "production",
+    "stat": "sight",
+    "unlockPop": 30,
+    "buildable": true,
+    "requiresResearch": "topside_survey",
+    "topside": true,
+    "maxBuilt": 2,
+    "cost": {
+      "base": 1200,
+      "perBuilt": 600
+    },
+    "upgrade": [
+      3000,
+      9000
+    ],
+    "cells": 3,
+    "maxSegments": 1,
+    "capacityPerSegment": 2,
+    "usesPower": false
+  },
+  {
+    "id": "trading_post",
+    "name": "Trading Post",
+    "levelNames": [
+      "Trading Post",
+      "Trade Depot",
+      "Mercantile Exchange"
+    ],
+    "category": "production",
+    "stat": "charm",
+    "unlockPop": 30,
+    "buildable": true,
+    "requiresResearch": "topside_survey",
+    "topside": true,
+    "maxBuilt": 1,
+    "cost": {
+      "base": 2000,
+      "perBuilt": 0
+    },
+    "upgrade": [
+      5000,
+      15000
+    ],
+    "cells": 6,
+    "maxSegments": 1,
+    "capacityPerSegment": 3,
+    "usesPower": false
+  },
+  {
+    "id": "signal_mast",
+    "name": "Signal Mast",
+    "levelNames": [
+      "Signal Mast",
+      "Relay Mast",
+      "Long-Range Array"
+    ],
+    "category": "production",
+    "stat": "charm",
+    "unlockPop": 30,
+    "buildable": true,
+    "requiresResearch": "topside_survey",
+    "topside": true,
+    "maxBuilt": 1,
+    "cost": {
+      "base": 1500,
+      "perBuilt": 0
+    },
+    "upgrade": [
+      4000,
+      12000
+    ],
+    "cells": 3,
+    "maxSegments": 1,
+    "capacityPerSegment": 2,
+    "usesPower": true
   }
 ]
