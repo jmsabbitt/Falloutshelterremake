@@ -750,55 +750,87 @@
       "quicksilver_suit": "items/quicksilver_suit.webp"
     },
     "room_aquifer": {
-      "1": "rooms/room_aquifer_1.webp"
+      "1": "rooms/room_aquifer_1.webp",
+      "2": "rooms/room_aquifer_2.webp",
+      "3": "rooms/room_aquifer_3.webp"
     },
     "room_canteen": {
-      "1": "rooms/room_canteen_1.webp"
+      "1": "rooms/room_canteen_1.webp",
+      "2": "rooms/room_canteen_2.webp",
+      "3": "rooms/room_canteen_3.webp"
     },
     "room_clinic": {
-      "1": "rooms/room_clinic_1.webp"
+      "1": "rooms/room_clinic_1.webp",
+      "2": "rooms/room_clinic_2.webp",
+      "3": "rooms/room_clinic_3.webp"
     },
     "room_door": {
       "1": "rooms/room_door_1.webp"
     },
     "room_fungalfarm": {
-      "1": "rooms/room_fungalfarm_1.webp"
+      "1": "rooms/room_fungalfarm_1.webp",
+      "2": "rooms/room_fungalfarm_2.webp",
+      "3": "rooms/room_fungalfarm_3.webp"
     },
     "room_generator": {
-      "1": "rooms/room_generator_1.webp"
+      "1": "rooms/room_generator_1.webp",
+      "2": "rooms/room_generator_2.webp",
+      "3": "rooms/room_generator_3.webp"
     },
     "room_geothermal": {
-      "1": "rooms/room_geothermal_1.webp"
+      "1": "rooms/room_geothermal_1.webp",
+      "2": "rooms/room_geothermal_2.webp",
+      "3": "rooms/room_geothermal_3.webp"
     },
     "room_lab": {
-      "1": "rooms/room_lab_1.webp"
+      "1": "rooms/room_lab_1.webp",
+      "2": "rooms/room_lab_2.webp",
+      "3": "rooms/room_lab_3.webp"
     },
     "room_office": {
-      "1": "rooms/room_office_1.webp"
+      "1": "rooms/room_office_1.webp",
+      "2": "rooms/room_office_2.webp",
+      "3": "rooms/room_office_3.webp"
     },
     "room_outfitshop": {
-      "1": "rooms/room_outfitshop_1.webp"
+      "1": "rooms/room_outfitshop_1.webp",
+      "2": "rooms/room_outfitshop_2.webp",
+      "3": "rooms/room_outfitshop_3.webp"
     },
     "room_purgelab": {
-      "1": "rooms/room_purgelab_1.webp"
+      "1": "rooms/room_purgelab_1.webp",
+      "2": "rooms/room_purgelab_2.webp",
+      "3": "rooms/room_purgelab_3.webp"
     },
     "room_quarters": {
-      "1": "rooms/room_quarters_1.webp"
+      "1": "rooms/room_quarters_1.webp",
+      "2": "rooms/room_quarters_2.webp",
+      "3": "rooms/room_quarters_3.webp"
     },
     "room_radio": {
-      "1": "rooms/room_radio_1.webp"
+      "1": "rooms/room_radio_1.webp",
+      "2": "rooms/room_radio_2.webp",
+      "3": "rooms/room_radio_3.webp"
     },
     "room_refinery": {
-      "1": "rooms/room_refinery_1.webp"
+      "1": "rooms/room_refinery_1.webp",
+      "2": "rooms/room_refinery_2.webp",
+      "3": "rooms/room_refinery_3.webp"
     },
     "room_storeroom": {
-      "1": "rooms/room_storeroom_1.webp"
+      "1": "rooms/room_storeroom_1.webp",
+      "2": "rooms/room_storeroom_2.webp",
+      "3": "rooms/room_storeroom_3.webp"
     },
     "room_waterworks": {
-      "1": "rooms/room_waterworks_1.webp"
+      "1": "rooms/room_waterworks_1.webp",
+      "2": "rooms/room_waterworks_2.webp",
+      "3": "rooms/room_waterworks_3.webp"
     },
     "room_weaponshop": {
-      "1": "rooms/room_weaponshop_1.webp"
+      "1": "rooms/room_weaponshop_1.webp",
+      "2": "rooms/room_weaponshop_2.webp",
+      "3": "rooms/room_weaponshop_3.webp"
     },
     "salvage": {
       "vacuum_tube": "items/vacuum_tube.webp",

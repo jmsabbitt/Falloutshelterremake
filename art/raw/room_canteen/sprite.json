@@ -12,6 +12,20 @@
       "names": [
         "1"
       ]
+    },
+    "2": {
+      "file": "level2.png",
+      "whole": true,
+      "names": [
+        "2"
+      ]
+    },
+    "3": {
+      "file": "level3.png",
+      "whole": true,
+      "names": [
+        "3"
+      ]
     }
   }
 }
