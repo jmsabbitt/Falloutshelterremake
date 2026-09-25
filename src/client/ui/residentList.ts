@@ -88,6 +88,8 @@ export class ResidentList {
   bulk = false;
   picked = new Set<number>();
   private scrollQueued = false;
+  /** M9: a section shown above the controls (the Legends strip, from ui/legends.ts). */
+  extra: (() => HTMLElement | null) | null = null;
 
   constructor(private host: ResidentListHost) {}
 
@@ -304,6 +306,7 @@ export class ResidentList {
       'div',
       { class: 'body rl-body', onscroll: () => this.onScroll() },
       top,
+      this.bulk ? null : (this.extra?.() ?? null),
       controls,
       chips,
       this.bulk ? this.bulkBar(rows) : null,
@@ -423,7 +426,11 @@ export class ResidentList {
         h(
           'span',
           { class: 'rl-name' },
-          r.rarity !== 'common' ? h('span', { class: `rarity ${r.rarity}` }, r.rarity === 'legendary' ? '★ ' : '◆ ') : null,
+          r.legendary
+            ? h('span', { class: 'legend-badge', title: 'Legendary resident' }, '★')
+            : r.rarity !== 'common'
+              ? h('span', { class: `rarity ${r.rarity}` }, r.rarity === 'legendary' ? '★ ' : '◆ ')
+              : null,
           `${r.firstName} ${r.lastName}`,
           tags ? h('span', { class: 'rl-tags' }, tags) : null,
         ),

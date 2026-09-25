@@ -9,6 +9,7 @@ import {
   effectiveMaxHp,
   effectiveStat,
   inCombat,
+  lootContent,
   questContent,
   questDef,
   type AbilityDef,
@@ -336,10 +337,20 @@ export class QuestScreen {
             h('span', {}, bossDef.name),
             h('div', { class: 'bar' }, h('div', { style: `width:${Math.max(0, (boss.hp / boss.maxHp) * 100).toFixed(1)}%` })),
             h('span', { class: 'num' }, `${Math.ceil(boss.hp)}/${boss.maxHp}`),
+            this.firstKillBadge(boss.defId),
           )
         : null,
       alert,
     );
+  }
+
+  /** M9: this boss still has its guaranteed first-kill drop. */
+  private firstKillBadge(defId: string): HTMLElement | null {
+    const { state, content } = this.game;
+    const drop = lootContent(content).bossFirstKill[defId];
+    if (!drop || state.loot?.bossKills?.includes(defId)) return null;
+    const item = content.items[drop];
+    return h('span', { class: 'qs-first-kill', title: `First kill pays ${item?.name ?? 'a trophy'} (on a successful quest)` }, `☠ First kill: ${item?.name ?? 'trophy'}`);
   }
 
   /** The most urgent wind-up, or a recent callout. */
