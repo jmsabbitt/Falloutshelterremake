@@ -253,7 +253,8 @@ describe('offline', () => {
     startMauler(s, content);
     catchUp(s, content, s.lastRealTime + 3600 * 1000);
     expect(s.stats['maulersEscaped']).toBe(1);
-    expect(s.maulerMeter).toBeGreaterThanOrEqual(maulerTuning(content).escapedResetTo);
+    // Reset to escapedResetTo when it left, then an hour's slow decay at most.
+    expect(s.maulerMeter).toBeGreaterThan(maulerTuning(content).escapedResetTo - 0.05);
   });
 });
 

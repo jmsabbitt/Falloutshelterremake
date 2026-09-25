@@ -299,7 +299,7 @@
       "perRadioPerHour": 0.01,
       "perDoorOpening": 0.003,
       "doorStats": ["expeditionsStarted", "expeditionsCompleted", "questsStarted", "caravansSent", "caravansReturned", "arrivals.radio", "arrivals.wanderer"],
-      "decayPerHour": 0.04,
+      "decayPerHour": 0.03,
       "researchCut": 1.5,
       "doorHpCut": 0.15,
       "towerCut": 0.15,
