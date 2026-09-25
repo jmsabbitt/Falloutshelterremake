@@ -1,1 +1,652 @@
-{ "_comment": "M9 rulesets and Custom Game presets (stream R). See systems/rulesets.ts.", "rulesets": [], "presets": [], "achievements": [] }
+{
+  "_comment": "M9 rulesets, Survival and Custom Game presets (stream R). Typed in src/sim/systems/rulesets.ts and custom.ts; see docs/design/M9-spec.md. A ruleset is chosen when founding a homestead and lasts for that homestead. legacyMult: harder rules pay more Legacy when that homestead founds the next one; rulesets add together (1.3 and 1.2 make 1.5) and then multiply the site's multiplier. unlock: { cycle: n } (founding from the n-th homestead or later), { achievement: id } or { quest: id }. mods: production/consumption/storage (per resource, multipliers), incidentRate, scripIncome, doorHp, raidWeight, explorerTaint (multipliers), happiness ({ value, exceptTraits }), populationCap. flags: noRadio, endlessNight, glassSky.",
+  "rulesets": [
+    {
+      "id": "famine",
+      "name": "Famine",
+      "blurb": "The crops are thin, the pantry is small and everyone is hungrier than they were. HALCY calls it 'portion awareness'.",
+      "legacyMult": 1.3,
+      "unlock": {
+        "cycle": 1
+      },
+      "mods": {
+        "production": {
+          "food": 0.7
+        },
+        "consumption": {
+          "food": 1.3
+        },
+        "storage": {
+          "food": 0.6
+        }
+      }
+    },
+    {
+      "id": "lean_times",
+      "name": "Lean Times",
+      "blurb": "Halcyon has revised its exchange rate. Every batch and bounty pays half the scrip it used to. The forms are free.",
+      "legacyMult": 1.2,
+      "unlock": {
+        "cycle": 1
+      },
+      "mods": {
+        "scripIncome": 0.5
+      }
+    },
+    {
+      "id": "brownout",
+      "name": "Brownout",
+      "blurb": "The turbines are second-hand and the wiring is third-hand. Generators make less, and the lights drink more.",
+      "legacyMult": 1.25,
+      "unlock": {
+        "cycle": 1
+      },
+      "mods": {
+        "production": {
+          "power": 0.75
+        },
+        "consumption": {
+          "power": 1.2
+        }
+      }
+    },
+    {
+      "id": "short_fuse",
+      "name": "Short Fuse",
+      "blurb": "Something about this site makes everything catch, crack or crawl. Incidents come far more often. The fire drills are mandatory.",
+      "legacyMult": 1.25,
+      "unlock": {
+        "achievement": "incidents_50"
+      },
+      "mods": {
+        "incidentRate": 1.75
+      }
+    },
+    {
+      "id": "no_radio",
+      "name": "No Radio",
+      "blurb": "The airwaves are dead and nobody wanders by. The founding party and their children are all the homestead will ever get.",
+      "legacyMult": 1.4,
+      "unlock": {
+        "cycle": 2
+      },
+      "flags": [
+        "noRadio"
+      ]
+    },
+    {
+      "id": "iron_door",
+      "name": "Iron Door",
+      "blurb": "The neighbours have heard about you. Raiders knock far more often, so Halcyon has sent a thicker door. Assembly is the resident's responsibility.",
+      "legacyMult": 1.4,
+      "unlock": {
+        "cycle": 2
+      },
+      "mods": {
+        "incidentRate": 1.25,
+        "raidWeight": 3,
+        "doorHp": 1.5
+      }
+    },
+    {
+      "id": "endless_night",
+      "name": "Endless Night",
+      "blurb": "The clocks are stuck on the night shift and HALCY has stopped arguing. Night Owls have never been happier. Everyone else has.",
+      "legacyMult": 1.3,
+      "unlock": {
+        "quest": "act2_finale"
+      },
+      "flags": [
+        "endlessNight"
+      ],
+      "mods": {
+        "happiness": {
+          "value": -12,
+          "exceptTraits": [
+            "night_owl"
+          ]
+        }
+      }
+    },
+    {
+      "id": "glass_sky",
+      "name": "Glass Sky",
+      "blurb": "The sky over this site never quite healed. Taint storms roll in and do not leave, explorers come home glowing, and the filters clog.",
+      "legacyMult": 1.35,
+      "unlock": {
+        "cycle": 3
+      },
+      "flags": [
+        "glassSky"
+      ],
+      "mods": {
+        "explorerTaint": 1.5,
+        "production": {
+          "water": 0.9
+        }
+      }
+    },
+    {
+      "id": "skeleton_crew",
+      "name": "Skeleton Crew",
+      "blurb": "The charter allows sixty residents and not one more. Everyone has more elbow room and works a little harder for it. The Charter milestone is lowered to match.",
+      "legacyMult": 1.5,
+      "unlock": {
+        "cycle": 3
+      },
+      "mods": {
+        "populationCap": 60,
+        "production": {
+          "power": 1.2,
+          "food": 1.2,
+          "water": 1.2,
+          "medpatch": 1.2,
+          "purge": 1.2
+        }
+      }
+    }
+  ],
+  "survival": {
+    "name": "Survival",
+    "blurb": "The fallen stay fallen. No revives, no second chances, no refunds. HALCY has prepared a very moving eulogy template.",
+    "legacyMult": 1.75,
+    "unlock": {
+      "cycle": 2
+    }
+  },
+  "presets": [
+    {
+      "id": "blank_slate",
+      "name": "Blank Slate",
+      "blurb": "The usual start, with a sandbox console and nobody keeping score.",
+      "options": {
+        "scrip": 5000
+      }
+    },
+    {
+      "id": "boomtown",
+      "name": "Boomtown",
+      "blurb": "Five residents in a homestead built for eighty. Every room is unlocked; filling them is your problem.",
+      "options": {
+        "scrip": 20000,
+        "population": 5,
+        "levelRange": [
+          5,
+          12
+        ],
+        "peakPopulation": 80,
+        "fillStorage": true,
+        "layout": [
+          {
+            "type": "quarters",
+            "floor": 0,
+            "segments": 3,
+            "level": 2
+          },
+          {
+            "type": "quarters",
+            "floor": 0,
+            "segments": 3,
+            "level": 2
+          },
+          {
+            "type": "generator",
+            "floor": 1,
+            "segments": 3,
+            "level": 2
+          },
+          {
+            "type": "canteen",
+            "floor": 1,
+            "segments": 3,
+            "level": 2
+          },
+          {
+            "type": "storeroom",
+            "floor": 1,
+            "segments": 2
+          },
+          {
+            "type": "waterworks",
+            "floor": 2,
+            "segments": 3,
+            "level": 2
+          },
+          {
+            "type": "clinic",
+            "floor": 2,
+            "segments": 2
+          },
+          {
+            "type": "purgelab",
+            "floor": 2,
+            "segments": 1
+          },
+          {
+            "type": "radio",
+            "floor": 3,
+            "segments": 2
+          },
+          {
+            "type": "office",
+            "floor": 3
+          },
+          {
+            "type": "weaponshop",
+            "floor": 4
+          },
+          {
+            "type": "lab",
+            "floor": 4,
+            "segments": 2
+          }
+        ]
+      }
+    },
+    {
+      "id": "deep_day_one",
+      "name": "The Deep from Day One",
+      "blurb": "Two strata already dug, the survey research done, and a very long elevator ride to work.",
+      "options": {
+        "scrip": 15000,
+        "population": 12,
+        "levelRange": [
+          8,
+          15
+        ],
+        "strata": 2,
+        "research": [
+          "deep_survey",
+          "deep_survey_2",
+          "deep_bracing",
+          "geothermal_taps",
+          "fungal_farming",
+          "ore_refining"
+        ],
+        "fillStorage": true,
+        "layout": [
+          {
+            "type": "quarters",
+            "floor": 0,
+            "segments": 3
+          },
+          {
+            "type": "generator",
+            "floor": 1,
+            "segments": 2
+          },
+          {
+            "type": "canteen",
+            "floor": 1,
+            "segments": 2
+          },
+          {
+            "type": "waterworks",
+            "floor": 2,
+            "segments": 2
+          },
+          {
+            "type": "geothermal",
+            "floor": 25,
+            "segments": 2
+          },
+          {
+            "type": "fungalfarm",
+            "floor": 26,
+            "segments": 2
+          },
+          {
+            "type": "aquifer",
+            "floor": 30,
+            "segments": 2
+          },
+          {
+            "type": "refinery",
+            "floor": 26,
+            "segments": 1
+          }
+        ]
+      }
+    },
+    {
+      "id": "ruined",
+      "name": "A Ruined Homestead",
+      "blurb": "Something went very wrong here. The rooms still stand, the stores are empty, and not everyone made it.",
+      "options": {
+        "scrip": 300,
+        "population": 14,
+        "fallen": 6,
+        "levelRange": [
+          3,
+          10
+        ],
+        "injured": true,
+        "peakPopulation": 40,
+        "resources": {
+          "power": 5,
+          "food": 8,
+          "water": 4,
+          "medpatch": 0,
+          "purge": 0
+        },
+        "layout": [
+          {
+            "type": "quarters",
+            "floor": 0,
+            "segments": 3
+          },
+          {
+            "type": "quarters",
+            "floor": 1,
+            "segments": 1
+          },
+          {
+            "type": "generator",
+            "floor": 1,
+            "segments": 2
+          },
+          {
+            "type": "canteen",
+            "floor": 2,
+            "segments": 2
+          },
+          {
+            "type": "waterworks",
+            "floor": 2,
+            "segments": 2
+          },
+          {
+            "type": "clinic",
+            "floor": 3,
+            "segments": 1
+          },
+          {
+            "type": "radio",
+            "floor": 3,
+            "segments": 1
+          },
+          {
+            "type": "storeroom",
+            "floor": 3,
+            "segments": 1
+          }
+        ]
+      }
+    },
+    {
+      "id": "all_rooms",
+      "name": "All Rooms, No People",
+      "blurb": "One of everything, topside to the Deep, fully staffed by nobody. The radio is on.",
+      "options": {
+        "scrip": 50000,
+        "population": 0,
+        "strata": 2,
+        "research": "all",
+        "regions": "all",
+        "peakPopulation": 200,
+        "layout": [
+          {
+            "type": "quarters",
+            "floor": 0,
+            "segments": 3
+          },
+          {
+            "type": "generator",
+            "floor": 1
+          },
+          {
+            "type": "canteen",
+            "floor": 1
+          },
+          {
+            "type": "waterworks",
+            "floor": 1
+          },
+          {
+            "type": "storeroom",
+            "floor": 1
+          },
+          {
+            "type": "clinic",
+            "floor": 2
+          },
+          {
+            "type": "purgelab",
+            "floor": 2
+          },
+          {
+            "type": "radio",
+            "floor": 2
+          },
+          {
+            "type": "lab",
+            "floor": 2
+          },
+          {
+            "type": "office",
+            "floor": 3
+          },
+          {
+            "type": "weaponshop",
+            "floor": 4
+          },
+          {
+            "type": "outfitshop",
+            "floor": 5
+          },
+          {
+            "type": "geothermal",
+            "floor": 25
+          },
+          {
+            "type": "fungalfarm",
+            "floor": 25
+          },
+          {
+            "type": "refinery",
+            "floor": 25
+          },
+          {
+            "type": "aquifer",
+            "floor": 30
+          },
+          {
+            "type": "solar_array",
+            "floor": -1
+          },
+          {
+            "type": "wind_turbine",
+            "floor": -1
+          },
+          {
+            "type": "rain_catcher",
+            "floor": -1
+          },
+          {
+            "type": "farm_plots",
+            "floor": -1
+          },
+          {
+            "type": "watchtower",
+            "floor": -1
+          },
+          {
+            "type": "signal_mast",
+            "floor": -1
+          },
+          {
+            "type": "trading_post",
+            "floor": -1
+          }
+        ]
+      }
+    },
+    {
+      "id": "old_hands",
+      "name": "Old Hands",
+      "blurb": "Thirty veterans, a full armoury budget and every region open. For people who want to skip to the quests.",
+      "options": {
+        "scrip": 40000,
+        "population": 30,
+        "levelRange": [
+          30,
+          50
+        ],
+        "rarity": "rare",
+        "regions": "all",
+        "peakPopulation": 30,
+        "fillStorage": true,
+        "crates": {
+          "standard": 5,
+          "rare": 3,
+          "legendary": 1
+        },
+        "items": [
+          "coilgun",
+          "scattergun"
+        ],
+        "layout": [
+          {
+            "type": "quarters",
+            "floor": 0,
+            "segments": 3,
+            "level": 3
+          },
+          {
+            "type": "quarters",
+            "floor": 0,
+            "segments": 3,
+            "level": 3
+          },
+          {
+            "type": "generator",
+            "floor": 1,
+            "segments": 3,
+            "level": 2
+          },
+          {
+            "type": "canteen",
+            "floor": 1,
+            "segments": 3,
+            "level": 2
+          },
+          {
+            "type": "waterworks",
+            "floor": 2,
+            "segments": 3,
+            "level": 2
+          },
+          {
+            "type": "clinic",
+            "floor": 2,
+            "segments": 2
+          },
+          {
+            "type": "office",
+            "floor": 3
+          },
+          {
+            "type": "storeroom",
+            "floor": 3,
+            "segments": 3
+          }
+        ]
+      }
+    },
+    {
+      "id": "hard_road",
+      "name": "The Hard Road",
+      "blurb": "Famine, Iron Door and Survival, all at once. A preview of what the Legacy screen will one day let you choose.",
+      "options": {
+        "rules": [
+          "famine",
+          "iron_door"
+        ],
+        "survival": true
+      }
+    }
+  ],
+  "achievements": [
+    {
+      "id": "rules_charter",
+      "name": "House Rules",
+      "description": "Reach a Charter milestone in a homestead founded under a ruleset or Survival.",
+      "tier": "bronze",
+      "stat": "chartersUnderRules",
+      "target": 1
+    },
+    {
+      "id": "rules_stacked",
+      "name": "Fine Print",
+      "description": "Found a homestead under three rulesets at once.",
+      "tier": "silver",
+      "stat": "rulesetsStacked",
+      "target": 3
+    },
+    {
+      "id": "rules_famine",
+      "name": "Belt Notches",
+      "description": "Reach a Charter milestone under Famine.",
+      "tier": "silver",
+      "stat": "charterUnder.famine",
+      "target": 1
+    },
+    {
+      "id": "rules_no_radio",
+      "name": "Word of Mouth",
+      "description": "Reach a Charter milestone under No Radio.",
+      "tier": "gold",
+      "stat": "charterUnder.no_radio",
+      "target": 1
+    },
+    {
+      "id": "rules_iron_door",
+      "name": "Knock Knock",
+      "description": "Reach a Charter milestone under Iron Door.",
+      "tier": "silver",
+      "stat": "charterUnder.iron_door",
+      "target": 1
+    },
+    {
+      "id": "rules_endless_night",
+      "name": "Nobody Sleeps",
+      "description": "Reach a Charter milestone under Endless Night.",
+      "tier": "silver",
+      "stat": "charterUnder.endless_night",
+      "target": 1
+    },
+    {
+      "id": "rules_glass_sky",
+      "name": "Sunburn",
+      "description": "Reach a Charter milestone under Glass Sky.",
+      "tier": "gold",
+      "stat": "charterUnder.glass_sky",
+      "target": 1
+    },
+    {
+      "id": "rules_skeleton_crew",
+      "name": "Sixty Souls",
+      "description": "Reach a Charter milestone under Skeleton Crew.",
+      "tier": "gold",
+      "stat": "charterUnder.skeleton_crew",
+      "target": 1
+    },
+    {
+      "id": "survival_100",
+      "name": "Nobody Gets Back Up",
+      "description": "Reach a population of 100 in a Survival homestead.",
+      "tier": "gold",
+      "stat": "survivalPeakPopulation",
+      "target": 100
+    },
+    {
+      "id": "survival_charter",
+      "name": "The Fallen Stay Fallen",
+      "description": "Reach a Charter milestone under Survival.",
+      "tier": "gold",
+      "stat": "charterUnder.survival",
+      "target": 1,
+      "hidden": true
+    }
+  ]
+}

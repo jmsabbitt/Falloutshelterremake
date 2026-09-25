@@ -9,7 +9,7 @@ import { addScrip, refreshUnlocks } from '../economy';
 import { canPlace } from '../grid';
 import { bonus } from '../bonuses';
 import { legacyContent, perkDef, perkRank, siteDef, type CharterDef } from '../legacy';
-import { bump, isAway, isChild } from '../residents';
+import { bump, bumpMax, isAway, isChild } from '../residents';
 import { chance, nextFloat, nextInt, pick } from '../rng';
 import { newGame } from '../state';
 import type { GameState, Item, Outpost, Resident, Room } from '../types';
@@ -17,6 +17,9 @@ import { earnCrate } from './crates';
 import { scheduleIncident } from './incidents';
 import { carryResearch } from './research';
 import { addSalvage } from './inventory';
+import { checkRules, isSurvival, rulesetMods, rulesLegacyMult } from './rulesets';
+
+export { rulesetsAvailable, rulesetLocked, survivalLocked, rulesLegacyMult } from './rulesets';
 
 // ------------------------------------------------------------------ charter
 
@@ -42,7 +45,9 @@ export function charterStatus(state: GameState, content: Content): { requirement
   const c = charterFor(state, content);
   const reqs: CharterRequirement[] = [];
   const pop = state.residents.filter((r) => !r.dead && !r.waiting).length;
-  reqs.push({ label: `Population ${c.population}`, have: pop, need: c.population, done: pop >= c.population });
+  // Skeleton Crew caps the population, so the Charter asks for no more than the cap.
+  const need = Math.min(c.population, rulesetMods(state, content).populationCap);
+  reqs.push({ label: `Population ${need}`, have: pop, need, done: pop >= need });
   for (const id of c.quests ?? []) {
     const def = (content.quests as unknown as { quests: { id: string; title: string }[] }).quests.find((q) => q.id === id);
     const done = state.questsDone.includes(id);
@@ -62,8 +67,11 @@ export interface LegacyLine {
   points: number;
 }
 
-/** What founding now would earn, line by line, before and after the site multiplier. */
-export function legacyBreakdown(state: GameState, content: Content): { lines: LegacyLine[]; subtotal: number; siteMult: number; total: number } {
+/**
+ * What founding now would earn, line by line, before and after the multipliers:
+ * the site's, and the rules (rulesets and Survival) this homestead was founded under.
+ */
+export function legacyBreakdown(state: GameState, content: Content): { lines: LegacyLine[]; subtotal: number; siteMult: number; rulesMult: number; total: number } {
   const sc = legacyContent(content).scoring;
   const living = state.residents.filter((r) => !r.dead && !r.waiting);
   const days = Math.min(sc.maxDays, Math.floor(state.time / 86400));
@@ -82,7 +90,8 @@ export function legacyBreakdown(state: GameState, content: Content): { lines: Le
   ].map((l) => ({ ...l, points: Math.floor(l.points) }));
   const subtotal = lines.reduce((a, l) => a + l.points, 0);
   const siteMult = siteDef(content, state.legacy.siteId)?.legacyMult ?? 1;
-  return { lines, subtotal, siteMult, total: Math.floor(subtotal * siteMult) };
+  const rulesMult = rulesLegacyMult(state, content);
+  return { lines, subtotal, siteMult, rulesMult, total: Math.floor(subtotal * siteMult * rulesMult) };
 }
 
 // ------------------------------------------------------------------ perks
@@ -133,9 +142,16 @@ export function canFound(state: GameState, r: Resident): string | null {
   return null;
 }
 
-/** Why the homestead can't found a new one yet, or null. */
-export function canFoundHomestead(state: GameState, content: Content): string | null {
+/**
+ * Why the homestead can't found a new one yet, or null. Pass the rules to also
+ * check they are unlocked (rulesetsAvailable lists the ones that are).
+ */
+export function canFoundHomestead(state: GameState, content: Content, rules?: { rules?: string[]; survival?: boolean }): string | null {
   if (!charterStatus(state, content).ready) return 'the Charter milestone is not reached yet';
+  if (rules) {
+    const bad = checkRules(state, content, rules.rules, rules.survival);
+    if (bad) return bad;
+  }
   if (state.quests.length) return 'bring every quest party home first';
   if (state.expeditions.length) return 'bring every explorer home first';
   if (state.caravans?.length) return 'bring every caravan home first';
@@ -202,7 +218,9 @@ const PREFAB: { type: string; floor: number; x: number }[] = [
  * old one), or an error. The old state is not modified.
  */
 export function foundHomestead(old: GameState, content: Content, opts: FoundOptions): { ok: true; state: GameState; legacy: number } | { ok: false; reason: string } {
-  const why = canFoundHomestead(old, content);
+  const rules = [...new Set(opts.rules ?? [])];
+  const survival = opts.survival ?? false;
+  const why = canFoundHomestead(old, content, { rules, survival });
   if (why) return { ok: false, reason: why };
   const site = siteDef(content, opts.siteId);
   if (!site) return { ok: false, reason: 'no such site' };
@@ -231,7 +249,7 @@ export function foundHomestead(old: GameState, content: Content, opts: FoundOpti
   const src = structuredClone(old);
   const earned = legacyBreakdown(src, content).total;
   const seed = Math.floor(nextFloat(src.rng) * 2 ** 32);
-  const state = newGame(content, { seed, now: opts.now, homesteadNumber: nextInt(src.rng, 100, 999) });
+  const state = newGame(content, { seed, now: opts.now, homesteadNumber: nextInt(src.rng, 100, 999), rules, survival, mode: src.mode });
 
   // The founding party arrives at the new door; fresh strangers make up the numbers.
   const starters = state.residents;
@@ -257,7 +275,7 @@ export function foundHomestead(old: GameState, content: Content, opts: FoundOpti
   state.collection = structuredClone(src.collection);
   state.legends = structuredClone(src.legends);
   state.loot = { ...structuredClone(src.loot), maps: [] };
-  state.rules = { ids: [...(opts.rules ?? [])], survival: opts.survival ?? false };
+  state.rules = { ids: rules, survival };
 
   const stayers = src.residents.filter((r) => !r.dead && !r.waiting && !partyIds.includes(r.id)).length;
   const legacy = src.legacy;
@@ -285,6 +303,10 @@ export function foundHomestead(old: GameState, content: Content, opts: FoundOpti
   bump(state, 'homesteadsFounded');
   bump(state, 'legacyEarned', earned);
   bump(state, `sites.${site.id}`);
+  for (const id of rules) bump(state, `foundedUnder.${id}`);
+  if (rules.length) bump(state, 'rulesetFoundings');
+  if (survival) bump(state, 'survivalFoundings');
+  bumpMax(state, 'rulesetsStacked', rules.length);
   state.legacy.statsAtFounding = { ...state.stats };
   state.legacy.achievementsAtFounding = Object.keys(state.achievements).length;
 
@@ -300,8 +322,8 @@ export function foundHomestead(old: GameState, content: Content, opts: FoundOpti
     r.maxHp += hardy;
     r.hp = r.maxHp;
   }
-  state.scrip = 0;
-  addScrip(state, content, content.balance.start.scrip + bonus(state, content, 'startScrip') + (site.modifiers.startScrip ?? 0));
+  // Set directly: starting money is not income (Lean Times halves income, not the grant).
+  state.scrip = Math.max(0, Math.min(content.balance.maxScrip, content.balance.start.scrip + bonus(state, content, 'startScrip') + (site.modifiers.startScrip ?? 0)));
   if (bonus(state, content, 'prefabRooms') > 0) {
     for (const p of PREFAB) {
       if (!canPlace(state, content, p.type, p.floor, p.x).ok) continue;
@@ -333,14 +355,19 @@ export function tickOutposts(state: GameState, content: Content, dt: number): vo
   }
 }
 
-/** Announce the Charter milestone once per homestead. */
+/** Announce the Charter milestone once per homestead, and keep the rules' counters. */
 function checkCharter(state: GameState, content: Content): void {
   if (!state.legacy) return;
+  if (isSurvival(state)) bumpMax(state, 'survivalPeakPopulation', state.peakPopulation);
   const key = `charter.${state.legacy.cycle}`;
   if (state.stats[key]) return;
   if (!charterStatus(state, content).ready) return;
   state.stats[key] = 1;
   bump(state, 'chartersReached');
+  const ids = state.rules?.ids ?? [];
+  for (const id of ids) bump(state, `charterUnder.${id}`);
+  if (isSurvival(state)) bump(state, 'charterUnder.survival');
+  if (ids.length || isSurvival(state)) bump(state, 'chartersUnderRules');
   state.events.push({ type: 'charterReached', cycle: state.legacy.cycle });
 }
 

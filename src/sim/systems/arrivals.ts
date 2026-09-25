@@ -6,6 +6,7 @@ import { roomDef } from '../grid';
 import { bump, createResident, effectiveStat, workersInRoom } from '../residents';
 import { chance, nextInt } from '../rng';
 import type { GameState, Room } from '../types';
+import { ruleFlag, rulesetMods } from './rulesets';
 
 function waitingCount(state: GameState): number {
   return state.residents.filter((r) => r.waiting).length;
@@ -36,11 +37,23 @@ export function radioChance(content: Content, room: Room): number {
   return tableValue(content.balance.arrivals.radioChance, room.level, room.segments);
 }
 
+/**
+ * Rulesets can shut the door on newcomers: No Radio stops every radio and
+ * wanderer arrival, Skeleton Crew stops them once the cap is reached (counting
+ * those already waiting outside).
+ */
+export function arrivalsBlocked(state: GameState, content: Content): boolean {
+  if (ruleFlag(state, content, 'noRadio')) return true;
+  const cap = rulesetMods(state, content).populationCap;
+  return cap !== Infinity && population(state) + waitingCount(state) >= cap;
+}
+
 export function tickArrivals(state: GameState, content: Content, dt: number): void {
   const a = content.balance.arrivals;
+  const blocked = arrivalsBlocked(state, content);
   // Wanderers keep a young homestead growing until it can recruit for itself.
   if (state.time >= state.nextWandererAt) {
-    if (population(state) + waitingCount(state) < a.wandererUntilPopulation && waitingCount(state) < a.maxWaiting) {
+    if (!blocked && population(state) + waitingCount(state) < a.wandererUntilPopulation && waitingCount(state) < a.maxWaiting) {
       arrive(state, content, 'wanderer');
     }
     scheduleWanderer(state, content);
@@ -53,7 +66,7 @@ export function tickArrivals(state: GameState, content: Content, dt: number): vo
     const interval = radioInterval(state, content, room);
     if (room.timer >= interval) {
       room.timer -= interval; // keep the overshoot so long offline steps don't lose time
-      if (waitingCount(state) < a.maxWaiting && chance(state.rng, radioChance(content, room))) arrive(state, content, 'radio');
+      if (!blocked && waitingCount(state) < a.maxWaiting && chance(state.rng, radioChance(content, room))) arrive(state, content, 'radio');
     }
   }
 }

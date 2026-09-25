@@ -5,7 +5,8 @@ import { resourceCapacity } from '../economy';
 import { roomDef } from '../grid';
 import { effectiveMaxHp, effectiveStats, livingResidents, topStats } from '../residents';
 import type { GameState, Resident, Room } from '../types';
-import { traitHappiness } from './traits';
+import { hasTrait, traitHappiness } from './traits';
+import { rulesetMods } from './rulesets';
 
 export function powerDemandPerMin(state: GameState, content: Content): number {
   const table = content.balance.consumption.powerPerRoomPerMin;
@@ -13,7 +14,7 @@ export function powerDemandPerMin(state: GameState, content: Content): number {
   for (const room of state.rooms) {
     if (roomDef(content, room).usesPower) demand += tableValue(table, room.level, room.segments);
   }
-  return demand;
+  return demand * rulesetMods(state, content).consumption.power;
 }
 
 /** Residents consuming food and water: living, admitted residents. */
@@ -22,11 +23,11 @@ export function consumers(state: GameState): number {
 }
 
 export function foodDemandPerMin(state: GameState, content: Content): number {
-  return consumers(state) * content.balance.consumption.foodPerResidentPerMin;
+  return consumers(state) * content.balance.consumption.foodPerResidentPerMin * rulesetMods(state, content).consumption.food;
 }
 
 export function waterDemandPerMin(state: GameState, content: Content): number {
-  return consumers(state) * content.balance.consumption.waterPerResidentPerMin;
+  return consumers(state) * content.balance.consumption.waterPerResidentPerMin * rulesetMods(state, content).consumption.water;
 }
 
 /** The "tick mark" on each resource bar: below it, a shortage begins. */
@@ -137,6 +138,9 @@ export function happinessTarget(
   const deadHere = r.roomId !== null && (deadRooms ? deadRooms.has(r.roomId) : state.residents.some((o) => o.dead && o.roomId === r.roomId));
   if (deadHere) target -= 30;
   target += traitHappiness(state, content, r, occupants);
+  // Rulesets (Endless Night): everyone but the named traits is a little glummer.
+  const rules = rulesetMods(state, content);
+  if (rules.happiness !== 0 && !rules.happinessExcept.some((t) => hasTrait(r, t))) target += rules.happiness;
   return Math.max(0, Math.min(100, target));
 }
 

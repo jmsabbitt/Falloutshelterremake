@@ -18,6 +18,8 @@ import { autoAssign, idleAdults } from './systems/assign';
 import { collectCaravan, recallCaravan, sendCaravan, trade } from './systems/factions';
 import { abandonQuest, collectQuest, questAbility, questChoose, questCrit, questHeal, questMove, questTarget, startQuest } from './systems/quests';
 import { performRush } from './systems/rush';
+import { applyCustom, type CustomCommand } from './systems/custom';
+import { isSurvival, rulesetMods } from './systems/rulesets';
 import type { CrateTier, GameState, Resident, Room } from './types';
 
 export type Command =
@@ -72,7 +74,9 @@ export type Command =
   | { type: 'trade'; offerId: number }
   | { type: 'sendCaravan'; factionId: string; residentIds: number[]; goods: { salvage?: Record<string, number>; food?: number; water?: number; medpatch?: number } }
   | { type: 'recallCaravan'; caravanId: number }
-  | { type: 'collectCaravan'; caravanId: number };
+  | { type: 'collectCaravan'; caravanId: number }
+  // M9: the Custom Game sandbox console (refused outside mode: 'custom')
+  | ({ type: 'custom' } & CustomCommand);
 
 export type CommandResult = { ok: true; detail?: string } | { ok: false; reason: string };
 
@@ -86,6 +90,14 @@ function findRoom(state: GameState, id: number): Room | undefined {
 
 function findResident(state: GameState, id: number): Resident | undefined {
   return state.residents.find((r) => r.id === id);
+}
+
+/** Why nobody else can be let in: the quarters are full, or Skeleton Crew's cap is reached. */
+function admitBlocked(state: GameState, content: Content): string | null {
+  const cap = rulesetMods(state, content).populationCap;
+  if (population(state) >= cap) return `Skeleton Crew: the charter allows ${cap} residents`;
+  if (population(state) >= storageCapacity(state, content, 'population')) return 'no room: build more quarters';
+  return null;
 }
 
 export function roomCapacity(content: Content, room: Room): number {
@@ -235,7 +247,8 @@ function dispatch(state: GameState, content: Content, cmd: Command): CommandResu
     case 'admit': {
       const res = findResident(state, cmd.residentId);
       if (!res || !res.waiting) return fail('nobody to admit');
-      if (population(state) >= storageCapacity(state, content, 'population')) return fail('no room: build more quarters');
+      const full = admitBlocked(state, content);
+      if (full) return fail(full);
       res.waiting = false;
       state.events.push({ type: 'residentAdmitted', residentId: res.id });
       return { ok: true };
@@ -244,12 +257,12 @@ function dispatch(state: GameState, content: Content, cmd: Command): CommandResu
     case 'admitAll': {
       let n = 0;
       for (const res of state.residents.filter((r) => r.waiting)) {
-        if (population(state) >= storageCapacity(state, content, 'population')) break;
+        if (admitBlocked(state, content)) break;
         res.waiting = false;
         state.events.push({ type: 'residentAdmitted', residentId: res.id });
         n++;
       }
-      return n > 0 ? { ok: true, detail: `${n} admitted` } : fail('no room: build more quarters');
+      return n > 0 ? { ok: true, detail: `${n} admitted` } : fail(admitBlocked(state, content) ?? 'nobody to admit');
     }
 
     case 'collect': {
@@ -285,6 +298,7 @@ function dispatch(state: GameState, content: Content, cmd: Command): CommandResu
     case 'revive': {
       const res = findResident(state, cmd.residentId);
       if (!res || !res.dead) return fail('nobody to revive');
+      if (isSurvival(state)) return fail('Survival rules: the fallen stay fallen');
       const cost = reviveCost(content, res);
       if (state.scrip < cost) return fail('not enough scrip');
       addScrip(state, content, -cost);
@@ -425,6 +439,10 @@ function dispatch(state: GameState, content: Content, cmd: Command): CommandResu
       return result(recallCaravan(state, content, cmd.caravanId));
     case 'collectCaravan':
       return result(collectCaravan(state, content, cmd.caravanId));
+    case 'custom': {
+      const { type: _type, ...rest } = cmd;
+      return result(applyCustom(state, content, rest as CustomCommand));
+    }
 
     case 'extendShaft': {
       const target = Math.min(cmd.floor ?? totalFloors(state, content) - 1, totalFloors(state, content) - 1);
