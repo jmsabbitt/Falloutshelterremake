@@ -388,6 +388,9 @@ export interface HomesteadRecord {
   peakPopulation: number;
   days: number;
   legacyEarned: number;
+  /** M9: the rules that homestead ran under. */
+  rules?: string[];
+  survival?: boolean;
 }
 
 export interface LegacyState {

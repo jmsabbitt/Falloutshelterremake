@@ -296,6 +296,8 @@ export function foundHomestead(old: GameState, content: Content, opts: FoundOpti
         peakPopulation: src.peakPopulation,
         days: Math.floor(src.time / 86400),
         legacyEarned: earned,
+        rules: [...(src.rules?.ids ?? [])],
+        survival: src.rules?.survival === true,
       },
     ],
     outposts: [...legacy.outposts, ...(stayers > 0 ? [outpostFrom(src, content, stayers)] : [])],
