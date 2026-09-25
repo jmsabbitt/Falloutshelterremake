@@ -18,6 +18,7 @@ import {
   type QuestEnemy,
   type QuestRoom,
   type Resident,
+  lootContent,
 } from '../../sim';
 import type { Game } from '../game';
 import { haptic } from '../platform';
@@ -884,7 +885,9 @@ export class QuestView {
         let plate: Text | null = null;
         if (def.boss) {
           // A plaque at the boss's feet, clear of the telegraphs above.
-          plate = new Text({ text: def.name.toUpperCase(), style: { fontFamily: 'Bungee, sans-serif', fontSize: 11, fill: 0xf2a541, stroke: { color: 0x14100d, width: 4 } } });
+          // M9: a boss whose guaranteed first-kill drop is still on offer says so.
+          const firstKill = !!lootContent(content).bossFirstKill[e.defId] && !this.game.state.loot?.bossKills?.includes(e.defId);
+          plate = new Text({ text: `${def.name.toUpperCase()}${firstKill ? '\nFIRST KILL DROP' : ''}`, style: { fontFamily: 'Bungee, sans-serif', fontSize: 11, fill: 0xf2a541, align: 'center', stroke: { color: 0x14100d, width: 4 } } });
           plate.anchor.set(0.5, 0);
           this.labels.addChild(plate);
         }

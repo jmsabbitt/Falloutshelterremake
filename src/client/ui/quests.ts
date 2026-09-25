@@ -7,6 +7,10 @@ import { haptic } from '../platform';
 import {
   abilityFor,
   canQuest,
+  legendDef,
+  legendName,
+  legendStatus,
+  lootContent,
   effectiveMaxHp,
   officeSlots,
   questContent,
@@ -27,6 +31,7 @@ import { duration, fmt, h, morph } from './dom';
 import type { Loadout, Loadouts } from './loadouts';
 import { type QuestHost, QuestScreen } from './questScreen';
 import { bountyView, rewardChips } from './questText';
+import { legendPortrait } from './legends';
 
 export interface QuestUIHost extends QuestHost {
   modalHost: HTMLElement;
@@ -223,12 +228,31 @@ export class QuestUI {
     const { state, content } = this.game;
     const qc = questContent(content);
     const out: HTMLElement[] = [];
+    const legendLines: HTMLElement[] = [];
     for (const line of qc.questlines) {
       const defs = line.quests.map((id) => questDef(content, id)).filter((d): d is QuestDef => !!d);
       const done = defs.filter((d) => state.questsDone.includes(d.id)).length;
+      // M9: a legend's personal questline, under their face and name.
+      const legendId = (line as { legend?: string }).legend;
+      const legend = legendId ? legendDef(content, legendId) : undefined;
+      if (legend) {
+        const status = legendStatus(state, legend.id);
+        if (status === 'unknown' || status === 'lost') continue;
+        const here = status === 'here';
+        legendLines.push(
+          h('h3', { class: 'group legend-line-head' }, legendPortrait(legend, 'small'), ` ${line.name}`, h('span', { class: 'muted small' }, ` ${done}/${defs.length}`)),
+        );
+        if (!here && done < defs.length) {
+          legendLines.push(h('p', { class: 'muted small', style: 'margin:0 0 8px' }, `${legendName(legend)} is ${status === 'queued' ? 'still on the way' : 'at an outpost'}. Their quests open once they are in this homestead (Residents → Legends).`));
+          continue;
+        }
+        for (const d of defs) legendLines.push(this.storyCard(d, free));
+        continue;
+      }
       out.push(h('h3', { class: 'group' }, line.name, h('span', { class: 'muted small' }, ` ${done}/${defs.length}`)));
       for (const d of defs) out.push(this.storyCard(d, free));
     }
+    if (legendLines.length) out.push(h('h3', { class: 'group legend-group' }, '★ Legends'), ...legendLines);
     // Story quests outside any questline still get listed.
     const inLines = new Set(qc.questlines.flatMap((l) => l.quests));
     const loose = qc.quests.filter((d) => !inLines.has(d.id));
@@ -255,13 +279,46 @@ export class QuestUI {
       h('div', { class: 'row', style: 'margin:0' }, h('b', {}, available || active ? d.title : `🔒 ${d.title}`), h('span', { class: `lvl ${this.levelClass(d.level)}` }, `Rec. L${d.level}`)),
       h('div', { class: 'brief' }, d.giver === 'HALCY' ? halcyFace('smile') : null, h('span', { class: 'giver' }, `${d.giver}: `), d.brief),
       h('div', { class: 'muted small' }, `Travel ${duration(d.travelMinutes * 60)} each way${d.partyMin && d.partyMin > 1 ? ` · party of ${d.partyMin}+` : ''}`),
-      h('div', { class: 'loot-line' }, ...rewardChips(content, d.rewards)),
+      h('div', { class: 'loot-line' }, ...rewardChips(content, d.rewards), ...this.m9Chips(d)),
       active
         ? h('div', { class: 'muted small' }, 'A party is on it.')
         : available
           ? h('div', { class: 'row', style: 'justify-content:flex-end;margin-bottom:0' }, h('button', { class: 'primary', disabled: !free, title: free ? '' : 'No free quest slots', onclick: () => this.showPicker({ questId: d.id }) }, free ? 'Pick a party' : 'No free slot'))
-          : h('div', { class: 'small short' }, `Locked: ${locked}`),
+          : h('div', { class: 'small short' }, `Locked: ${this.lockText(d, locked)}`),
     );
+  }
+
+  /** "needs a particular resident" names the legend and what is in the way. */
+  private lockText(d: QuestDef, locked: string | null): string {
+    const id = d.requires.legend;
+    if (!id || locked !== 'needs a particular resident') return locked ?? '';
+    const def = legendDef(this.game.content, id);
+    const r = this.game.state.residents.find((x) => x.legendary === id);
+    const who = def?.firstName ?? 'a legend';
+    return r?.dead ? `${who} has fallen: revive them first` : r?.waiting ? `${who} is still at the door: let them in` : `needs ${who} in the homestead`;
+  }
+
+  /** M9 reward chips the shared list doesn't know: a legend who joins, an awakening, and boss first-kill drops. */
+  private m9Chips(d: QuestDef): HTMLElement[] {
+    const { state, content } = this.game;
+    const out: HTMLElement[] = [];
+    if (d.rewards.legend) {
+      const l = legendDef(content, d.rewards.legend);
+      out.push(h('span', { class: 'loot-chip rarity legendary' }, `★ ${l ? legendName(l) : 'A legend'} joins`));
+    }
+    if (d.rewards.legendUpgrade) {
+      const l = legendDef(content, d.rewards.legendUpgrade);
+      out.push(h('span', { class: 'loot-chip rarity legendary' }, `★ ${l?.firstName ?? 'Legend'} awakens`));
+    }
+    const drops = lootContent(content).bossFirstKill;
+    const killed = new Set(state.loot?.bossKills ?? []);
+    const bosses = new Set<string>();
+    for (const room of d.map.rooms) if (room.kind === 'boss') for (const e of room.enemies ?? []) if (drops[e] && !killed.has(e)) bosses.add(e);
+    for (const e of bosses) {
+      const item = content.items[drops[e] ?? ''];
+      out.push(h('span', { class: 'loot-chip first-kill', title: 'Paid the first time this boss goes down' }, `☠ First kill: ${item?.name ?? 'a trophy'}`));
+    }
+    return out;
   }
 
   private contractSection(free: boolean): HTMLElement[] {

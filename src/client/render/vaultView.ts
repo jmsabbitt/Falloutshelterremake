@@ -52,6 +52,7 @@ import {
   shade,
 } from './palette';
 import { drawOffice } from './officeArt';
+import { CREATURE_COLORS, drawDoorDamage, drawGlassbackLeap, drawGlassbacks, drawHollowed, drawMauler, drawSealMonument, drawSurge } from './creatureArt';
 import { buildDeepBackground, DEEP_INCIDENT_COLORS, DeepLayer, deepViewKey, drawDeepFrame, drawDeepIncident, drawDepthRoom, labelInk, lampFor, SEAL_H, type DeepGeometry } from './deepArt';
 import { type Action, type CharacterArt, CreatureFigure, Figure, residentTints } from './sprites';
 import { drawTopsideBuilding, drawTopsideParts, GROUND_DEPTH, TopsideLayer, WeatherLayer, type TopsidePart } from './topsideArt';
@@ -104,6 +105,20 @@ const INCIDENT_ART: Record<string, { look: string; per: number; min: number; h: 
   rustmen: { look: 'rustman', per: Infinity, min: 3, h: 50 },
   deepcrawlers: { look: 'deepcrawler', per: 70, min: 2, h: 24 },
 };
+
+/** M9: how long a Glassback leap and a Mauler's walk into a new room take on screen. */
+const LEAP_SECONDS = 0.9;
+const MAULER_ENTER_SECONDS = 1.8;
+
+interface IncidentTrack {
+  roomId: number;
+  /** Still outside (spotted, or at the door). */
+  outside: boolean;
+  /** Where it was drawn before its latest move, and when that move happened. */
+  from: { x: number; y: number } | null;
+  at: number;
+  last: { x: number; y: number } | null;
+}
 
 /** Room categories where a resident standing still is shown at work. */
 const WORK_ROOMS = new Set(['production', 'workshop', 'research', 'radio', 'office']);
@@ -210,6 +225,8 @@ export class VaultView {
   private caravanCarts = new Graphics();
   /** Longest warning seen per raid, so approaching raiders walk in from the horizon. */
   private raidWarn = new Map<number, number>();
+  /** M9: where each moving incident was, so Glassbacks leap and the Mauler walks between rooms. */
+  private incTrack = new Map<number, IncidentTrack>();
 
   private builtLayout = -1;
   private sprites = new Map<number, ResidentSprite>();
@@ -314,6 +331,7 @@ export class VaultView {
     for (const w of this.caravanWalkers.values()) w.root.destroy({ children: true });
     this.caravanWalkers.clear();
     this.raidWarn.clear();
+    this.incTrack.clear();
     for (const f of this.floats) f.text.destroy();
     this.floats = [];
     this.buildMode = null;
@@ -992,6 +1010,15 @@ export class VaultView {
       } else for (const f of figs) f.visible = this.incidentsShown.has(id);
     }
     for (const id of this.raidWarn.keys()) if (!state.incidents.some((i) => i.id === id)) this.raidWarn.delete(id);
+    for (const id of this.incTrack.keys()) if (!state.incidents.some((i) => i.id === id)) this.incTrack.delete(id);
+    // M9: the Warden's Seal monument, on the ground just left of the door.
+    if (state.stats['wardensSeal']) {
+      const door = state.rooms.find((room) => room.type === 'door');
+      if (door) {
+        const r = this.roomRect(door);
+        drawSealMonument(g, r.x - 34, SURFACE_H, this.time);
+      }
+    }
     // Hearts above courting couples.
     for (const res of state.residents) {
       if (!res.courtship) continue;
@@ -1111,7 +1138,7 @@ export class VaultView {
 
   /** Raiders spotted by a Watchtower walk in from the horizon: where the first one is now, or null once at the door. */
   private approachX(inc: Incident, door: { x: number; w: number }): number | null {
-    const warn = inc.type === 'rustmen' ? (inc.warning ?? 0) : 0;
+    const warn = inc.type === 'rustmen' || inc.type === 'maulers' ? (inc.warning ?? 0) : 0;
     if (warn <= 0) return null;
     const max = Math.max(warn, inc.warningTotal ?? 0, this.raidWarn.get(inc.id) ?? 0);
     this.raidWarn.set(inc.id, max);
@@ -1177,12 +1204,108 @@ export class VaultView {
         }
         break;
       }
+      case 'surge':
+        drawSurge(g, r, t);
+        break;
+      case 'hollowed':
+        drawHollowed(g, r, t);
+        break;
+      case 'glassbacks': {
+        // Freshly jumped: they are still in the air between the two rooms.
+        const tr = this.track(inc);
+        const land = { x: r.x + r.w / 2, y: r.y + r.h - 9 };
+        const p = tr.from ? (t - tr.at) / LEAP_SECONDS : 1;
+        drawGlassbacks(g, r, t, p < 1);
+        if (p < 1 && tr.from) drawGlassbackLeap(g, tr.from, land, p, t);
+        tr.last = land;
+        break;
+      }
+      case 'maulers':
+        this.drawMaulerIn(g, inc, r);
+        break;
       default:
         drawDeepIncident(g, inc, r, t);
     }
-    const colour = ({ fire: 0xff7a1a, skitters: 0xb7f36a, burrowers: 0xc79a82, rustmen: 0xe4572e, ...DEEP_INCIDENT_COLORS } as Record<string, number>)[inc.type] ?? 0xd0c080;
+    // Spotted but not here yet: no health bar over the door room.
+    if (inc.type === 'maulers' && (inc.warning ?? 0) > 0) return;
+    const colour = ({ fire: 0xff7a1a, skitters: 0xb7f36a, burrowers: 0xc79a82, rustmen: 0xe4572e, ...DEEP_INCIDENT_COLORS, ...CREATURE_COLORS } as Record<string, number>)[inc.type] ?? 0xd0c080;
     g.rect(r.x + 10, r.y + 8, r.w - 20, 6).fill(0x14100d);
     g.rect(r.x + 10, r.y + 8, (r.w - 20) * Math.max(0, inc.hp / inc.maxHp), 6).fill(colour);
+  }
+
+  /** M9: an incident's travel record, noting when it changes room (or gets through the door). */
+  private track(inc: Incident): IncidentTrack {
+    const outside = (inc.warning ?? 0) > 0 || inc.doorHp > 0;
+    let tr = this.incTrack.get(inc.id);
+    if (!tr) {
+      tr = { roomId: inc.roomId, outside, from: null, at: -99, last: null };
+      this.incTrack.set(inc.id, tr);
+    } else if (tr.roomId !== inc.roomId || tr.outside !== outside) {
+      tr.from = tr.last;
+      tr.at = this.time;
+      tr.roomId = inc.roomId;
+      tr.outside = outside;
+    }
+    return tr;
+  }
+
+  /**
+   * The Mauler: spotted on the flats it lumbers in from the horizon, then
+   * batters the door from the surface, then walks room to room. Each new
+   * room it walks in from the side it came from.
+   */
+  private drawMaulerIn(g: Graphics, inc: Incident, r: { x: number; y: number; w: number; h: number }): void {
+    const t = this.time;
+    const tr = this.track(inc);
+    const floorY = r.y + r.h - 8;
+    const approach = this.approachX(inc, r);
+    let x: number;
+    let y: number;
+    let facing = -1;
+    let walk = true;
+    let swipe = 0;
+    if (approach !== null) {
+      x = approach;
+      y = SURFACE_H - 2;
+    } else if (inc.doorHp > 0) {
+      // On the surface above the door, clawing at it.
+      x = r.x + r.w * 0.62;
+      y = SURFACE_H - 2;
+      walk = false;
+      const c = (t * 0.8) % 1;
+      swipe = c < 0.35 ? Math.sin((c / 0.35) * Math.PI) : 0;
+      const doorMax = roomDef(this.game.content, this.game.state.rooms.find((x2) => x2.id === inc.roomId) as Room).doorHp?.[0] ?? 1;
+      const hpFrac = Math.min(1, inc.doorHp / Math.max(doorMax, inc.doorHp));
+      drawDoorDamage(g, r, hpFrac);
+      g.rect(r.x + 10, r.y - 14, r.w - 20, 6).fill(0x14100d);
+      g.rect(r.x + 10, r.y - 14, (r.w - 20) * hpFrac, 6).fill(0x9fb4b2);
+    } else {
+      // Pacing the room, swiping now and then.
+      const span = Math.max(0, r.w - 110);
+      const phase = (t * 0.045 + inc.id * 0.31) % 1;
+      const right = phase < 0.5;
+      const along = right ? phase * 2 : 2 - phase * 2;
+      const px = r.x + 55 + along * span;
+      facing = right ? 1 : -1;
+      x = px;
+      y = floorY;
+      const c = (t * 0.55 + inc.id) % 1;
+      swipe = c < 0.25 ? Math.sin((c / 0.25) * Math.PI) : 0;
+      if (swipe > 0) walk = false;
+      const since = t - tr.at;
+      if (tr.from && since < MAULER_ENTER_SECONDS) {
+        // Just arrived: walk in from the side it came from (same floor: from where it was).
+        const p = since / MAULER_ENTER_SECONDS;
+        const sameFloor = Math.abs(tr.from.y - floorY) < 12;
+        const start = sameFloor ? tr.from.x : tr.from.x < r.x + r.w / 2 ? r.x + 20 : r.x + r.w - 20;
+        x = start + (px - start) * p;
+        facing = px >= start ? 1 : -1;
+        walk = true;
+        swipe = 0;
+      }
+    }
+    tr.last = { x, y };
+    drawMauler(g, x, y, t, facing, walk, swipe);
   }
 
   /** Switch residents to sprite art once it has loaded. */
@@ -2233,6 +2356,17 @@ function drawWeapon(g: Graphics, res: Resident, content: Content, x: number, y: 
 }
 
 function drawRarityPip(g: Graphics, res: Resident, y: number): void {
+  if (res.legendary) {
+    // M9: legendary residents wear a gold star badge.
+    const pts: number[] = [];
+    for (let i = 0; i < 10; i++) {
+      const a = -Math.PI / 2 + (i * Math.PI) / 5;
+      const r = i % 2 === 0 ? 6.5 : 2.8;
+      pts.push(Math.cos(a) * r, y - 2 + Math.sin(a) * r);
+    }
+    g.poly(pts).fill(0xf2c14e).stroke({ width: 1.5, color: 0x5a3a0c });
+    return;
+  }
   if (res.rarity !== 'common') g.circle(0, y, 3).fill(res.rarity === 'legendary' ? 0xf2c14e : 0xc9d1d3);
 }
 

@@ -52,6 +52,15 @@ import {
   vaultHappiness,
   xpToNext,
   STAT_KEYS,
+  cacheDef,
+  exclusiveRegionOf,
+  isLootOnly,
+  legendDef,
+  lootContent,
+  wardenTitle,
+  collectionEntries,
+  questContent,
+  type CollectionCategory,
   tableValue,
   type CrateCard,
   type CrateTier,
@@ -87,8 +96,12 @@ import { Toasts, type ToastKind, type ToastOptions } from './toasts';
 import { TraitsUI } from './traits';
 import { FactionsUI, type FactionsTab } from './factions';
 import { TopsideUI } from './topside';
+import { LegendsUI } from './legends';
+import { CollectionUI } from './collection';
+import { m9Console } from '../m9Dev';
+import { roomName as levelName } from './qolText';
 
-type PanelKind = 'build' | 'room' | 'residents' | 'storage' | 'crates' | 'explore' | 'quests' | 'legacy' | 'achievements' | 'menu' | 'notices' | 'research' | 'deep' | 'factions' | null;
+type PanelKind = 'build' | 'room' | 'residents' | 'storage' | 'crates' | 'explore' | 'quests' | 'legacy' | 'achievements' | 'menu' | 'notices' | 'research' | 'deep' | 'factions' | 'collection' | null;
 type StorageTab = 'items' | 'salvage' | 'blueprints';
 
 /** Draft of the send-to-explore modal. */
@@ -156,6 +169,10 @@ const INCIDENT_TOAST: Record<string, string> = {
   cavein: '🪨 Cave-in! Send strong residents (Brawn) to dig the room out.',
   flood: '🌊 Flooding! Send handy residents (Knack) before it spreads sideways.',
   deepcrawlers: '🕷 Deepcrawlers are coming out of the rock! Send armed residents.',
+  surge: '⚡ Electrical surge! Anyone in the room helps ground it before it jumps the wiring.',
+  hollowed: '☢ The Hollowed got in. They hit with Glare as much as fists: send armed residents, and a Purge after.',
+  glassbacks: '🕸 Glassbacks! They drain power and hop rooms. Chase them with armed residents.',
+  maulers: '⚠ A Mauler is coming for the door! Put your best-armed residents on it.',
 };
 
 export class UI {
@@ -205,6 +222,11 @@ export class UI {
   /** M7: factions, trade and caravans; the weather and surface buildings. */
   readonly factions: FactionsUI;
   readonly topside: TopsideUI;
+  /** M9: legendary residents, and the Collection Log with the Warden's Seal. */
+  readonly legends: LegendsUI;
+  readonly collection: CollectionUI;
+  /** M9: incidents that left on their own this batch (their incidentResolved is not a win). */
+  private escaped = new Set<number>();
 
   constructor(
     private game: Game,
@@ -293,6 +315,20 @@ export class UI {
       },
       this.root,
     );
+    this.legends = new LegendsUI({
+      game,
+      modalHost: this.modalHost,
+      toast: (text, kind, opts) => this.toast(text, kind, opts),
+      refreshPanel: () => this.renderPanel(true),
+      showResident: (id) => this.showResident(id),
+      openQuests: () => this.openPanel('quests'),
+    });
+    this.collection = new CollectionUI({
+      game,
+      showLegend: (id) => this.legends.showCard(id),
+      openCollection: () => this.openPanel('collection'),
+    });
+    this.qol.people.extra = () => this.legends.section();
     this.renderToolbar();
     game.on((events) => this.onEvents(events));
     game.onReplace(() => this.onStateReplaced());
@@ -301,6 +337,8 @@ export class UI {
     // For automated tests: press "back" as the device would.
     const hs = (window as unknown as { homestead?: Record<string, unknown> }).homestead;
     if (hs) hs.back = () => runBack();
+    // M9 dev helpers: legends, creatures, the Mauler, the Collection Log, the Seal, maps.
+    if (hs && !hs.m9) hs.m9 = m9Console(game);
     // Phones: pull a sheet down by its handle to close it.
     installSheetSwipe(this.panelHost, () => this.swipeClose());
     if (game.lastCatchUp) this.showAwaySummary();
@@ -355,6 +393,19 @@ export class UI {
     this.view.selectedResidentId = res.id;
     this.renderPanel(true);
     this.qol.people.toTop();
+  }
+
+  /** Open the residents panel with this resident's card. */
+  showResident(id: number): void {
+    const res = this.game.state.residents.find((r) => r.id === id);
+    if (!res) return;
+    if (res.waiting) {
+      this.openPanel(null);
+      const door = this.game.state.rooms.find((r) => r.type === 'door');
+      if (door) this.openRoom(door.id);
+      return;
+    }
+    this.onResidentTap(res);
   }
 
   onResidentDrop(residentId: number, room: Room | null): void {
@@ -435,12 +486,13 @@ export class UI {
     };
     const pop = population(state);
     const cap = storageCapacity(state, content, 'population');
+    const seal = wardenTitle(state, content);
     const crates = state.crates.standard + state.crates.rare + state.crates.legendary;
     const ready = state.rooms.filter((r) => r.ready).length;
     const meters = h(
       'div',
       { class: 'hud-part hud-meters' },
-      h('div', { class: 'title' }, `HOMESTEAD ${state.homesteadNumber}`),
+      h('div', { class: 'title', title: seal ? `Warden's Seal: ${seal}` : undefined }, seal ? h('span', { class: 'seal-mark' }, '✪ ') : null, `HOMESTEAD ${state.homesteadNumber}`),
       meter('power', 'var(--power)', 'P'),
       meter('food', 'var(--food)', 'F'),
       meter('water', 'var(--water)', 'W'),
@@ -538,6 +590,8 @@ export class UI {
     let text = '';
     const waiting = state.residents.filter((r) => r.waiting).length;
     const raid = state.incidents.find((i) => i.type === 'rustmen');
+    const mauler = state.incidents.find((i) => i.type === 'maulers');
+    const glass = state.incidents.find((i) => i.type === 'glassbacks');
     const shortage = this.shortageHint();
     if (shortage) {
       text = shortage;
@@ -551,8 +605,19 @@ export class UI {
     } else if (this.residentId !== null && this.panel === 'residents') {
       const r = state.residents.find((x) => x.id === this.residentId);
       if (r && !r.dead && !isChild(state, r)) text = `Tap a room (or drag ${r.firstName}) to assign`;
+    } else if (mauler) {
+      const where = state.rooms.find((r) => r.id === mauler.roomId);
+      text =
+        (mauler.warning ?? 0) > 0
+          ? `A Mauler is coming (${Math.ceil(mauler.warning ?? 0)}s): drag your best-armed residents to the door!`
+          : mauler.doorHp > 0
+            ? 'A Mauler is battering the door: pile fighters in there!'
+            : `A Mauler is loose in the ${where ? levelName(this.game.content, where) : 'homestead'}: send everyone armed!`;
     } else if (raid) {
       text = (raid.warning ?? 0) > 0 ? `Raiders on the way (${Math.ceil(raid.warning ?? 0)}s): drag armed residents to the door!` : raid.doorHp > 0 ? 'Raiders are breaking in: drag fighters to the door!' : 'Raiders inside: drag armed residents into their room!';
+    } else if (glass) {
+      const where = state.rooms.find((r) => r.id === glass.roomId);
+      text = `Glassbacks in the ${where ? levelName(this.game.content, where) : 'homestead'}: they jump rooms, so chase them with armed residents`;
     } else if (state.incidents.length) {
       text = 'Incident! Drag residents into the affected room to deal with it';
     } else if (waiting > 0) {
@@ -914,6 +979,7 @@ export class UI {
       deep: 'The Deep',
       notices: 'Notifications',
       factions: 'Factions',
+      collection: 'Collection Log',
     };
     let body: HTMLElement;
     let title = titles[this.panel];
@@ -968,6 +1034,9 @@ export class UI {
       case 'factions':
         body = this.factions.panel();
         break;
+      case 'collection':
+        body = this.collection.panel();
+        break;
     }
     const panel = h(
       'div',
@@ -992,7 +1061,7 @@ export class UI {
     if (old && old.outerHTML === panel.outerHTML) return;
     // Same view: patch the live panel in place, which keeps the nodes under the
     // finger and the scroll position. A different view starts fresh at the top.
-    const key = `${this.panel}|${this.roomId}|${this.storageTab}|${this.equipFor ? 'equip' : ''}|${this.panel === 'legacy' ? this.legacy.tab : this.panel === 'deep' ? this.deep.tab : this.panel === 'factions' ? this.factions.tab : ''}`;
+    const key = `${this.panel}|${this.roomId}|${this.storageTab}|${this.equipFor ? 'equip' : ''}|${this.panel === 'legacy' ? this.legacy.tab : this.panel === 'deep' ? this.deep.tab : this.panel === 'factions' ? this.factions.tab : this.panel === 'collection' ? this.collection.tab : ''}`;
     if (old && key === this.panelKey) morph(old, panel);
     else this.panelHost.replaceChildren(panel);
     this.panelKey = key;
@@ -1231,7 +1300,12 @@ export class UI {
         h('span', { class: `${top.includes(k) ? 'hi' : ''}${eff[k] > r.stats[k] ? ' boosted' : ''}`, title: `${STAT_NAME[k]} ${r.stats[k]}${eff[k] > r.stats[k] ? ` +${eff[k] - r.stats[k]} from outfit` : ''}` }, `${STAT_LABEL[k]} ${eff[k]}`),
       ),
     );
-    const rarityTag = r.rarity !== 'common' ? h('span', { class: `rarity ${r.rarity}` }, r.rarity === 'legendary' ? '★' : '◆') : null;
+    const legend = r.legendary ? legendDef(content, r.legendary) : undefined;
+    const rarityTag = legend
+      ? h('span', { class: 'legend-badge', title: 'Legendary resident' }, '★')
+      : r.rarity !== 'common'
+        ? h('span', { class: `rarity ${r.rarity}` }, r.rarity === 'legendary' ? '★' : '◆')
+        : null;
     const card = h(
       'div',
       {
@@ -1259,6 +1333,16 @@ export class UI {
       fn();
     };
     const next = xpToNext(content, r.level);
+    // M9: a legend's title and a way to their card.
+    if (legend)
+      card.append(
+        h(
+          'div',
+          { class: 'row legend-line', style: 'margin:4px 0 2px' },
+          h('span', { class: 'small' }, h('b', { class: 'legend-text' }, 'Legend'), ` · ${legend.title}`),
+          h('button', { class: 'close', onclick: stop(() => this.legends.showCard(legend.id)) }, '★ Legend card'),
+        ),
+      );
     card.append(
       h(
         'div',
@@ -1471,7 +1555,10 @@ export class UI {
 
     const rows = items.map(({ item, def }) => {
       const stats = h('span', { class: 'muted' }, def.kind === 'weapon' ? `${def.min}–${def.max} dmg` : bonusText(def.bonus));
-      const label = h('span', { class: 'item-name' }, itemIcon(def.id, def.kind), h('span', { class: `rarity ${def.rarity}` }, RARITY_MARK[def.rarity]), ` ${def.name} `, stats);
+      const name = h('span', { class: 'item-name' }, itemIcon(def.id, def.kind), h('span', { class: `rarity ${def.rarity}` }, RARITY_MARK[def.rarity]), ` ${def.name} `, stats);
+      // M9: the flavour line, and a label for items only the rare-item paths give.
+      const extra = this.itemExtra(def);
+      const label = extra ? h('span', { class: 'item-main' }, name, extra) : name;
       if (reforging) {
         const picked = sel.includes(item.id);
         const fits = !firstDef || (firstDef.kind === def.kind && firstDef.rarity === def.rarity);
@@ -1556,6 +1643,22 @@ export class UI {
       header,
       ...(rows.length ? rows : [h('p', { class: 'muted' }, 'Nothing here yet. Open Supply Crates or explore the Glarelands to find gear.')]),
     ];
+  }
+
+  /** M9: "Rare find" for loot-only items (and where), plus the item's flavour line. */
+  private itemExtra(def: ItemDef): HTMLElement | null {
+    const { content } = this.game;
+    const rare = isLootOnly(content, def.id);
+    const flavor = (def as { flavor?: string }).flavor;
+    if (!rare && !flavor) return null;
+    const region = exclusiveRegionOf(content, def.id);
+    const regionName = region ? (this.regions().find((r) => r.id === region)?.name ?? region) : null;
+    return h(
+      'span',
+      { class: 'item-extra' },
+      rare ? h('span', { class: 'rare-find' }, `✦ Rare find${regionName ? ` · ${regionName} only` : ''}`) : null,
+      flavor ? h('span', { class: 'item-flavor' }, flavor) : null,
+    );
   }
 
   /** Reforge mode header: what is picked, the cost, the odds and the confirm button. */
@@ -1648,8 +1751,9 @@ export class UI {
 
   private blueprintsTab(): HTMLElement[] {
     const { state, content } = this.game;
+    // Loot-only items (boss drops, caches, region exclusives) have no blueprint.
     const special = Object.values(content.items)
-      .filter((d) => d.rarity !== 'common')
+      .filter((d) => d.rarity !== 'common' && !isLootOnly(content, d.id))
       .sort((a, b) => RARITY_ORDER[a.rarity] - RARITY_ORDER[b.rarity] || a.name.localeCompare(b.name));
     const known = special.filter((d) => knowsRecipe(state, content, d.id));
     const partial = special.filter((d) => !knowsRecipe(state, content, d.id) && (state.fragments[d.id] ?? 0) > 0);
@@ -1837,8 +1941,9 @@ export class UI {
     return h(
       'div',
       { class: 'body' },
-      h('div', { class: 'row' }, h('b', {}, `${done} / ${total} earned`), h('span', { class: 'muted' }, "Warden's Seal: earn them all")),
+      h('div', { class: 'row' }, h('b', {}, `${done} / ${total} earned`), h('span', { class: 'muted' }, 'Every one counts toward the Seal')),
       h('div', { class: 'progress', style: 'margin-bottom:10px' }, h('div', { style: `width:${(done / total) * 100}%;background:var(--accent)` })),
+      this.collection.sealSection(),
       ...items,
     );
   }
@@ -1857,6 +1962,12 @@ export class UI {
             this.factions.visible() ? h('button', { onclick: () => this.openFactions() }, '🤝 Factions', this.factions.badge() ? h('span', { class: 'badge' }, this.factions.badge()) : null) : null,
           )
         : null,
+      h(
+        'div',
+        { class: 'row menu-links', style: 'justify-content:flex-start;margin-top:0;gap:6px;flex-wrap:wrap' },
+        h('button', { onclick: () => this.openPanel('collection') }, '📖 Collection Log'),
+        h('button', { onclick: () => this.openPanel('residents') }, '★ Legends'),
+      ),
       h('p', { class: 'muted', style: 'margin-top:0' }, `The game saves automatically ${isNative() ? 'on this device' : 'in this browser'}. Keep copies in the slots below, or export them to a file.`),
       this.qol.saves.section(),
       settingsPanel(this.game),
@@ -1902,13 +2013,24 @@ export class UI {
         h('div', { class: 'row', style: 'margin:0' }, h('b', {}, open ? rg.name : `🔒 ${rg.name}`), dangerPips(rg.danger)),
         h('div', { class: 'muted' }, rg.description),
         here ? h('div', { class: 'muted small', style: 'margin-top:4px' }, `${here} explorer${here === 1 ? '' : 's'} out here`) : null,
+        ...this.regionLoot(rg.id, open),
       );
     });
+    const maps = state.loot?.maps ?? [];
+    const undug = maps.filter((m) => !m.found);
     const order: Record<Expedition['status'], number> = { returned: 0, dead: 1, returning: 2, exploring: 3 };
     const exps = [...state.expeditions].sort((a, b) => order[a.status] - order[b.status] || a.id - b.id);
     return h(
       'div',
       { class: 'body' },
+      undug.length
+        ? h(
+            'div',
+            { class: 'map-banner' },
+            h('b', {}, `🗺 ${undug.length} treasure map${undug.length === 1 ? '' : 's'} to dig up`),
+            h('div', { class: 'muted small' }, `Send an explorer to ${orList([...new Set(undug.map((m) => this.regions().find((r) => r.id === m.regionId)?.name ?? m.regionId))])}. The longer they stay, the better the odds they find the spot.`),
+          )
+        : null,
       ...regionCards,
       h(
         'div',
@@ -1932,6 +2054,40 @@ export class UI {
             ),
           ]),
     );
+  }
+
+  /** M9: a region's treasure maps (with a "dig here" hint) and the loot found only there. */
+  private regionLoot(regionId: string, open: boolean): HTMLElement[] {
+    const { state, content } = this.game;
+    const out: HTMLElement[] = [];
+    for (const m of (state.loot?.maps ?? []).filter((x) => x.regionId === regionId)) {
+      const cache = cacheDef(content, m.cacheId);
+      out.push(
+        h(
+          'div',
+          { class: `map-line${m.found ? ' found' : ''}` },
+          h('span', {}, m.found ? '✓ ' : '🗺 ', h('b', {}, cache?.name ?? 'A treasure map')),
+          h('span', { class: 'muted small' }, m.found ? ' dug up' : open ? ' · dig here: send an explorer to this region' : ' · this region is still locked'),
+        ),
+      );
+    }
+    const ex = lootContent(content).regionExclusives[regionId];
+    if (ex && typeof ex === 'object' && ex.items.length) {
+      const logged = new Set(state.collection?.items ?? []);
+      out.push(
+        h(
+          'div',
+          { class: 'exclusive-line small' },
+          h('span', { class: 'muted' }, 'Only found here: '),
+          ...ex.items.map((id, i) => {
+            const d = content.items[id];
+            const seen = logged.has(id);
+            return h('span', { class: `rarity ${d?.rarity ?? 'rare'}${seen ? '' : ' unseen'}`, title: seen ? 'In your Collection Log' : 'Not found yet' }, `${i ? ', ' : ''}✦ ${d?.name ?? id}${seen ? ' ✓' : ''}`);
+          }),
+        ),
+      );
+    }
+    return out;
   }
 
   private expeditionCard(e: Expedition): HTMLElement {
@@ -2374,6 +2530,14 @@ export class UI {
     this.qol.onEvents(events);
     this.topside.onEvents(events);
     this.factions.onEvents(events);
+    this.legends.onEvents(events);
+    this.escaped.clear();
+    for (const ev of events) if (ev.type === 'incidentEscaped') this.escaped.add(ev.incidentId);
+    const incName = (type: string) => (content.balance.incidents.types as Record<string, { name: string }>)[type]?.name ?? 'Incident';
+    const roomName = (id: number) => {
+      const room = this.game.state.rooms.find((r) => r.id === id);
+      return room ? levelName(content, room) : 'homestead';
+    };
     for (const ev of events) {
       if (ev.type === 'expeditionStarted') this.explorerOf.set(ev.expeditionId, ev.residentId);
       switch (ev.type) {
@@ -2388,14 +2552,65 @@ export class UI {
           if (d && !d.requiresResearch) this.toast(`New room unlocked: ${d.name}`, 'gold');
           break;
         }
-        case 'incidentStarted':
-          this.toast(INCIDENT_TOAST[ev.incident] ?? 'Incident!', 'bad');
+        case 'incidentStarted': {
+          const inc = this.game.state.incidents.find((i) => i.id === ev.incidentId);
+          if (ev.incident === 'maulers' && (inc?.warning ?? 0) > 0) this.toast(`⚠ A Mauler has been spotted crossing the flats. It reaches the door in ${Math.ceil(inc?.warning ?? 0)}s: arm your door guards!`, 'bad');
+          else this.toast(INCIDENT_TOAST[ev.incident] ?? 'Incident!', 'bad');
+          if (ev.incident === 'maulers') haptic('warning');
           break;
-        case 'doorBreached':
-          this.toast('The raiders broke through the door!', 'bad');
+        }
+        case 'doorBreached': {
+          const inc = this.game.state.incidents.find((i) => i.id === ev.incidentId);
+          this.toast(inc?.type === 'maulers' ? 'The Mauler smashed through the door!' : 'The raiders broke through the door!', 'bad');
           break;
+        }
+        case 'incidentMoved':
+          this.toast(ev.incident === 'glassbacks' ? `🕸 The Glassbacks jumped into the ${roomName(ev.roomId)}!` : `${incName(ev.incident)} moved into the ${roomName(ev.roomId)}.`, 'bad', { fold: `moved-${ev.incidentId}` });
+          break;
+        case 'incidentEscaped':
+          this.toast(
+            ev.incident === 'maulers'
+              ? 'The Mauler lumbered off into the Glarelands. HALCY is fairly sure it will be back.'
+              : ev.incident === 'glassbacks'
+                ? 'The Glassbacks burrowed back out through the walls. Nobody is sure where to.'
+                : `${incName(ev.incident)} left on its own.`,
+            undefined,
+            { fold: 'escaped' },
+          );
+          break;
+        case 'maulerStirring':
+          haptic('warning');
+          this.toast(`⚠ Something big has noticed all the noise (Mauler meter ${Math.round(ev.meter * 100)}%). Arm the door, staff a Watchtower, keep the door shut.`, 'bad');
+          break;
+        case 'bossFirstKill': {
+          const enemy = questContent(content).enemies[ev.enemyId];
+          const item = content.items[ev.defId];
+          haptic('success');
+          this.toast(`☠ First kill: ${enemy?.name ?? 'the boss'}! ${item ? `${item.name} goes in the loot` : 'A trophy goes in the loot'} (paid if the quest succeeds).`, 'gold');
+          break;
+        }
+        case 'treasureMapFound': {
+          const cache = cacheDef(content, ev.cacheId);
+          const region = this.regions().find((r) => r.id === ev.regionId)?.name ?? ev.regionId;
+          this.toast(`🗺 Treasure map: ${cache?.name ?? 'a cache'} in ${region}. Send an explorer there to dig.`, 'gold');
+          break;
+        }
+        case 'cacheDug': {
+          const cache = cacheDef(content, ev.cacheId);
+          this.toast(`⛏ ${this.explorerName(ev.expeditionId)} dug up ${cache?.name ?? 'a cache'}! It comes home with them.`, 'gold');
+          break;
+        }
+        case 'collectionLogged': {
+          if (this.game.state.time < 5 || this.game.flushingAway) break;
+          if (ev.category !== 'residents' && ev.category !== 'regions' && ev.category !== 'creatures') break;
+          const entry = collectionEntries(this.game.state, content, ev.category as CollectionCategory).find((x) => x.id === ev.id);
+          this.toast(`📖 Collection Log: ${entry?.name ?? ev.id}`, undefined, { fold: 'collection', low: true });
+          break;
+        }
         case 'incidentResolved':
-          if (ev.incident === 'rustmen') this.toast(ev.loot > 0 ? `Raiders repelled! Recovered ${ev.loot} scrip.` : 'The raiders got away with their loot.', ev.loot > 0 ? 'good' : 'bad');
+          if (this.escaped.has(ev.incidentId)) break;
+          if (ev.incident === 'maulers') this.toast(ev.loot > 0 ? `The Mauler is down! Recovered ${ev.loot} scrip, and a lot of paperwork.` : 'The Mauler is gone.', ev.loot > 0 ? 'gold' : undefined);
+          else if (ev.incident === 'rustmen') this.toast(ev.loot > 0 ? `Raiders repelled! Recovered ${ev.loot} scrip.` : 'The raiders got away with their loot.', ev.loot > 0 ? 'good' : 'bad');
           else if (!this.game.state.incidents.some((i) => i.type === ev.incident)) this.toast(`${(content.balance.incidents.types as Record<string, { name: string }>)[ev.incident]?.name ?? 'Incident'} dealt with.`, 'good');
           break;
         case 'residentDied':

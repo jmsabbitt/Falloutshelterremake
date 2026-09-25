@@ -1188,3 +1188,134 @@ button.pulse { animation: ready 0.6s infinite alternate; }
   .toolbar { gap: 4px; padding: 6px; max-width: calc(100vw - 16px); }
   .toolbar button { padding: 8px 7px; font-size: 13px; }
 }
+
+/* ---------- M9: legends, the Collection Log, the Warden's Seal, creatures, rare loot ---------- */
+.legend-badge { display: inline-grid; place-items: center; width: 17px; height: 17px; margin-right: 4px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #ffe9a0, var(--legendary) 60%, #9a6a18); color: #3a2406; font-size: 11px; line-height: 1; vertical-align: 1px; box-shadow: 0 0 5px rgba(242, 193, 78, 0.6); }
+.legend-text { color: var(--legendary); }
+.legend-mark { color: var(--legendary); }
+
+/* A face drawn from a legend's looks. */
+.legend-portrait { position: relative; display: inline-block; flex: none; width: 34px; height: 34px; border-radius: 50%; overflow: hidden; background: radial-gradient(circle at 50% 30%, #3a4f52, #172224); border: 2px solid var(--legendary); vertical-align: middle; }
+.legend-portrait.large { width: 64px; height: 64px; border-width: 3px; box-shadow: 0 0 14px rgba(242, 193, 78, 0.45); }
+.legend-portrait i { position: absolute; display: block; font-style: normal; }
+.legend-portrait .lp-suit { left: 12%; right: 12%; bottom: -18%; height: 42%; border-radius: 45% 45% 0 0; background: var(--suit); }
+.legend-portrait .lp-face { left: 30%; width: 40%; top: 24%; height: 44%; border-radius: 48%; background: var(--skin); }
+.legend-portrait .lp-hair { left: 26%; width: 48%; top: 16%; height: 22%; border-radius: 50% 50% 30% 30%; background: var(--hair); }
+.legend-portrait.f .lp-hair { height: 44%; border-radius: 50% 50% 18% 18%; clip-path: polygon(0 0, 100% 0, 100% 100%, 84% 100%, 84% 42%, 16% 42%, 16% 100%, 0 100%); }
+.legend-portrait .lp-star { right: 4%; top: 2%; font-size: 9px; color: var(--legendary); text-shadow: 0 0 2px #000; }
+.legend-portrait.large .lp-star { font-size: 14px; }
+.legend-portrait.silhouette { border-color: #45625f; }
+.legend-portrait.silhouette .lp-suit, .legend-portrait.silhouette .lp-face, .legend-portrait.silhouette .lp-hair { background: #0b1113; }
+.legend-portrait .lp-q { inset: 0; display: grid; place-items: center; font-family: var(--display); font-size: 14px; color: #5d7c7e; }
+.legend-portrait.large .lp-q { font-size: 24px; }
+
+.legends-section { margin: 4px 0 8px; padding: 6px 8px; border: 1px solid #5a4a1c; border-radius: 10px; background: linear-gradient(160deg, rgba(58, 47, 18, 0.55), rgba(26, 39, 41, 0.6)); }
+.legends-section > summary { cursor: pointer; font-weight: 700; min-height: 32px; display: flex; align-items: center; gap: 4px; list-style: none; }
+.legends-section > summary::-webkit-details-marker { display: none; }
+.legends-section > summary::after { content: '▾'; margin-left: auto; color: var(--ink-dim); }
+.legends-section:not([open]) > summary::after { content: '▸'; }
+.legend-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 6px; margin-top: 6px; }
+.legend-chip { display: flex; align-items: center; gap: 7px; min-height: 44px; min-width: 0; padding: 4px 8px 4px 4px; text-align: left; background: #172224; border: 1px solid #3f5a5c; border-radius: 22px; }
+.legend-chip.here, .legend-chip.outpost, .legend-chip.queued { border-color: #8a6a1c; }
+.legend-chip.lost { opacity: 0.6; }
+.legend-chip.unknown b { color: var(--ink-dim); }
+.legend-chip .lc-text { display: flex; flex-direction: column; min-width: 0; line-height: 1.15; }
+.legend-chip .lc-text b, .legend-chip .lc-text span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.legend-chip .lc-text b { font-size: 13px; }
+
+.legend-card { max-width: 440px; }
+.legend-card .legend-head { display: flex; gap: 12px; align-items: center; margin-bottom: 8px; }
+.legend-card .legend-head h2 { margin: 0 0 2px; color: var(--legendary); font-size: 20px; }
+.legend-card .legend-status { display: inline-block; margin-top: 4px; }
+.legend-status.here { color: var(--accent-ink); background: var(--ok); }
+.legend-status.outpost, .legend-status.queued { color: var(--accent); }
+.legend-status.lost { color: #fff; background: var(--danger); }
+.legend-bio { font-style: italic; margin: 6px 0 10px; }
+.legend-trait { padding: 7px 9px; border: 1px solid #8a6a1c; border-radius: 8px; background: rgba(58, 47, 18, 0.5); margin-bottom: 6px; }
+.legend-trait b { color: var(--legendary); }
+.legend-trait.awakened { border-color: var(--legendary); box-shadow: 0 0 10px rgba(242, 193, 78, 0.35); }
+.legend-notes { margin: 0 0 6px; padding-left: 18px; font-size: 13px; color: var(--ink-dim); }
+.legend-notes li { margin: 3px 0; }
+.legend-quests { margin-bottom: 4px; }
+.legend-arrival { border-color: var(--legendary); box-shadow: 0 0 30px rgba(242, 193, 78, 0.4); }
+.legend-banner { font-family: var(--display); font-size: 13px; letter-spacing: 1px; color: var(--legendary); text-align: center; margin-bottom: 8px; text-shadow: 0 2px 0 #5a3a12; }
+.legend-line-head { display: flex; align-items: center; gap: 6px; }
+.legend-line-head .legend-portrait { width: 26px; height: 26px; }
+.legend-group { color: var(--legendary); }
+
+/* Collection Log */
+.cl-pct { font-family: var(--display); color: var(--legendary); font-weight: 400; }
+.cl-milestones { display: flex; flex-wrap: wrap; gap: 5px; }
+.cl-mile { font-size: 12px; padding: 2px 8px; border-radius: 10px; background: #0b1113; border: 1px solid #33484a; color: var(--ink-dim); white-space: nowrap; }
+.cl-mile b { color: var(--ink); }
+.cl-mile.paid { border-color: #8a6a1c; color: var(--legendary); }
+.cl-mile.due { border-color: var(--legendary); }
+.collection-tabs button .n { margin-left: 5px; font-size: 12px; color: var(--ink-dim); }
+.collection-tabs button.complete .n { color: var(--legendary); }
+.cl-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 6px; }
+.cl-entry { display: flex; align-items: center; gap: 8px; min-height: 44px; min-width: 0; padding: 5px 7px; border-radius: 8px; background: #1a2729; border: 1px solid #2c3f41; text-align: left; font: inherit; color: inherit; }
+.cl-entry .cl-text { display: flex; flex-direction: column; min-width: 0; line-height: 1.15; }
+.cl-entry .cl-text b { font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cl-entry .cl-text span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cl-entry .cl-art { flex: none; width: 34px; height: 34px; display: grid; place-items: center; }
+.cl-entry .cl-art .item-icon { width: 32px; height: 32px; }
+.cl-glyph { font-size: 20px; }
+.cl-entry.have.r-rare { border-color: #5d6f72; }
+.cl-entry.have.r-legendary { border-color: #8a6a1c; background: linear-gradient(160deg, #2e2612, #1a2729 70%); }
+.cl-entry.have.r-legendary b { color: var(--legendary); }
+.cl-entry.locked { background: #121b1c; border-style: dashed; }
+.cl-entry.locked .cl-text b { color: #5d7c7e; }
+.cl-entry.locked .cl-art { filter: brightness(0) invert(0.18); opacity: 0.9; }
+.cl-entry.locked .cl-art:has(.legend-portrait) { filter: none; }
+
+/* The Warden's Seal in Goals */
+.seal-card { display: flex; gap: 10px; align-items: flex-start; border: 1px solid #5a4a1c; background: linear-gradient(160deg, #2a2412, #1a2729 70%); cursor: default; }
+.seal-card.earned { border-color: var(--legendary); box-shadow: 0 0 14px rgba(242, 193, 78, 0.35); }
+.seal-medal { flex: none; width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; font-size: 24px; color: #3a2406; background: radial-gradient(circle at 35% 30%, #fff1b8, var(--legendary) 55%, #8a5a1c); }
+.seal-card:not(.earned) .seal-medal { filter: grayscale(0.8) brightness(0.7); }
+.seal-title { color: var(--legendary); }
+.seal-missing summary { cursor: pointer; min-height: 30px; display: flex; align-items: center; }
+.seal-mark { color: var(--legendary); }
+
+/* The Mauler meter on the Threat chip and in its breakdown. */
+.mauler-mini { display: inline-block; width: 22px; height: 5px; margin-left: 3px; border-radius: 3px; background: #26383b; overflow: hidden; align-self: center; }
+.mauler-mini > span { display: block; height: 100%; background: #b8721d; }
+.mauler-mini.stirring > span { background: var(--danger); }
+.mauler-mini.stirring { box-shadow: 0 0 4px var(--danger); animation: pulse 0.9s infinite alternate; }
+.mauler-mini.active > span { background: #ff5a3a; }
+.mauler-box { margin-top: 10px; padding: 8px 10px; border-radius: 8px; border: 1px solid #5a3a22; background: #221612; }
+.mauler-box.stirring, .mauler-box.active { border-color: var(--danger); }
+.mauler-bar { position: relative; height: 10px; border-radius: 5px; background: #0b1113; margin: 5px 0; }
+.mauler-bar > div { height: 100%; border-radius: 5px; background: linear-gradient(90deg, #7a5a2c, #d9643a, var(--danger)); }
+.mauler-bar > i { position: absolute; top: -3px; bottom: -3px; width: 2px; background: #ff8a6a; }
+
+/* Rare loot: item flavour, treasure maps, region exclusives, first kills. */
+.item-main { display: flex; flex-direction: column; min-width: 0; flex: 1 1 150px; }
+.item-main > .item-name { flex: none; }
+.item-extra { display: flex; flex-direction: column; gap: 1px; margin-top: 2px; }
+.rare-find { font-size: 12px; font-weight: 700; color: var(--legendary); }
+.item-flavor { font-size: 12px; font-style: italic; color: var(--ink-dim); white-space: normal; }
+.map-banner { padding: 7px 10px; margin-bottom: 8px; border-radius: 8px; border: 1px dashed var(--legendary); background: rgba(58, 47, 18, 0.5); }
+.map-line { margin-top: 5px; font-size: 13px; padding: 3px 7px; border-radius: 6px; background: rgba(58, 47, 18, 0.55); border: 1px dashed #8a6a1c; }
+.map-line.found { border-style: solid; border-color: #3f5a5c; background: transparent; opacity: 0.8; }
+.exclusive-line { margin-top: 5px; }
+.exclusive-line .unseen { opacity: 0.75; }
+.loot-chip.first-kill { border-color: #8a3a22; color: #ff9a7a; }
+.qs-first-kill { font-family: var(--body); font-size: 12px; font-weight: 700; color: #ff9a7a; white-space: nowrap; }
+
+@media (max-width: 640px) {
+  .panel-host > .panel.collection-sheet { height: min(60vh, calc(100vh - var(--hud-h, 104px) - var(--tb-h) - 16px)); }
+  .cl-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  /* One row that scrolls sideways, so the list below stays in view. */
+  .legend-grid { display: flex; overflow-x: auto; overflow-y: hidden; touch-action: pan-x; overscroll-behavior-x: contain; scrollbar-width: none; padding-bottom: 2px; }
+  .legend-grid::-webkit-scrollbar { display: none; }
+  .legend-grid > .legend-chip { flex: 0 0 148px; }
+  .qs-first-kill { display: none; }
+  .legend-card .legend-head h2 { font-size: 17px; }
+}
+@media (max-width: 380px) {
+  .cl-grid { grid-template-columns: minmax(0, 1fr); }
+}
+@media (pointer: coarse) {
+  .legends-section > summary, .seal-missing summary { min-height: 44px; }
+}

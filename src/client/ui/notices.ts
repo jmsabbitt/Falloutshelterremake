@@ -3,7 +3,7 @@
 // catch-up summary and the events it raised. Kept in localStorage per
 // homestead so it survives a reload; cleared on demand.
 
-import { deepContent, researchNode, roomDef, type GameEvent, type ResourceKey } from '../../sim';
+import { cacheDef, deepContent, legendDef, legendName, questContent, researchNode, roomDef, type GameEvent, type ResourceKey } from '../../sim';
 import type { AwayReport, Game } from '../game';
 import { readJson, writeJson } from '../storage';
 import { ask } from './confirm';
@@ -77,6 +77,7 @@ export class NoticeCentre {
   /** Entries after this are marked new while the panel is open. */
   private highlightSince = 0;
   private seenAway: AwayReport | null = null;
+  private escaped = new Set<number>();
   private saveTimer: number | null = null;
   /** Names and titles remembered so late events (after a quest is collected) can still name them. */
   private questTitles = new Map<number, string>();
@@ -205,6 +206,8 @@ export class NoticeCentre {
   /** Describe a batch, folding same-kind events into one line each, in first-seen order. */
   private fold(events: GameEvent[], away: boolean): Omit<Notice, 'id' | 'at'>[] {
     const groups = new Map<string, { line: Line; parts: string[]; ids: (number | undefined)[]; n: number; sum: Record<string, number> }>();
+    // M9: an incident that left on its own also raises incidentResolved; that one is not a win.
+    this.escaped = new Set(events.filter((e) => e.type === 'incidentEscaped').map((e) => (e as { incidentId: number }).incidentId));
     for (const ev of events) {
       const line = this.describe(ev, away);
       if (!line) continue;
@@ -277,9 +280,34 @@ export class NoticeCentre {
       case 'doorBreached':
         return { key: 'breach', group: 'incidents', icon: '🚪', one: 'Raiders broke through the door.', tone: 'bad' };
       case 'incidentResolved': {
+        if (this.escaped.has(ev.incidentId)) return null;
         const name = (content.balance.incidents.types as Record<string, { name?: string }>)[ev.incident]?.name ?? 'Incident';
         const text = ev.incident === 'rustmen' ? (ev.loot > 0 ? `Raiders repelled. Recovered ${fmt(ev.loot)} scrip.` : 'The raiders got away with their loot.') : `${name} dealt with in the ${this.roomName(ev.roomId)}.`;
         return { key: `res-${ev.incidentId}`, group: 'incidents', icon: '✔', one: text, tone: ev.incident === 'rustmen' && ev.loot <= 0 ? 'bad' : 'good' };
+      }
+      case 'incidentMoved':
+        return { key: `moved-${ev.incidentId}`, group: 'incidents', icon: '🕸', one: `${(content.balance.incidents.types as Record<string, { name?: string }>)[ev.incident]?.name ?? 'Something'} jumped into the ${this.roomName(ev.roomId)}.`, tone: 'bad' };
+      case 'incidentEscaped': {
+        const name = (content.balance.incidents.types as Record<string, { name?: string }>)[ev.incident]?.name ?? 'Something';
+        return { key: `esc-${ev.incidentId}`, group: 'incidents', icon: '↗', one: ev.incident === 'maulers' ? 'The Mauler wandered off. It will be back.' : `${name} left the homestead on its own.` };
+      }
+      case 'maulerStirring':
+        return { key: 'stirring', group: 'incidents', icon: '⚠', one: `Something big is paying attention (Mauler meter ${Math.round(ev.meter * 100)}%).`, tone: 'bad' };
+      case 'bossFirstKill': {
+        const enemy = questContent(content).enemies[ev.enemyId]?.name ?? 'A boss';
+        return { key: `fk-${ev.enemyId}`, group: 'quests', icon: '☠', one: `First kill: ${enemy}. ${content.items[ev.defId]?.name ?? 'A trophy'} goes in the quest loot.`, tone: 'gold' };
+      }
+      case 'treasureMapFound':
+        return { key: `map-${ev.mapId}`, group: 'glare', icon: '🗺', one: `Treasure map found: ${cacheDef(content, ev.cacheId)?.name ?? 'a cache'}. Dig it up in its region.`, tone: 'gold' };
+      case 'cacheDug':
+        return { key: `cache-${ev.cacheId}`, group: 'glare', icon: '⛏', one: `${this.explorer(ev.expeditionId)} dug up ${cacheDef(content, ev.cacheId)?.name ?? 'a cache'}.`, tone: 'gold' };
+      case 'legendArrived': {
+        const d = legendDef(content, ev.legendId);
+        return people(`legend-${ev.legendId}`, '★', ev.source === 'recall' ? `${d?.firstName ?? 'A legend'} is back from the outpost.` : `Legendary resident: ${d ? legendName(d) : 'someone'} is at the door.`, d?.firstName ?? '', (p) => `Legends at the door: ${nameList(p)}.`, 'gold');
+      }
+      case 'legendAwakened': {
+        const d = legendDef(content, ev.legendId);
+        return people(`awake-${ev.legendId}`, '★', `${d?.firstName ?? 'A legend'}'s signature trait awakened.`, d?.firstName ?? '', (p) => `Awakened: ${nameList(p)}.`, 'gold');
       }
       // ---- the Glarelands
       case 'expeditionStarted':
