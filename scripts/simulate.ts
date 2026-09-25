@@ -15,6 +15,9 @@ import {
   foodDemandPerMin,
   availableQuests,
   canExcavate,
+  tradeOffers,
+  factionsContent,
+  isMet,
   canResearch,
   researchContent,
   totalFloors,
@@ -260,6 +263,7 @@ function botTurn(): void {
 
   runQuests();
   runDepth();
+  runTopside();
 
   // Jobs: fill production rooms with the best-matching idle adults.
   const idle = s.residents.filter((r) => !r.dead && !r.waiting && !isChild(s, r) && r.roomId === null && !isAway(r));
@@ -276,6 +280,36 @@ function botTurn(): void {
         return (sb ? effectiveStat(content, r, sb) : 0) - (sa ? effectiveStat(content, r, sa) : 0);
       })[0];
     if (best) applyCommand(s, content, { type: 'assign', residentId: r.id, roomId: best.id });
+  }
+}
+
+/**
+ * M7: once Topside is surveyed, put up a Trading Post, a Signal Mast and a few
+ * surface producers; take affordable trades; keep a food caravan on the road.
+ */
+function runTopside(): void {
+  if (!s.research.done.includes('topside_survey')) return;
+  const pop = population(s);
+  for (const [type, want, minPop] of [['trading_post', 1, 30], ['signal_mast', 1, 35], ['farm_plots', 2, 40], ['solar_array', 1, 45], ['watchtower', 1, 50]] as const) {
+    if (pop >= minPop && s.rooms.filter((r) => r.type === type).length < want && s.scrip > 4000) {
+      const x = [...Array(20).keys()].find((i) => canPlace(s, content, type, -1, i).ok);
+      if (x !== undefined) applyCommand(s, content, { type: 'build', roomType: type, floor: -1, x });
+    }
+  }
+  const mast = s.rooms.find((r) => r.type === 'signal_mast');
+  if (mast && mast.level < 3 && s.scrip > 30000) applyCommand(s, content, { type: 'upgrade', roomId: mast.id });
+  // Trades: one per turn, anything affordable that isn't a straight scrip sink.
+  for (const o of tradeOffers(s)) {
+    if (applyCommand(s, content, { type: 'trade', offerId: o.id }).ok) {
+      bump('trades');
+      break;
+    }
+  }
+  for (const c of s.caravans) if (c.status === 'returned' && applyCommand(s, content, { type: 'collectCaravan', caravanId: c.id }).ok) bump('caravans');
+  if (!s.caravans.length && s.resources.food > 150) {
+    const f = factionsContent(content).factions.find((x) => isMet(s, x.id));
+    const who = s.residents.filter((r) => canQuest(s, r) === null && r.roomId !== null).sort((a, b) => b.stats.charm - a.stats.charm)[0];
+    if (f && who) applyCommand(s, content, { type: 'sendCaravan', factionId: f.id, residentIds: [who.id], goods: { food: 60 } });
   }
 }
 
@@ -453,6 +487,7 @@ if (process.env.DUMP) {
   console.log('saved', process.env.DUMP);
 }
 console.log(
+  `topside: rooms ${s.rooms.filter((r) => r.floor < 0).length} · influence ${Math.round(s.influence)} · factions ${JSON.stringify(Object.fromEntries(Object.entries(s.factions).map(([k, v]) => [k, v.rep])))} · weather changes ${s.stats['weatherChanges'] ?? 0} · ` +
   `depth: research ${s.research.done.length}/${researchContent(content).nodes.length} (${Math.round(s.research.points)} pts banked, ${Math.round(s.stats['researchPoints'] ?? 0)} earned) · strata ${s.deep.strata} · discoveries ${s.deep.discoveries.length} · deep rooms ${s.rooms.filter((r) => r.floor >= content.balance.grid.floors).length} · refined ${s.stats['refinedSalvage'] ?? 0} · mastery ups ${s.stats['masteryUps'] ?? 0} · labs ${s.rooms.filter((r) => r.type === 'lab').length}`,
 );
 const unused: Resident[] = s.residents.filter((r) => !r.dead && !r.waiting && !isChild(s, r) && r.roomId === null);
