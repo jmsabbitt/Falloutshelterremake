@@ -152,6 +152,8 @@ export interface ContractTemplateDef {
   bounty: { rarity: 'rare' | 'legendary'; kind?: 'weapon' | 'outfit'; scrip: [number, number] };
   /** M7: posted by a faction: success raises its reputation (and may pay Influence). */
   faction?: string;
+  /** M9: only offered from this homestead in the prestige chain on. */
+  cycle?: number;
   rep?: number;
   influence?: number;
 }
@@ -1142,7 +1144,7 @@ function bountyFor(state: GameState, content: Content, tpl: ContractTemplateDef)
 export function refreshContracts(state: GameState, content: Content): void {
   const t = tuning(content).contracts;
   // Faction-posted contracts only appear once that faction knows you exist.
-  const templates = questContent(content).contracts.filter((c) => !c.faction || state.factions[c.faction]?.met);
+  const templates = questContent(content).contracts.filter((c) => (!c.faction || state.factions[c.faction]?.met) && (!c.cycle || state.legacy.cycle >= c.cycle));
   state.contracts.offers = [];
   if (!templates.length) return;
   const offers = t.offers + bonus(state, content, 'contractOffers');

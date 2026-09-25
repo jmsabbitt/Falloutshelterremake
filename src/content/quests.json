@@ -2451,6 +2451,7 @@
     },
     {
       "id": "c_seal_inspection",
+      "cycle": 3,
       "title": "Seal Inspection: {place}",
       "brief": "Something is leaking through the Seal at {place}, a long way down the Sunrise Line. Halcyon's inspection schedule says it's our turn, and it has said so for a very long time. It's a long ride, and the pay is legendary, and so, apparently, is the leak.",
       "places": ["Seal Junction", "the Warm Sidings", "Inspection Pit Six", "the Last Platform"],

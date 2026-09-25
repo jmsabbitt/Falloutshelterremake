@@ -15,7 +15,16 @@
     "kiln_mother": "bedrock_armor",
     "shatterjaw": "titan_harness",
     "chief_sprocket": "quicksilver_suit",
-    "big_tin": "tin_knuckles"
+    "big_tin": "tin_knuckles",
+    "pump_warden": "sunbeam_rifle",
+    "stationmaster": "thunderclap",
+    "deacon_mire": "glare_lance",
+    "the_undertow": "salvage_harpoon",
+    "the_chair": "four_leaf_tux",
+    "knock_captain": "titan_harness",
+    "the_conductor": "quicksilver_suit",
+    "the_signatory": "professors_tweed",
+    "signatory_countersigned": "peacemaker"
   },
   "repeatChance": 0.05,
   "firstKillLog": "{boss} was carrying {item}. HALCY has logged it as a first-time acquisition.",

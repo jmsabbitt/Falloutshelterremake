@@ -16,6 +16,7 @@ const MATERIALS = ['circuitry', 'hide', 'adhesive', 'cloth', 'chemicals', 'steel
 const CRATES = ['standard', 'rare', 'legendary'];
 /** Counters the engine bumps that quest achievements may use. */
 const COUNTERS = [
+  'questline.act3',
   'questsStarted', 'questsCompleted', 'storyQuestsCompleted', 'contractsCompleted', 'questline.act1', 'questline.act2',
   'questEnemiesDefeated', 'bossesDefeated', 'questCrits', 'perfectCrits', 'abilitiesUsed', 'questInterrupts',
   'questChecksPassed', 'questChecksFailed', 'questWipes', 'questScrip', 'questPartyLevel', 'medpatchesUsed',
@@ -481,7 +482,7 @@ describe('achievements and writing', () => {
   it('quest achievements use real counters, and every achievement id is unique', () => {
     const own = (questsJson as { achievements: { id: string; stat: string; tier: string; target: number }[] }).achievements;
     expect(own.length).toBeGreaterThanOrEqual(12);
-    const glassFoes = (regionDef(content, 'glassflats')?.enemies ?? []).map((e) => `slain.${e.id}`);
+    const glassFoes = [...(regionDef(content, 'glassflats')?.enemies ?? []), ...(regionDef(content, 'stillwater')?.enemies ?? [])].map((e) => `slain.${e.id}`);
     for (const a of own) {
       expect([...COUNTERS, ...glassFoes], a.id).toContain(a.stat);
       expect(['bronze', 'silver', 'gold']).toContain(a.tier);
