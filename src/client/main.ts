@@ -1,12 +1,33 @@
+/// <reference types="vite/client" />
 import { Application } from 'pixi.js';
 import { Game } from './game';
 import { CharacterArt } from './render/sprites';
 import { QuestView } from './render/questView';
 import { VaultView } from './render/vaultView';
 import { UI } from './ui/ui';
+import { initPlatform, isNative } from './platform';
+import { getSettings, onSettingsChange, reloadSettings, type Settings } from './platform/settings';
+import { initStorage } from './storage';
+// M8: fonts are bundled so the game looks right in airplane mode.
+import '@fontsource/bungee/400.css';
+import '@fontsource/work-sans/400.css';
+import '@fontsource/work-sans/600.css';
+import '@fontsource/work-sans/700.css';
 import './style.css';
 
+/** M8: the PWA's offline cache (the native app ships its files, so it doesn't need one). */
+function registerServiceWorker(): void {
+  if (!import.meta.env.PROD || isNative() || !('serviceWorker' in navigator)) return;
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch((err) => console.warn('Service worker not registered:', err));
+  });
+}
+
 async function boot(): Promise<void> {
+  // M8: natively the saves are mirrored in Preferences; load them before the game reads its save.
+  await initStorage();
+  reloadSettings();
+  registerServiceWorker();
   const host = document.getElementById('stage') as HTMLElement;
   const app = new Application();
   await app.init({
@@ -38,6 +59,16 @@ async function boot(): Promise<void> {
     onRingResult: (id, quality) => ui?.quests.screen.onRingResult(id, quality),
   });
   ui = new UI(game, view, questView);
+  await initPlatform(game).catch((err) => console.warn('Platform init failed:', err));
+  // M8 battery saver: cap at 30 fps (stream T's idle governor goes lower on its own).
+  // Reduced motion is exposed to CSS as :root[data-reduced-motion].
+  const applySettings = (s: Settings) => {
+    app.ticker.maxFPS = s.batterySaver ? 30 : 0;
+    document.documentElement.toggleAttribute('data-reduced-motion', s.reducedMotion);
+    document.documentElement.toggleAttribute('data-battery-saver', s.batterySaver);
+  };
+  applySettings(getSettings());
+  onSettingsChange(applySettings);
   // Founding, import and reset swap the whole homestead: redraw it from scratch.
   game.onReplace(() => view.resync());
   // Sprite art streams in after first paint; until then (or without it) residents use drawn placeholders.

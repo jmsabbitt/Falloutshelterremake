@@ -32,6 +32,8 @@ import { m7Console } from './m7Dev';
 import { clearSave, readSave, writeBackup, writeSave, writeUndo } from './storage';
 
 type Listener = (events: GameEvent[]) => void;
+type LifecycleListener = (phase: 'suspend' | 'resume') => void;
+type CommandListener = (cmd: Command, result: CommandResult) => void;
 
 /** M5: what founding a new homestead returns to the client. */
 export type FoundResult = { ok: true; legacy: number; backup: string; backedUp: boolean; oldNumber: number; stayers: number } | { ok: false; reason: string };
@@ -75,6 +77,10 @@ export class Game {
   layoutVersion = 0;
   /** The command whose events are being handed out right now, or null (events from the clock). */
   running: Command['type'] | null = null;
+  private lifecycleListeners = new Set<LifecycleListener>();
+  private commandListeners = new Set<CommandListener>();
+  private lastSuspend = 0;
+  private suspended = false;
 
   constructor() {
     const saved = readSave();
@@ -94,11 +100,45 @@ export class Game {
     }
     this.claimDaily();
 
+    // M8: the app (or tab) going away saves and schedules notifications; coming back catches up.
+    // Natively the platform layer also calls suspend()/wake() from the app pause/resume events.
     document.addEventListener('visibilitychange', () => {
-      if (document.hidden) this.save();
-      else this.resume();
+      if (document.hidden) this.suspend();
+      else this.wake();
     });
-    window.addEventListener('pagehide', () => this.save());
+    window.addEventListener('pagehide', () => this.suspend());
+  }
+
+  /** M8: listen for the app being suspended (hidden, paused, closed) or woken again. */
+  onLifecycle(fn: LifecycleListener): () => void {
+    this.lifecycleListeners.add(fn);
+    return () => this.lifecycleListeners.delete(fn);
+  }
+
+  /** M8: listen for every command the player runs, with its result (e.g. to ask for notification permission). */
+  onCommand(fn: CommandListener): () => void {
+    this.commandListeners.add(fn);
+    return () => this.commandListeners.delete(fn);
+  }
+
+  /** M8: the app is going to the background: save now, then tell listeners (notifications are scheduled). */
+  suspend(): void {
+    this.save();
+    const now = Date.now();
+    // visibilitychange, pagehide and the native pause event often arrive together.
+    if (now - this.lastSuspend < 1000) return;
+    this.lastSuspend = now;
+    this.suspended = true;
+    for (const fn of this.lifecycleListeners) fn('suspend');
+  }
+
+  /** M8: back in the foreground: catch up as after any absence, then tell listeners (notifications are cleared). */
+  wake(): void {
+    this.resume();
+    if (!this.suspended) return;
+    this.suspended = false;
+    this.lastSuspend = 0;
+    for (const fn of this.lifecycleListeners) fn('resume');
   }
 
   on(fn: Listener): () => void {
@@ -207,6 +247,7 @@ export class Game {
     } finally {
       this.running = null;
     }
+    for (const fn of this.commandListeners) fn(cmd, result);
     return result;
   }
 
