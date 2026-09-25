@@ -103,6 +103,10 @@ export interface AchievementDef {
   stat: string;
   target: number;
   hidden?: boolean;
+  /** M9: not needed for the Warden's Seal (e.g. achievements for losing people). */
+  optional?: boolean;
+  /** M9: a title the achievement grants. */
+  title?: string;
 }
 
 export type Balance = typeof balanceJson;

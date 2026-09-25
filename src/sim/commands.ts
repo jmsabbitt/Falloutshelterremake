@@ -20,6 +20,7 @@ import { abandonQuest, collectQuest, questAbility, questChoose, questCrit, quest
 import { performRush } from './systems/rush';
 import { applyCustom, type CustomCommand } from './systems/custom';
 import { isSurvival, rulesetMods } from './systems/rulesets';
+import { recallLegend } from './systems/legends';
 import type { CrateTier, GameState, Resident, Room } from './types';
 
 export type Command =
@@ -33,6 +34,7 @@ export type Command =
   | { type: 'collectAll' }
   | { type: 'rush'; roomId: number }
   | { type: 'revive'; residentId: number }
+  | { type: 'recallLegend'; legendId: string }
   | { type: 'layToRest'; residentId: number }
   | { type: 'heal'; residentId: number }
   | { type: 'purge'; residentId: number }
@@ -295,6 +297,9 @@ function dispatch(state: GameState, content: Content, cmd: Command): CommandResu
       return { ok: true, detail: performRush(state, content, room) };
     }
 
+    case 'recallLegend':
+      if (typeof cmd.legendId !== 'string') return result('bad legend');
+      return result(recallLegend(state, content, cmd.legendId));
     case 'revive': {
       const res = findResident(state, cmd.residentId);
       if (!res || !res.dead) return fail('nobody to revive');

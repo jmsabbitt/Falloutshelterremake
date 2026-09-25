@@ -260,6 +260,8 @@ export interface QuestReward {
   influence?: number;
   /** M9: a legendary resident who arrives at the door (legends.json id). */
   legend?: string;
+  /** M9: awaken a legend (their signature trait's stronger form, +1 to every stat). */
+  legendUpgrade?: string;
 }
 
 export type QuestRoomKind = 'start' | 'empty' | 'fight' | 'loot' | 'event' | 'boss';
@@ -505,6 +507,9 @@ export type GameEvent =
   | { type: 'bossFirstKill'; questId: number; enemyId: string; defId: string }
   | { type: 'treasureMapFound'; mapId: number; cacheId: string; regionId: string }
   | { type: 'cacheDug'; cacheId: string; regionId: string; expeditionId: number }
+  | { type: 'legendArrived'; residentId: number; legendId: string; source: string }
+  | { type: 'legendAwakened'; residentId: number; legendId: string }
+  | { type: 'collectionLogged'; category: string; id: string }
   | { type: 'residentLeveled'; residentId: number; level: number }
   | { type: 'residentDied'; residentId: number }
   | { type: 'residentRevived'; residentId: number }

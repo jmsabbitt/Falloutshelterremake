@@ -1,17 +1,10 @@
 // M9 stream C: rare-item paths. Boss first-kill drops, treasure maps and
 // caches, region exclusives and the lootOnly items.
 
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 
-// Stream L owns recruitLegend; record the calls instead.
-const recruits: { id: string; source: string }[] = [];
-vi.mock('../src/sim/systems/legends', async (orig) => ({
-  ...(await orig<typeof import('../src/sim/systems/legends')>()),
-  recruitLegend: (_s: unknown, _c: unknown, id: string, source: string) => {
-    recruits.push({ id, source });
-    return null;
-  },
-}));
+// Legends who have come to the door (recruitLegend is real now that stream L has landed).
+const legends = (s: GameState) => s.residents.filter((r) => r.legendary).map((r) => r.legendary);
 
 import { applyCommand, loadContent, newGame, type Expedition, type GameState, type Quest, type Resident } from '../src/sim';
 import questsJson from '../src/content/quests.json';
@@ -35,9 +28,6 @@ const content = loadContent();
 const T0 = 1_700_000_000_000;
 const HOUR = 3600;
 
-beforeEach(() => {
-  recruits.length = 0;
-});
 
 function calm(seed = 21): GameState {
   const s = newGame(content, { seed, now: T0 });
@@ -190,11 +180,11 @@ describe('boss first kills', () => {
     const q = fakeQuest(s, 'act2_4');
     onBossDefeated(s, content, q, 'big_tin');
     expect(q.loot.items).toEqual(['tin_knuckles']);
-    expect(recruits).toEqual([{ id: 'rook', source: 'boss' }]);
+    expect(legends(s)).toEqual(['rook']);
     q.outcome = 'success';
     tickLoot(s);
     onBossDefeated(s, content, fakeQuest(s, 'act2_4'), 'big_tin');
-    expect(recruits).toHaveLength(1);
+    expect(legends(s)).toEqual(['rook']);
   });
 
   it('carries across foundings (bossKills is lifetime)', () => {
@@ -268,9 +258,9 @@ describe('treasure maps and caches', () => {
     const e = send(s, explorer(s));
     tickExpeditions(s, content, 5 * HOUR);
     expect(s.loot.maps[0]!.found).toBe(true);
-    expect(recruits).toHaveLength(0); // not until they are home
+    expect(legends(s)).toEqual([]); // not until they are home
     bringHome(s, e);
-    expect(recruits).toEqual([{ id: 'granny_ash', source: 'cache' }]);
+    expect(legends(s)).toEqual(['granny_ash']);
   });
 
   it('a lost explorer puts the cache back in the ground', () => {

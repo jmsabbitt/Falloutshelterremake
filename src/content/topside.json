@@ -93,7 +93,8 @@
       "tier": "bronze",
       "stat": "stormTaint",
       "target": 100,
-      "hidden": true
+      "hidden": true,
+      "optional": true
     },
     {
       "id": "watchtower_3",

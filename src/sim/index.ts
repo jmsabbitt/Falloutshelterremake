@@ -210,3 +210,21 @@ export { rulesetMods, ruleFlag, type RulesetMods } from './systems/rulesets';
 export { recruitLegend, type LegendSource } from './systems/legends';
 export { newCustomGame, customPresets, customPreset, CUSTOM_ACTIONS, type CustomGameOptions } from './systems/custom';
 export { rulesetsAvailable, rulesetLocked, survivalLocked, rulesLegacyMult } from './systems/prestige';
+export {
+  legendsContent,
+  legendDef,
+  legendName,
+  legendStatus,
+  legendResident,
+  legendQuestline,
+  recallLegend,
+  canRecallLegend,
+  upgradeLegend,
+  radioLegendProgress,
+  type LegendDef,
+  type LegendStatus,
+} from './systems/legends';
+export * from './systems/collection';
+export { SEAL_ID, sealProgress, sealRequirements, wardenTitle } from './systems/achievements';
+export { maulerStatus, type MaulerStatus } from './systems/incidents';
+export { lootContent, cacheDef, isLootOnly, exclusiveRegionOf } from './systems/loot';

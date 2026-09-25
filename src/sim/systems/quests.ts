@@ -36,7 +36,7 @@ import { leaveJob, returnToJob } from './assign';
 import { changeRep, factionDef, repOf } from './factions';
 import { grantItem, randomItemOf } from './items';
 import { onBossDefeated } from './loot';
-import { recruitLegend } from './legends';
+import { recruitLegend, upgradeLegend } from './legends';
 
 // ------------------------------------------------------------------ content types
 
@@ -1088,6 +1088,7 @@ export function collectQuest(state: GameState, content: Content, questId: number
       if (!state.questsDone.includes(def.id)) state.questsDone.push(def.id);
       for (const region of def.rewards.regions ?? []) if (!state.regionsUnlocked.includes(region)) state.regionsUnlocked.push(region);
       if (def.rewards.legend) recruitLegend(state, content, def.rewards.legend, 'quest');
+      if (def.rewards.legendUpgrade) upgradeLegend(state, content, def.rewards.legendUpgrade);
       bump(state, 'storyQuestsCompleted');
       bump(state, `questline.${def.line}`);
     } else {

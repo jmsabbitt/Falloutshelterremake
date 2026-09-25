@@ -1502,7 +1502,7 @@
     { "id": "abilities_100", "name": "Core Competencies", "description": "Use 100 abilities on quests.", "tier": "bronze", "stat": "abilitiesUsed", "target": 100 },
     { "id": "interrupts_10", "name": "Sorry to Interrupt", "description": "Interrupt 10 enemy wind-ups with a Haymaker.", "tier": "silver", "stat": "questInterrupts", "target": 10 },
     { "id": "checks_25", "name": "Soft Skills", "description": "Pass 25 stat checks at quest events.", "tier": "bronze", "stat": "questChecksPassed", "target": 25 },
-    { "id": "quest_wipe", "name": "Return to Sender", "description": "Lose a whole party on a quest.", "tier": "bronze", "stat": "questWipes", "target": 1, "hidden": true },
+    { "id": "quest_wipe", "name": "Return to Sender", "description": "Lose a whole party on a quest.", "tier": "bronze", "stat": "questWipes", "target": 1, "hidden": true, "optional": true },
     { "id": "quest_scrip_10k", "name": "Hazard Pay", "description": "Bring home 10,000 scrip from quests.", "tier": "silver", "stat": "questScrip", "target": 10000 },
     { "id": "act2_first", "name": "New in Town", "description": "Complete the first quest of Act 2 in a newly founded homestead.", "tier": "bronze", "stat": "questline.act2", "target": 1 },
     { "id": "act2_halfway", "name": "Block Party", "description": "Complete four quests of Act 2.", "tier": "silver", "stat": "questline.act2", "target": 4 },

@@ -114,6 +114,8 @@ interface TraitTuning {
 export interface TraitsContent {
   tuning: TraitTuning;
   traits: TraitDef[];
+  /** M9: legendary residents' signature traits (never rolled or inherited). */
+  legendaryTraits?: TraitDef[];
 }
 
 export function traitsContent(content: Content): TraitsContent {
@@ -141,7 +143,8 @@ function index(content: Content): Index {
   if (key === lastKey && lastIndex) return lastIndex;
   let ix = indexes.get(key);
   if (!ix) {
-    const defs = traitsContent(content).traits;
+    const tc = traitsContent(content);
+    const defs = [...tc.traits, ...(tc.legendaryTraits ?? [])];
     ix = {
       byId: new Map(defs.map((d) => [d.id, d])),
       aura: new Set(defs.filter((d) => d.effects.some((e) => e.kind === 'roomHappiness')).map((d) => d.id)),
@@ -259,7 +262,8 @@ export function inheritTraits(state: GameState, content: Content, mother: Reside
   const t = traitsContent(content).tuning;
   const max = t.traitsPerResident[1];
   const inherited: string[] = [];
-  const parental = [...new Set([...(mother.traits ?? []), ...(father.traits ?? [])])];
+  const rollable = new Set(traitsContent(content).traits.map((d) => d.id));
+  const parental = [...new Set([...(mother.traits ?? []), ...(father.traits ?? [])])].filter((id) => rollable.has(id));
   for (const id of parental) {
     if (!chance(state.rng, t.inheritChance)) continue;
     if (inherited.length < max && compatible(content, inherited, id)) inherited.push(id);
