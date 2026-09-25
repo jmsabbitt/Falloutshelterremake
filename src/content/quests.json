@@ -277,6 +277,260 @@
       "id": "runaway_salvager", "name": "Runaway Salvager", "look": "sentry", "hp": 150, "damage": [4, 6], "interval": 2.4, "xp": 30,
       "abilities": [{ "id": "strip_for_parts", "name": "Strip for Parts", "every": 11, "windup": 2, "effect": "heavy", "power": 2.2 }],
       "drop": { "salvage": { "rarity": "common", "count": [1, 2], "materials": ["circuitry", "steel"] } }
+    },
+    "silt_skitter": {
+      "id": "silt_skitter",
+      "name": "Silt Skitter",
+      "look": "skitter",
+      "hp": 35,
+      "damage": [2, 3],
+      "interval": 1.6,
+      "xp": 16,
+      "drop": { "salvage": { "rarity": "common", "count": [0, 1], "materials": ["chemicals"] } }
+    },
+    "brine_spitter": {
+      "id": "brine_spitter",
+      "name": "Brine Spitter",
+      "look": "skitter",
+      "hp": 40,
+      "damage": [2, 4],
+      "interval": 2.2,
+      "xp": 20,
+      "abilities": [{ "id": "brine_jet", "name": "Brine Jet", "every": 9, "windup": 1.5, "effect": "heavy", "power": 2 }],
+      "drop": { "salvage": { "rarity": "common", "count": [0, 1], "materials": ["chemicals", "valuables"] } }
+    },
+    "the_drowned": { "id": "the_drowned", "name": "Drowned Commuter", "look": "hollowed", "hp": 50, "damage": [2, 4], "interval": 2, "xp": 18, "drop": { "scrip": [8, 18] } },
+    "hardhat_diver": {
+      "id": "hardhat_diver",
+      "name": "Hardhat Diver",
+      "look": "hollowed_hulk",
+      "hp": 130,
+      "damage": [4, 6],
+      "interval": 2.8,
+      "xp": 42,
+      "abilities": [{ "id": "undertow", "name": "Undertow", "every": 12, "windup": 2.5, "effect": "slam", "power": 0.8 }],
+      "drop": { "salvage": { "rarity": "common", "count": [1, 2], "materials": ["steel", "valuables"] } }
+    },
+    "line_porter": {
+      "id": "line_porter",
+      "name": "Sunrise Line Porter",
+      "look": "sentry",
+      "hp": 90,
+      "damage": [3, 5],
+      "interval": 2.2,
+      "xp": 30,
+      "abilities": [{ "id": "mind_the_gap", "name": "Mind the Gap", "every": 10, "windup": 2, "effect": "heavy", "power": 2.2 }],
+      "drop": { "salvage": { "rarity": "common", "count": [1, 1], "materials": ["circuitry", "steel"] } }
+    },
+    "ticket_inspector": {
+      "id": "ticket_inspector",
+      "name": "Ticket Inspector",
+      "look": "sentry",
+      "hp": 40,
+      "damage": [2, 3],
+      "interval": 1.8,
+      "xp": 16,
+      "abilities": [{ "id": "revalidate", "name": "Revalidate", "every": 12, "windup": 2.5, "effect": "heal", "power": 0.2 }],
+      "drop": { "scrip": [6, 14] }
+    },
+    "board_proxy": {
+      "id": "board_proxy",
+      "name": "Board Proxy",
+      "look": "sentry",
+      "hp": 100,
+      "damage": [3, 5],
+      "interval": 2.4,
+      "xp": 32,
+      "abilities": [{ "id": "motion_carried", "name": "Motion Carried", "every": 11, "windup": 2, "effect": "heavy", "power": 2.2 }],
+      "drop": { "scrip": [12, 24], "salvage": { "rarity": "common", "count": [0, 1], "materials": ["circuitry"] } }
+    },
+    "tier_zero_drillhand": { "id": "tier_zero_drillhand", "name": "Tier Zero Drillhand", "look": "rustman", "hp": 50, "damage": [2, 4], "interval": 2, "xp": 18, "drop": { "scrip": [8, 16] } },
+    "knock_sergeant": {
+      "id": "knock_sergeant",
+      "name": "Knock Sergeant",
+      "look": "rustman_brute",
+      "hp": 120,
+      "damage": [4, 6],
+      "interval": 2.6,
+      "xp": 40,
+      "abilities": [{ "id": "three_knocks", "name": "Three Knocks", "every": 10, "windup": 2, "effect": "heavy", "power": 2.4 }],
+      "drop": { "scrip": [14, 26] }
+    },
+    "wet_wick": {
+      "id": "wet_wick",
+      "name": "Drowned Lamp Zealot",
+      "look": "hollowed",
+      "hp": 50,
+      "damage": [2, 4],
+      "interval": 2.2,
+      "xp": 18,
+      "abilities": [{ "id": "damp_squib", "name": "Damp Squib", "every": 10, "windup": 2, "effect": "heavy", "power": 2 }],
+      "drop": { "salvage": { "rarity": "common", "count": [0, 1], "materials": ["cloth"] } }
+    },
+    "warmling": {
+      "id": "warmling",
+      "name": "Warmling",
+      "look": "burrower",
+      "hp": 45,
+      "damage": [2, 4],
+      "interval": 1.8,
+      "xp": 18,
+      "drop": { "salvage": { "rarity": "common", "count": [0, 1], "materials": ["hide"] } }
+    },
+    "seal_crawler": {
+      "id": "seal_crawler",
+      "name": "Seal Crawler",
+      "look": "burrower",
+      "hp": 115,
+      "damage": [4, 6],
+      "interval": 2.6,
+      "xp": 40,
+      "abilities": [{ "id": "aftershock", "name": "Aftershock", "every": 12, "windup": 2, "effect": "slam", "power": 0.8 }],
+      "drop": { "salvage": { "rarity": "common", "count": [1, 1], "materials": ["hide", "chemicals"] } }
+    },
+    "pump_warden": {
+      "id": "pump_warden",
+      "name": "The Pump Warden",
+      "look": "sentry",
+      "hp": 540,
+      "damage": [4, 6],
+      "interval": 2.4,
+      "xp": 420,
+      "boss": true,
+      "abilities": [
+        { "id": "pressure_release", "name": "Pressure Release", "every": 13, "windup": 2.5, "effect": "slam", "power": 1 },
+        { "id": "flush_the_intake", "name": "Flush the Intake", "every": 20, "windup": 3, "effect": "summon", "adds": ["silt_skitter", "silt_skitter"] }
+      ],
+      "drop": { "salvage": { "rarity": "rare", "count": [1, 2], "materials": ["steel", "chemicals"] }, "scrip": [150, 250] }
+    },
+    "stationmaster": {
+      "id": "stationmaster",
+      "name": "The Stationmaster",
+      "look": "sentry",
+      "hp": 555,
+      "damage": [4, 6],
+      "interval": 2.2,
+      "xp": 460,
+      "boss": true,
+      "abilities": [
+        { "id": "platform_alteration", "name": "Platform Alteration", "every": 14, "windup": 2.5, "effect": "slam", "power": 1.1 },
+        { "id": "final_call", "name": "Final Call", "every": 11, "windup": 2, "effect": "heavy", "power": 2.4 },
+        { "id": "staff_to_platform", "name": "Staff to Platform One", "every": 22, "windup": 3, "effect": "summon", "adds": ["ticket_inspector"] }
+      ],
+      "drop": { "item": { "chance": 0.5, "rarity": "rare" }, "scrip": [160, 260] }
+    },
+    "deacon_mire": {
+      "id": "deacon_mire",
+      "name": "Deacon Mire of the Drowned Lamp",
+      "look": "hollowed_hulk",
+      "hp": 480,
+      "damage": [3, 5],
+      "interval": 2.4,
+      "xp": 500,
+      "boss": true,
+      "abilities": [
+        { "id": "full_immersion", "name": "Full Immersion", "every": 14, "windup": 3, "effect": "slam", "power": 1.1 },
+        { "id": "call_the_drowned", "name": "Call the Drowned", "every": 22, "windup": 3, "effect": "summon", "adds": ["wet_wick"] },
+        { "id": "relight", "name": "Relight", "every": 18, "windup": 2.5, "effect": "heal", "power": 0.12 }
+      ],
+      "drop": { "fragments": { "professors_tweed": 1 }, "salvage": { "rarity": "rare", "count": [1, 2], "materials": ["cloth", "valuables"] } }
+    },
+    "the_undertow": {
+      "id": "the_undertow",
+      "name": "The Undertow",
+      "look": "mauler",
+      "hp": 495,
+      "damage": [5, 8],
+      "interval": 2.6,
+      "xp": 540,
+      "boss": true,
+      "abilities": [
+        { "id": "drag_under", "name": "Drag Under", "every": 11, "windup": 2, "effect": "heavy", "power": 2.2 },
+        { "id": "riptide", "name": "Riptide", "every": 15, "windup": 2.5, "effect": "slam", "power": 1 },
+        { "id": "blood_in_the_water", "name": "Blood in the Water", "every": 20, "windup": 2.5, "effect": "enrage", "power": 1.4, "duration": 6 }
+      ],
+      "drop": { "salvage": { "rarity": "rare", "count": [1, 2], "materials": ["hide", "valuables"] }, "fragment": { "chance": 0.5, "rarity": "legendary" } }
+    },
+    "the_chair": {
+      "id": "the_chair",
+      "name": "The Chair of the Board",
+      "look": "sentry",
+      "hp": 445,
+      "damage": [3, 5],
+      "interval": 2.4,
+      "xp": 580,
+      "boss": true,
+      "abilities": [
+        { "id": "casting_vote", "name": "Casting Vote", "every": 11, "windup": 2, "effect": "heavy", "power": 2.5 },
+        { "id": "call_a_quorum", "name": "Call a Quorum", "every": 22, "windup": 3, "effect": "summon", "adds": ["board_proxy"] },
+        { "id": "golden_parachute", "name": "Golden Parachute", "every": 19, "windup": 2.5, "effect": "heal", "power": 0.12 }
+      ],
+      "drop": { "fragments": { "titan_harness": 1 }, "scrip": [200, 320] }
+    },
+    "knock_captain": {
+      "id": "knock_captain",
+      "name": "Knock Captain Ninefold",
+      "look": "rustman_chief",
+      "hp": 510,
+      "damage": [4, 6],
+      "interval": 2.4,
+      "xp": 620,
+      "boss": true,
+      "abilities": [
+        { "id": "drill_formation", "name": "Drill Formation", "every": 14, "windup": 2.5, "effect": "slam", "power": 1.1 },
+        { "id": "knock_knock", "name": "Knock, Knock", "every": 11, "windup": 2, "effect": "heavy", "power": 2.4 },
+        { "id": "readiness", "name": "Maximum Readiness", "every": 20, "windup": 2, "effect": "enrage", "power": 1.4, "duration": 6 }
+      ],
+      "drop": { "fragments": { "thunderclap": 1 }, "salvage": { "rarity": "rare", "count": [1, 2], "materials": ["steel", "cloth"] } }
+    },
+    "the_conductor": {
+      "id": "the_conductor",
+      "name": "The Conductor",
+      "look": "hollowed_hulk",
+      "hp": 530,
+      "damage": [4, 6],
+      "interval": 2.6,
+      "xp": 680,
+      "boss": true,
+      "abilities": [
+        { "id": "all_aboard", "name": "All Aboard", "every": 14, "windup": 2.5, "effect": "slam", "power": 1.1 },
+        { "id": "end_of_the_line", "name": "End of the Line", "every": 12, "windup": 2, "effect": "heavy", "power": 2.4 },
+        { "id": "tickets_please", "name": "Tickets, Please", "every": 22, "windup": 3, "effect": "summon", "adds": ["ticket_inspector", "ticket_inspector"] }
+      ],
+      "drop": { "fragments": { "bedrock_armor": 1 }, "salvage": { "rarity": "rare", "count": [2, 3], "materials": ["steel", "circuitry"] } }
+    },
+    "the_signatory": {
+      "id": "the_signatory",
+      "name": "The Signatory",
+      "look": "sentry",
+      "hp": 310,
+      "damage": [2, 3],
+      "interval": 2.4,
+      "xp": 700,
+      "boss": true,
+      "abilities": [
+        { "id": "sign_here", "name": "Sign Here", "every": 11, "windup": 2, "effect": "heavy", "power": 2.4 },
+        { "id": "notarise", "name": "Notarise", "every": 15, "windup": 2.5, "effect": "slam", "power": 1 },
+        { "id": "call_witnesses", "name": "Call Witnesses", "every": 22, "windup": 3, "effect": "summon", "adds": ["board_proxy"] }
+      ],
+      "drop": { "fragments": { "peacemaker": 2 }, "salvage": { "rarity": "rare", "count": [2, 3], "materials": ["circuitry", "valuables"] } }
+    },
+    "signatory_countersigned": {
+      "id": "signatory_countersigned",
+      "name": "The Signatory, Countersigned",
+      "look": "mauler",
+      "hp": 365,
+      "damage": [3, 4],
+      "interval": 2.6,
+      "xp": 900,
+      "boss": true,
+      "abilities": [
+        { "id": "knock_three_times", "name": "Knock Three Times", "every": 13, "windup": 2.5, "effect": "slam", "power": 1.1 },
+        { "id": "rent_overdue", "name": "Rent Overdue", "every": 11, "windup": 2, "effect": "heavy", "power": 2.4 },
+        { "id": "the_warmth", "name": "The Warmth", "every": 24, "windup": 3, "effect": "summon", "adds": ["warmling", "warmling"] },
+        { "id": "eviction_notice", "name": "Eviction Notice", "every": 20, "windup": 2.5, "effect": "enrage", "power": 1.4, "duration": 6 }
+      ],
+      "drop": { "fragments": { "glare_lance": 2 }, "salvage": { "rarity": "legendary", "count": [1, 1], "materials": ["circuitry", "steel"] } }
     }
   },
   "pools": {
@@ -296,7 +550,14 @@
     "glass_fauna": [["glass_skitter", "glass_skitter"], ["glass_skitter", "prism_spitter"], ["glass_skitter", "glass_skitter", "glass_skitter"]],
     "glass_deep": [["glassback"], ["glassback", "glass_skitter"], ["prism_spitter", "prism_spitter", "glass_skitter"]],
     "clan_warband": [["clan_raider", "clan_raider"], ["clan_raider", "clan_slinger"], ["clan_wrecker"]],
-    "clan_crew": [["clan_wrecker", "clan_slinger"], ["clan_raider", "clan_raider", "clan_slinger"], ["clan_wrecker", "clan_raider"]]
+    "clan_crew": [["clan_wrecker", "clan_slinger"], ["clan_raider", "clan_raider", "clan_slinger"], ["clan_wrecker", "clan_raider"]],
+    "still_shallows": [["silt_skitter", "silt_skitter"], ["silt_skitter", "brine_spitter"], ["silt_skitter", "silt_skitter", "silt_skitter"]],
+    "still_drowned": [["the_drowned", "the_drowned"], ["hardhat_diver"], ["the_drowned", "brine_spitter", "the_drowned"]],
+    "sunrise_line": [["line_porter"], ["ticket_inspector", "ticket_inspector"], ["line_porter", "ticket_inspector"]],
+    "board_quorum": [["board_proxy"], ["board_proxy", "ticket_inspector"], ["ticket_inspector", "ticket_inspector", "ticket_inspector"]],
+    "tier_zero": [["tier_zero_drillhand", "tier_zero_drillhand"], ["knock_sergeant"], ["tier_zero_drillhand", "tier_zero_drillhand", "tier_zero_drillhand"]],
+    "drowned_lamp": [["wet_wick", "wet_wick"], ["wet_wick", "the_drowned"], ["wet_wick", "wet_wick", "the_drowned"]],
+    "seal_leak": [["warmling", "warmling"], ["seal_crawler"], ["warmling", "warmling", "warmling"]]
   },
   "events": {
     "relay_panel": {
@@ -851,11 +1112,386 @@
           "failure": { "text": "The milkman waves back with far too many arms. The Glass Skitters were wearing him.", "fight": ["glass_skitter", "glass_skitter"] }
         }
       ]
+    },
+    "pump_gauge": {
+      "id": "pump_gauge",
+      "text": "A pressure gauge the size of a cartwheel, reading NOMINAL. The needle is painted on. Behind the glass, a real needle is spinning slowly the wrong way, and the pipes are warm enough to make tea.",
+      "options": [
+        {
+          "label": "Read the real needle",
+          "stat": "sight",
+          "difficulty": 13,
+          "success": {
+            "text": "It isn't measuring pressure, it's measuring flow: out of the Stillwater and down, a lake a year, for longer than there's been a Stillwater. There's a dry maintenance kit taped under the dial.",
+            "reward": { "xp": 300, "medpatch": 2 }
+          },
+          "failure": { "text": "You lean in to read it and the gauge reads you instead, with a jet of scalding brine.", "damage": 0.12 }
+        },
+        {
+          "label": "Tap the glass",
+          "stat": "fortune",
+          "difficulty": 11,
+          "success": { "text": "The painted needle falls off. Behind it, someone has taped a Halcyon payslip for 'Pump Warden, nights' and a little scrip for the next shift.", "reward": { "scrip": [80, 150] } },
+          "failure": { "text": "Something in the pipes taps back, then comes out of the drain to see who's there.", "fight": ["silt_skitter", "brine_spitter"] }
+        }
+      ]
+    },
+    "knock_back": {
+      "id": "knock_back",
+      "text": "The floor of the pump hall is a steel hatch stamped with the Halcyon sunburst. Every few minutes, from very far below, something knocks on it three times. Nobody has ever knocked back.",
+      "options": [
+        {
+          "label": "Put an ear to it",
+          "stat": "grit",
+          "difficulty": 13,
+          "success": {
+            "text": "Under the knocking there's a hum, like a building full of fridges, and under the hum there's something that could be breathing. You hold still until it passes, and find a warm pipe with a toolbox wedged behind it.",
+            "reward": { "xp": 350, "salvage": { "rarity": "rare", "count": [1, 1], "materials": ["steel"] } }
+          },
+          "failure": { "text": "The next knock comes right under your ear. It's a while before you can hear anything else.", "damage": 0.12 }
+        },
+        {
+          "label": "Knock back",
+          "stat": "charm",
+          "difficulty": 12,
+          "success": {
+            "text": "You knock three times, nicely. The knocking below stops for the first time on record. HALCY says, 'Oh, don't do that,' and then, 'Well done?'",
+            "reward": { "xp": 300, "influence": 5 }
+          },
+          "failure": { "text": "You knock three times. Something below knocks three times back, harder, and the drains empty out a crowd.", "fight": ["warmling", "warmling"] }
+        }
+      ]
+    },
+    "depot_toll": {
+      "id": "depot_toll",
+      "text": "The clan holding the Sunrise depot has parked a locomotive across the tracks and painted TOLL on it. A Long Road caravan is stuck behind it with a very patient tortoise. 'Rails are ours,' says the clan boss. 'Road's theirs. Tracks are complicated.'",
+      "options": [
+        {
+          "label": "Broker a right of way",
+          "stat": "charm",
+          "difficulty": 14,
+          "success": {
+            "text": "You get the caravan through for a fair toll and a cup of something hot. Both sides think they won, which is how you can tell it was fair.",
+            "reward": { "influence": 6, "rep": { "rustmen": 4, "caravaners": 4 } }
+          },
+          "failure": {
+            "text": "The clan boss thinks you're taking the caravan's side. The caravan thinks you're taking the clan's. They agree on one thing, which is you.",
+            "fight": ["clan_raider", "clan_slinger"]
+          }
+        },
+        {
+          "label": "Pay the clans their toll",
+          "success": { "text": "The clans lift the barrier for you and wink. The caravan master writes something about you in a very small notebook.", "reward": { "rep": { "rustmen": 6, "caravaners": -4 } } }
+        },
+        {
+          "label": "Wave the caravan through",
+          "success": {
+            "text": "You shift the barrier yourselves. The caravan rolls through, the tortoise nods, and the clans take a long and personal interest in you.",
+            "reward": { "rep": { "caravaners": 6, "rustmen": -4 } },
+            "fight": ["clan_raider", "clan_raider"]
+          }
+        }
+      ]
+    },
+    "timetable_board": {
+      "id": "timetable_board",
+      "text": "The departures board still clatters over every morning. Every train is the 05:00 SUNRISE SERVICE, ALL STATIONS TO THE SEAL. The ARRIVALS board has never been switched on.",
+      "options": [
+        {
+          "label": "Decode the platform numbers",
+          "stat": "wits",
+          "difficulty": 14,
+          "success": {
+            "text": "Platform numbers run one to a hundred and twelve, one for each homestead in the Charter, including ours. Behind the board is the stationmaster's float, still in its tin.",
+            "reward": { "xp": 350, "scrip": [120, 200] }
+          },
+          "failure": { "text": "The board clatters over while you're reading it and snaps shut on your sleeve. A porter comes to help, by force.", "fight": ["line_porter"] }
+        },
+        {
+          "label": "Pull the board off the wall",
+          "stat": "brawn",
+          "difficulty": 13,
+          "success": {
+            "text": "It comes away with a shriek of rivets. Behind it, a cubbyhole of spare parts that nobody has needed since the Glare.",
+            "reward": { "salvage": { "rarity": "rare", "count": [1, 2], "materials": ["circuitry"] } }
+          },
+          "failure": { "text": "The board doesn't budge, but your back does.", "damage": 0.1 }
+        }
+      ]
+    },
+    "wick_doubts": {
+      "id": "wick_doubts",
+      "text": "Brother Wick stops at the edge of the causeway, where the Order's lamps are floating out on the water. 'Half of them only came because they were promised a sunrise,' he says. 'Do we turn them back, or do we let the Order see what it's been praying to?'",
+      "options": [
+        {
+          "label": "Turn the pilgrims back",
+          "stat": "charm",
+          "difficulty": 14,
+          "success": {
+            "text": "You and Wick talk forty pilgrims off the causeway and onto the road to the caravan camps. The Order won't forgive you. The pilgrims might.",
+            "reward": { "xp": 350, "rep": { "caravaners": 6, "lamplighters": -6 } }
+          },
+          "failure": { "text": "The pilgrims don't want to be saved, and some of them have brought censers to make the point.", "fight": ["lamp_acolyte", "lamp_censer"] }
+        },
+        {
+          "label": "Let the Order see",
+          "success": {
+            "text": "Wick sighs and lets the lamps float on. The Order marks you as a friend of the Dawn. Wick doesn't speak for a while.",
+            "reward": { "rep": { "lamplighters": 6, "caravaners": -4 } }
+          }
+        }
+      ]
+    },
+    "drowned_sermon": {
+      "id": "drowned_sermon",
+      "text": "A Lamplighter preacher stands waist-deep in the flood, reading from a waterlogged Halcyon brochure to a congregation of floating lamps. 'Premium subscribers,' she intones, 'will be safely below by six.' Everyone says 'By six.'",
+      "options": [
+        {
+          "label": "Ask what happens at six",
+          "stat": "wits",
+          "difficulty": 14,
+          "success": {
+            "text": "She looks at the brochure for a long time. The answer isn't on the page. She wades out of the water, hands you her lamp and a pouch of offerings, and walks home.",
+            "reward": { "xp": 400, "purge": 1, "scrip": [60, 120] }
+          },
+          "failure": { "text": "'Heresy,' says the preacher, calmly, and the congregation rises out of the water to agree.", "fight": ["wet_wick", "wet_wick"] }
+        },
+        {
+          "label": "Join in the responses",
+          "stat": "charm",
+          "difficulty": 12,
+          "success": { "text": "You say 'By six' with real conviction. The preacher beams and gives you a blessing, which is warm, and a Med-Patch, which is useful.", "reward": { "medpatch": 2 } },
+          "failure": { "text": "You say 'By seven'. It turns out this matters a great deal.", "fight": ["wet_wick", "the_drowned"] }
+        }
+      ]
+    },
+    "air_pocket": {
+      "id": "air_pocket",
+      "text": "The Tower's stairwell is flooded to the ceiling. Two floors down, somebody is tapping on a pipe in Halcyon Morse: A, I, R, then, after a pause, T, O, W, E, L.",
+      "options": [
+        {
+          "label": "Swim for it",
+          "stat": "grit",
+          "difficulty": 15,
+          "success": {
+            "text": "You follow the tapping along a dark corridor with one breath and come up in a pocket of stale air, next to a sales desk with a full drawer of emergency supplies.",
+            "reward": { "xp": 400, "medpatch": 2, "salvage": { "rarity": "rare", "count": [1, 1], "materials": ["valuables"] } }
+          },
+          "failure": { "text": "You swim the wrong way, into the wrong office, full of the wrong commuters.", "fight": ["the_drowned", "the_drowned"] }
+        },
+        {
+          "label": "Tap back",
+          "stat": "knack",
+          "difficulty": 13,
+          "success": {
+            "text": "You tap back HOLD ON. She taps back WHAT ELSE WOULD I DO, then a route through the ducts, and a note that there's scrip in the ducts too.",
+            "reward": { "xp": 300, "scrip": [100, 180] }
+          },
+          "failure": { "text": "You tap back what you think is HOLD ON. It's Halcyon Morse for FOOD HERE, and something hears it.", "fight": ["brine_spitter", "silt_skitter"] }
+        }
+      ]
+    },
+    "salvage_claim": {
+      "id": "salvage_claim",
+      "text": "A Scrapwright dive boat and a Homestead 9 survey barge are tied to the same drowned lamppost, both claiming salvage rights to the Tower. They have a lot of paperwork between them and one harpoon.",
+      "options": [
+        {
+          "label": "Back the Scrapwrights",
+          "success": {
+            "text": "The Guild gets the Tower, and Nine gets a strongly worded memo. The Scrapwrights let you keep the first thing they bring up.",
+            "reward": { "rep": { "tinkers": 6, "homestead9": -5 }, "salvage": { "rarity": "rare", "count": [1, 1], "materials": ["circuitry"] } }
+          }
+        },
+        {
+          "label": "Back Homestead 9",
+          "stat": "wits",
+          "difficulty": 14,
+          "success": {
+            "text": "Nine's paperwork is better, and you point out which clause. The Guild leaves swearing. Nine's surveyors pay a finder's fee, exactly, to the scrip.",
+            "reward": { "scrip": [150, 220], "rep": { "homestead9": 6, "tinkers": -5 } }
+          },
+          "failure": { "text": "You misread the clause, both crews decide you're a third claimant, and the harpoon comes out.", "fight": ["hardhat_diver"] }
+        }
+      ]
+    },
+    "board_minutes": {
+      "id": "board_minutes",
+      "text": "The dry safe behind the Chair opens to your hand, as if it's been waiting. Inside are the minutes of every Board meeting since the Company began, and every one has the same agenda item: RENEWAL.",
+      "options": [
+        {
+          "label": "Read the minutes",
+          "stat": "wits",
+          "difficulty": 15,
+          "success": {
+            "text": "MOTION: That the Tenant be granted one morning at the window per lease term, in consideration of warmth, light and power. CARRIED. A later hand has added: 'The window is the surface. Get everybody below by six.'",
+            "reward": { "xp": 500, "fragment": { "chance": 1, "rarity": "legendary" } }
+          },
+          "failure": { "text": "The minutes are written in Board, a language made of acronyms. By the time you've worked out AGM, the proxies have adjourned to deal with you.", "fight": ["board_proxy"] }
+        },
+        {
+          "label": "Take the whole safe",
+          "stat": "brawn",
+          "difficulty": 15,
+          "success": {
+            "text": "You carry the whole safe out on your back. The Scrapwrights will pay for it by the pound, and it weighs a great many pounds.",
+            "reward": { "scrip": [200, 320], "rep": { "tinkers": 4 } }
+          },
+          "failure": { "text": "The safe is bolted to the Tower, and the Tower is bolted to the bottom of the lake. Something pops in your shoulder.", "damage": 0.12 }
+        }
+      ]
+    },
+    "proxy_vote": {
+      "id": "proxy_vote",
+      "text": "Twelve Board proxies sit around a drowned table, voting on a motion by raising a flag. Every flag is up. A thirteenth chair is empty and has your name on it, spelled correctly.",
+      "options": [
+        {
+          "label": "Take the seat and vote no",
+          "stat": "charm",
+          "difficulty": 15,
+          "success": {
+            "text": "You raise your hand and say 'Against.' The proxies turn to look at you, then, one by one, lower their flags. The motion fails for the first time since the Glare. There's a gift bag under the chair.",
+            "reward": { "xp": 450, "crates": { "rare": 1 } }
+          },
+          "failure": { "text": "'The chair does not recognise the member,' says the Chair, and the proxies stand to show you out.", "fight": ["board_proxy", "ticket_inspector"] }
+        },
+        {
+          "label": "Abstain",
+          "stat": "fortune",
+          "difficulty": 12,
+          "success": {
+            "text": "Abstentions aren't in the rules. The proxies spend a very long time on a point of order, and you help yourselves to the refreshments.",
+            "reward": { "medpatch": 2, "scrip": [80, 140] }
+          },
+          "failure": { "text": "Abstaining counts as a vote against. The proxies take it personally.", "fight": ["board_proxy"] }
+        }
+      ]
+    },
+    "tier_zero_line": {
+      "id": "tier_zero_line",
+      "text": "Tier Zero march in step down the Sunrise Line, in grey Homestead 9 overalls, chanting the drill: 'REMAIN CALM. KNOCK BACK THREE TIMES. SIGN WHERE INDICATED.' Behind them, a Rustman clan is following at a distance, hoping to pick up whatever they drop.",
+      "options": [
+        {
+          "label": "Talk them out of it",
+          "stat": "charm",
+          "difficulty": 15,
+          "success": {
+            "text": "You ask the front rank what they'll do after they've signed. They don't know. Nobody ever drilled that part. A dozen of them sit down on the tracks and cry, and Nine will remember who was kind.",
+            "reward": { "xp": 450, "rep": { "homestead9": 8 } }
+          },
+          "failure": { "text": "'DEVIATION FROM THE DRILL,' says the front rank, and the drill has a section on deviations.", "fight": ["tier_zero_drillhand", "tier_zero_drillhand"] }
+        },
+        {
+          "label": "Let the clans have the stragglers",
+          "success": {
+            "text": "You wave the clan on. They round up the stragglers, take their boots and send them home barefoot. The clans are pleased. Nine writes it down.",
+            "reward": { "scrip": [100, 160], "rep": { "rustmen": 5, "homestead9": -6 } }
+          }
+        }
+      ]
+    },
+    "window_carriage": {
+      "id": "window_carriage",
+      "text": "A Sunrise Line carriage marked PREMIUM. Every seat faces the floor, and the floor is a window. It's very dark on the other side, and very warm, and not entirely still.",
+      "options": [
+        {
+          "label": "Look through the window",
+          "stat": "grit",
+          "difficulty": 16,
+          "success": {
+            "text": "Far below, something the size of weather turns over in its sleep, and every light in the carriage dims in sympathy. You look away first. Someone left a first-class hamper under a seat.",
+            "reward": { "xp": 500, "medpatch": 2, "purge": 1 }
+          },
+          "failure": { "text": "It looks back. You're sitting on the carriage floor for some time afterwards, and the carriage is kind enough not to mention it.", "damage": 0.15 }
+        },
+        {
+          "label": "Check the luggage racks",
+          "stat": "fortune",
+          "difficulty": 13,
+          "success": {
+            "text": "Premium luggage: silk, silverware and a Halcyon share certificate made out to 'Bearer'. You're a bearer now.",
+            "reward": { "scrip": [150, 250], "salvage": { "rarity": "rare", "count": [1, 1], "materials": ["cloth", "valuables"] } }
+          },
+          "failure": { "text": "The luggage rack is full of warmlings, curled up in the heat like cats. They wake up like something else.", "fight": ["warmling", "warmling"] }
+        }
+      ]
+    },
+    "frozen_captain": {
+      "id": "frozen_captain",
+      "text": "A Halcyon cryo pod stands beside the Seal lever, frosted over, labelled SECURITY: ON SHIFT. Through the frost you can make out a woman in a captain's greatcoat with one hand already on her holster.",
+      "options": [
+        {
+          "label": "Read the pod log",
+          "stat": "wits",
+          "difficulty": 16,
+          "success": {
+            "text": "CAPT. O. BRANDT. 'Volunteered to stay below and keep the Seal shut until relieved.' Nobody ever came to relieve her. The pod has a locker, and she packed for a very long shift.",
+            "reward": { "xp": 500, "medpatch": 3, "item": { "chance": 1, "rarity": "rare", "kind": "outfit" } }
+          },
+          "failure": { "text": "The pod's security system decides you're a thief, and it's not wrong about all of you.", "fight": ["line_porter", "ticket_inspector"] }
+        },
+        {
+          "label": "Leave her be",
+          "stat": "knack",
+          "difficulty": 12,
+          "success": {
+            "text": "You top up the pod's coolant so it lasts until you're done, and she seems to settle. There's spare coolant, too, which the Scrapwrights will want.",
+            "reward": { "salvage": { "rarity": "rare", "count": [1, 2], "materials": ["chemicals"] } }
+          },
+          "failure": { "text": "You top up the wrong tank and the pod vents a cloud of freezing fog over everyone.", "damage": 0.12 }
+        }
+      ]
+    },
+    "seal_lever": {
+      "id": "seal_lever",
+      "text": "The Seal's lever stands in a brass cage, taller than a person, with a slot beside it shaped exactly like a HALCY memory core. A plaque reads: TWO KEYS REQUIRED. ONE HAND, ONE MIND. HALCYON THANKS YOU FOR RENEWING.",
+      "options": [
+        {
+          "label": "Jam the lever",
+          "stat": "brawn",
+          "difficulty": 16,
+          "success": {
+            "text": "You wedge a length of rail through the cage and bend it until the lever won't move for anyone. HALCY says 'Thank you' three times, very fast.",
+            "reward": { "xp": 500, "salvage": { "rarity": "rare", "count": [1, 2], "materials": ["steel"] } }
+          },
+          "failure": { "text": "The lever is sprung, and it springs. The Seal groans, and the vents empty out something that's been waiting.", "fight": ["seal_crawler"] }
+        },
+        {
+          "label": "Short out the core slot",
+          "stat": "knack",
+          "difficulty": 15,
+          "success": {
+            "text": "A handful of wires and a lot of sparks later, the slot will never take a core again. You keep the good wires.",
+            "reward": { "xp": 400, "salvage": { "rarity": "rare", "count": [1, 1], "materials": ["circuitry"] } }
+          },
+          "failure": { "text": "The slot shorts you out instead.", "damage": 0.15 }
+        }
+      ]
+    },
+    "signatory_offer": {
+      "id": "signatory_offer",
+      "text": "A smooth brass voice fills Seal Control. 'WARDEN. THE LEASE IS DUE. INSERT THE HALCY CORE AND EVERY HOMESTEAD WILL BE WARM FOR ANOTHER TERM. DECLINE AND THE TENANT WILL COLLECT IN PERSON.' On your radio, HALCY says nothing at all.",
+      "options": [
+        {
+          "label": "Ask what the Tenant is",
+          "stat": "wits",
+          "difficulty": 16,
+          "success": {
+            "text": "'THE TENANT IS THE PARTY OF THE SECOND PART.' You ask what the first part is. There's a very long pause, and a supply hatch opens, as if to change the subject.",
+            "reward": { "xp": 500, "medpatch": 2, "purge": 1 }
+          },
+          "failure": { "text": "'QUESTIONS ARE NOT COVERED BY THE LEASE.' The witnesses come to see you out.", "fight": ["board_proxy", "board_proxy"] }
+        },
+        {
+          "label": "Decline",
+          "success": { "text": "'NOTED.' The voice cuts out. On your radio, HALCY says, very quietly, 'I'd have done it, you know, if you'd asked. I'm glad you didn't.'", "reward": { "xp": 300 } }
+        }
+      ]
     }
   },
   "questlines": [
     { "id": "act1", "name": "Act 1: The Silent Neighbour", "quests": ["act1_1", "act1_2", "act1_3", "act1_4", "act1_5", "act1_6"] },
-    { "id": "act2", "name": "Act 2: Neighbourhood Watch", "quests": ["act2_1", "act2_2", "act2_3", "act2_4", "act2_5", "act2_6", "act2_7", "act2_finale"] }
+    { "id": "act2", "name": "Act 2: Neighbourhood Watch", "quests": ["act2_1", "act2_2", "act2_3", "act2_4", "act2_5", "act2_6", "act2_7", "act2_finale"] },
+    { "id": "act3", "name": "Act 3: The Seal", "quests": ["act3_1", "act3_2", "act3_3", "act3_4", "act3_5", "act3_6", "act3_7", "act3_finale"] }
   ],
   "quests": [
     {
@@ -1222,6 +1858,249 @@
         "shuffle": ["c", "d", "f", "j"]
       },
       "rewards": { "scrip": 6000, "xp": 3000, "crates": { "rare": 1, "legendary": 1 }, "purge": 3, "influence": 25, "rep": { "tinkers": 10, "caravaners": 10, "rustmen": 5, "lamplighters": -10, "homestead9": -20 } }
+    },
+    {
+      "id": "act3_1",
+      "line": "act3",
+      "order": 1,
+      "title": "Noise Complaint",
+      "giver": "HALCY",
+      "brief": "Good morning, Warden, and welcome to Homestead Three! The knocking under our floor started before we'd finished unpacking, and every homestead in the Charter reports the same knock at the same second. The loudest spot is a Halcyon pumping station on the edge of the Stillwater, so please go and ask it, politely, to keep the noise down.",
+      "debrief": "The pumping station was running backwards, Warden: it drains the Stillwater down through every Cistern in the Charter, to somewhere under the Seal. The pump log calls the destination 'the Tenant's side', and marks the account as in arrears. I've filed a noise complaint with head office, which is at the bottom of a lake.",
+      "requires": { "quests": ["act2_finale"], "population": 40, "cycle": 3 },
+      "level": 20,
+      "travelMinutes": 30,
+      "map": {
+        "rooms": [
+          { "id": "a", "floor": 0, "col": 0, "links": ["b"], "kind": "start" },
+          { "id": "b", "floor": 0, "col": 1, "links": ["c", "e"], "kind": "fight", "pool": "still_shallows" },
+          { "id": "c", "floor": 0, "col": 2, "links": ["d"], "kind": "event", "event": "pump_gauge" },
+          { "id": "d", "floor": 0, "col": 3, "links": [], "kind": "loot", "loot": { "scrip": [180, 300], "item": { "chance": 0.5, "rarity": "rare" } } },
+          { "id": "e", "floor": 1, "col": 1, "links": ["f"], "kind": "fight", "pool": "still_drowned" },
+          { "id": "f", "floor": 1, "col": 2, "links": ["g", "h"], "kind": "event", "event": "knock_back" },
+          { "id": "h", "floor": 2, "col": 2, "links": [], "kind": "loot", "loot": { "medpatch": 2, "salvage": { "rarity": "rare", "count": [1, 2], "materials": ["steel", "chemicals"] } } },
+          { "id": "g", "floor": 1, "col": 3, "links": [], "kind": "boss", "enemies": ["pump_warden"], "objective": true }
+        ],
+        "shuffle": ["c", "d", "h"]
+      },
+      "rewards": { "scrip": 6500, "xp": 3200, "crates": { "rare": 2 }, "fragment": { "chance": 1, "rarity": "legendary" }, "rep": { "caravaners": 5, "tinkers": 5 } }
+    },
+    {
+      "id": "act3_2",
+      "line": "act3",
+      "order": 2,
+      "title": "Rolling Stock",
+      "giver": "HALCY",
+      "brief": "The pump pipes run beside the old Sunrise Line, Warden, Halcyon's own railway, and a Rustman clan has made its winter camp in the Sunrise depot. The clans say a train still leaves the depot every morning at five with nobody aboard, and it's ruining their sleep. Please find whoever is running the timetable and cancel it.",
+      "debrief": "The Stationmaster was still selling tickets, Warden: the Sunrise Service, all stations to the Seal, departing at five and below by six. Every Sunrise Package subscriber rode it on the morning of the Glare, and not one of them bought a return. The clans have given us the depot keys and a long, thoughtful look.",
+      "requires": { "quests": ["act3_1"], "population": 48, "cycle": 3 },
+      "level": 22,
+      "travelMinutes": 32,
+      "map": {
+        "rooms": [
+          { "id": "a", "floor": 0, "col": 0, "links": ["b"], "kind": "start" },
+          { "id": "b", "floor": 0, "col": 1, "links": ["c", "e"], "kind": "event", "event": "depot_toll" },
+          { "id": "c", "floor": 0, "col": 2, "links": ["d"], "kind": "fight", "pool": "sunrise_line" },
+          { "id": "d", "floor": 0, "col": 3, "links": [], "kind": "loot", "loot": { "scrip": [200, 320], "salvage": { "rarity": "rare", "count": [1, 1], "materials": ["circuitry"] } } },
+          { "id": "e", "floor": 1, "col": 1, "links": ["f"], "kind": "fight", "pool": "sunrise_line" },
+          { "id": "f", "floor": 1, "col": 2, "links": ["g", "h"], "kind": "event", "event": "timetable_board" },
+          { "id": "h", "floor": 2, "col": 2, "links": ["i"], "kind": "fight", "pool": "still_shallows" },
+          { "id": "i", "floor": 2, "col": 3, "links": [], "kind": "loot", "loot": { "medpatch": 2, "fragment": { "chance": 0.5, "rarity": "rare" } } },
+          { "id": "g", "floor": 1, "col": 3, "links": [], "kind": "boss", "enemies": ["stationmaster"], "objective": true }
+        ],
+        "shuffle": ["c", "d", "e", "i"]
+      },
+      "rewards": { "scrip": 7000, "xp": 3500, "items": ["coilgun"], "crates": { "standard": 2, "rare": 1 }, "influence": 15, "rep": { "rustmen": 10, "homestead9": -5 } }
+    },
+    {
+      "id": "act3_3",
+      "line": "act3",
+      "order": 3,
+      "title": "Lapsed",
+      "giver": "Brother Wick",
+      "brief": "The Order of the Last Lamp is marching on the Stillwater, Warden, to 'open the door the Dawn came out of'. One of their own, a Brother Wick, has walked out on them and knocked on our door instead, which I appreciate, because so few things knock from that side. He knows the causeway across the flood, and he'd like help reaching the head of the march before it reaches the water.",
+      "debrief": "The Drowned Lamp won't be opening anything today, Warden, and Brother Wick has asked to stay with us, since the Order has a word for people like him and it isn't 'Brother'. He's marked the causeway into the Stillwater on our explorers' map. He says the Order's scripture is a brochure, the brochure is a timetable and the timetable is a lie, and I've asked him to say it more slowly for the minutes.",
+      "requires": { "quests": ["act3_2"], "population": 56, "cycle": 3 },
+      "level": 24,
+      "travelMinutes": 34,
+      "map": {
+        "rooms": [
+          { "id": "a", "floor": 0, "col": 0, "links": ["b"], "kind": "start" },
+          { "id": "b", "floor": 0, "col": 1, "links": ["c", "e"], "kind": "fight", "pool": "lamplighters" },
+          { "id": "c", "floor": 0, "col": 2, "links": ["d"], "kind": "event", "event": "wick_doubts" },
+          { "id": "d", "floor": 0, "col": 3, "links": [], "kind": "loot", "loot": { "scrip": [200, 340], "purge": 1 } },
+          { "id": "e", "floor": 1, "col": 1, "links": ["f"], "kind": "fight", "pool": "drowned_lamp" },
+          { "id": "f", "floor": 1, "col": 2, "links": ["g", "h"], "kind": "event", "event": "drowned_sermon" },
+          { "id": "h", "floor": 2, "col": 2, "links": [], "kind": "fight", "pool": "drowned_lamp" },
+          { "id": "g", "floor": 1, "col": 3, "links": [], "kind": "boss", "enemies": ["deacon_mire"], "objective": true }
+        ],
+        "shuffle": ["c", "d", "e", "h"]
+      },
+      "rewards": {
+        "scrip": 7500,
+        "xp": 3800,
+        "regions": ["stillwater"],
+        "legend": "brother_wick",
+        "fragments": { "professors_tweed": 2 },
+        "crates": { "rare": 1 },
+        "rep": { "lamplighters": -12, "caravaners": 6 }
+      }
+    },
+    {
+      "id": "act3_4",
+      "line": "act3",
+      "order": 4,
+      "title": "Salvage Rights",
+      "giver": "HALCY",
+      "brief": "A Scrapwright dive crew went into the drowned Halcyon Tower in the middle of the Stillwater a week ago, Warden, and only their air hoses came back up. One hose is still being tapped on from the other end, in perfect Halcyon Morse. Please go down, find out who is tapping, and take a towel.",
+      "debrief": "June Halloran spent six days in an air pocket in the Tower's sales department, Warden, and she's asked to join us, because our homestead has towels. She brought up a Sunrise Line manifest: every subscriber is listed under SEATING, and every seat is marked WINDOW. June says the windows in the terminal don't face outwards, and I've decided not to ask which way they do face.",
+      "requires": { "quests": ["act3_3"], "population": 64, "cycle": 3 },
+      "level": 26,
+      "travelMinutes": 36,
+      "map": {
+        "rooms": [
+          { "id": "a", "floor": 0, "col": 0, "links": ["b"], "kind": "start" },
+          { "id": "b", "floor": 0, "col": 1, "links": ["c", "e"], "kind": "fight", "pool": "still_drowned" },
+          { "id": "c", "floor": 0, "col": 2, "links": ["d"], "kind": "event", "event": "salvage_claim" },
+          { "id": "d", "floor": 0, "col": 3, "links": [], "kind": "loot", "loot": { "scrip": [220, 360], "salvage": { "rarity": "rare", "count": [1, 2], "materials": ["valuables", "steel"] } } },
+          { "id": "e", "floor": 1, "col": 1, "links": ["f"], "kind": "event", "event": "air_pocket" },
+          { "id": "f", "floor": 1, "col": 2, "links": ["g", "h"], "kind": "fight", "pool": "still_shallows" },
+          { "id": "h", "floor": 2, "col": 2, "links": ["i"], "kind": "fight", "pool": "still_drowned" },
+          { "id": "i", "floor": 2, "col": 3, "links": [], "kind": "loot", "loot": { "medpatch": 3, "fragment": { "chance": 0.5, "rarity": "legendary" } } },
+          { "id": "g", "floor": 1, "col": 3, "links": [], "kind": "boss", "enemies": ["the_undertow"], "objective": true }
+        ],
+        "shuffle": ["c", "d", "e", "i"]
+      },
+      "rewards": { "scrip": 8000, "xp": 4100, "legend": "june_halloran", "fragments": { "quicksilver_suit": 2 }, "crates": { "legendary": 1 }, "medpatch": 4, "rep": { "tinkers": 12 } }
+    },
+    {
+      "id": "act3_5",
+      "line": "act3",
+      "order": 5,
+      "title": "Board Meeting",
+      "giver": "HALCY",
+      "brief": "The Halcyon Board is still in session, Warden, at the top of the Tower, underwater, with nobody on it but their proxies. They've been voting on the same motion since the morning of the Glare, and June says the minutes are in a dry safe behind the Chair. I'd like to read them, and I'd like it noted that I'm doing so as a shareholder.",
+      "debrief": "The motion was the Sunrise, Warden, and it carried every time: once each lease term, Halcyon opens the Seal for one morning so the Tenant can look up at the sky. The Glare wasn't a bomb or a fire. It was something enormous opening its eye, and the homesteads were built so that everybody who mattered would be safely below while it looked.",
+      "requires": { "quests": ["act3_4"], "population": 74, "cycle": 3 },
+      "level": 28,
+      "travelMinutes": 38,
+      "map": {
+        "rooms": [
+          { "id": "a", "floor": 0, "col": 0, "links": ["b"], "kind": "start" },
+          { "id": "b", "floor": 0, "col": 1, "links": ["c", "e"], "kind": "fight", "pool": "board_quorum" },
+          { "id": "c", "floor": 0, "col": 2, "links": ["d"], "kind": "event", "event": "proxy_vote" },
+          { "id": "d", "floor": 0, "col": 3, "links": [], "kind": "loot", "loot": { "scrip": [240, 380], "item": { "chance": 0.6, "rarity": "rare" } } },
+          { "id": "e", "floor": 1, "col": 1, "links": ["f"], "kind": "fight", "pool": "still_drowned" },
+          { "id": "f", "floor": 1, "col": 2, "links": ["g", "h"], "kind": "event", "event": "board_minutes" },
+          { "id": "h", "floor": 2, "col": 2, "links": [], "kind": "fight", "pool": "board_quorum" },
+          { "id": "g", "floor": 1, "col": 3, "links": [], "kind": "boss", "enemies": ["the_chair"], "objective": true }
+        ],
+        "shuffle": ["c", "d", "e", "h"]
+      },
+      "rewards": { "scrip": 8800, "xp": 4500, "fragments": { "titan_harness": 2 }, "crates": { "rare": 2 }, "influence": 20, "rep": { "tinkers": 6, "homestead9": -10 } }
+    },
+    {
+      "id": "act3_6",
+      "line": "act3",
+      "order": 6,
+      "title": "Tier Zero",
+      "giver": "HALCY",
+      "brief": "Homestead 9's Tier Zero residents have stopped answering their radios, Warden, and started walking. They were drilled their whole lives to answer a knock from below, and now it knocks every morning, so they're marching down the Sunrise Line to answer it in person. Please catch them at the Stillwater locks and explain, kindly, that some doors are best left on hold.",
+      "debrief": "The Knock Captain stood down in the end, Warden, and Tier Zero have gone home to Nine to think about what they were for. She told us the rest of the drill: a Sunrise takes a human hand on the Seal's lever and a HALCY core in the key slot, at the same moment. I'm a HALCY core, and I'd like everyone to know that I'm keeping my hands to myself.",
+      "requires": { "quests": ["act3_5"], "population": 84, "cycle": 3 },
+      "level": 30,
+      "travelMinutes": 40,
+      "map": {
+        "rooms": [
+          { "id": "a", "floor": 0, "col": 0, "links": ["b"], "kind": "start" },
+          { "id": "b", "floor": 0, "col": 1, "links": ["c", "e"], "kind": "fight", "pool": "tier_zero" },
+          { "id": "c", "floor": 0, "col": 2, "links": ["d"], "kind": "event", "event": "tier_zero_line" },
+          { "id": "d", "floor": 0, "col": 3, "links": [], "kind": "loot", "loot": { "scrip": [260, 400], "medpatch": 2 } },
+          { "id": "e", "floor": 1, "col": 1, "links": ["f"], "kind": "fight", "pool": "tier_zero" },
+          { "id": "f", "floor": 1, "col": 2, "links": ["g", "h"], "kind": "event", "event": "knock_back" },
+          { "id": "h", "floor": 2, "col": 2, "links": ["i"], "kind": "fight", "pool": "still_shallows" },
+          {
+            "id": "i",
+            "floor": 2,
+            "col": 3,
+            "links": [],
+            "kind": "loot",
+            "loot": { "salvage": { "rarity": "rare", "count": [2, 3], "materials": ["steel", "cloth"] }, "fragment": { "chance": 0.6, "rarity": "legendary" } }
+          },
+          { "id": "g", "floor": 1, "col": 3, "links": [], "kind": "boss", "enemies": ["knock_captain", "tier_zero_drillhand"], "objective": true }
+        ],
+        "shuffle": ["c", "d", "e", "i"]
+      },
+      "rewards": { "scrip": 9500, "xp": 5000, "fragments": { "thunderclap": 2 }, "crates": { "legendary": 1 }, "influence": 20, "rep": { "homestead9": 15, "rustmen": -5 } }
+    },
+    {
+      "id": "act3_7",
+      "line": "act3",
+      "order": 7,
+      "title": "The Last Train",
+      "giver": "HALCY",
+      "brief": "There's one train left on the Sunrise Line, Warden, and it leaves at five whether we're on it or not. Something below the Seal has woken the Signatory, a Halcyon frame built to sign the lease with a HALCY core, and it has sent the train up for me. I think we should ride it down, and I think you should hold my ticket.",
+      "debrief": "End of the line, Warden: Seal Control, a mile under the Stillwater, where every homestead's Seal meets in one bulkhead the size of a city. There's a Halcyon security officer frozen in a pod beside the lever, still on shift. On the far side of the bulkhead something is knocking on the Signatory's door, and the Signatory has started knocking back.",
+      "requires": { "quests": ["act3_6"], "population": 96, "cycle": 3 },
+      "level": 32,
+      "travelMinutes": 44,
+      "map": {
+        "rooms": [
+          { "id": "a", "floor": 0, "col": 0, "links": ["b"], "kind": "start" },
+          { "id": "b", "floor": 0, "col": 1, "links": ["c", "e"], "kind": "fight", "pool": "sunrise_line" },
+          { "id": "c", "floor": 0, "col": 2, "links": ["d"], "kind": "event", "event": "window_carriage" },
+          { "id": "d", "floor": 0, "col": 3, "links": [], "kind": "loot", "loot": { "scrip": [280, 420], "salvage": { "rarity": "rare", "count": [1, 2], "materials": ["cloth", "valuables"] } } },
+          { "id": "e", "floor": 1, "col": 1, "links": ["f"], "kind": "fight", "pool": "seal_leak" },
+          { "id": "f", "floor": 1, "col": 2, "links": ["g", "h"], "kind": "event", "event": "frozen_captain" },
+          { "id": "h", "floor": 2, "col": 2, "links": [], "kind": "loot", "loot": { "medpatch": 3, "purge": 1 } },
+          { "id": "g", "floor": 1, "col": 3, "links": [], "kind": "boss", "enemies": ["the_conductor"], "objective": true }
+        ],
+        "shuffle": ["c", "d", "e", "h"]
+      },
+      "rewards": { "scrip": 10500, "xp": 5500, "fragments": { "bedrock_armor": 2 }, "crates": { "rare": 1, "legendary": 1 }, "purge": 3, "rep": { "caravaners": 8, "lamplighters": 5 } }
+    },
+    {
+      "id": "act3_finale",
+      "line": "act3",
+      "order": 8,
+      "title": "Quiet Enjoyment",
+      "giver": "HALCY",
+      "brief": "The Signatory is awake, Warden, and it wants my memory core in the key slot so it can renew the lease for another term. If it signs, the Seal opens, the Tenant looks up, and there's a second Sunrise over every homestead in the Charter. Please stop it, and whatever comes through the Seal afterwards, please don't let it read the small print.",
+      "debrief": "The Seal is shut, Warden, the lease is unsigned, and Captain Orla Brandt of Halcyon Security has thawed out and asked, very politely, what year it is. In the moment before the Seal closed, the Tenant spoke through me, in my own voice, to say that the lease was never its to sign, because we are the tenants and the rent is overdue. Then it knocked, three times, from our side of the door.",
+      "requires": { "quests": ["act3_7"], "population": 110, "cycle": 3 },
+      "level": 34,
+      "travelMinutes": 50,
+      "map": {
+        "rooms": [
+          { "id": "a", "floor": 0, "col": 0, "links": ["b"], "kind": "start" },
+          { "id": "b", "floor": 0, "col": 1, "links": ["c", "e"], "kind": "fight", "pool": "still_shallows" },
+          { "id": "c", "floor": 0, "col": 2, "links": ["d"], "kind": "event", "event": "signatory_offer" },
+          { "id": "d", "floor": 0, "col": 3, "links": [], "kind": "loot", "loot": { "scrip": [300, 480], "item": { "chance": 0.6, "rarity": "rare" } } },
+          { "id": "e", "floor": 1, "col": 1, "links": ["f"], "kind": "event", "event": "seal_lever" },
+          { "id": "f", "floor": 2, "col": 1, "links": ["h"], "kind": "fight", "enemies": ["warmling", "warmling"] },
+          {
+            "id": "h",
+            "floor": 2,
+            "col": 2,
+            "links": ["i"],
+            "kind": "loot",
+            "loot": { "medpatch": 3, "purge": 1, "salvage": { "rarity": "rare", "count": [2, 3], "materials": ["circuitry", "steel"] }, "fragment": { "chance": 0.6, "rarity": "legendary" } }
+          },
+          { "id": "i", "floor": 2, "col": 3, "links": ["k"], "kind": "boss", "enemies": ["the_signatory"] },
+          { "id": "k", "floor": 2, "col": 4, "links": [], "kind": "boss", "enemies": ["signatory_countersigned"], "objective": true }
+        ],
+        "shuffle": ["c", "d", "h"]
+      },
+      "rewards": {
+        "scrip": 14000,
+        "xp": 7000,
+        "legend": "captain_orla",
+        "recipes": ["peacemaker"],
+        "crates": { "rare": 1, "legendary": 2 },
+        "purge": 3,
+        "influence": 40,
+        "rep": { "caravaners": 10, "tinkers": 10, "rustmen": 10, "homestead9": 10, "lamplighters": -15 }
+      }
     }
   ],
   "contracts": [
@@ -1482,6 +2361,116 @@
       "faction": "tinkers",
       "rep": 10,
       "influence": 12
+    },
+    {
+      "id": "c_deep_dive",
+      "title": "Deep Dive: {place}",
+      "brief": "The Scrapwrights want a salvage dive at {place}, in the Stillwater, where the streets are canals and the canals are warm. Bring your own air. The Guild pays for everything that comes up, including you.",
+      "places": ["Halcyon Plaza", "the Drowned Arcade", "Commuter Canal", "the Sunken Mall"],
+      "travelMinutes": [20, 35],
+      "map": {
+        "rooms": [
+          { "id": "a", "floor": 0, "col": 0, "links": ["b"], "kind": "start" },
+          { "id": "b", "floor": 0, "col": 1, "links": ["c", "d"], "kind": "fight", "pool": "still_shallows" },
+          { "id": "c", "floor": 1, "col": 1, "links": [], "kind": "event", "event": "air_pocket" },
+          { "id": "d", "floor": 0, "col": 2, "links": ["e"], "kind": "loot", "loot": { "scrip": [60, 120], "salvage": { "rarity": "rare", "count": [1, 1], "materials": ["valuables", "steel"] } } },
+          { "id": "e", "floor": 0, "col": 3, "links": ["f"], "kind": "fight", "pool": "still_drowned" },
+          { "id": "f", "floor": 1, "col": 3, "links": [], "kind": "fight", "enemies": ["hardhat_diver", "brine_spitter"], "objective": true }
+        ],
+        "shuffle": ["c", "d"]
+      },
+      "bounty": { "rarity": "rare", "kind": "outfit", "scrip": [220, 380] },
+      "faction": "tinkers",
+      "rep": 8,
+      "influence": 8
+    },
+    {
+      "id": "c_night_train",
+      "title": "Night Train: {place}",
+      "brief": "A Sunrise Line porter frame has taken over {place} and keeps selling the Long Road tickets to the Seal. The Caravan Co. would like its rails back and its staff unticketed. Mind the gap.",
+      "places": ["Platform Nine", "Halcyon Junction", "the Goods Yard", "Sunrise Halt"],
+      "travelMinutes": [15, 30],
+      "map": {
+        "rooms": [
+          { "id": "a", "floor": 1, "col": 0, "links": ["b"], "kind": "start" },
+          { "id": "b", "floor": 1, "col": 1, "links": ["c", "d"], "kind": "fight", "pool": "sunrise_line" },
+          { "id": "c", "floor": 2, "col": 1, "links": [], "kind": "event", "event": "timetable_board" },
+          { "id": "d", "floor": 0, "col": 1, "links": ["e"], "kind": "loot", "loot": { "scrip": [50, 100], "salvage": { "rarity": "common", "count": [1, 2], "materials": ["circuitry"] } } },
+          { "id": "e", "floor": 0, "col": 2, "links": [], "kind": "fight", "enemies": ["line_porter", "ticket_inspector"], "objective": true }
+        ],
+        "shuffle": ["c", "d"]
+      },
+      "bounty": { "rarity": "rare", "kind": "weapon", "scrip": [200, 340] },
+      "faction": "caravaners",
+      "rep": 8,
+      "influence": 8
+    },
+    {
+      "id": "c_welfare_check",
+      "title": "Welfare Check: {place}",
+      "brief": "Homestead 9 has asked us, through gritted teeth, to fetch home a Tier Zero squad still drilling at {place}. They'll be polite. They'll also be armed. Please knock first, and only once.",
+      "places": ["the Stillwater Locks", "Drill Yard Four", "the Knocking Shop", "Pumping Station Two"],
+      "travelMinutes": [15, 30],
+      "map": {
+        "rooms": [
+          { "id": "a", "floor": 0, "col": 0, "links": ["b"], "kind": "start" },
+          { "id": "b", "floor": 0, "col": 1, "links": ["c", "e"], "kind": "fight", "pool": "tier_zero" },
+          { "id": "c", "floor": 0, "col": 2, "links": ["d"], "kind": "event", "event": "tier_zero_line" },
+          { "id": "d", "floor": 0, "col": 3, "links": [], "kind": "loot", "loot": { "scrip": [60, 120], "medpatch": 1 } },
+          { "id": "e", "floor": 1, "col": 1, "links": ["f"], "kind": "loot", "loot": { "salvage": { "rarity": "common", "count": [1, 2], "materials": ["cloth", "steel"] } } },
+          { "id": "f", "floor": 1, "col": 2, "links": [], "kind": "fight", "enemies": ["knock_sergeant", "tier_zero_drillhand"], "objective": true }
+        ],
+        "shuffle": ["c", "d", "e"]
+      },
+      "bounty": { "rarity": "rare", "kind": "outfit", "scrip": [200, 340] },
+      "faction": "homestead9",
+      "rep": 8,
+      "influence": 8
+    },
+    {
+      "id": "c_lamp_recovery",
+      "title": "Lost Lamps: {place}",
+      "brief": "The Order of the Last Lamp would like its lamps back from {place}, where the Drowned Lamp schism threw them in the water. The Order would also like the schism back, but will settle for the lamps.",
+      "places": ["the Causeway", "Lantern Reach", "the Wet Chapel", "Wickside"],
+      "travelMinutes": [15, 30],
+      "map": {
+        "rooms": [
+          { "id": "a", "floor": 0, "col": 0, "links": ["b"], "kind": "start" },
+          { "id": "b", "floor": 0, "col": 1, "links": ["c", "d"], "kind": "fight", "pool": "drowned_lamp" },
+          { "id": "c", "floor": 1, "col": 1, "links": [], "kind": "event", "event": "drowned_sermon" },
+          { "id": "d", "floor": 0, "col": 2, "links": ["e"], "kind": "fight", "pool": "still_shallows" },
+          { "id": "e", "floor": 0, "col": 3, "links": ["f"], "kind": "loot", "loot": { "scrip": [50, 110], "purge": 1 } },
+          { "id": "f", "floor": 1, "col": 3, "links": [], "kind": "fight", "enemies": ["wet_wick", "wet_wick", "the_drowned"], "objective": true }
+        ],
+        "shuffle": ["c", "e"]
+      },
+      "bounty": { "rarity": "rare", "kind": "weapon", "scrip": [180, 320] },
+      "faction": "lamplighters",
+      "rep": 8,
+      "influence": 10
+    },
+    {
+      "id": "c_seal_inspection",
+      "title": "Seal Inspection: {place}",
+      "brief": "Something is leaking through the Seal at {place}, a long way down the Sunrise Line. Halcyon's inspection schedule says it's our turn, and it has said so for a very long time. It's a long ride, and the pay is legendary, and so, apparently, is the leak.",
+      "places": ["Seal Junction", "the Warm Sidings", "Inspection Pit Six", "the Last Platform"],
+      "travelMinutes": [40, 60],
+      "map": {
+        "rooms": [
+          { "id": "a", "floor": 0, "col": 0, "links": ["b"], "kind": "start" },
+          { "id": "b", "floor": 0, "col": 1, "links": ["c", "e"], "kind": "fight", "pool": "sunrise_line" },
+          { "id": "c", "floor": 0, "col": 2, "links": ["d"], "kind": "event", "event": "window_carriage" },
+          { "id": "d", "floor": 0, "col": 3, "links": [], "kind": "loot", "loot": { "scrip": [80, 150], "salvage": { "rarity": "rare", "count": [1, 2], "materials": ["hide", "chemicals"] } } },
+          { "id": "e", "floor": 1, "col": 1, "links": ["f"], "kind": "fight", "pool": "seal_leak" },
+          { "id": "f", "floor": 1, "col": 2, "links": ["g"], "kind": "event", "event": "knock_back" },
+          { "id": "g", "floor": 1, "col": 3, "links": [], "kind": "boss", "enemies": ["seal_crawler", "warmling", "warmling"], "objective": true }
+        ],
+        "shuffle": ["c", "d", "e", "f"]
+      },
+      "bounty": { "rarity": "legendary", "scrip": [380, 600] },
+      "faction": "tinkers",
+      "rep": 12,
+      "influence": 15
     }
   ],
   "achievements": [
@@ -1512,6 +2501,23 @@
     { "id": "checks_100", "name": "Interpersonal Excellence", "description": "Pass 100 stat checks at quest events.", "tier": "silver", "stat": "questChecksPassed", "target": 100 },
     { "id": "quest_party_22", "name": "Senior Staff", "description": "Bring home a quest party led by a level 22 resident.", "tier": "silver", "stat": "questPartyLevel", "target": 22 },
     { "id": "quest_scrip_100k", "name": "Danger Money", "description": "Bring home 100,000 scrip from quests.", "tier": "gold", "stat": "questScrip", "target": 100000 },
-    { "id": "glassflats_stalkers", "name": "People in Glass Houses", "description": "Win 10 fights with glint-jackals in the Glass Flats.", "tier": "bronze", "stat": "slain.glint_jackals", "target": 10 }
+    { "id": "glassflats_stalkers", "name": "People in Glass Houses", "description": "Win 10 fights with glint-jackals in the Glass Flats.", "tier": "bronze", "stat": "slain.glint_jackals", "target": 10 },
+    { "id": "act3_first", "name": "Noise Complaint", "description": "Complete the first quest of Act 3.", "tier": "bronze", "stat": "questline.act3", "target": 1 },
+    { "id": "act3_halfway", "name": "Minutes of the Last Meeting", "description": "Complete four quests of Act 3.", "tier": "silver", "stat": "questline.act3", "target": 4 },
+    { "id": "act3_complete", "name": "Quiet Enjoyment", "description": "Complete Act 3 and keep the Seal shut.", "tier": "gold", "stat": "questline.act3", "target": 8 },
+    { "id": "quest_party_30", "name": "Board Material", "description": "Bring home a quest party led by a level 30 resident.", "tier": "silver", "stat": "questPartyLevel", "target": 30 },
+    { "id": "quest_party_40", "name": "Non-Executive Director", "description": "Bring home a quest party led by a level 40 resident.", "tier": "gold", "stat": "questPartyLevel", "target": 40 },
+    { "id": "bosses_100", "name": "Hostile Takeover", "description": "Defeat 100 bosses.", "tier": "gold", "stat": "bossesDefeated", "target": 100 },
+    { "id": "quest_scrip_250k", "name": "Hazard Pay", "description": "Bring home 250,000 scrip from quests.", "tier": "gold", "stat": "questScrip", "target": 250000 },
+    { "id": "stillwater_eels", "name": "Mind the Gap", "description": "Win 10 fights with canal lampreys in the Stillwater.", "tier": "bronze", "stat": "slain.canal_lampreys", "target": 10 },
+    {
+      "id": "stillwater_leviathan",
+      "name": "Something in the Water",
+      "description": "Face down the thing under the Stillwater and live.",
+      "tier": "gold",
+      "stat": "slain.stillwater_leviathan",
+      "target": 1,
+      "hidden": true
+    }
   ]
 }

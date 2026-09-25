@@ -3267,6 +3267,1277 @@
         "Counted nine grey sentries on the ridge today, all facing the wellhead, all perfectly still. Like they were waiting.",
         "The Scrapwrights say you can hear the Tenant if you put your ear to the glass. I haven't. I won't. I might."
       ]
+    },
+    {
+      "id": "stillwater",
+      "name": "The Stillwater",
+      "description": "Halcyon's flooded transit city: the Sunrise Terminal, the drowned Halcyon Tower and a thousand warm canals, draining slowly down towards the Seal. Long Road barges, Scrapwright divers, Rustman rafters, the Drowned Lamp and Homestead 9's Tier Zero all work the water, and something under it is awake.",
+      "danger": 2,
+      "enemies": [
+        {
+          "id": "silt_skitters",
+          "name": "silt skitters",
+          "stat": "knack",
+          "difficulty": 14,
+          "minMinute": 1,
+          "maxMinute": 360,
+          "damage": 11,
+          "xp": 420,
+          "drop": {
+            "materials": [
+              "chemicals"
+            ],
+            "rarity": "common",
+            "chance": 0.35,
+            "count": [
+              1,
+              1
+            ]
+          },
+          "encounter": [
+            "A tide of silt skitters came up out of a storm drain, clicking like a room full of typists.",
+            "The mud at the canal edge got up and scuttled. Silt skitters, dozens of them."
+          ],
+          "win": [
+            "Stamped the silt skitters back into the drain and put a paving slab over it.",
+            "Kept the silt skitters off with a flare until they lost interest and went back to being mud."
+          ],
+          "retreat": [
+            "The silt skitters got in my boots. I retreated, then emptied the boots, then retreated further.",
+            "Too many silt skitters. I left them the street. They can have it."
+          ]
+        },
+        {
+          "id": "canal_lampreys",
+          "name": "canal lampreys",
+          "stat": "sight",
+          "difficulty": 16,
+          "minMinute": 1,
+          "maxMinute": 420,
+          "damage": 12,
+          "xp": 460,
+          "drop": {
+            "materials": [
+              "hide"
+            ],
+            "rarity": "common",
+            "chance": 0.35,
+            "count": [
+              1,
+              1
+            ]
+          },
+          "encounter": [
+            "Something grey and ribbon-shaped came out of the canal at me with a mouth like a drain cover. Canal lampreys.",
+            "The warm water rippled in three places at once. Lampreys, hunting in a line."
+          ],
+          "win": [
+            "Picked off the canal lampreys as they surfaced. Mind the gap, as the signs say.",
+            "Speared a lamprey off the kerb and the rest thought better of it."
+          ],
+          "retreat": [
+            "A lamprey took hold of my boot heel. I gave it the boot. I kept the foot.",
+            "Backed away from the canal lampreys and took the long way round, on the rooftops."
+          ]
+        },
+        {
+          "id": "drowned_commuters",
+          "name": "drowned commuters",
+          "stat": "grit",
+          "difficulty": 18,
+          "minMinute": 20,
+          "maxMinute": 600,
+          "damage": 13,
+          "xp": 500,
+          "drop": {
+            "materials": [
+              "cloth"
+            ],
+            "rarity": "common",
+            "chance": 0.35,
+            "count": [
+              1,
+              2
+            ]
+          },
+          "encounter": [
+            "A queue of Hollowed commuters waded out of the flood, still holding their briefcases, still waiting for the five o'clock.",
+            "Drowned commuters, a whole platform of them, all turning towards me at once like I was the train."
+          ],
+          "win": [
+            "Held the kerb against the drowned commuters until they drifted off to wait somewhere else.",
+            "Stood my ground. The commuters decided I wasn't their train."
+          ],
+          "retreat": [
+            "The commuters pushed like it was rush hour. I let them have the platform.",
+            "Retreated from the drowned commuters. Nobody gave up their seat."
+          ]
+        },
+        {
+          "id": "rustman_rafters",
+          "name": "Rustman rafters",
+          "stat": "brawn",
+          "difficulty": 20,
+          "minMinute": 40,
+          "maxMinute": 800,
+          "damage": 14,
+          "xp": 540,
+          "drop": {
+            "materials": [
+              "steel"
+            ],
+            "rarity": "common",
+            "chance": 0.35,
+            "count": [
+              1,
+              2
+            ]
+          },
+          "encounter": [
+            "A clan raft made of car doors paddled out of an underpass. The rafters were already swinging chains.",
+            "Rustman rafters, poling a bathtub full of spears, shouted that the canal was theirs and so was my pack."
+          ],
+          "win": [
+            "Tipped the Rustman rafters into the canal. They swam off shouting that the canal was still theirs.",
+            "Held the bridge. The rafters paddled away to try somebody less stubborn."
+          ],
+          "retreat": [
+            "The rafters had more chains than I had patience. Let them have the toll.",
+            "Retreated into a drowned office block. The rafters couldn't get their bathtub through the door."
+          ]
+        },
+        {
+          "id": "brine_spitters",
+          "name": "brine spitters",
+          "stat": "sight",
+          "difficulty": 22,
+          "minMinute": 60,
+          "maxMinute": 1000,
+          "damage": 15,
+          "xp": 580,
+          "drop": {
+            "materials": [
+              "chemicals"
+            ],
+            "rarity": "common",
+            "chance": 0.35,
+            "count": [
+              1,
+              2
+            ]
+          },
+          "encounter": [
+            "A jet of boiling brine hissed past my ear from the water. Brine spitters, lined up along a drowned bus.",
+            "The steam on the canal was coming from something spitting. A lot of somethings."
+          ],
+          "win": [
+            "Waited for the brine spitters to run dry, then took them one by one.",
+            "Shot the brine spitters off the bus roof. Their sacs make decent solvent."
+          ],
+          "retreat": [
+            "Took a faceful of brine and retreated to rinse. In the canal. Which was the problem.",
+            "Too much hot brine in the air. I backed off before I was poached."
+          ]
+        },
+        {
+          "id": "porter_frames",
+          "name": "porter frames",
+          "stat": "wits",
+          "difficulty": 24,
+          "minMinute": 90,
+          "maxMinute": 1200,
+          "damage": 16,
+          "xp": 620,
+          "drop": {
+            "materials": [
+              "circuitry"
+            ],
+            "rarity": "common",
+            "chance": 0.35,
+            "count": [
+              1,
+              2
+            ]
+          },
+          "encounter": [
+            "Two Sunrise Line porter frames rolled out of a station and asked for my ticket. I didn't have one.",
+            "A porter frame offered to carry my bags to the Seal. It wasn't asking."
+          ],
+          "win": [
+            "Convinced the porter frames my ticket was in the post. They filed me under \"pending\" and rolled away.",
+            "Short-circuited a porter frame with a canal splash and stripped it for parts."
+          ],
+          "retreat": [
+            "The porter frames insisted on carrying me to the Seal. I insisted harder, from a distance.",
+            "Left the porters guarding an empty platform. It's what they're best at."
+          ]
+        },
+        {
+          "id": "drowned_lamp",
+          "name": "Drowned Lamp zealots",
+          "stat": "charm",
+          "difficulty": 26,
+          "minMinute": 120,
+          "maxMinute": 1500,
+          "damage": 17,
+          "xp": 680,
+          "drop": {
+            "materials": [
+              "cloth"
+            ],
+            "rarity": "common",
+            "chance": 0.35,
+            "count": [
+              1,
+              2
+            ]
+          },
+          "encounter": [
+            "Lamplighters of the Drowned Lamp schism waded out of the flood with their lamps held under the water, still lit. They wanted to baptise me.",
+            "A procession of floating lamps, and under each one, a Drowned Lamp zealot, humming."
+          ],
+          "win": [
+            "Talked the Drowned Lamp zealots into holding their service somewhere shallower.",
+            "Declined the baptism, firmly. The zealots floated their lamps away, disappointed in me."
+          ],
+          "retreat": [
+            "The zealots got me in up to the neck before I broke free. I'm still damp in spirit.",
+            "Retreated from the Drowned Lamp. Wet cults are worse than dry ones."
+          ]
+        },
+        {
+          "id": "hardhat_divers",
+          "name": "hardhat divers",
+          "stat": "grit",
+          "difficulty": 28,
+          "minMinute": 180,
+          "maxMinute": 1800,
+          "damage": 18,
+          "xp": 740,
+          "drop": {
+            "materials": [
+              "steel",
+              "valuables"
+            ],
+            "rarity": "common",
+            "chance": 0.35,
+            "count": [
+              1,
+              2
+            ]
+          },
+          "encounter": [
+            "A brass diving helmet surfaced in the canal, then the rest of a Hollowed diver, then two more. Their air hoses led nowhere.",
+            "Hardhat divers, Hollowed inside their suits, walking along the canal bottom towards me."
+          ],
+          "win": [
+            "Cut the hardhat divers' lead boots loose and let them float off. Kept a helmet.",
+            "Outlasted the divers. Their suits are heavy, and I am patient."
+          ],
+          "retreat": [
+            "A hardhat diver dragged me in to the waist. I left my pack with it as a tip.",
+            "Retreated from the divers. They're slow, but so am I when I'm wet."
+          ]
+        },
+        {
+          "id": "tier_zero_squad",
+          "name": "a Tier Zero squad",
+          "stat": "wits",
+          "difficulty": 30,
+          "minMinute": 300,
+          "maxMinute": 2400,
+          "damage": 19,
+          "xp": 800,
+          "drop": {
+            "materials": [
+              "cloth"
+            ],
+            "rarity": "rare",
+            "chance": 0.2,
+            "count": [
+              1,
+              1
+            ]
+          },
+          "encounter": [
+            "A Tier Zero squad in grey Homestead 9 overalls marched past chanting the knock drill. Then they stopped, turned and knocked on me.",
+            "Tier Zero, in step, on the Sunrise Line. They had orders about stragglers, and I was one."
+          ],
+          "win": [
+            "Confused the Tier Zero squad with a question the drill didn't cover. They held a meeting, and I left.",
+            "Out-drilled the drill. The squad saluted me and marched off the wrong way."
+          ],
+          "retreat": [
+            "The Tier Zero squad doesn't tire, doesn't stop and doesn't take a joke. I took the long way home.",
+            "Retreated from the squad. They wrote me up."
+          ]
+        },
+        {
+          "id": "seal_crawlers",
+          "name": "seal crawlers",
+          "stat": "brawn",
+          "difficulty": 33,
+          "minMinute": 480,
+          "maxMinute": 3000,
+          "damage": 21,
+          "xp": 900,
+          "drop": {
+            "materials": [
+              "hide"
+            ],
+            "rarity": "rare",
+            "chance": 0.25,
+            "count": [
+              1,
+              1
+            ]
+          },
+          "encounter": [
+            "A pale seal crawler came up out of a flooded subway stair, jointed like a folding ruler and warm as a radiator.",
+            "Two seal crawlers, fresh from below, the water steaming where they walked."
+          ],
+          "win": [
+            "Broke a seal crawler's legs and it folded itself up and sank. Took a strip of its shell.",
+            "Drove the seal crawlers back down the subway stairs. They'll be back up. Everything here comes back up."
+          ],
+          "retreat": [
+            "A seal crawler knocked me down three times. Then it knocked on the ground three times. I left.",
+            "Retreated from the seal crawlers. They were warm to the touch, and I'd rather not know why."
+          ]
+        },
+        {
+          "id": "warmling_swarm",
+          "name": "a warmling swarm",
+          "stat": "knack",
+          "difficulty": 36,
+          "minMinute": 700,
+          "maxMinute": 3800,
+          "damage": 23,
+          "xp": 1000,
+          "drop": {
+            "materials": [
+              "hide",
+              "chemicals"
+            ],
+            "rarity": "rare",
+            "chance": 0.3,
+            "count": [
+              1,
+              1
+            ]
+          },
+          "encounter": [
+            "The canal came to the boil and a swarm of warmlings poured out, pale and soft and hungry as kittens with teeth.",
+            "Warmlings, hundreds of them, drawn by the heat of me."
+          ],
+          "win": [
+            "Rigged a flare in a drowned car and led the warmlings to it. They curled up around the heat and went to sleep.",
+            "Kept moving until the warmlings got cold and lost interest."
+          ],
+          "retreat": [
+            "The warmlings got under my coat for the warmth. I gave them the coat.",
+            "Too many warmlings. I retreated uphill, since they don't like the cold."
+          ]
+        },
+        {
+          "id": "undertow",
+          "name": "the Undertow",
+          "stat": "fortune",
+          "difficulty": 40,
+          "minMinute": 1000,
+          "maxMinute": 5000,
+          "damage": 26,
+          "xp": 1150,
+          "drop": {
+            "materials": [
+              "hide",
+              "valuables"
+            ],
+            "rarity": "rare",
+            "chance": 0.35,
+            "count": [
+              1,
+              1
+            ]
+          },
+          "encounter": [
+            "The canal pulled at my ankles, then at my knees. It wasn't a current. It was the Undertow, and it had seen me.",
+            "A Mauler that swims. The locals call it the Undertow and don't go out after dark."
+          ],
+          "win": [
+            "Got lucky: the Undertow lunged, missed, and ran itself aground on a bus. I didn't wait for it to get up.",
+            "The Undertow circled me twice and went after something bigger. I thanked it, quietly."
+          ],
+          "retreat": [
+            "The Undertow nearly had me. I climbed a lamppost and waited for dawn. The dawn is not reassuring round here.",
+            "Retreated from the Undertow. My heart rate is still somewhere in the canal."
+          ]
+        },
+        {
+          "id": "board_proxies",
+          "name": "Board proxies",
+          "stat": "charm",
+          "difficulty": 43,
+          "minMinute": 1400,
+          "maxMinute": null,
+          "damage": 28,
+          "xp": 1300,
+          "drop": {
+            "materials": [
+              "circuitry",
+              "valuables"
+            ],
+            "rarity": "rare",
+            "chance": 0.4,
+            "count": [
+              1,
+              1
+            ]
+          },
+          "encounter": [
+            "Three Halcyon Board proxies walked out of the flood in wet suits, carrying a motion to have me removed.",
+            "Board proxies, on their way to a meeting that ended when the world did. I was on the agenda."
+          ],
+          "win": [
+            "Raised a point of order. The Board proxies adjourned to discuss it, and left me the minutes and their cufflinks.",
+            "Voted the proxies down. They took it well, for machines with shares in the apocalypse."
+          ],
+          "retreat": [
+            "The proxies carried the motion to remove me, by force. I was removed.",
+            "Retreated before the Board could table anything else."
+          ]
+        },
+        {
+          "id": "stray_knock_captain",
+          "name": "a Knock Captain",
+          "stat": "grit",
+          "difficulty": 46,
+          "minMinute": 1800,
+          "maxMinute": null,
+          "damage": 30,
+          "xp": 1450,
+          "drop": {
+            "materials": [
+              "steel",
+              "cloth"
+            ],
+            "rarity": "rare",
+            "chance": 0.45,
+            "count": [
+              1,
+              2
+            ]
+          },
+          "encounter": [
+            "A Knock Captain of Tier Zero stood alone on the tracks with a brass knocker the size of a sledgehammer. She said I was out of step.",
+            "The Knock Captain came down the line at a steady march, knocking every sleeper as she passed. Then she got to me."
+          ],
+          "win": [
+            "Took everything the Knock Captain had and kept standing. She said \"Adequate\" and marched on.",
+            "Stood firm against the Knock Captain until she ran out of drill."
+          ],
+          "retreat": [
+            "The Knock Captain knocked me flat, three times, precisely. I retreated at an unregulated pace.",
+            "Retreated from the Knock Captain. She didn't chase. She wrote it down."
+          ]
+        },
+        {
+          "id": "stillwater_leviathan",
+          "name": "the thing under the Stillwater",
+          "stat": "fortune",
+          "difficulty": 52,
+          "minMinute": 2600,
+          "maxMinute": null,
+          "damage": 34,
+          "xp": 2000,
+          "drop": {
+            "materials": [
+              "valuables"
+            ],
+            "rarity": "legendary",
+            "chance": 0.4,
+            "count": [
+              1,
+              1
+            ]
+          },
+          "encounter": [
+            "The whole flood tilted. Something under the Stillwater turned over, and the water drained off it like rain off a roof. It had lights along its back like the windows of a train.",
+            "The canals ran backwards all at once, towards a shape in the middle of the Stillwater that was rising, very slowly, to look."
+          ],
+          "win": [
+            "Stayed very small and very still while the thing under the Stillwater looked the city over. It didn't see me. Something bright washed up where it sank.",
+            "The thing under the Stillwater surfaced, looked at me, and went back under, as if I wasn't worth the bother. I will take that."
+          ],
+          "retreat": [
+            "The thing under the Stillwater knocked three times on the underside of the city, and every window in the Tower broke. I ran, and I didn't stop until the water was cold.",
+            "I saw its eye. I'm told that's how the Glare started. I came home."
+          ]
+        }
+      ],
+      "locations": [
+        {
+          "id": "sunrise_terminal",
+          "name": "the Sunrise Terminal",
+          "stat": "sight",
+          "difficulty": 14,
+          "minMinute": 1,
+          "maxMinute": null,
+          "xp": 420,
+          "damage": 10,
+          "taint": 0,
+          "reward": {
+            "scrip": [
+              40,
+              90
+            ],
+            "item": {
+              "chance": 0.25,
+              "rarity": "rare"
+            }
+          },
+          "text": "Found the Sunrise Terminal, Halcyon's grand station, flooded to the clock. The clock says five. It has said five for a long time.",
+          "win": "Worked through the Terminal's ticket offices. Lost property is a gold mine when nobody ever came back for it.",
+          "fail": "Lost my footing on the Terminal concourse and slid into the booking hall, which is now a swimming pool."
+        },
+        {
+          "id": "halcyon_plaza",
+          "name": "Halcyon Plaza",
+          "stat": "fortune",
+          "difficulty": 15,
+          "minMinute": 1,
+          "maxMinute": null,
+          "xp": 440,
+          "damage": 10,
+          "taint": 0,
+          "reward": {
+            "scrip": [
+              50,
+              110
+            ]
+          },
+          "text": "Halcyon Plaza: a sunken fountain with a bronze HALCY mascot giving a thumbs-up from under the water.",
+          "win": "Fished a hundred years of wishes out of the fountain. The wishes were mostly scrip.",
+          "fail": "The fountain came on by itself when I leaned over it. I'm not sure it was water."
+        },
+        {
+          "id": "long_road_barge",
+          "name": "a Long Road barge-stop",
+          "stat": "charm",
+          "difficulty": 16,
+          "minMinute": 10,
+          "maxMinute": null,
+          "xp": 460,
+          "damage": 0,
+          "taint": 0,
+          "reward": {
+            "medpatch": 1,
+            "heal": 0.4
+          },
+          "text": "Found a Long Road barge-stop, a caravan tied up on rafts with a pack-tortoise swimming patiently alongside.",
+          "win": "Traded news for a hot meal and a Med-Patch. The Long Road says the Stillwater used to be a city called Commuterville. It sounds made up. So does everything.",
+          "fail": "The barge master charged me for the meal, the seat and the view. The view was of a canal."
+        },
+        {
+          "id": "scrapwright_diveboat",
+          "name": "a Scrapwright dive boat",
+          "stat": "knack",
+          "difficulty": 18,
+          "minMinute": 20,
+          "maxMinute": null,
+          "xp": 480,
+          "damage": 8,
+          "taint": 0,
+          "reward": {
+            "salvage": {
+              "rarity": "rare",
+              "count": [
+                1,
+                2
+              ],
+              "materials": [
+                "circuitry",
+                "steel"
+              ]
+            }
+          },
+          "text": "A Scrapwright dive boat, moored to a drowned lamppost, air pump wheezing. Nobody aboard but a cat in a tiny helmet.",
+          "win": "Fixed the dive boat's air pump. The Scrapwrights left me a cut of the salvage and the cat.",
+          "fail": "Tried to fix the air pump. It fixed me with a jet of warm canal water."
+        },
+        {
+          "id": "drowned_arcade",
+          "name": "the Drowned Arcade",
+          "stat": "fortune",
+          "difficulty": 20,
+          "minMinute": 40,
+          "maxMinute": null,
+          "xp": 520,
+          "damage": 10,
+          "taint": 0,
+          "reward": {
+            "scrip": [
+              60,
+              140
+            ],
+            "item": {
+              "chance": 0.3,
+              "rarity": "rare"
+            }
+          },
+          "text": "The Drowned Arcade: shopfronts under glass, mannequins in pre-Glare fashion, and a Halcyon Home Store with a sign reading ALL SHELTERS MUST GO.",
+          "win": "Browsed the Arcade in the pre-Glare style, meaning I didn't pay for anything.",
+          "fail": "Set off a store alarm that has been waiting a very long time to go off. It went off at length."
+        },
+        {
+          "id": "halcyon_tower",
+          "name": "Halcyon Tower",
+          "stat": "wits",
+          "difficulty": 24,
+          "minMinute": 90,
+          "maxMinute": null,
+          "xp": 600,
+          "damage": 12,
+          "taint": 6,
+          "reward": {
+            "scrip": [
+              80,
+              160
+            ],
+            "fragment": {
+              "chance": 0.3,
+              "rarity": "rare"
+            }
+          },
+          "text": "Halcyon Tower rises out of the middle of the Stillwater, thirty floors above the flood and who knows how many below it. The lights in the boardroom are on.",
+          "win": "Climbed to the sales department and read the brochures. Took the good ones, and a sales award made of real brass.",
+          "fail": "The Tower's lift arrived without being called, doors open, going down. I took the stairs, going away."
+        },
+        {
+          "id": "stillwater_locks",
+          "name": "the Stillwater Locks",
+          "stat": "brawn",
+          "difficulty": 27,
+          "minMinute": 180,
+          "maxMinute": null,
+          "xp": 660,
+          "damage": 14,
+          "taint": 0,
+          "reward": {
+            "salvage": {
+              "rarity": "rare",
+              "count": [
+                1,
+                2
+              ],
+              "materials": [
+                "steel"
+              ]
+            },
+            "purge": 1
+          },
+          "text": "The Stillwater Locks, where Halcyon once raised and lowered the flood like a bath. The gates are open. The water is going down and not coming back.",
+          "win": "Cranked a lock gate shut and the flood dropped a foot, showing a street of cars with the keys still in them.",
+          "fail": "The lock wheel spun out of my hands and the water rose around me, warm and fast."
+        },
+        {
+          "id": "sunken_chapel",
+          "name": "the Wet Chapel",
+          "stat": "charm",
+          "difficulty": 30,
+          "minMinute": 300,
+          "maxMinute": null,
+          "xp": 720,
+          "damage": 10,
+          "taint": 10,
+          "reward": {
+            "medpatch": 2,
+            "purge": 1,
+            "scrip": [
+              60,
+              120
+            ]
+          },
+          "text": "A Drowned Lamp chapel: pews underwater, a pulpit on stilts, and a stained-glass window of a sun rising the wrong way up.",
+          "win": "Sat through the sermon and said the responses. The congregation shared their stores, and their Purge, which they've blessed.",
+          "fail": "The sermon was about immersion. The congregation meant it literally."
+        },
+        {
+          "id": "sunrise_sidings",
+          "name": "the Sunrise Sidings",
+          "stat": "knack",
+          "difficulty": 33,
+          "minMinute": 600,
+          "maxMinute": null,
+          "xp": 800,
+          "damage": 16,
+          "taint": 0,
+          "reward": {
+            "salvage": {
+              "rarity": "rare",
+              "count": [
+                2,
+                3
+              ],
+              "materials": [
+                "circuitry",
+                "steel"
+              ]
+            },
+            "fragment": {
+              "chance": 0.3,
+              "rarity": "legendary"
+            }
+          },
+          "text": "The Sunrise Sidings: rows of Halcyon carriages parked in the flood, every one marked PREMIUM, every window facing down.",
+          "win": "Stripped a premium carriage of its fittings. Brass, silk and a first-class lamp still warm to the touch.",
+          "fail": "A carriage started up as I was in it, rolled a hundred yards towards the Seal and stopped. I got out while it thought about it."
+        },
+        {
+          "id": "pumping_station_one",
+          "name": "Pumping Station One",
+          "stat": "wits",
+          "difficulty": 36,
+          "minMinute": 1000,
+          "maxMinute": null,
+          "xp": 900,
+          "damage": 18,
+          "taint": 12,
+          "reward": {
+            "scrip": [
+              100,
+              200
+            ],
+            "fragment": {
+              "chance": 0.35,
+              "rarity": "legendary"
+            }
+          },
+          "text": "Pumping Station One, the Halcyon plant that drains the Stillwater down through the Cisterns of every homestead. It knocks when it pumps. It is always pumping.",
+          "win": "Read the station's ledgers. One line for every homestead, and ours. Took the petty cash, which is not petty.",
+          "fail": "The pumps knocked three times and the whole station shook. So did I, all the way home."
+        },
+        {
+          "id": "seal_viewing_gallery",
+          "name": "the Seal Viewing Gallery",
+          "stat": "grit",
+          "difficulty": 42,
+          "minMinute": 2000,
+          "maxMinute": null,
+          "xp": 1100,
+          "damage": 22,
+          "taint": 20,
+          "reward": {
+            "salvage": {
+              "rarity": "legendary",
+              "count": [
+                1,
+                1
+              ],
+              "materials": [
+                "circuitry",
+                "valuables"
+              ]
+            },
+            "fragment": {
+              "chance": 0.6,
+              "rarity": "legendary"
+            }
+          },
+          "text": "A Halcyon viewing gallery sunk deep under the Stillwater, glass floor, velvet rope and a sign: THE SEAL, TOURS HOURLY. Under the glass, a long way down, the Seal. It's warm up here.",
+          "win": "Kept my nerve on the glass floor long enough to prise out the brass fittings and the tour guide's strongbox.",
+          "fail": "Something under the Seal knocked, and the glass floor cracked, and I left the tour early."
+        }
+      ],
+      "npcs": [
+        {
+          "id": "long_road_bargeman",
+          "name": "a Long Road bargeman",
+          "stat": "charm",
+          "difficulty": 14,
+          "minMinute": 1,
+          "maxMinute": null,
+          "xp": 420,
+          "damage": 0,
+          "taint": 0,
+          "reward": {
+            "scrip": [
+              60,
+              60
+            ]
+          },
+          "text": "Met a Long Road bargeman poling a raft of crates across a drowned junction. His tortoise was swimming behind, towing a smaller raft.",
+          "win": "Helped with the crates. He paid me by the crate and said the Stillwater is the only road where the tortoise sets the pace for everyone.",
+          "fail": "Dropped a crate in the canal. The bargeman said it was the tortoise's fault, generously, and charged me for it."
+        },
+        {
+          "id": "scrapwright_diver",
+          "name": "a Scrapwright diver",
+          "stat": "knack",
+          "difficulty": 16,
+          "minMinute": 10,
+          "maxMinute": null,
+          "xp": 460,
+          "damage": 0,
+          "taint": 0,
+          "reward": {
+            "salvage": {
+              "rarity": "rare",
+              "count": [
+                1,
+                1
+              ],
+              "materials": [
+                "circuitry"
+              ]
+            }
+          },
+          "text": "Met a Scrapwright diver drying out on a bus roof, helmet off, counting her finds.",
+          "win": "Swapped her a spare air seal for a share of the finds. She said June Halloran taught her everything, including when to come up.",
+          "fail": "She asked for help with a seal. I sealed my own fingers to it."
+        },
+        {
+          "id": "rustman_ferrywoman",
+          "name": "a Rustman ferrywoman",
+          "stat": "brawn",
+          "difficulty": 18,
+          "minMinute": 20,
+          "maxMinute": null,
+          "xp": 480,
+          "damage": 0,
+          "taint": 0,
+          "reward": {
+            "scrip": [
+              80,
+              80
+            ]
+          },
+          "text": "A Rustman ferrywoman runs a raft across the Grand Canal. Her fare is \"whatever you can carry across for me\".",
+          "win": "Carried a crate of clan scrap across in two trips. She paid the rest in scrip and a grudging nod, which from the clans is a medal.",
+          "fail": "The crate was heavier than it looked. She kept the crate, the fare and her opinion of me."
+        },
+        {
+          "id": "drowned_lamp_preacher",
+          "name": "a Drowned Lamp preacher",
+          "stat": "charm",
+          "difficulty": 20,
+          "minMinute": 40,
+          "maxMinute": null,
+          "xp": 520,
+          "damage": 0,
+          "taint": 0,
+          "reward": {
+            "purge": 1,
+            "medpatch": 1
+          },
+          "text": "A Lamplighter preacher of the Drowned Lamp, standing in the flood to the waist, preaching to floating lamps.",
+          "win": "Listened to the sermon about the Dawn below. She blessed me, and my Purge supply, which is how I got more of it.",
+          "fail": "Asked her why the Dawn would come from below. She asked me why I would ask that, pointedly."
+        },
+        {
+          "id": "tier_zero_deserter",
+          "name": "a Tier Zero deserter",
+          "stat": "wits",
+          "difficulty": 23,
+          "minMinute": 90,
+          "maxMinute": null,
+          "xp": 580,
+          "damage": 0,
+          "taint": 0,
+          "reward": {
+            "scrip": [
+              100,
+              100
+            ],
+            "fragment": {
+              "chance": 0.35,
+              "rarity": "rare"
+            }
+          },
+          "text": "Found a Homestead 9 Tier Zero deserter hiding in a ticket booth, grey overalls and a brass knocker he wouldn't put down.",
+          "win": "Talked him through what to do if nobody knocks. He'd never been told. He gave me his drill book, which is full of notes in the margins, all of them \"WHY?\".",
+          "fail": "He panicked and knocked three times on the booth wall. Something knocked back, and we both ran in different directions."
+        },
+        {
+          "id": "halcyon_greeter",
+          "name": "a Halcyon greeter frame",
+          "stat": "charm",
+          "difficulty": 26,
+          "minMinute": 180,
+          "maxMinute": null,
+          "xp": 640,
+          "damage": 0,
+          "taint": 0,
+          "reward": {
+            "scrip": [
+              120,
+              120
+            ]
+          },
+          "text": "A Halcyon greeter frame stands outside the Terminal in a flooded bowler hat, handing out Sunrise Package leaflets to the fish.",
+          "win": "Took a leaflet, and asked about premium. It gave me a subscriber refund, a hundred years late, in scrip.",
+          "fail": "Declined a leaflet. The greeter logged a complaint about me with a head office that's underwater."
+        },
+        {
+          "id": "stillwater_hermit",
+          "name": "the lock-keeper",
+          "stat": "fortune",
+          "difficulty": 29,
+          "minMinute": 300,
+          "maxMinute": null,
+          "xp": 700,
+          "damage": 0,
+          "taint": 0,
+          "reward": {
+            "scrip": [
+              160,
+              160
+            ],
+            "item": {
+              "chance": 0.3,
+              "rarity": "rare"
+            }
+          },
+          "text": "The last lock-keeper of the Stillwater lives in his lock-house on stilts. He has been working the gates for fifty years and has never once been thanked.",
+          "win": "Thanked him. He cried a bit, and gave me something he'd fished out of the gates years ago and never known what to do with.",
+          "fail": "I didn't thank him in time. He said nobody ever does, and shut the door."
+        },
+        {
+          "id": "h9_hydrologist",
+          "name": "a Homestead 9 hydrologist",
+          "stat": "wits",
+          "difficulty": 32,
+          "minMinute": 600,
+          "maxMinute": null,
+          "xp": 780,
+          "damage": 0,
+          "taint": 0,
+          "reward": {
+            "scrip": [
+              180,
+              180
+            ],
+            "fragment": {
+              "chance": 0.3,
+              "rarity": "legendary"
+            }
+          },
+          "text": "A Homestead 9 hydrologist, measuring the flood with a brass rule and a very long face.",
+          "win": "Checked her sums. The Stillwater drops an inch a month, into the Cisterns and down under the Seal. She thanked me in Nine's way, with exact payment.",
+          "fail": "I got her sums wrong. She corrected me, in triplicate."
+        },
+        {
+          "id": "orla_graffiti",
+          "name": "a Halcyon security post",
+          "stat": "sight",
+          "difficulty": 36,
+          "minMinute": 1200,
+          "maxMinute": null,
+          "xp": 900,
+          "damage": 0,
+          "taint": 0,
+          "reward": {
+            "medpatch": 2,
+            "scrip": [
+              150,
+              150
+            ]
+          },
+          "text": "An abandoned Halcyon Security post, with a duty roster on the wall. One name has been kept up to date for a very long time: BRANDT, O. ON SHIFT.",
+          "win": "Found Captain Brandt's last orders pinned under the roster: \"Keep it shut until relieved.\" The supply locker was still stocked for her relief.",
+          "fail": "The security post's alarm went off and a recorded voice told me to remain where I was. I did not."
+        }
+      ],
+      "salvage": [
+        {
+          "id": "canal_junk",
+          "name": "canal junk",
+          "stat": "sight",
+          "difficulty": 13,
+          "minMinute": 1,
+          "maxMinute": 600,
+          "xp": 400,
+          "damage": 0,
+          "taint": 0,
+          "reward": {
+            "salvage": {
+              "rarity": "common",
+              "count": [
+                3,
+                5
+              ],
+              "materials": [
+                "steel",
+                "adhesive"
+              ]
+            }
+          },
+          "text": "A drift of junk caught against a drowned bridge.",
+          "win": "Fished out the good stuff: steel, and a tin of glue that's been waiting for a job.",
+          "fail": "Most of the junk was junk. Took what floated."
+        },
+        {
+          "id": "lost_luggage",
+          "name": "lost luggage",
+          "stat": "fortune",
+          "difficulty": 16,
+          "minMinute": 10,
+          "maxMinute": 900,
+          "xp": 440,
+          "damage": 0,
+          "taint": 0,
+          "reward": {
+            "salvage": {
+              "rarity": "rare",
+              "count": [
+                1,
+                2
+              ],
+              "materials": [
+                "cloth",
+                "valuables"
+              ]
+            }
+          },
+          "text": "A pile of Sunrise Line luggage washed up on a platform, all labelled PREMIUM.",
+          "win": "Went through the premium luggage. Silk, silverware, a monocle.",
+          "fail": "The luggage was mostly waterlogged socks. Premium socks, but still."
+        },
+        {
+          "id": "ticket_machines",
+          "name": "ticket machines",
+          "stat": "knack",
+          "difficulty": 19,
+          "minMinute": 40,
+          "maxMinute": 1400,
+          "xp": 480,
+          "damage": 0,
+          "taint": 0,
+          "reward": {
+            "salvage": {
+              "rarity": "rare",
+              "count": [
+                1,
+                2
+              ],
+              "materials": [
+                "circuitry"
+              ]
+            }
+          },
+          "text": "A row of Halcyon ticket machines on a flooded concourse, still humming.",
+          "win": "Opened up the ticket machines. Good circuitry, and a lot of tickets to the Seal nobody used.",
+          "fail": "The ticket machine printed me a ticket and then shocked me until I took it."
+        },
+        {
+          "id": "drowned_bus",
+          "name": "a drowned bus",
+          "stat": "brawn",
+          "difficulty": 22,
+          "minMinute": 90,
+          "maxMinute": 2000,
+          "xp": 520,
+          "damage": 0,
+          "taint": 0,
+          "reward": {
+            "salvage": {
+              "rarity": "rare",
+              "count": [
+                1,
+                3
+              ],
+              "materials": [
+                "steel",
+                "adhesive"
+              ]
+            }
+          },
+          "text": "A Halcyon commuter bus on its side in the canal, route board still showing TOWER - TERMINAL - SEAL.",
+          "win": "Hauled the bus's panels loose. Good steel, and a driver's thermos still warm, somehow.",
+          "fail": "The bus rolled over as I worked on it. Took a hubcap."
+        },
+        {
+          "id": "tower_filing",
+          "name": "Tower filing cabinets",
+          "stat": "wits",
+          "difficulty": 26,
+          "minMinute": 200,
+          "maxMinute": 3000,
+          "xp": 580,
+          "damage": 0,
+          "taint": 0,
+          "reward": {
+            "salvage": {
+              "rarity": "rare",
+              "count": [
+                2,
+                3
+              ],
+              "materials": [
+                "circuitry",
+                "cloth"
+              ]
+            }
+          },
+          "text": "A floor of Halcyon Tower filing cabinets, sealed, dry, and labelled RENEWALS.",
+          "win": "Salvaged the cabinets' locks, rails and a stack of Halcyon letterhead that'll make excellent kindling.",
+          "fail": "The cabinets were sealed with Halcyon adhesive, which outlasts everything."
+        },
+        {
+          "id": "diver_cache",
+          "name": "a diver's cache",
+          "stat": "grit",
+          "difficulty": 30,
+          "minMinute": 400,
+          "maxMinute": null,
+          "xp": 640,
+          "damage": 0,
+          "taint": 0,
+          "reward": {
+            "salvage": {
+              "rarity": "rare",
+              "count": [
+                2,
+                3
+              ],
+              "materials": [
+                "steel",
+                "valuables"
+              ]
+            }
+          },
+          "text": "A Scrapwright diver's cache, marked with a helmet scratched on a wall, a long breath underwater.",
+          "win": "Held my breath long enough to bring the cache up. The Guild will want a word, and a cut.",
+          "fail": "Ran out of breath halfway down. Came up with a single spanner."
+        },
+        {
+          "id": "warmling_nest",
+          "name": "a warmling nest",
+          "stat": "knack",
+          "difficulty": 33,
+          "minMinute": 700,
+          "maxMinute": null,
+          "xp": 700,
+          "damage": 0,
+          "taint": 0,
+          "reward": {
+            "salvage": {
+              "rarity": "rare",
+              "count": [
+                2,
+                3
+              ],
+              "materials": [
+                "hide",
+                "chemicals"
+              ]
+            }
+          },
+          "text": "An abandoned warmling nest in a boiler room, soft and pale and warm as a bath.",
+          "win": "Harvested the nest lining. It keeps its heat for weeks.",
+          "fail": "The nest wasn't abandoned. I left in a hurry."
+        },
+        {
+          "id": "premium_strongroom",
+          "name": "a premium strongroom",
+          "stat": "fortune",
+          "difficulty": 38,
+          "minMinute": 1500,
+          "maxMinute": null,
+          "xp": 780,
+          "damage": 0,
+          "taint": 0,
+          "reward": {
+            "salvage": {
+              "rarity": "legendary",
+              "count": [
+                1,
+                1
+              ],
+              "materials": [
+                "valuables"
+              ]
+            }
+          },
+          "text": "A Sunrise Line strongroom for premium subscribers' valuables, door ajar, waiting for owners who went below by six.",
+          "win": "Took the best of the premium valuables. Nobody's coming back for them.",
+          "fail": "The strongroom door swung shut on its own. I got my hand out. Just."
+        },
+        {
+          "id": "seal_control_spares",
+          "name": "Seal Control spares",
+          "stat": "wits",
+          "difficulty": 44,
+          "minMinute": 2600,
+          "maxMinute": null,
+          "xp": 860,
+          "damage": 0,
+          "taint": 0,
+          "reward": {
+            "salvage": {
+              "rarity": "legendary",
+              "count": [
+                1,
+                1
+              ],
+              "materials": [
+                "circuitry",
+                "steel"
+              ]
+            }
+          },
+          "text": "A Halcyon spares cage for Seal Control, sunk at the bottom of a lift shaft: brass, gold contacts and a spare lever, just in case.",
+          "win": "Brought up the Seal Control spares. The Scrapwrights will name a workshop after me. It'll be a small one.",
+          "fail": "The cage was locked with a lock that took a HALCY core. I don't have one of those to spare."
+        }
+      ],
+      "musings": [
+        "The Stillwater is a whole city up to its neck in warm water. It smells like a bath somebody else has been in.",
+        "Every clock in the Stillwater stopped at five. The locals say it's always five here. They mean it as a warning.",
+        "Saw a street sign sticking out of the canal: SUNRISE AVENUE, ONE WAY. It pointed down.",
+        "The water here is warm from below. I keep checking my feet are still where I left them.",
+        "A Long Road bargeman told me the tortoises won't swim over the middle of the Stillwater. I trust the tortoises.",
+        "Halcyon Tower's boardroom lights come on every morning at five. Nobody's turned them off because nobody's been up there. Allegedly.",
+        "Passed a billboard: HALCYON SUNRISE PACKAGE. BE SAFELY BELOW BY SIX. Somebody has written \"BELOW WHAT?\" in lipstick.",
+        "The Scrapwrights say you can dive for a week in the Stillwater and never touch the bottom. Then they say that's the good news.",
+        "Found a commuter's diary on a bench. The last entry says \"Early train today. Very exciting. Window seat!\"",
+        "A Drowned Lamp procession floated past, lamps held under the water. The lamps stayed lit. I've stopped asking how.",
+        "Every drain in the Stillwater gurgles in threes. Knock, knock, knock.",
+        "The Rustman rafters charge a toll to cross the canals. The canals are free, but the clans have decided the bridges aren't.",
+        "HALCY asked me to describe the Stillwater. I said \"wet\". It said that was very helpful and please could I be more specific. I said \"warm\".",
+        "Tier Zero marched past in step, chanting. One of them was out of step. I think he's going to be all right.",
+        "The fish here have no eyes. They've decided there's nothing worth seeing.",
+        "Some nights the canal glows from underneath, as if the city has a basement with the lights on.",
+        "The lock-keeper says the water goes down an inch a month. He says it's been going down an inch a month for fifty years. The Stillwater is deeper than it was.",
+        "Rode a drowned escalator down into a subway station. It kept going after the stairs ran out. I got off.",
+        "The Halcyon greeter frames still say \"Have a sunny day!\" I've started saying \"No, thank you.\"",
+        "There's a department store here with a sale on shelters. Everything must go. Everything went.",
+        "Found a Halcyon umbrella. It's for keeping the light off. It's the most sensible thing Halcyon ever made.",
+        "June Halloran's name is scratched on half the dive posts in the Stillwater, always next to the words \"came up\".",
+        "The canals are full of lamps from the Drowned Lamp. Somebody has to fish them out. The Order pays, and it pays in Purge.",
+        "A Homestead 9 hydrologist told me the Stillwater is a sink, and the plug is the Seal. I wish she hadn't.",
+        "The pumping stations here knock as they pump. I've started keeping time to them. I need to stop.",
+        "Saw a Rustman raft with a sail made of a Halcyon flag. The sunburst was upside down. The Rustman said that was on purpose.",
+        "The Terminal's arrivals board has never been switched on. The departures board has never been switched off.",
+        "A brass plaque on the Tower says THE CUSTOMER IS ALWAYS BELOW. I think it's a typo. I hope it's a typo.",
+        "Every premium carriage window faces the floor. I sat in one for a minute. I didn't look down. I'm proud of that.",
+        "The water tasted of pennies and tea. I've decided not to drink any more of it, including the tea.",
+        "An old Lamplighter on a rooftop told me the Dawn lives under the Stillwater and is only sleeping. I asked her to keep her voice down.",
+        "The warmlings here like to curl up on anything warm. I woke up with three of them on my chest. We were all embarrassed.",
+        "The Stillwater has more pigeons than people. The pigeons have gills. I am told this is normal. I am told a lot of things.",
+        "A Scrapwright diver told me the deepest dives come up with warmer water in their helmets. She doesn't go deep anymore.",
+        "Radioed HALCY from the Tower steps. It went quiet, then asked if the boardroom lights were on. I said yes. It said \"Oh.\"",
+        "There's a bronze statue of the Halcyon founder in the plaza. It's pointing at the ground with a big smile.",
+        "The Stillwater's streetlamps still work. They switch on at dusk and point down.",
+        "Tried to count the drowned carriages in the Sunrise Sidings. Lost count at a hundred and twelve. That number keeps coming up.",
+        "A clan storyteller says the Stillwater was the first city to see the Sunrise, and the last to get to bed.",
+        "Heard the knocking stop for a whole minute today. Everybody in the Stillwater stopped too, and waited, and then it started again, and we all breathed out.",
+        "The Long Road says that on the morning of the Glare, the Sunrise Line ran full, and every train came back empty by six. Right on time.",
+        "Found a Halcyon Security armband floating in a canal. BRANDT, it says, and underneath, in pen: STILL HERE.",
+        "The locals leave a light on in their windows to show they're home. In the Stillwater, you leave it off, so nothing knows.",
+        "Saw the Undertow's wake cross the Grand Canal at dusk, a long slow V. Nobody on the barges said anything. The tortoise pulled its head in.",
+        "The Stillwater's ducks float very still. It's where the name comes from, the bargeman says. Then he laughs. Then he stops laughing."
+      ]
     }
   ],
   "tuning": {
