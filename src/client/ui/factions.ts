@@ -17,13 +17,11 @@ import {
   goodsUnits,
   hasTradingPost,
   isMet,
-  knowsRecipe,
   offerItemFor,
   raidRateMult,
   recruitsHired,
   repOf,
   repTier,
-  resourceCapacity,
   salvageCount,
   signalLevel,
   tradeOffers,
@@ -31,6 +29,7 @@ import {
   type Caravan,
   type CaravanEstimate,
   type CaravanResult,
+  tradeBlocked,
   type CrateTier,
   type FactionDef,
   type FactionOffer,
@@ -273,32 +272,9 @@ export class FactionsUI {
 
   /** Why an offer can't be taken now, or null. Mirrors the checks in factions.ts trade(). */
   private blocked(o: FactionOffer): string | null {
-    const { state, content } = this.game;
-    const def = factionDef(content, o.factionId);
-    if (!def) return 'no such faction';
-    if (!hasTradingPost(state)) return 'build a Trading Post first';
-    if (!isMet(state, def.id)) return 'no contact yet';
-    if (repOf(state, content, def.id) < o.minRep) return `needs ${repTier(content, o.minRep).name} standing`;
-    if (o.stock <= 0) return 'sold out';
-    const g = o.give;
-    if ((g.scrip ?? 0) > state.scrip) return 'not enough scrip';
-    if ((g.influence ?? 0) > state.influence) return 'not enough Influence';
-    if ((g.research ?? 0) > state.research.points) return 'not enough research points';
-    for (const k of ['food', 'water', 'medpatch', 'purge'] as const) if ((g[k] ?? 0) > state.resources[k]) return `not enough ${RES_NAME[k] ?? k}`;
-    for (const [id, n] of Object.entries(g.salvageById ?? {})) if (salvageCount(state, id) < n) return `needs ${n} ${content.salvage[id]?.name ?? id}`;
-    if (g.itemOf && offerItemFor(state, content, o) === null) return `needs a stored ${g.itemOf.rarity} ${g.itemOf.kind ?? 'item'}`;
-    const r = o.get;
-    for (const k of ['food', 'water', 'medpatch', 'purge'] as const) {
-      if ((r[k] ?? 0) > 0 && state.resources[k] >= resourceCapacity(state, content, k)) return `no room for more ${RES_NAME[k] ?? k}`;
-    }
-    for (const id of [...(r.recipes ?? []), ...Object.keys(r.fragments ?? {})]) if (knowsRecipe(state, content, id)) return 'you already know that recipe';
-    if (r.recruit) {
-      const rec = factionDef(content, r.recruit)?.recruit;
-      if (rec && recruitsHired(state, r.recruit) >= rec.cap) return `no more ${rec.title}s will come`;
-      if (state.residents.filter((x) => x.waiting).length >= content.balance.arrivals.maxWaiting) return 'too many people waiting at the door';
-    }
-    return null;
+    return tradeBlocked(this.game.state, this.game.content, o.id);
   }
+
 
   /** One side of an offer as chips with icons; on the give side, what the homestead lacks is marked. */
   private wares(o: FactionOffer, side: OfferSide, give: boolean): HTMLElement[] {

@@ -340,7 +340,7 @@ If you would rather end up in Godot for sure, **Option B** is better than C: bui
 | M4 | Quests | Command Office, quest runner, real-time combat, crit, 1 questline + contracts | Act 1 is playable up to the first boss |
 | M5 | **Prestige v1** | Charter milestone, founding party, Legacy tree (first ~15 perks), Outposts (idle) | Homestead 1 → 2 transition works |
 | M6 | Depth pass | Research tree, the Deep, traits and professions, automation, QoL tools | The mid-game after 100 has new goals |
-| M7 | Topside and factions | Surface layer, factions, trade, caravans, Act 2 | — |
+| M7 | Topside and factions | Surface layer, factions, trade, caravans, Act 2 | Homestead 2 has a new story and a living surface (done) |
 | M8 | Mobile | Capacitor builds, touch polish, notifications | Installable on a phone |
 | M9+ | Content | Acts 3+, more regions, creatures, legendary residents, custom rulesets | — |
 

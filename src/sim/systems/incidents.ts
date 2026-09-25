@@ -186,7 +186,10 @@ export function startRaid(state: GameState, content: Content): Incident | null {
   };
   // Watchtowers (M7) spot raiders on the horizon.
   const warn = raidDefense(state, content).warnSeconds;
-  if (warn > 0) inc.warning = warn;
+  if (warn > 0) {
+    inc.warning = warn;
+    inc.warningTotal = warn;
+  }
   state.incidents.push(inc);
   state.incidentTimer = 0;
   state.events.push({ type: 'incidentStarted', incidentId: inc.id, roomId: door.id, incident: 'rustmen' });

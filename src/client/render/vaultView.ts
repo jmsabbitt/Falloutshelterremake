@@ -865,7 +865,7 @@ export class VaultView {
   private approachX(inc: Incident, door: { x: number; w: number }): number | null {
     const warn = inc.type === 'rustmen' ? (inc.warning ?? 0) : 0;
     if (warn <= 0) return null;
-    const max = Math.max(warn, this.raidWarn.get(inc.id) ?? 0);
+    const max = Math.max(warn, inc.warningTotal ?? 0, this.raidWarn.get(inc.id) ?? 0);
     this.raidWarn.set(inc.id, max);
     return door.x + door.w + 30 + (warn / max) * 560;
   }

@@ -169,6 +169,8 @@ export interface Incident {
   stolen: number;
   /** M7 raiders only: seconds until they reach the door (Watchtower warning). */
   warning?: number;
+  /** The full warning the raiders were spotted with, for the approach animation. */
+  warningTotal?: number;
 }
 
 export interface Item {
@@ -424,7 +426,21 @@ export interface Caravan {
   remaining: number;
   total: number;
   /** Paid out on collection. */
-  result: { scrip: number; influence: number; rep: number; items: string[]; log: string[] } | null;
+  result: {
+    scrip: number;
+    influence: number;
+    rep: number;
+    items: string[];
+    log: string[];
+    /** 'repelled' or 'robbed' if ambushed on the road. */
+    ambush?: 'repelled' | 'robbed';
+    /** HP each resident lost. */
+    hurt?: number;
+    /** XP each resident earns. */
+    xp?: number;
+    /** A faction the Long Road Co. introduced the homestead to. */
+    intro?: string;
+  } | null;
 }
 
 export type GameEvent =

@@ -65,10 +65,10 @@
     {
       "id": "topside_sprawl",
       "name": "Suburban Sprawl",
-      "description": "Have 8 surface buildings at once.",
+      "description": "Have 6 surface buildings at once.",
       "tier": "silver",
       "stat": "topsideBuildings",
-      "target": 8
+      "target": 6
     },
     {
       "id": "weather_watcher",

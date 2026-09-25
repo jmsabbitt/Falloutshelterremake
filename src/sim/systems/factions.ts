@@ -520,7 +520,8 @@ export function hireRecruit(state: GameState, content: Content, factionId: strin
 }
 
 /** Take a trade offer. */
-export function trade(state: GameState, content: Content, offerId: number): string | null {
+/** Why an offer can't be taken right now, or null if it can. The same checks `trade()` runs. */
+export function tradeBlocked(state: GameState, content: Content, offerId: number): string | null {
   const offer = tradeOffers(state).find((o) => o.id === offerId);
   if (!offer) return 'that offer is gone';
   const def = factionDef(content, offer.factionId);
@@ -529,8 +530,14 @@ export function trade(state: GameState, content: Content, offerId: number): stri
   if (!isMet(state, def.id)) return `you haven't made contact with ${def.name}`;
   if (repOf(state, content, def.id) < offer.minRep) return `needs ${repTier(content, offer.minRep).name} standing with ${def.shortName ?? def.name}`;
   if (offer.stock <= 0) return 'sold out';
-  const why = cantPay(state, content, offer) ?? cantReceive(state, content, offer);
+  return cantPay(state, content, offer) ?? cantReceive(state, content, offer);
+}
+
+export function trade(state: GameState, content: Content, offerId: number): string | null {
+  const why = tradeBlocked(state, content, offerId);
   if (why) return why;
+  const offer = tradeOffers(state).find((o) => o.id === offerId)!;
+  const def = factionDef(content, offer.factionId)!;
 
   // Pay.
   const g = offer.give;

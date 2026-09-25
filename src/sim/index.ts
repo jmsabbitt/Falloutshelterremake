@@ -163,6 +163,7 @@ export {
   tradeOffers,
   refreshTrade,
   offerItemFor,
+  tradeBlocked,
   recruitsHired,
   hireRecruit,
   canCaravan,

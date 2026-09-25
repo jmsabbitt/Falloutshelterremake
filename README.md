@@ -63,7 +63,12 @@ The client only changes the game through `applyCommand`. This keeps the simulati
   - *Residents:* 25 traits, partly inherited. Job mastery runs Apprentice → Journeyman → Master, with profession titles and a shift clock.
   - *Quality of life:* a sortable/filterable resident list with bulk actions and auto-assign, a room stats overlay, a notification centre with "while you were away", save slots, loadout presets, and a Threat Rating gauge.
   - Screenshots are in `docs/screens/m6/` and `docs/screens/m6q/`; the contract is `docs/design/M6-spec.md`.
-- Next: **M7** (Topside and factions: surface layer, factions, trade, caravans, Act 2).
+- **M7 (Topside and factions): playable.**
+  - *Topside:* a surface row above the door (floor −1) with 7 buildings: Solar Array, Wind Turbine, Rain Catcher, Farm Plots, Watchtower, Trading Post and Signal Mast. Weather rotates between clear, dust storm, taint storm and heatwave. Each building reacts differently; taint storms Glare-soak anyone working outside. A Topside research branch unlocks the surface and softens the weather. Staffed Watchtowers spot raiders early and blunt their attack.
+  - *Factions:* the Long Road Caravan Co., the Scrapwright Guild, the Order of the Last Lamp, the Rustman clans and the rival Halcyon Homestead 9. You reach them through the Signal Mast. Reputation runs from Hostile to Allied. The Trading Post runs a trade board (50 offers, refreshed every 8 h), caravans take 1–3 residents and goods down a faction's road (online and offline, with ambushes), and you earn Influence to spend on offers and recruits. Hostile Rustmen raid more often.
+  - *Act 2 "Neighbours":* 8 quests for the second homestead, ending in `act2_finale`, which the Charter now requires. There are faction-choice events and 6 faction contracts. It opens the Glass Flats, a harsher region with 17 enemies, 12 locations, 10 NPCs and 46 musings.
+  - The game now has 141 achievements. Screenshots are in `docs/screens/m7/`; the contract is `docs/design/M7-spec.md`. Console: `homestead.m7.topside()`, `.meet()`, `.influence(n)`, `.weather(kind)`, `.arrive()`.
+- Next: **M8** (Mobile: Capacitor builds, touch polish, notifications).
 
 Quest tools: `npm run quest-balance` plays every quest with a scripted party across levels and gear. In the browser console, `homestead.quest.office()`, `.party(level, weapon)`, `.skip()` and `.win()` help testing.
 
