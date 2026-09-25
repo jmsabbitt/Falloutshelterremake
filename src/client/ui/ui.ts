@@ -1,6 +1,6 @@
 // DOM interface over the Pixi view: HUD, toolbar, side panels, toasts, hints.
 
-import { itemIcon } from './icons';
+import { itemIcon, salvageIcon } from './icons';
 import { halcyFace } from './halcy';
 import {
   achievementProgress,
@@ -1492,6 +1492,7 @@ export class UI {
             return h(
               'div',
               { class: `salvage-cell ${s.rarity}${n ? '' : ' none'}`, title: `${s.name} (${s.rarity}): ${n}/${SALVAGE_CAP}` },
+              salvageIcon(s.id),
               h('span', { class: `rarity ${s.rarity}` }, RARITY_MARK[s.rarity]),
               h('span', { class: 'sname' }, s.name),
               h('b', {}, `${n}`),

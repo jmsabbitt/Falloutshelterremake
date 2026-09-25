@@ -1,0 +1,108 @@
+{
+  "id": "salvage",
+  "kind": "portrait",
+  "background": "corner",
+  "outDir": "items",
+  "prefix": "",
+  "fit": 96,
+  "targetHeight": 96,
+  "anims": {
+    "circuitry": {
+      "file": "sal_circuitry.png",
+      "split": "figures",
+      "order": "x",
+      "take": 3,
+      "names": [
+        "vacuum_tube",
+        "relay_board",
+        "atomic_logic_core"
+      ]
+    },
+    "hide": {
+      "file": "sal_hide.png",
+      "split": "figures",
+      "order": "x",
+      "take": 3,
+      "names": [
+        "rat_leather",
+        "tanned_hide",
+        "glare_beast_pelt"
+      ]
+    },
+    "adhesive": {
+      "file": "sal_adhesive.png",
+      "split": "figures",
+      "order": "x",
+      "take": 3,
+      "names": [
+        "sticky_tape",
+        "rubber_cement",
+        "mil_spec_resin"
+      ]
+    },
+    "cloth": {
+      "file": "sal_cloth.png",
+      "split": "figures",
+      "order": "x",
+      "take": 3,
+      "names": [
+        "burlap_scrap",
+        "parachute_silk",
+        "halcyon_banner"
+      ]
+    },
+    "chemicals": {
+      "file": "sal_chemicals.png",
+      "split": "figures",
+      "order": "x",
+      "take": 3,
+      "names": [
+        "baking_soda_tin",
+        "chemistry_set",
+        "isotope_vial"
+      ]
+    },
+    "steel": {
+      "file": "sal_steel.png",
+      "split": "figures",
+      "order": "x",
+      "take": 3,
+      "names": [
+        "tin_cans",
+        "rebar_bundle",
+        "titanium_plate"
+      ]
+    },
+    "valuables": {
+      "file": "sal_valuables.png",
+      "split": "figures",
+      "order": "x",
+      "take": 3,
+      "names": [
+        "costume_jewelry",
+        "silver_locket",
+        "gold_pocket_watch"
+      ],
+      "boxes": [
+        [
+          143,
+          413,
+          853,
+          1114
+        ],
+        [
+          1013,
+          413,
+          1734,
+          1114
+        ],
+        [
+          1893,
+          413,
+          2601,
+          1114
+        ]
+      ]
+    }
+  }
+}

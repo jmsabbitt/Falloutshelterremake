@@ -748,6 +748,29 @@
       "silver_tongue_suit": "items/silver_tongue_suit.webp",
       "professors_tweed": "items/professors_tweed.webp",
       "quicksilver_suit": "items/quicksilver_suit.webp"
+    },
+    "salvage": {
+      "vacuum_tube": "items/vacuum_tube.webp",
+      "relay_board": "items/relay_board.webp",
+      "atomic_logic_core": "items/atomic_logic_core.webp",
+      "rat_leather": "items/rat_leather.webp",
+      "tanned_hide": "items/tanned_hide.webp",
+      "glare_beast_pelt": "items/glare_beast_pelt.webp",
+      "sticky_tape": "items/sticky_tape.webp",
+      "rubber_cement": "items/rubber_cement.webp",
+      "mil_spec_resin": "items/mil_spec_resin.webp",
+      "burlap_scrap": "items/burlap_scrap.webp",
+      "parachute_silk": "items/parachute_silk.webp",
+      "halcyon_banner": "items/halcyon_banner.webp",
+      "baking_soda_tin": "items/baking_soda_tin.webp",
+      "chemistry_set": "items/chemistry_set.webp",
+      "isotope_vial": "items/isotope_vial.webp",
+      "tin_cans": "items/tin_cans.webp",
+      "rebar_bundle": "items/rebar_bundle.webp",
+      "titanium_plate": "items/titanium_plate.webp",
+      "costume_jewelry": "items/costume_jewelry.webp",
+      "silver_locket": "items/silver_locket.webp",
+      "gold_pocket_watch": "items/gold_pocket_watch.webp"
     }
   }
 }
