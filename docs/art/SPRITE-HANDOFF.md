@@ -4,6 +4,8 @@ This is everything needed to make resident sprite sheets for **Homestead**, an o
 
 Deeper technical detail is in [`docs/design/art-spec.md`](../design/art-spec.md). This page is the short version to work from.
 
+For what has already been made (residents, creatures, portraits, icons and room walls) and what is still open, see [ART-SESSION-HANDOFF.md](ART-SESSION-HANDOFF.md).
+
 ---
 
 ## 1. What already exists
