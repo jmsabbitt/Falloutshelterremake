@@ -202,3 +202,69 @@ This is specified separately once the sim APIs are final. It covers:
 - a Custom Game menu with presets, a sandbox toolbar, a time scale and a separate save slot
 - incident art for the new creatures, and the Mauler meter on the Threat gauge
 - treasure maps on the world map
+
+---
+
+## Client streams (phase 2, after the sim merge at a6442d6)
+
+Two client streams run in parallel. The sim is done; see `src/sim/index.ts` for the exports. In either stream, don't edit `src/sim/**` (describe patches instead). Both must keep the M8 phone rules:
+- tap targets at least 44 px
+- text at least 12 px
+- no horizontal overflow at 360 px
+- use the `--safe-*` insets
+- register back handlers with `onBack`
+- screenshots in `docs/screens/m9/`, reduced to 256 colours
+
+**D1: vault, legends and collection.**
+
+*Owns:*
+- `src/client/render/**`
+- `src/client/ui/ui.ts`
+- `ui/threat.ts`
+- `ui/toasts.ts`
+- `ui/notices.ts`
+- `ui/residentList.ts`
+- `ui/quests.ts`
+- `ui/questScreen.ts`
+- **new** `ui/legends.ts`
+- **new** `ui/collection.ts`
+- `style.css`
+
+*Implement:*
+- **New incidents:** art and animation for `surge`, `hollowed`, `glassbacks` and `maulers`, in `render/`: the Mauler walks in from the door, and Glassbacks jump between rooms (`incidentMoved`). Add hints and toasts for `incidentMoved`, `incidentEscaped` and `maulerStirring`.
+- **Threat gauge:** show the Mauler meter (`maulerStatus`).
+- **Legends:**
+  - a legend card (name, bio, HALCY notes, signature trait, status, questline progress, and Recall with `recallLegend`)
+  - a "Legends" section in the residents panel
+  - a gold badge on legendary residents in the vault and in lists
+  - the arrival toast and modal (`legendArrived`) and the awakening one (`legendAwakened`)
+- **Collection Log** (`collectionProgress` / `collectionEntries`): tabs per category, locked silhouettes, percentages and milestone rewards, opened from Goals/☰.
+- **Warden's Seal:** progress and the missing list (`sealProgress`), the title (`wardenTitle`), and a monument drawn at the door once `stats.wardensSeal` is set.
+- **Explore panel:** treasure maps (`state.loot.maps`) with their regions and a "dig here" hint, plus toasts for `treasureMapFound` and `cacheDug`, and the region-exclusive loot list per region.
+- **Quests:** Act 3 and the legend questlines appear in the quests panel, with legend quests showing the legend's portrait or name and the requirement. Add a first-kill badge on boss rooms (from `lootContent(content).bossFirstKill` and `state.loot.bossKills`) and the `bossFirstKill` toast.
+- **Items:** the flavour line (`flavor`) and a "rare find" label for `lootOnly` items in item cards, and lootOnly items left out of the blueprints tab.
+
+**D2: rulesets, Survival and Custom Game.**
+
+*Owns:*
+- `src/client/ui/prestige.ts` (founding flow and Legacy screens)
+- **new** `ui/custom.ts`
+- **new** `ui/rules.ts`
+- `src/client/game.ts`
+- `src/client/main.ts`
+- `src/client/storage.ts`
+- `src/client/platform/**`
+- `ui/saves.ts`
+- `ui/settings.ts`
+
+*Implement:*
+- **Founding flow:** a rules step. Pick rulesets (`rulesetsAvailable`, `rulesetLocked`, `survivalLocked`), with locked ones showing their unlock, a live Legacy multiplier preview (`rulesLegacyMult`), and a Survival toggle with a clear warning. The site and rules summary appears on the confirm step.
+- **Homestead display:** the rules the homestead runs under show in the HUD title tooltip or menu, and in the Legacy history.
+- **Custom Game:**
+  - a menu entry (☰ → "Custom Game", and on the title or first screen if there is one) with preset cards (`customPresets`) and an advanced form (`CustomGameOptions`: scrip, population, level range, rules, research/regions all, strata)
+  - it starts in **its own save slot**, never overwriting the normal game, and you can switch back
+  - a clear "CUSTOM GAME: achievements off" banner
+  - a sandbox toolbar that drives the `custom` command family (`CUSTOM_ACTIONS`): set resource, spawn resident or item, trigger incident, weather, research, unlock all
+  - a **time scale** (×1, ×2, ×5, ×10, ×100) applied in the game loop, custom mode only
+- **Survival in the HUD:** a skull marker, and revive buttons that explain why they're disabled.
+- **Hooks in files you don't own:** where you need a menu entry or HUD hook in `ui.ts` (owned by D1), export a function from your file and give the exact line to add in your report.
