@@ -28,6 +28,7 @@ import { deepConsole, researchConsole } from './depthDev';
 import { prestigeConsole } from './prestigeDev';
 import { questConsole } from './questDev';
 import { qolConsole } from './qolDev';
+import { m7Console } from './m7Dev';
 import { clearSave, readSave, writeBackup, writeSave, writeUndo } from './storage';
 
 type Listener = (events: GameEvent[]) => void;
@@ -354,6 +355,8 @@ export class Game {
       deep: deepConsole(game),
       /** M6 quality-of-life helpers: bigVault(pop), away(hours). */
       qol: qolConsole(game),
+      /** M7 helpers: topside(), meet(), influence(n), weather(kind), caravan(factionId?), raid(). */
+      m7: m7Console(game),
     };
     console.info('%cHomestead dev console: window.homestead', 'color:#f2a541');
   }

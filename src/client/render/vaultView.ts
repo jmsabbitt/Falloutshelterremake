@@ -28,6 +28,9 @@ import {
   roomCapacity,
   topStats,
   type StatKey,
+  isTopside,
+  TOPSIDE_FLOOR,
+  type Caravan,
 } from '../../sim';
 import type { Game } from '../game';
 import {
@@ -48,6 +51,7 @@ import {
 import { drawOffice } from './officeArt';
 import { buildDeepBackground, DEEP_INCIDENT_COLORS, DeepLayer, deepViewKey, drawDeepFrame, drawDeepIncident, drawDepthRoom, labelInk, lampFor, SEAL_H, type DeepGeometry } from './deepArt';
 import { type Action, type CharacterArt, CreatureFigure, Figure, residentTints } from './sprites';
+import { drawTopsideBuilding, drawTopsideParts, GROUND_DEPTH, TopsideLayer, WeatherLayer, type TopsidePart } from './topsideArt';
 
 export const CELL = 44;
 export const FLOOR_H = 132;
@@ -67,6 +71,8 @@ export interface ViewCallbacks {
   onBuildAt(floor: number, x: number): void;
   /** Tapped one of the explorer figures on the surface. */
   onExplorerTap(): void;
+  /** M7: tapped a caravan on the surface. */
+  onCaravanTap?(): void;
 }
 
 /** Explorer figures drawn on the surface while expeditions are out. */
@@ -84,6 +90,10 @@ const MAX_WALKERS = 5;
 /** How far right of the door explorers walk before fading into the Glarelands. */
 const WALK_RANGE = 560;
 const WALKER_SCALE = 0.8;
+/** How far right of the door caravans walk before they drop over the horizon. */
+const CARAVAN_RANGE = 640;
+/** Pennant colours on caravan carts, by faction. */
+const FACTION_COLOURS: Record<string, number> = { caravaners: 0xf2a541, tinkers: 0x4fb3a9, lamplighters: 0xf4ecd8, rustmen: 0xb5562f, homestead9: 0x7fb7c9 };
 /** Incidents drawn from creature art when it exists: which look, one per `per` world units of room (at least `min`), and displayed height. */
 const INCIDENT_ART: Record<string, { look: string; per: number; min: number; h: number }> = {
   skitters: { look: 'skitter', per: 70, min: 2, h: 20 },
@@ -146,6 +156,15 @@ export class VaultView {
   private deep = new DeepLayer(() => this.deepGeometry());
   /** What the background and room frames were drawn for (strata, bracing). */
   private deepKey = '';
+  /** M7: weather over the surface, and the topside buildings' moving parts. */
+  private weather = new WeatherLayer();
+  private topside = new TopsideLayer();
+  private topsideParts = new Map<number, TopsidePart[]>();
+  /** Caravan figures on the surface, by "caravanId:residentId". */
+  private caravanWalkers = new Map<string, Walker>();
+  private caravanCarts = new Graphics();
+  /** Longest warning seen per raid, so approaching raiders walk in from the horizon. */
+  private raidWarn = new Map<number, number>();
 
   private builtLayout = -1;
   private sprites = new Map<number, ResidentSprite>();
@@ -185,7 +204,8 @@ export class VaultView {
     private game: Game,
     private cb: ViewCallbacks,
   ) {
-    this.world.addChild(this.bg, this.statics, this.overlay, this.fitLayer, this.deep.root, this.ghostLayer, this.incidentLayer, this.residentLayer, this.walkerLayer, this.fxLayer);
+    this.world.addChild(this.bg, this.weather.back, this.statics, this.topside.root, this.overlay, this.fitLayer, this.deep.root, this.ghostLayer, this.incidentLayer, this.residentLayer, this.caravanCarts, this.walkerLayer, this.weather.front, this.fxLayer);
+    this.caravanCarts.eventMode = 'none';
     this.fitLayer.eventMode = 'none';
     app.stage.addChild(this.world);
     this.drawBackground();
@@ -206,6 +226,9 @@ export class VaultView {
     this.incidentFigs.clear();
     for (const w of this.walkers.values()) w.root.destroy({ children: true });
     this.walkers.clear();
+    for (const w of this.caravanWalkers.values()) w.root.destroy({ children: true });
+    this.caravanWalkers.clear();
+    this.raidWarn.clear();
     for (const f of this.floats) f.text.destroy();
     this.floats = [];
     this.buildMode = null;
@@ -224,7 +247,7 @@ export class VaultView {
 
   /** For automated UI tests: what is drawn right now. */
   debugCounts() {
-    return { sprites: this.sprites.size, residentLayer: this.residentLayer.children.length, walkers: this.walkers.size, statics: this.statics.children.length, ghosts: this.ghostLayer.children.length, zoom: this.zoom, x: Math.round(this.world.x), y: Math.round(this.world.y) };
+    return { sprites: this.sprites.size, residentLayer: this.residentLayer.children.length, walkers: this.walkers.size, caravanWalkers: this.caravanWalkers.size, topside: this.topsideParts.size, statics: this.statics.children.length, ghosts: this.ghostLayer.children.length, zoom: this.zoom, x: Math.round(this.world.x), y: Math.round(this.world.y) };
   }
 
   /** How many residents show each action, and which animation stands in for it ("fight>idle"). */
@@ -277,7 +300,9 @@ export class VaultView {
   }
 
   roomAt(wx: number, wy: number): Room | null {
-    const floor = Math.floor((wy - SURFACE_H) / FLOOR_H);
+    // Surface buildings rise above their row (masts, turbines): a tap on the tall part counts.
+    let floor = Math.floor((wy - SURFACE_H) / FLOOR_H);
+    if (wy < SURFACE_H - FLOOR_H && wy > SURFACE_H - FLOOR_H - 90) floor = TOPSIDE_FLOOR;
     const cell = Math.floor(wx / CELL);
     for (const room of this.game.state.rooms) {
       if (room.floor !== floor) continue;
@@ -310,7 +335,8 @@ export class VaultView {
     const minX = sw - ins.right - (w * this.zoom + m);
     const maxX = m;
     const minY = sh - (h * this.zoom + Math.max(160, ins.bottom + 40));
-    const maxY = 80;
+    // Leave room above the surface row for masts, turbines and the weather.
+    const maxY = Math.max(80, ins.top + 120 * this.zoom);
     this.world.x = minX > maxX ? (minX + maxX) / 2 : Math.min(maxX, Math.max(minX, this.world.x));
     this.world.y = Math.min(maxY, Math.max(minY, this.world.y));
   }
@@ -376,7 +402,12 @@ export class VaultView {
     this.statics.removeChildren().forEach((c) => c.destroy({ children: true }));
     const { state, content } = this.game;
     const isBraced = braced(state, content);
+    this.topsideParts.clear();
     for (const room of this.game.state.rooms) {
+      if (isTopside(room)) {
+        this.buildTopside(room);
+        continue;
+      }
       const r = this.roomRect(room);
       const g = new Graphics();
       const wall = this.art?.roomWall(room.type, room.level);
@@ -420,6 +451,42 @@ export class VaultView {
     this.builtLayout = this.game.layoutVersion;
     this.deepKey = deepViewKey(state, isBraced);
     this.rebuildGhosts();
+  }
+
+  /**
+   * M7: a surface building, standing in the open on the ground above the door.
+   * Painted art (when some exists for the type) stands in for the drawn
+   * structure; the name sits on a dark tab on the ground in front of it.
+   */
+  private buildTopside(room: Room): void {
+    const { content } = this.game;
+    const r = this.roomRect(room);
+    const g = new Graphics();
+    const wall = this.art?.roomWall(room.type, room.level);
+    const gy = r.h - GROUND_DEPTH;
+    if (wall) {
+      g.rect(2, gy - 2, r.w - 4, 8).fill(shade(GROUND, -0.2));
+      g.position.set(r.x, r.y);
+      this.statics.addChild(g);
+      const s = new Sprite(wall);
+      const hgt = Math.min(gy + 60, (r.w / Math.max(1, wall.width)) * wall.height);
+      s.position.set(r.x, r.y + gy - hgt);
+      s.width = r.w;
+      s.height = hgt;
+      this.statics.addChild(s);
+    } else {
+      this.topsideParts.set(room.id, drawTopsideBuilding(g, room.type, r.w, r.h, room.level, room.segments));
+      g.position.set(r.x, r.y);
+      this.statics.addChild(g);
+    }
+    const def = roomDef(content, room);
+    const name = def.levelNames?.[room.level - 1] ?? def.name;
+    const label = new Text({ text: name.toUpperCase(), style: { fontFamily: 'Bungee, sans-serif', fontSize: 10, fill: 0xf4ecd8, letterSpacing: 1 } });
+    label.alpha = 0.92;
+    label.position.set(r.x + 8, r.y + gy + 12);
+    const tab = new Graphics().roundRect(-4, -2, label.width + 8, label.height + 3, 4).fill({ color: 0x14100d, alpha: 0.6 });
+    tab.position.set(label.x, label.y);
+    this.statics.addChild(tab, label);
   }
 
   /** How many green slots build mode is showing. */
@@ -486,7 +553,10 @@ export class VaultView {
       seen.add(k);
       if (canPlace(state, content, type, floor, x).ok) candidates.push({ floor, x });
     };
+    // Surface buildings go anywhere along the ground that links back to the door.
+    if (def.topside) for (let x = 0; x + def.cells <= content.balance.grid.cellsPerFloor; x++) push(TOPSIDE_FLOOR, x);
     for (const room of state.rooms) {
+      if (def.topside) break;
       const w = roomCells(content, room);
       push(room.floor, room.x + w);
       push(room.floor, room.x - def.cells);
@@ -495,6 +565,12 @@ export class VaultView {
         push(room.floor - 1, room.x);
       }
     }
+    // Surface slots can overlap (any spot over the door links up): show a tidy, non-overlapping set.
+    if (def.topside) {
+      const kept: { floor: number; x: number }[] = [];
+      for (const c of candidates.sort((a, b) => a.x - b.x)) if (!kept.some((k) => c.x < k.x + def.cells && k.x < c.x + def.cells)) kept.push(c);
+      candidates.splice(0, candidates.length, ...kept);
+    }
     this.ghostSlots = candidates;
     const cost = buildCost(state, content, type);
     const affordable = state.scrip >= cost;
@@ -502,11 +578,13 @@ export class VaultView {
       const x = c.x * CELL;
       const y = SURFACE_H + c.floor * FLOOR_H;
       const w = def.cells * CELL;
+      // On the surface the slot stands on the ground rather than filling a floor.
+      const gh = c.floor < 0 ? FLOOR_H - GROUND_DEPTH + 4 : FLOOR_H;
       const g = new Graphics();
-      g.rect(x + 3, y + 3, w - 6, FLOOR_H - 6).fill({ color: affordable ? 0x8fc93a : 0xe4572e, alpha: 0.18 });
-      g.rect(x + 3, y + 3, w - 6, FLOOR_H - 6).stroke({ width: 3, color: affordable ? 0x8fc93a : 0xe4572e, alpha: 0.9 });
+      g.rect(x + 3, y + 3, w - 6, gh - 6).fill({ color: affordable ? 0x8fc93a : 0xe4572e, alpha: 0.18 });
+      g.rect(x + 3, y + 3, w - 6, gh - 6).stroke({ width: 3, color: affordable ? 0x8fc93a : 0xe4572e, alpha: 0.9 });
       const cx = x + w / 2;
-      const cy = y + FLOOR_H / 2;
+      const cy = y + gh / 2;
       g.rect(cx - 14, cy - 3, 28, 6).fill(0xf4ecd8);
       g.rect(cx - 3, cy - 14, 6, 28).fill(0xf4ecd8);
       g.eventMode = 'static';
@@ -544,9 +622,33 @@ export class VaultView {
     this.drawOverlay(vb);
     this.drawFit();
     this.deep.update(state, content, this.time, (room) => this.roomRect(room), vb);
+    this.updateTopside(dt, vb);
     this.updateResidents(dt);
     this.updateWalkers();
+    this.updateCaravans();
     this.updateFloats(dt);
+  }
+
+  /** M7: the weather over the surface and the buildings' moving parts, while the surface is on screen. */
+  private updateTopside(dt: number, vb: { y0: number; y1: number }): void {
+    const { state } = this.game;
+    const visible = vb.y0 < SURFACE_H;
+    const { w } = this.worldSize();
+    const m = MARGIN_CELLS * CELL * 3;
+    const kind = state.weather?.kind ?? 'clear';
+    this.weather.update(kind, this.time, dt, { x0: -m, x1: w + m, y0: Math.max(-900, vb.y0 - FLOOR_H), ground: SURFACE_H - GROUND_DEPTH }, visible);
+    const g = this.topside.g;
+    g.clear();
+    if (!visible || !this.topsideParts.size) return;
+    const crewed = new Set<number>();
+    for (const r of state.residents) if (r.roomId !== null && !r.dead && !isAway(r)) crewed.add(r.roomId);
+    for (const room of state.rooms) {
+      const parts = this.topsideParts.get(room.id);
+      if (!parts) continue;
+      const r = this.roomRect(room);
+      const live = room.powered && (room.type !== 'watchtower' || crewed.has(room.id));
+      drawTopsideParts(g, parts, r.x, r.y, this.time, kind, live, room.id);
+    }
   }
 
   /** World rows in view, plus a floor of margin either side. */
@@ -577,8 +679,11 @@ export class VaultView {
       // Rustmen at the door stand on the surface, so the door is always drawn.
       if ((r.y + r.h < vb.y0 || r.y > vb.y1) && room.type !== 'door') continue;
       const def = roomDef(content, room);
-      // interior lamp glow / brownout
-      if (!room.powered) {
+      const top = isTopside(room);
+      // interior lamp glow / brownout (open-air buildings have no ceiling lamp)
+      if (top) {
+        if (!room.powered) g.rect(r.x + 2, r.y + 2, r.w - 4, r.h - GROUND_DEPTH - 2).fill({ color: 0x000000, alpha: 0.3 });
+      } else if (!room.powered) {
         g.rect(r.x + 2, r.y + 2, r.w - 4, r.h - 4).fill({ color: 0x000000, alpha: 0.55 });
       } else if (room.type !== 'elevator') {
         const flicker = 0.1 + 0.03 * Math.sin(this.time * 3 + room.id);
@@ -587,7 +692,8 @@ export class VaultView {
       // production progress along the floor lip
       if (def.produces && !room.ready) {
         const p = Math.min(1, room.pool / Math.max(1, poolSize(content, room)));
-        g.rect(r.x + 6, r.y + r.h - 7, (r.w - 12) * p, 3).fill({ color: RESOURCE_COLORS[def.produces.resource] ?? 0xffffff, alpha: 0.9 });
+        if (top) g.rect(r.x + 6, r.y + r.h - GROUND_DEPTH + 4, r.w - 12, 3).fill({ color: 0x000000, alpha: 0.35 });
+        g.rect(r.x + 6, top ? r.y + r.h - GROUND_DEPTH + 4 : r.y + r.h - 7, (r.w - 12) * p, 3).fill({ color: RESOURCE_COLORS[def.produces.resource] ?? 0xffffff, alpha: 0.9 });
       }
       // ready bubble
       if (room.ready && def.produces) {
@@ -617,7 +723,8 @@ export class VaultView {
         }
       }
       const inc = burning.get(room.id);
-      if (inc) this.drawIncident(g, inc, r);
+      // Surface incidents happen on the ground, not on the crust below it.
+      if (inc) this.drawIncident(g, inc, top ? { ...r, h: r.h - GROUND_DEPTH + 10 } : r);
       // Radio: signal progress arc on the ceiling lip.
       if (def.category === 'radio' && room.powered) {
         const p = Math.min(1, room.timer / Math.max(1, radioInterval(state, content, room)));
@@ -625,7 +732,8 @@ export class VaultView {
       }
       if (room.id === this.selectedRoomId) {
         const pulse = 0.6 + 0.4 * Math.sin(this.time * 5);
-        g.rect(r.x + 1, r.y + 1, r.w - 2, r.h - 2).stroke({ width: 3, color: 0xf2a541, alpha: pulse });
+        if (top) g.rect(r.x + 1, r.y - 30, r.w - 2, r.h - GROUND_DEPTH + 34).stroke({ width: 3, color: 0xf2a541, alpha: pulse });
+        else g.rect(r.x + 1, r.y + 1, r.w - 2, r.h - 2).stroke({ width: 3, color: 0xf2a541, alpha: pulse });
       }
     }
     // Incident creatures: hide those whose room is off screen, drop those whose incident ended.
@@ -635,6 +743,7 @@ export class VaultView {
         this.incidentFigs.delete(id);
       } else for (const f of figs) f.visible = this.incidentsShown.has(id);
     }
+    for (const id of this.raidWarn.keys()) if (!state.incidents.some((i) => i.id === id)) this.raidWarn.delete(id);
     // Hearts above courting couples.
     for (const res of state.residents) {
       if (!res.courtship) continue;
@@ -719,12 +828,18 @@ export class VaultView {
     this.incidentsShown.add(inc.id);
     const t = this.time;
     const breaking = inc.type === 'rustmen' && inc.doorHp > 0;
+    const approach = this.approachX(inc, r);
     figs.forEach((f, i) => {
       const strike = f.duration('attack');
       let x: number;
       let y = r.y + r.h - 10;
       let right = false;
-      if (breaking) {
+      if (approach !== null) {
+        // Spotted from the Watchtower: still crossing the flats toward the door.
+        x = approach + i * 34;
+        y = SURFACE_H - 10 - Math.abs(Math.sin(t * 7 + i)) * 2;
+        f.play('idle', t * 2 + i);
+      } else if (breaking) {
         // On the surface above the door, facing it, hammering away.
         x = r.x + r.w * 0.2 + i * 36;
         y = SURFACE_H - 10;
@@ -744,6 +859,15 @@ export class VaultView {
       f.scale.x = Math.abs(f.scale.x) * (right ? -1 : 1);
     });
     return true;
+  }
+
+  /** Raiders spotted by a Watchtower walk in from the horizon: where the first one is now, or null once at the door. */
+  private approachX(inc: Incident, door: { x: number; w: number }): number | null {
+    const warn = inc.type === 'rustmen' ? (inc.warning ?? 0) : 0;
+    if (warn <= 0) return null;
+    const max = Math.max(warn, this.raidWarn.get(inc.id) ?? 0);
+    this.raidWarn.set(inc.id, max);
+    return door.x + door.w + 30 + (warn / max) * 560;
   }
 
   private drawIncident(g: Graphics, inc: Incident, r: { x: number; y: number; w: number; h: number }): void {
@@ -784,9 +908,10 @@ export class VaultView {
       case 'rustmen': {
         // Three raiders in rust-red scrap armour; at the door they hammer on it.
         const breaking = inc.doorHp > 0;
+        const approach = this.approachX(inc, r);
         for (let i = 0; i < (art ? 0 : 3); i++) {
-          // While breaking in they stand on the surface above the door.
-          const rx = breaking ? r.x + r.w * 0.2 + i * 26 : r.x + r.w * (0.3 + i * 0.22) + Math.sin(t * 2 + i) * 6;
+          // While breaking in they stand on the surface above the door; spotted early, they are still on their way.
+          const rx = approach !== null ? approach + i * 26 : breaking ? r.x + r.w * 0.2 + i * 26 : r.x + r.w * (0.3 + i * 0.22) + Math.sin(t * 2 + i) * 6;
           const ry = breaking ? SURFACE_H - 10 : floorY;
           const lunge = breaking ? Math.max(0, Math.sin(t * 8 + i * 2)) * 5 : 0;
           g.roundRect(rx - 8 + lunge, ry - 30, 16, 20, 4).fill(0x7a2e1c);
@@ -984,6 +1109,89 @@ export class VaultView {
     }
   }
 
+  /**
+   * M7: caravans on the surface, a lane in front of the explorers. Each party
+   * walks in single file behind a handcart flying its faction's colours:
+   * out to the right while travelling, back toward the door while returning,
+   * and waiting beside the door once home. Clock-driven, like explorers.
+   */
+  private updateCaravans(): void {
+    const { state } = this.game;
+    const g = this.caravanCarts;
+    g.clear();
+    const door = state.rooms.find((r) => r.type === 'door');
+    const base = door ? this.roomRect(door).x + this.roomRect(door).w + 24 : 220;
+    const laneY = SURFACE_H - GROUND_DEPTH + 10;
+    const keep = new Set<string>();
+    const caravans: Caravan[] = (state.caravans ?? []).slice(0, 3);
+    caravans.forEach((c, ci) => {
+      const along = (this.time * 16 + ci * 190 + (hash(c.id) % 120)) % CARAVAN_RANGE;
+      const home = c.status === 'returned';
+      const out = c.status === 'travelling';
+      const facing: 1 | -1 = home ? -1 : out ? 1 : -1;
+      const lead = home ? base + 330 + ci * 120 : out ? base + along : base + CARAVAN_RANGE - along;
+      const alpha = home ? 1 : Math.max(0, Math.min(1, (CARAVAN_RANGE - along) / 90, along / 30 + 0.2));
+      // The cart goes first, the party follows it.
+      const cartX = lead + facing * 10;
+      const bump = home ? 0 : Math.abs(Math.sin(this.time * 6 + c.id)) * 1.5;
+      const colour = FACTION_COLOURS[c.factionId] ?? 0xf2a541;
+      g.rect(cartX - 20, laneY - 20 - bump, 40, 12).fill({ color: 0x8a6a45, alpha });
+      g.rect(cartX - 20, laneY - 20 - bump, 40, 3).fill({ color: 0xb08d5b, alpha });
+      g.rect(cartX - 16, laneY - 32 - bump, 16, 12).fill({ color: 0x9b7447, alpha });
+      g.rect(cartX + 2, laneY - 29 - bump, 12, 9).fill({ color: 0xe9d9b6, alpha });
+      g.circle(cartX - 11, laneY - 6, 6).stroke({ width: 2, color: 0x2b2f33, alpha });
+      g.circle(cartX + 11, laneY - 6, 6).stroke({ width: 2, color: 0x2b2f33, alpha });
+      g.rect(cartX - facing * 20 - 1, laneY - 50 - bump, 2, 32).fill({ color: 0x2b2f33, alpha });
+      const wave = Math.sin(this.time * 5 + c.id) * 2;
+      g.poly([cartX - facing * 20, laneY - 50 - bump, cartX - facing * 34, laneY - 46 - bump + wave, cartX - facing * 20, laneY - 42 - bump]).fill({ color: colour, alpha });
+      c.residentIds.forEach((rid, i) => {
+        const res = state.residents.find((r) => r.id === rid);
+        if (!res) return;
+        const key = `${c.id}:${rid}`;
+        keep.add(key);
+        let w = this.caravanWalkers.get(key);
+        if (!w) {
+          const root = new Container();
+          const pose = new Container();
+          const shadow = new Graphics().ellipse(0, 0, 11, 3).fill({ color: 0x000000, alpha: 0.35 });
+          const body = new Graphics();
+          pose.addChild(shadow, body);
+          root.addChild(pose);
+          this.walkerLayer.addChild(root);
+          w = { root, pose, body, figure: null, look: '' };
+          this.caravanWalkers.set(key, w);
+        }
+        const look = `${res.weapon ?? ''}|${res.outfit ?? ''}`;
+        if (w.look !== look) {
+          w.look = look;
+          this.dress(w, res, false, false);
+        }
+        const x = home ? lead + 34 + i * 24 : lead - facing * (34 + i * 24);
+        const step = !home && !w.figure ? Math.abs(Math.sin(this.time * 8 + rid)) * 2 : 0;
+        w.root.position.set(x, laneY - step);
+        w.root.scale.set(facing * WALKER_SCALE, WALKER_SCALE);
+        w.root.alpha = alpha;
+        w.pose.rotation = !home && !w.figure ? Math.sin(this.time * 8 + rid) * 0.05 : 0;
+        w.figure?.play(home ? 'idle' : 'walk', home ? this.time + rid : this.time * 1.2 + rid);
+      });
+    });
+    for (const [key, w] of this.caravanWalkers) {
+      if (keep.has(key)) continue;
+      w.root.destroy({ children: true });
+      this.caravanWalkers.delete(key);
+    }
+  }
+
+  /** True if a world point is on one of the surface caravan figures. */
+  private caravanAt(wx: number, wy: number): boolean {
+    for (const w of this.caravanWalkers.values()) {
+      if (w.root.alpha < 0.2) continue;
+      const { x, y } = w.root.position;
+      if (Math.abs(wx - x) < 22 && wy < y + 6 && wy > y - RESIDENT_H * WALKER_SCALE - 10) return true;
+    }
+    return false;
+  }
+
   /** True if a world point is on one of the surface explorer figures. */
   private walkerAt(wx: number, wy: number): boolean {
     for (const w of this.walkers.values()) {
@@ -1011,6 +1219,8 @@ export class VaultView {
     const target = room ?? state.rooms.find((r) => r.type === 'door');
     if (!target) return { min: 0, max: 0, y: SURFACE_H };
     const r = this.roomRect(target);
+    // Topside workers stand on the open ground in front of their building.
+    if (isTopside(target)) return { min: r.x + 14, max: r.x + r.w - 14, y: SURFACE_H - GROUND_DEPTH + 4 };
     return { min: r.x + DEPTH_X + 12, max: r.x + r.w - DEPTH_X - 12, y: r.y + r.h - DEPTH_Y / 2 - 4 };
   }
 
@@ -1103,6 +1313,7 @@ export class VaultView {
       } else if (g.kind === 'pan' && !g.moved) {
         const room = this.roomAt(local.x, local.y);
         if (this.walkerAt(local.x, local.y)) this.cb.onExplorerTap();
+        else if (this.cb.onCaravanTap && this.caravanAt(local.x, local.y)) this.cb.onCaravanTap();
         else if (room) this.cb.onRoomTap(room);
         else this.cb.onEmptyTap();
       }

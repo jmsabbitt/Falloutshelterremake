@@ -82,8 +82,10 @@ import { syncHudHeight } from './layout';
 import { ThreatUI } from './threat';
 import { Toasts, type ToastKind, type ToastOptions } from './toasts';
 import { TraitsUI } from './traits';
+import { FactionsUI, type FactionsTab } from './factions';
+import { TopsideUI } from './topside';
 
-type PanelKind = 'build' | 'room' | 'residents' | 'storage' | 'crates' | 'explore' | 'quests' | 'legacy' | 'achievements' | 'menu' | 'notices' | 'research' | 'deep' | null;
+type PanelKind = 'build' | 'room' | 'residents' | 'storage' | 'crates' | 'explore' | 'quests' | 'legacy' | 'achievements' | 'menu' | 'notices' | 'research' | 'deep' | 'factions' | null;
 type StorageTab = 'items' | 'salvage' | 'blueprints';
 
 /** Draft of the send-to-explore modal. */
@@ -136,6 +138,9 @@ const ROOM_BLURB: Record<string, string> = {
   weaponshop: 'Crafts weapons from salvage and scrip · each recipe is sped up by one crew stat',
   outfitshop: 'Crafts outfits from salvage and scrip · each recipe is sped up by one crew stat',
   lab: 'Makes research points for the tech tree · uses Wits',
+  watchtower: 'Spots raiders early and softens their attack · uses Sight · up to 2',
+  trading_post: 'Opens the trade board and sends caravans · uses Charm · one per homestead',
+  signal_mast: 'Reaches the neighbouring factions; each level reaches further · uses Charm',
 };
 type MeterKey = 'power' | 'food' | 'water';
 const METER_NAME: Record<MeterKey, string> = { power: 'Power', food: 'Food', water: 'Water' };
@@ -194,6 +199,9 @@ export class UI {
   private threat: ThreatUI;
   /** M6: resident list, notification centre, save slots, loadouts, stats overlay. */
   readonly qol: QolUI;
+  /** M7: factions, trade and caravans; the weather and surface buildings. */
+  readonly factions: FactionsUI;
+  readonly topside: TopsideUI;
 
   constructor(
     private game: Game,
@@ -265,6 +273,23 @@ export class UI {
     });
     this.threat = new ThreatUI(game, this.modalHost);
     this.traits = new TraitsUI({ game, toast: (text, kind, opts) => this.toast(text, kind, opts), refreshPanel: () => this.renderPanel(true) });
+    this.factions = new FactionsUI({
+      game,
+      modalHost: this.modalHost,
+      toast: (text, kind, opts) => this.toast(text, kind, opts),
+      openFactions: (tab) => this.openFactions(tab),
+      refreshPanel: () => this.renderPanel(true),
+    });
+    this.topside = new TopsideUI(
+      {
+        game,
+        modalHost: this.modalHost,
+        toast: (text, kind, opts) => this.toast(text, kind, opts),
+        openFactions: (tab, id) => this.openFactions(tab, id),
+        openCaravan: (id) => this.factions.openCaravan(id),
+      },
+      this.root,
+    );
     this.renderToolbar();
     game.on((events) => this.onEvents(events));
     game.onReplace(() => this.onStateReplaced());
@@ -368,6 +393,8 @@ export class UI {
     this.legacy.update();
     this.deep.update();
     this.qol.update();
+    this.topside.update();
+    this.factions.update();
     if (performance.now() - this.lastPanelRender > 500) this.renderPanel();
   }
 
@@ -435,6 +462,7 @@ export class UI {
       this.research.hudChip(),
       this.deep.hudChip(),
       this.threat.hudChip(),
+      ...this.topside.hudChips(),
       ...this.legacy.hudChips(),
     );
     // The meters change nearly every frame. Patch in place, and keep the buttons
@@ -499,7 +527,7 @@ export class UI {
       const r = state.residents.find((x) => x.id === this.residentId);
       if (r && !r.dead && !isChild(state, r)) text = `Tap a room (or drag ${r.firstName}) to assign`;
     } else if (raid) {
-      text = raid.doorHp > 0 ? 'Raiders are breaking in: drag fighters to the door!' : 'Raiders inside: drag armed residents into their room!';
+      text = (raid.warning ?? 0) > 0 ? `Raiders on the way (${Math.ceil(raid.warning ?? 0)}s): drag armed residents to the door!` : raid.doorHp > 0 ? 'Raiders are breaking in: drag fighters to the door!' : 'Raiders inside: drag armed residents into their room!';
     } else if (state.incidents.length) {
       text = 'Incident! Drag residents into the affected room to deal with it';
     } else if (waiting > 0) {
@@ -528,7 +556,8 @@ export class UI {
     const questNeed = this.quests.attention();
     const legacyNeed = this.legacy.badge();
     const research = this.research.visible() ? this.research.badge() : -1;
-    const key = `${this.panel}|${crates}|${state.items.length}|${homeOrFallen}|${window.innerWidth < 640}|${office}|${questNeed}|${legacyNeed}|${research}`;
+    const factions = this.factions.visible() ? this.factions.badge() : -1;
+    const key = `${this.panel}|${crates}|${state.items.length}|${homeOrFallen}|${window.innerWidth < 640}|${office}|${questNeed}|${legacyNeed}|${research}|${factions}`;
     if (key === this.lastToolbarKey) return;
     this.lastToolbarKey = key;
     const btn = (label: string, kind: PanelKind, extra = '', badge?: number, title?: string) =>
@@ -556,6 +585,8 @@ export class UI {
       btn(phone ? '🧭' : 'Explore', 'explore', phone ? 'icon' : '', homeOrFallen, 'Explore the Glarelands'),
       ...(office ? [btn(phone ? '⚔' : 'Quests', 'quests', phone ? 'icon' : '', questNeed, 'Quests')] : []),
       ...(research >= 0 ? [btn(phone ? '🔬' : 'Research', 'research', `research-btn${phone ? ' icon' : ''}`, research, 'Research')] : []),
+      // Phones have no room for another button: Factions opens from the ✦ Influence chip and the ☰ menu.
+      ...(factions >= 0 && !phone ? [btn('Factions', 'factions', 'factions-btn', factions, 'Factions, trade and caravans')] : []),
       btn(phone ? '◆' : 'Legacy', 'legacy', `legacy-btn${phone ? ' icon' : ''}`, legacyNeed, 'Legacy'),
       ...(phone ? [] : [btn('Goals', 'achievements')]),
       btn('☰', 'menu', 'icon', undefined, 'Menu'),
@@ -599,6 +630,12 @@ export class UI {
 
   closePanel(): void {
     this.openPanel(null);
+  }
+
+  /** M7: open the Factions panel on a tab (the trade tab can lead with one faction). */
+  openFactions(tab?: FactionsTab, factionId?: string): void {
+    this.factions.opened(tab, factionId);
+    this.openPanel('factions');
   }
 
   /** M6: open the Deep panel on a tab. */
@@ -669,6 +706,7 @@ export class UI {
     if (!def) return 'No free spot.';
     const built = state.rooms.filter((r) => r.type === type).length;
     if (def.maxBuilt !== undefined && built >= def.maxBuilt) return `You already have ${def.maxBuilt === 1 ? 'one' : def.maxBuilt}: only ${def.maxBuilt} per homestead.`;
+    if (def.topside) return `No free spot on the surface: it needs a ${def.cells}-cell stretch of ground above the door or beside another surface building.`;
     const deep = def.minFloor !== undefined ? ` on floor ${def.minFloor + 1} or deeper` : '';
     if (def.category === 'elevator') return `No free spot: an elevator needs an empty cell above or below another elevator, or beside a room${deep}.`;
     return `No free spot: needs a ${def.cells}-cell gap next to an elevator or room${deep}. Build an elevator down to open up space.`;
@@ -788,6 +826,7 @@ export class UI {
       research: 'Research',
       deep: 'The Deep',
       notices: 'Notifications',
+      factions: 'Factions',
     };
     let body: HTMLElement;
     let title = titles[this.panel];
@@ -839,6 +878,9 @@ export class UI {
       case 'deep':
         body = this.deep.panel();
         break;
+      case 'factions':
+        body = this.factions.panel();
+        break;
     }
     const panel = h(
       'div',
@@ -862,7 +904,7 @@ export class UI {
     if (old && old.outerHTML === panel.outerHTML) return;
     // Same view: patch the live panel in place, which keeps the nodes under the
     // finger and the scroll position. A different view starts fresh at the top.
-    const key = `${this.panel}|${this.roomId}|${this.storageTab}|${this.equipFor ? 'equip' : ''}|${this.panel === 'legacy' ? this.legacy.tab : this.panel === 'deep' ? this.deep.tab : ''}`;
+    const key = `${this.panel}|${this.roomId}|${this.storageTab}|${this.equipFor ? 'equip' : ''}|${this.panel === 'legacy' ? this.legacy.tab : this.panel === 'deep' ? this.deep.tab : this.panel === 'factions' ? this.factions.tab : ''}`;
     if (old && key === this.panelKey) morph(old, panel);
     else this.panelHost.replaceChildren(panel);
     this.panelKey = key;
@@ -872,14 +914,16 @@ export class UI {
     const { state, content } = this.game;
     const items = content.roomList
       .filter((d) => d.buildable)
-      .sort((a, b) => a.unlockPop - b.unlockPop)
-      .map((def) => {
+      .sort((a, b) => Number(!!a.topside) - Number(!!b.topside) || a.unlockPop - b.unlockPop)
+      .flatMap((def, i, all) => {
         const unlocked = state.unlockedRooms.includes(def.id);
         const cost = buildCost(state, content, def.id);
         const selected = this.view.buildMode === def.id;
         const info = buildInfo(state, content, def);
+        const surface = def.topside && def.produces ? `Surface · makes ${def.produces.resource} · uses ${def.stat ? STAT_NAME[def.stat] : '—'} · output follows the weather` : undefined;
         const what =
           ROOM_BLURB[def.id] ??
+          surface ??
           info.what ??
           (def.produces
             ? `Makes ${def.produces.resource} · uses ${def.stat ? STAT_NAME[def.stat] : '—'}`
@@ -894,7 +938,12 @@ export class UI {
                     : '');
         const size = def.category === 'elevator' ? '' : def.maxSegments > 1 ? '' : ` · ${def.cells} cells, doesn't merge`;
         const noSlot = selected && this.view.ghostCount === 0;
-        return h(
+        // M7: surface buildings get their own heading, after the underground rooms.
+        const heading =
+          def.topside && !all[i - 1]?.topside
+            ? h('div', { class: 'topside-head' }, h('h3', { class: 'group' }, '☀ Topside'), h('div', { class: 'muted small' }, 'On the ground above the door, open to the weather. Good output, but the sky has a say.'))
+            : null;
+        const card = h(
           'div',
           {
             class: `list-item build-item${selected ? ' selected' : ''}${unlocked ? '' : ' locked'}`,
@@ -915,6 +964,7 @@ export class UI {
           noSlot ? h('div', { class: 'small short', style: 'margin-top:4px' }, this.noSlotReason(def.id)) : null,
           selected && !noSlot ? h('div', { class: 'small ok-text', style: 'margin-top:4px' }, `Tap a green slot in the homestead (${this.view.ghostCount} free)`) : null,
         );
+        return heading ? [heading, card] : [card];
       });
     return h(
       'div',
@@ -973,7 +1023,7 @@ export class UI {
 
     if (def.category === 'workshop') parts.push(...this.workshopSection(room));
     if (def.category === 'office') parts.push(...this.quests.officeSection());
-    parts.push(...this.research.roomSection(room), ...this.deep.roomSection(room));
+    parts.push(...this.research.roomSection(room), ...this.deep.roomSection(room), ...this.topside.roomSection(room));
 
     if (cap > 0) {
       parts.push(h('h3', { style: 'margin:12px 0 4px;font-size:14px' }, `${def.category === 'door' ? 'Guards' : 'Crew'} ${crew.length}/${cap}`));
@@ -1709,7 +1759,7 @@ export class UI {
       'div',
       { class: 'body' },
       // Phones keep the toolbar short: Goals lives here.
-      this.isPhone() ? h('div', { class: 'row', style: 'justify-content:flex-start;margin-top:0' }, h('button', { onclick: () => this.openPanel('achievements') }, '🏆 Goals')) : null,
+      this.isPhone() ? h('div', { class: 'row', style: 'justify-content:flex-start;margin-top:0;gap:6px;flex-wrap:wrap' }, h('button', { onclick: () => this.openPanel('achievements') }, '🏆 Goals'), this.factions.visible() ? h('button', { onclick: () => this.openFactions() }, '🤝 Factions') : null) : null,
       h('p', { class: 'muted', style: 'margin-top:0' }, 'The game saves automatically in this browser. Keep copies in the slots below, or export them to a file.'),
       this.qol.saves.section(),
       h(
@@ -1729,7 +1779,7 @@ export class UI {
           'New homestead',
         ),
       ),
-      h('p', { class: 'muted', style: 'margin-top:18px' }, 'Homestead is an early prototype (milestone M6). Placeholder art. Developer console: window.homestead'),
+      h('p', { class: 'muted', style: 'margin-top:18px' }, 'Homestead is an early prototype (milestone M7). Placeholder art. Developer console: window.homestead'),
     );
   }
 
@@ -2224,6 +2274,8 @@ export class UI {
     this.deep.onEvents(events);
     this.traits.onEvents(events);
     this.qol.onEvents(events);
+    this.topside.onEvents(events);
+    this.factions.onEvents(events);
     for (const ev of events) {
       if (ev.type === 'expeditionStarted') this.explorerOf.set(ev.expeditionId, ev.residentId);
       switch (ev.type) {
@@ -2263,7 +2315,8 @@ export class UI {
           this.toast(`${this.name(ev.residentId)} is all grown up and ready to work.`, 'good', { fold: true, low: true });
           break;
         case 'residentArrived':
-          if (ev.source !== 'crate') this.toast(ev.source === 'radio' ? `📻 ${this.name(ev.residentId)} heard your broadcast and is at the door.` : `A stranger, ${this.name(ev.residentId)}, is knocking at the door.`, undefined, { fold: 'arrival' });
+          if (ev.source === 'recruit') this.toast(`👤 ${this.name(ev.residentId)}, your new recruit, is at the door. Tap it to let them in.`, 'gold');
+          else if (ev.source !== 'crate') this.toast(ev.source === 'radio' ? `📻 ${this.name(ev.residentId)} heard your broadcast and is at the door.` : `A stranger, ${this.name(ev.residentId)}, is knocking at the door.`, undefined, { fold: 'arrival' });
           break;
         case 'crateEarned':
           this.toast(`📦 ${TIER_NAME[ev.tier]} earned (${ev.source})`, ev.tier === 'standard' ? 'good' : 'gold', { fold: `crate-${ev.tier}`, low: true });
@@ -2373,6 +2426,7 @@ export class UI {
     this.legacy.onStateReplaced();
     this.deep.onStateReplaced();
     this.qol.onStateReplaced();
+    this.factions.onStateReplaced();
     this.modalHost.replaceChildren();
     this.exploreDraft = null;
     this.explorerOf.clear();

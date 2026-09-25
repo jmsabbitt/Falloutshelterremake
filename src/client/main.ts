@@ -30,6 +30,7 @@ async function boot(): Promise<void> {
     onResidentTap: (res) => ui?.onResidentTap(res),
     onBuildAt: (floor, x) => ui?.onBuildAt(floor, x),
     onExplorerTap: () => ui?.openPanel('explore'),
+    onCaravanTap: () => ui?.openFactions('caravans'),
   });
   const questView = new QuestView(app, game, {
     onRoomTap: (id) => ui?.quests.screen.onRoomTap(id),
