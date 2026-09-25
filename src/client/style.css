@@ -984,3 +984,104 @@ button.pulse { animation: ready 0.6s infinite alternate; }
 .item-icon.large { width: 72px; height: 56px; }
 .salvage-cell .item-icon { width: 40px; height: 34px; margin: 0; align-self: center; }
 .salvage-cell.none .item-icon { opacity: 0.35; }
+
+/* ---------- M7: topside, weather, factions, trade and caravans ---------- */
+:root { --influence: #c9a7ff; --hostile: #e4572e; --wary: #f2a541; --neutral: #b9b19c; --friendly: #8fc93a; --allied: #f2c14e; }
+.weather-chip { gap: 3px; }
+.weather-chip .weather-fx { color: var(--ink-dim); }
+.weather-chip.w-dust { border-color: #a0804f; }
+.weather-chip.w-taintstorm { border-color: #7fbf3a; }
+.weather-chip.w-taintstorm b { color: #b7f36a; }
+.weather-chip.w-heatwave { border-color: #f2a541; }
+.weather-chip.alarm { background: #25310f; animation: pulse 0.9s infinite alternate; }
+.influence-chip b, .influence-num b, .ware.inf { color: var(--influence); }
+@media (max-width: 640px) { .weather-chip .weather-name { display: none; } }
+
+.raid-banner {
+  position: absolute; left: 50%; transform: translateX(-50%);
+  bottom: calc(128px + env(safe-area-inset-bottom, 0));
+  background: #3a140c; border: 2px solid var(--danger); color: #ffd9cc;
+  padding: 7px 14px; border-radius: 10px; font-weight: 700; font-size: 13px;
+  text-align: center; max-width: calc(100vw - 24px); width: max-content;
+  pointer-events: none; z-index: 5; animation: pulse 0.9s infinite alternate;
+}
+
+.influence-line { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin: 0 0 8px; padding: 6px 8px; background: #152124; border-radius: 8px; }
+.influence-num { font-size: 14px; }
+.influence-num b { font-family: var(--display); font-weight: 400; font-size: 16px; }
+.faction-tabs button.active { outline: 2px solid var(--accent); }
+.faction-card { cursor: default; }
+.faction-card.unmet { opacity: 0.82; }
+.faction-name { font-size: 14px; }
+.motto { font-style: italic; font-size: 12.5px; color: #e9d9b6; margin: 3px 0; }
+.tier-pill { font-size: 11px; font-weight: 700; padding: 1px 8px; border-radius: 10px; background: #0b1113; border: 1px solid currentColor; white-space: nowrap; margin-left: 6px; }
+.tier-pill.locked { color: var(--ink-dim); }
+.tier-hostile { color: var(--hostile); } .tier-wary { color: var(--wary); } .tier-neutral { color: var(--neutral); }
+.tier-friendly { color: var(--friendly); } .tier-allied { color: var(--allied); }
+.rep-wrap { margin-top: 6px; }
+.rep-bar { position: relative; height: 10px; border-radius: 5px; margin-top: 2px;
+  background: linear-gradient(to right, rgba(228,87,46,.55) 0 25%, rgba(242,165,65,.45) 25% 45%, rgba(185,177,156,.35) 45% 62.5%, rgba(143,201,58,.45) 62.5% 80%, rgba(242,193,78,.6) 80% 100%); }
+.rep-tick { position: absolute; top: -2px; bottom: -2px; width: 1px; background: #0b1113; }
+.rep-zero { position: absolute; top: 0; bottom: 0; width: 1px; background: rgba(255,255,255,.35); }
+.rep-mark { position: absolute; top: -4px; width: 6px; height: 18px; margin-left: -3px; border-radius: 3px; background: var(--ink); box-shadow: 0 0 0 2px #0b1113; }
+.lock-line { margin-top: 6px; color: #e9c9a0; }
+.raid-effect { margin-top: 4px; }
+
+.trade-group { display: flex; align-items: center; gap: 4px; }
+.refresh-line { margin: 0 0 4px; }
+.offer { cursor: default; }
+.offer.sold { opacity: 0.55; }
+.offer-sides { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 5px; }
+.offer .side { background: #0f1a1c; border-radius: 6px; padding: 5px 6px; display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.offer .side.get { background: #142318; }
+.side-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-dim); }
+.ware { font-size: 12.5px; display: flex; align-items: center; gap: 2px; line-height: 1.25; overflow-wrap: anywhere; }
+.ware .item-icon.small { width: 28px; height: 20px; margin-right: 3px; flex: none; }
+.ware.lack { color: #ff9c80; }
+.ware.r-rare { color: var(--rare); } .ware.r-legendary { color: var(--legendary); }
+.ware.rep { color: var(--friendly); }
+.ware .crate-icon { margin-right: 4px; flex: none; }
+.recruit-card { display: flex; gap: 6px; align-items: center; font-size: 12.5px; }
+.recruit-face { width: 30px; height: 30px; flex: none; display: grid; place-items: center; border-radius: 50%; background: #26383b; border: 2px solid var(--rare); font-size: 16px; }
+.recruit-card.r-legendary .recruit-face { border-color: var(--legendary); box-shadow: 0 0 6px rgba(242,193,78,.6); }
+@media (max-width: 400px) { .offer-sides { grid-template-columns: 1fr; } }
+
+.caravan-card.returned { border-left: 4px solid var(--ok); }
+.caravan-card.returning { border-left: 4px solid var(--accent); }
+.caravan-card.travelling { border-left: 4px solid var(--teal); }
+.caravan-card { cursor: default; }
+.caravan-modal { width: min(480px, calc(100vw - 20px)); padding: 14px; }
+.caravan-modal h3.group { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+.caravan-modal .fill-btn { margin-left: auto; min-height: 28px; font-size: 12px; text-transform: none; letter-spacing: 0; }
+.caravan-people { max-height: 26vh; }
+.salvage-pick { max-height: 22vh; }
+.caravan-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 3px; margin-top: 4px; }
+.caravan-stats span { font-size: 11px; text-align: center; background: #0b1113; border-radius: 4px; padding: 2px 0; }
+.caravan-stats span.trade { color: #f6d98a; }
+.caravan-stats span.guard { color: #f4b6a3; }
+.goods-label { display: flex; align-items: center; flex-wrap: wrap; min-width: 0; }
+.goods-label .item-icon.small { width: 26px; height: 20px; margin-right: 2px; }
+.carry-bar { margin: 0 0 4px; }
+.estimate { margin-top: 10px; padding: 8px; border-radius: 8px; background: #152124; border: 1px solid #33484a; }
+.estimate .loot-line, .caravan-loot { display: flex; flex-wrap: wrap; gap: 4px; margin: 5px 0; }
+.caravan-loot .item-icon.small { width: 26px; height: 18px; margin-right: 2px; }
+.caravan-log { max-height: 30vh; overflow: auto; }
+.route-pick { padding: 7px 8px; }
+
+.weather-row { background: #152124; border-radius: 6px; padding: 5px 8px; }
+.weather-row.w-taintstorm { background: #1e2a10; }
+.weather-row.w-dust { background: #2a2216; }
+.weather-row.w-heatwave { background: #2e2412; }
+.weather-modal.w-taintstorm h2 { color: #b7f36a; }
+.defense-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; margin: 4px 0; }
+.defense-grid span { display: flex; flex-direction: column; align-items: center; font-size: 11.5px; background: #0b1113; border-radius: 6px; padding: 5px 2px; text-align: center; color: var(--ink-dim); }
+.defense-grid b { font-size: 16px; color: var(--ok); font-variant-numeric: tabular-nums; }
+.topside-head { display: flex; align-items: baseline; gap: 4px; flex-wrap: wrap; }
+.toolbar .factions-btn { color: var(--influence); }
+.toolbar .factions-btn.active { color: var(--ink); }
+.caravan-log { margin-top: 8px; border-top: 1px dashed #45625f; padding-top: 6px; max-height: 30vh; overflow: auto; }
+.caravan-log p { margin: 0 0 6px; font-size: 13px; line-height: 1.4; }
+.caravan-modal .modal-foot { position: sticky; bottom: -14px; margin: 6px -14px -14px; padding: 0 14px 14px; background: #141e21; border-top: 1px solid #33484a; z-index: 1; }
+.topside-head { margin-top: 14px; }
+.topside-head h3.group { margin: 0 0 2px; color: var(--accent); }
+.topside-head .small { margin-bottom: 6px; }
