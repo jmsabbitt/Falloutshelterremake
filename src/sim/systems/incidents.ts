@@ -14,14 +14,35 @@
 //   is fixed with Knack and spreads sideways; Deepcrawlers come from dirt
 //   edges like Burrowers. Deep Bracing (research) makes all of them rarer and
 //   weaker; see deep.json -> tuning.incidents.
+// - M9 creatures (GDD §7.1):
+//   - Electrical surges start in a power room and spread only into powered
+//     neighbours, draining power while they burn. Any resident in the room
+//     helps ground it (a flat amount each, like fire).
+//   - The Hollowed are Glare-sick drifters: part of their damage is taint, and
+//     whoever turns them back takes a last dose of it (residue). Never lethal
+//     by taint alone: taint stops at max HP - 1, as with water shortages.
+//   - Glassbacks drain power while alive and jump to a neighbouring room every
+//     jumpSeconds whether or not anyone is fighting them, keeping their HP.
+//     After maxJumps they burrow back out.
+//   - Maulers never come off the incident timer. The Mauler meter
+//     (state.maulerMeter) rises with noise (door openings) and wealth
+//     (population, scrip, staffed radios) and falls slowly; defense research
+//     and staffed Watchtowers cut the rise. When it fills, a Mauler is
+//     spotted (a warning, longer with Watchtowers), then batters the door and
+//     walks room to room like raiders, eating food where nobody fights it.
+//   Offline, none of them do harm: surges ground themselves, Glassbacks and the
+//   Hollowed wander off, and a Mauler leaves (offlineSettleSeconds, counted
+//   while away). The meter keeps rising offline but stops short of full.
 
 import type { Content } from '../content';
 import { addScrip, population } from '../economy';
 import { connectedRoomIds, floorOccupancy, roomCells, roomDef } from '../grid';
 import { bonus, incidentRate } from '../bonuses';
-import { bump, combatDamage, effectiveStat, fleesIncidents, grantXp, livingResidents } from '../residents';
+import { bump, combatDamage, effectiveMaxHp, effectiveStat, fleesIncidents, grantXp, livingResidents, workersInRoom } from '../residents';
 import { chance, nextFloat, nextInt, pick } from '../rng';
-import type { GameState, Incident, IncidentType, Resident, Room, StatKey } from '../types';
+import type { GameEvent, GameState, Incident, IncidentType, Resident, Room, StatKey } from '../types';
+import { grantItem } from './items';
+import { ruleFlag, rulesetMods } from './rulesets';
 import { deepIncidentChance, deepIncidentScale, isDeepFloor, stratumOf } from './deep';
 import { traitDamageTakenMult } from './traits';
 import { raidRateMult } from './factions';
@@ -59,6 +80,67 @@ export interface IncidentDef {
   sideways?: boolean;
   /** M6: overrides incidents.spreadDelaySeconds. */
   spreadDelaySeconds?: number;
+  /** M9: only starts in power-producing rooms (surges). */
+  startsInPower?: boolean;
+  /** M9: only spreads into powered rooms. */
+  spreadsPowered?: boolean;
+  /** M9: share of the damage dealt as taint instead of HP (the Hollowed). */
+  taintShare?: number;
+  /** M9: taint every defender takes when it is beaten. */
+  residueTaint?: number;
+  /** M9: moves to a neighbouring room this often, fought or not (Glassbacks). */
+  jumpSeconds?: number;
+  /** M9: after this many jumps it leaves. */
+  maxJumps?: number;
+  /** M9: offline, it goes away after this long (no harm, no reward). */
+  offlineSettleSeconds?: number;
+  /** M9: never picked by the incident timer (Maulers come from the meter). */
+  meterOnly?: boolean;
+  /** M9: food eaten per second where nobody fights it (Maulers). */
+  eatFoodPerSec?: number;
+  /** M9: seconds of warning before it reaches the door, before Watchtowers. */
+  warnSeconds?: number;
+  /** M9: item it may drop when beaten. */
+  itemDrop?: { id: string; chance: number };
+}
+
+/** M9 creature ids. Cast until the IncidentType union gains them (see the stream C report). */
+export const SURGE = 'surge' as IncidentType;
+export const HOLLOWED = 'hollowed' as IncidentType;
+export const GLASSBACKS = 'glassbacks' as IncidentType;
+export const MAULERS = 'maulers' as IncidentType;
+
+/** M9 events not yet in GameEvent (see the stream C report). */
+export type CreatureEvent =
+  | { type: 'maulerStirring'; meter: number }
+  | { type: 'incidentMoved'; incidentId: number; roomId: number; incident: IncidentType }
+  | { type: 'incidentEscaped'; incidentId: number; roomId: number; incident: IncidentType };
+
+function emit(state: GameState, ev: CreatureEvent): void {
+  state.events.push(ev as unknown as GameEvent);
+}
+
+export interface MaulerTuning {
+  perResidentPerHour: number;
+  perThousandScripPerHour: number;
+  scripCounted: number;
+  perRadioPerHour: number;
+  perDoorOpening: number;
+  doorStats: string[];
+  decayPerHour: number;
+  researchCut: number;
+  doorHpCut: number;
+  towerCut: number;
+  maxTowerCut: number;
+  minMult: number;
+  offlineCap: number;
+  stirringAt: number;
+  escapedResetTo: number;
+  threatMult: number;
+}
+
+export function maulerTuning(content: Content): MaulerTuning {
+  return (content.balance.incidents as unknown as { mauler: MaulerTuning }).mauler;
 }
 
 export function incidentDef(content: Content, type: IncidentType): IncidentDef {
@@ -85,15 +167,25 @@ export function defenders(state: GameState, room: Room): Resident[] {
  * isn't blocked for a whole absence.
  */
 export function settleIncidentsOffline(state: GameState, content: Content, dt: number): void {
+  tickMaulerMeter(state, content, dt, true);
   for (const inc of [...state.incidents]) {
     const def = incidentDef(content, inc.type);
-    if (def.settleSeconds === undefined) continue;
+    // M9 creatures leave on their own while nobody is watching.
+    const settle = def.settleSeconds ?? def.offlineSettleSeconds;
+    if (settle === undefined) continue;
     inc.emptyFor += dt;
-    if (inc.emptyFor < def.settleSeconds) continue;
+    if (inc.emptyFor < settle) continue;
     state.incidents = state.incidents.filter((i) => i !== inc);
     bump(state, 'incidentsSettled');
+    if (inc.type === MAULERS) maulerLeft(state, content);
     state.events.push({ type: 'incidentResolved', incidentId: inc.id, roomId: inc.roomId, incident: inc.type, loot: 0 });
   }
+}
+
+/** A Mauler that got away: the meter doesn't start from empty. */
+function maulerLeft(state: GameState, content: Content): void {
+  bump(state, 'maulersEscaped');
+  state.maulerMeter = Math.max(state.maulerMeter, maulerTuning(content).escapedResetTo);
 }
 
 /**
@@ -102,8 +194,12 @@ export function settleIncidentsOffline(state: GameState, content: Content, dt: n
  * old uniform pick is kept, so the rng sequence doesn't change.
  */
 function pickIncidentType<T extends IncidentType>(state: GameState, content: Content, options: T[]): T {
-  if (!options.includes('rustmen' as T)) return pick(state.rng, options);
-  const weights = options.map((t) => (t === 'rustmen' ? raidRateMult(state, content) : 1));
+  // M9: under a Glass Sky the Hollowed turn up twice as often.
+  const glassSky = options.includes(HOLLOWED as T) && ruleFlag(state, content, 'glassSky');
+  if (!options.includes('rustmen' as T) && !glassSky) return pick(state.rng, options);
+  const weights = options.map((t) =>
+    t === 'rustmen' ? raidRateMult(state, content) * rulesetMods(state, content).raidWeight : t === HOLLOWED && glassSky ? 2 : 1,
+  );
   let x = nextFloat(state.rng) * weights.reduce((a, b) => a + b, 0);
   for (let i = 0; i < options.length; i++) {
     x -= weights[i] as number;
@@ -169,7 +265,7 @@ export function startRaid(state: GameState, content: Content): Incident | null {
   if (!door) return null;
   const def = incidentDef(content, 'rustmen');
   const scale = 1 + (def.hpPerAvgLevel ?? 0) * (averageLevel(state) - 1);
-  const doorHp = (roomDef(content, door).doorHp?.[door.level - 1] ?? 0) * (1 + bonus(state, content, 'doorHp'));
+  const doorHp = doorStrength(state, content, door);
   const hp = (def.hp ?? 90) * scale;
   const inc: Incident = {
     id: state.nextId++,
@@ -194,6 +290,128 @@ export function startRaid(state: GameState, content: Content): Incident | null {
   state.incidentTimer = 0;
   state.events.push({ type: 'incidentStarted', incidentId: inc.id, roomId: door.id, incident: 'rustmen' });
   return inc;
+}
+
+/** Door HP against anything trying to get in: level, research, rulesets. */
+function doorStrength(state: GameState, content: Content, door: Room): number {
+  return (roomDef(content, door).doorHp?.[door.level - 1] ?? 0) * (1 + bonus(state, content, 'doorHp')) * rulesetMods(state, content).doorHp;
+}
+
+/**
+ * A Mauler is spotted heading for the door (M9). It is telegraphed: the
+ * warning always runs, and Watchtowers lengthen it. The meter empties.
+ */
+export function startMauler(state: GameState, content: Content): Incident | null {
+  const door = state.rooms.find((r) => roomDef(content, r).category === 'door');
+  if (!door) return null;
+  const def = incidentDef(content, MAULERS);
+  const scale = 1 + (def.hpPerAvgLevel ?? 0) * (averageLevel(state) - 1);
+  const hp = (def.hp ?? 900) * scale;
+  const inc: Incident = {
+    id: state.nextId++,
+    type: MAULERS,
+    roomId: door.id,
+    hp,
+    maxHp: hp,
+    dps: (def.dps ?? 9) * scale,
+    visited: [door.id],
+    emptyFor: 0,
+    roomTime: 0,
+    doorHp: doorStrength(state, content, door),
+    stolen: 0,
+  };
+  const warn = (def.warnSeconds ?? 0) + raidDefense(state, content).warnSeconds;
+  if (warn > 0) {
+    inc.warning = warn;
+    inc.warningTotal = warn;
+  }
+  state.incidents.push(inc);
+  state.incidentTimer = 0;
+  state.maulerMeter = 0;
+  bump(state, 'maulers');
+  state.events.push({ type: 'incidentStarted', incidentId: inc.id, roomId: door.id, incident: MAULERS });
+  return inc;
+}
+
+/** Summed door-noise counters (every expedition, quest, caravan and arrival through the door). */
+function doorNoise(state: GameState, t: MaulerTuning): number {
+  return t.doorStats.reduce((s, k) => s + (state.stats[k] ?? 0), 0);
+}
+
+/** Staffed radio rooms: broadcasting is noise too. */
+function staffedRadios(state: GameState, content: Content): number {
+  return state.rooms.filter((r) => roomDef(content, r).category === 'radio' && workersInRoom(state, r.id).length > 0).length;
+}
+
+/** How fast the meter rises, relative to an undefended standard site (research, Watchtowers, site and rules). */
+export function maulerRateMult(state: GameState, content: Content): number {
+  const t = maulerTuning(content);
+  const research = t.researchCut * bonus(state, content, 'incidentDefense') + t.doorHpCut * bonus(state, content, 'doorHp');
+  const towers = Math.min(t.maxTowerCut, t.towerCut * raidDefense(state, content).towers);
+  return Math.max(t.minMult, (1 - research) * (1 - towers)) * incidentRate(state, content);
+}
+
+/** Steady rise per hour from wealth (before door noise and decay), after maulerRateMult. */
+export function maulerWealthPerHour(state: GameState, content: Content): number {
+  const t = maulerTuning(content);
+  const wealth =
+    population(state) * t.perResidentPerHour +
+    (Math.min(Math.max(0, state.scrip), t.scripCounted) / 1000) * t.perThousandScripPerHour +
+    staffedRadios(state, content) * t.perRadioPerHour;
+  return wealth * maulerRateMult(state, content);
+}
+
+/**
+ * The Mauler meter. Every step, online and offline. Below the Mauler's
+ * population threshold it only decays. While a Mauler is inside it holds.
+ * Offline it may rise, but never past offlineCap: nothing arrives while away.
+ * Linear in dt, so 1 s and 60 s steps agree.
+ */
+export function tickMaulerMeter(state: GameState, content: Content, dt: number, offline: boolean): void {
+  const t = maulerTuning(content);
+  if (!t) return;
+  const noise = doorNoise(state, t);
+  const seen = state.loot.noiseSeen;
+  // Replaced rather than mutated: reminders.ts replays this on a shallow copy of the state.
+  if (seen !== noise) state.loot = { ...state.loot, noiseSeen: noise };
+  const opened = seen === undefined || noise < seen ? 0 : noise - seen;
+  const before = state.maulerMeter ?? 0;
+  if (state.incidents.some((i) => i.type === MAULERS)) return;
+  const decay = (t.decayPerHour * dt) / 3600;
+  if (population(state) < incidentDef(content, MAULERS).natural) {
+    state.maulerMeter = Math.max(0, before - decay);
+    return;
+  }
+  const rise = (maulerWealthPerHour(state, content) * dt) / 3600 + opened * t.perDoorOpening * maulerRateMult(state, content);
+  const cap = offline ? Math.max(before, t.offlineCap) : 1;
+  const next = Math.max(0, Math.min(cap, before + rise - decay));
+  state.maulerMeter = next;
+  if (!offline && before < t.stirringAt && next >= t.stirringAt) emit(state, { type: 'maulerStirring', meter: next });
+}
+
+export interface MaulerStatus {
+  meter: number;
+  /** Net change per hour from wealth and decay (door openings add on top). */
+  perHour: number;
+  /** Past the stirring mark: something big is paying attention. */
+  stirring: boolean;
+  /** A Mauler is on its way in or inside. */
+  active: boolean;
+  /** The homestead is too small to interest one (the meter only falls). */
+  dormant: boolean;
+}
+
+export function maulerStatus(state: GameState, content: Content): MaulerStatus {
+  const t = maulerTuning(content);
+  const dormant = population(state) < incidentDef(content, MAULERS).natural;
+  const meter = state.maulerMeter ?? 0;
+  return {
+    meter,
+    perHour: (dormant ? 0 : maulerWealthPerHour(state, content)) - t.decayPerHour,
+    stirring: meter >= t.stirringAt,
+    active: state.incidents.some((i) => i.type === MAULERS),
+    dormant,
+  };
 }
 
 /** Incident started by a failed rush: an internal one suited to the population and room. */
@@ -249,18 +467,28 @@ function maybeDeepIncident(state: GameState, content: Content, rooms: Room[]): b
   return true;
 }
 
-/** Background incident timer (online only). */
+/** Power-producing rooms, where surges start. */
+function powerRooms(state: GameState, content: Content, rooms: Room[]): Room[] {
+  return rooms.filter((r) => roomDef(content, r).produces?.resource === 'power');
+}
+
+/** Background incident timer (online only). Also runs the Mauler meter. */
 export function tickIncidentTimer(state: GameState, content: Content, dt: number): void {
+  tickMaulerMeter(state, content, dt, false);
   if (state.incidents.length > 0) return;
+  // A full meter brings a Mauler as soon as the homestead is otherwise quiet.
+  if ((state.maulerMeter ?? 0) >= 1 && population(state) >= incidentDef(content, MAULERS).natural && startMauler(state, content)) return;
   state.incidentTimer += dt;
   if (state.incidentTimer < state.nextIncidentAt) return;
   const pop = population(state);
   const rooms = incidentRooms(state, content);
   const dirtRooms = rooms.filter((r) => touchesDirt(state, content, r));
-  const options = (['fire', 'skitters', 'burrowers', 'rustmen'] as const).filter((t) => {
+  const power = powerRooms(state, content, rooms);
+  const options = (['fire', 'skitters', 'burrowers', 'rustmen', SURGE, HOLLOWED, GLASSBACKS] as IncidentType[]).filter((t) => {
     const def = incidentDef(content, t);
-    if (pop < def.natural) return false;
+    if (!def || def.meterOnly || pop < def.natural) return false;
     if (def.needsDirt) return dirtRooms.length > 0;
+    if (def.startsInPower) return power.length > 0;
     return def.external ? true : rooms.length > 0;
   });
   scheduleIncident(state, content);
@@ -268,7 +496,10 @@ export function tickIncidentTimer(state: GameState, content: Content, dt: number
   if (!options.length) return;
   const type = pickIncidentType(state, content, options);
   if (type === 'rustmen') startRaid(state, content);
-  else startIncident(state, content, type, pick(state.rng, incidentDef(content, type).needsDirt ? dirtRooms : rooms));
+  else {
+    const def = incidentDef(content, type);
+    startIncident(state, content, type, pick(state.rng, def.needsDirt ? dirtRooms : def.startsInPower ? power : rooms));
+  }
 }
 
 /** Neighbouring rooms an internal incident can spread to (left, right, above, below). */
@@ -278,6 +509,8 @@ function spreadTargets(state: GameState, content: Content, room: Room, visited: 
     const cat = roomDef(content, r).category;
     // Deep threats stay in the Deep.
     if (def.deepOnly && !isDeepFloor(content, r.floor)) return false;
+    // M9: surges only run along powered rooms.
+    if (def.spreadsPowered && !r.powered) return false;
     return cat !== 'door' && cat !== 'elevator' && !visited.includes(r.id);
   };
   const sameFloor = state.rooms.filter((r) => r.floor === room.floor && r.id !== room.id);
@@ -321,9 +554,51 @@ function resolve(state: GameState, content: Content, inc: Incident, room: Room):
     loot = Math.round(inc.stolen + (def.lootBase ?? 0) + (def.lootPerAvgLevel ?? 0) * averageLevel(state));
     addScrip(state, content, loot);
   }
+  // M9: the Hollowed leave a last dose of Glare on whoever turned them back.
+  if (def.residueTaint) for (const r of defenders(state, room)) addTaint(r, def.residueTaint);
+  if (def.itemDrop && content.items[def.itemDrop.id] && chance(state.rng, def.itemDrop.chance)) {
+    grantItem(state, content, def.itemDrop.id);
+    bump(state, `incidentDrops.${inc.type}`);
+  }
   bump(state, 'incidentsResolved');
   bump(state, `incidentsResolved.${inc.type}`);
   state.events.push({ type: 'incidentResolved', incidentId: inc.id, roomId: room.id, incident: inc.type, loot });
+}
+
+/** Taint from the Hollowed: never past max HP - 1 (taint alone doesn't kill here). */
+function addTaint(r: Resident, amount: number): void {
+  r.taint = Math.min(r.maxHp - 1, r.taint + amount);
+  r.hp = Math.min(r.hp, effectiveMaxHp(r));
+}
+
+/** Leaves the homestead without being beaten (Glassbacks out of jumps, a Mauler out of rooms). */
+function escape(state: GameState, content: Content, inc: Incident, room: Room): void {
+  state.incidents = state.incidents.filter((i) => i !== inc);
+  if (inc.type === 'rustmen') bump(state, 'raidsEscaped');
+  else if (inc.type === MAULERS) maulerLeft(state, content);
+  else bump(state, `escaped.${inc.type}`);
+  if (inc.type !== 'rustmen') emit(state, { type: 'incidentEscaped', incidentId: inc.id, roomId: room.id, incident: inc.type });
+  state.events.push({ type: 'incidentResolved', incidentId: inc.id, roomId: room.id, incident: inc.type, loot: 0 });
+}
+
+/** Glassbacks: hop to a random neighbouring room (not straight back if there's a choice). */
+function jump(state: GameState, content: Content, inc: Incident, room: Room, def: IncidentDef): void {
+  const jumps = inc.visited.length - 1;
+  const free = (r: Room) => !state.incidents.some((i) => i !== inc && i.roomId === r.id);
+  const around = spreadTargets(state, content, room, [room.id], def).filter(free);
+  const prev = inc.visited[inc.visited.length - 2];
+  const fresh = around.filter((r) => r.id !== prev);
+  const choices = fresh.length ? fresh : around;
+  if (jumps >= (def.maxJumps ?? 6) || !choices.length) {
+    escape(state, content, inc, room);
+    return;
+  }
+  const next = pick(state.rng, choices);
+  inc.roomId = next.id;
+  inc.visited.push(next.id);
+  inc.roomTime = 0;
+  inc.emptyFor = 0;
+  emit(state, { type: 'incidentMoved', incidentId: inc.id, roomId: next.id, incident: inc.type });
 }
 
 export function tickIncidents(state: GameState, content: Content, dt: number): void {
@@ -369,8 +644,12 @@ export function tickIncidents(state: GameState, content: Content, dt: number): v
       inc.hp -= damage * dt;
       // Defense research (drills, armour plating) takes the edge off.
       const perResident = (inc.dps * dt * Math.max(0.2, 1 - bonus(state, content, 'incidentDefense')) * (tower?.damageMult ?? 1)) / crew.length;
+      const taintShare = def.taintShare ?? 0;
       for (const r of crew) {
-        r.hp -= perResident * traitDamageTakenMult(content, r);
+        const dealt = perResident * traitDamageTakenMult(content, r);
+        // The Hollowed: part of it is Glare-sickness rather than wounds.
+        if (taintShare > 0) addTaint(r, dealt * taintShare);
+        r.hp -= dealt * (1 - taintShare);
         if (r.hp <= 0) {
           r.hp = 0;
           r.dead = true;
@@ -388,11 +667,18 @@ export function tickIncidents(state: GameState, content: Content, dt: number): v
       inc.emptyFor += dt;
     }
 
+    if (def.jumpSeconds !== undefined) {
+      if (inc.roomTime >= def.jumpSeconds) jump(state, content, inc, room, def);
+      continue;
+    }
+
     if (def.external) {
       if (crew.length === 0) {
         const take = Math.min(state.scrip, (def.stealScripPerSec ?? 0) * dt);
         state.scrip -= take;
         inc.stolen += take;
+        // A Mauler left alone eats the pantry.
+        if (def.eatFoodPerSec) state.resources.food = Math.max(0, state.resources.food - def.eatFoodPerSec * dt);
       }
       const roomSeconds = def.roomSeconds ?? 20;
       const stillFighting = defenders(state, room).length > 0;
@@ -400,9 +686,7 @@ export function tickIncidents(state: GameState, content: Content, dt: number): v
         const next = nextRaidRoom(state, content, inc);
         if (!next) {
           // They got away with what they stole.
-          state.incidents = state.incidents.filter((i) => i !== inc);
-          bump(state, 'raidsEscaped');
-          state.events.push({ type: 'incidentResolved', incidentId: inc.id, roomId: room.id, incident: inc.type, loot: 0 });
+          escape(state, content, inc, room);
           continue;
         }
         inc.roomId = next.id;

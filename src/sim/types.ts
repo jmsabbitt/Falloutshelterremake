@@ -105,7 +105,14 @@ export interface TreasureMap {
 export interface LootState {
   /** Boss enemy ids already defeated once (their first-kill drop is paid). Carried across foundings. */
   bossKills: string[];
+  /** Maps brought home in this homestead. `found` = its cache has been dug up. */
   maps: TreasureMap[];
+  /** Boss kills on quests that haven't finished yet: committed to bossKills on success, dropped otherwise. */
+  pendingKills?: { questId: number; defId: string; enemyId: string }[];
+  /** Maps and dug-up caches travelling home with an explorer; delivered by collectExpedition. */
+  carried?: { expeditionId: number; kind: 'map' | 'cache'; cacheId: string; regionId: string }[];
+  /** Mauler meter bookkeeping: the summed door-noise counters last seen (incidents.ts). */
+  noiseSeen?: number;
   [key: string]: unknown;
 }
 

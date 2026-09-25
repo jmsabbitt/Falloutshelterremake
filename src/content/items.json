@@ -119,6 +119,86 @@
       "min": 20,
       "max": 25,
       "craftStat": "wits"
+    },
+    {
+      "id": "dust_devil",
+      "name": "Dust Devil",
+      "rarity": "rare",
+      "min": 9,
+      "max": 12,
+      "craftStat": "sight",
+      "lootOnly": true,
+      "flavor": "A lever-action carbine the Dustbowl drovers keep oiled with the last of the cooking fat. Only found in the Dustbowl."
+    },
+    {
+      "id": "glasscutter",
+      "name": "Glasscutter",
+      "rarity": "legendary",
+      "min": 17,
+      "max": 22,
+      "craftStat": "wits",
+      "lootOnly": true,
+      "flavor": "A beam rifle ground from a single slab of Glass Flats crystal. It hums in a key HALCY describes as 'non-standard'. Only found in the Glass Flats."
+    },
+    {
+      "id": "salvage_harpoon",
+      "name": "Salvage Harpoon",
+      "rarity": "legendary",
+      "min": 18,
+      "max": 23,
+      "craftStat": "brawn",
+      "lootOnly": true,
+      "flavor": "Stillwater divers fire these at scrap, eels and disagreements. The line is rated for all three. Only found in the Stillwater."
+    },
+    {
+      "id": "tin_knuckles",
+      "name": "Tin Knuckles",
+      "rarity": "rare",
+      "min": 8,
+      "max": 12,
+      "craftStat": "brawn",
+      "lootOnly": true,
+      "flavor": "Big Tin's own knuckle-dusters, riveted from a hubcap. Still warm. First taken from Big Tin, Clan Champion."
+    },
+    {
+      "id": "mauler_tusk",
+      "name": "Mauler Tusk",
+      "rarity": "legendary",
+      "min": 21,
+      "max": 26,
+      "craftStat": "brawn",
+      "lootOnly": true,
+      "flavor": "A tusk the length of a forearm, with a grip wrapped in someone's old work shirt. It is exactly as heavy as it looks. Taken from a Mauler."
+    },
+    {
+      "id": "wick_gun",
+      "name": "Lamplighter's Wick-Gun",
+      "rarity": "legendary",
+      "min": 19,
+      "max": 24,
+      "craftStat": "knack",
+      "lootOnly": true,
+      "flavor": "A flare pistol the Lamplighters converted to fire lit wicks. Technically a candle. Legally a candle. First taken from High Lamplighter Solenne."
+    },
+    {
+      "id": "custodial_baton",
+      "name": "Custodial Baton",
+      "rarity": "legendary",
+      "min": 20,
+      "max": 25,
+      "craftStat": "wits",
+      "lootOnly": true,
+      "flavor": "Issued to HALCY-9 Custodian Frames for 'gentle crowd guidance'. The dial goes from Gentle to Very Gentle. First taken from the Custodian Frame."
+    },
+    {
+      "id": "prospector_pick",
+      "name": "Prospector's Pick",
+      "rarity": "rare",
+      "min": 10,
+      "max": 13,
+      "craftStat": "brawn",
+      "lootOnly": true,
+      "flavor": "A pick with forty years of notches in the handle and a name scratched off. Dug up from a Dustbowl cache."
     }
   ],
   "outfits": [
@@ -310,6 +390,78 @@
         "fortune": 7
       },
       "craftStat": "fortune"
+    },
+    {
+      "id": "drover_poncho",
+      "name": "Drover's Poncho",
+      "rarity": "rare",
+      "bonus": {
+        "sight": 3,
+        "fortune": 3
+      },
+      "craftStat": "sight",
+      "lootOnly": true,
+      "flavor": "Oilcloth, brass buttons and a hood that has seen every kind of weather the Dustbowl sells. Only found in the Dustbowl."
+    },
+    {
+      "id": "mirrorweave_cloak",
+      "name": "Mirrorweave Cloak",
+      "rarity": "rare",
+      "bonus": {
+        "wits": 4,
+        "grit": 2
+      },
+      "craftStat": "wits",
+      "lootOnly": true,
+      "flavor": "Woven from crystal thread off the Glass Flats. It reflects light, heat and, reportedly, criticism. Only found in the Glass Flats."
+    },
+    {
+      "id": "diving_bell_suit",
+      "name": "Diving Bell Suit",
+      "rarity": "rare",
+      "bonus": {
+        "grit": 4,
+        "knack": 2
+      },
+      "craftStat": "grit",
+      "lootOnly": true,
+      "flavor": "Canvas, copper and a helmet with a very small window. Smells of the Stillwater forever. Only found in the Stillwater."
+    },
+    {
+      "id": "broodsilk_coveralls",
+      "name": "Broodsilk Coveralls",
+      "rarity": "rare",
+      "bonus": {
+        "knack": 3,
+        "grit": 3
+      },
+      "craftStat": "knack",
+      "lootOnly": true,
+      "flavor": "Coveralls lined with Broodmother silk. Tougher than canvas and, once washed, nearly odourless. First taken from the Skitter Broodmother."
+    },
+    {
+      "id": "barons_greatcoat",
+      "name": "Baron's Greatcoat",
+      "rarity": "legendary",
+      "bonus": {
+        "brawn": 4,
+        "charm": 4
+      },
+      "craftStat": "charm",
+      "lootOnly": true,
+      "flavor": "Baron Oxide's greatcoat: sheet steel, red velvet and more medals than there were wars. First taken from Baron Oxide."
+    },
+    {
+      "id": "surveyor_duster",
+      "name": "Surveyor's Duster",
+      "rarity": "legendary",
+      "bonus": {
+        "sight": 4,
+        "wits": 4
+      },
+      "craftStat": "sight",
+      "lootOnly": true,
+      "flavor": "A pre-Glare Halcyon survey coat with forty-one pockets, each labelled. Thirty-nine are empty. Dug up from a Glass Flats cache."
     }
   ],
   "sellValue": {
