@@ -24,6 +24,7 @@ import { chance, nextInt, pick } from '../rng';
 import type { GameState, Incident, IncidentType, Resident, Room, StatKey } from '../types';
 import { deepIncidentChance, deepIncidentScale, isDeepFloor, stratumOf } from './deep';
 import { traitDamageTakenMult } from './traits';
+import { raidDefense } from './weather';
 
 export interface IncidentDef {
   name: string;
@@ -166,6 +167,9 @@ export function startRaid(state: GameState, content: Content): Incident | null {
     doorHp,
     stolen: 0,
   };
+  // Watchtowers (M7) spot raiders on the horizon.
+  const warn = raidDefense(state, content).warnSeconds;
+  if (warn > 0) inc.warning = warn;
   state.incidents.push(inc);
   state.incidentTimer = 0;
   state.events.push({ type: 'incidentStarted', incidentId: inc.id, roomId: door.id, incident: 'rustmen' });
@@ -312,9 +316,17 @@ export function tickIncidents(state: GameState, content: Content, dt: number): v
     }
     const def = incidentDef(content, inc.type);
 
+    // Spotted from a Watchtower: they are still crossing the flats.
+    if (inc.warning !== undefined && inc.warning > 0) {
+      inc.warning = Math.max(0, inc.warning - dt);
+      continue;
+    }
+    // Staffed Watchtowers (M7) take the edge off a raid.
+    const tower = def.external ? raidDefense(state, content) : null;
+
     // Raiders first have to get through the door.
     if (inc.doorHp > 0) {
-      inc.doorHp -= inc.dps * dt;
+      inc.doorHp -= inc.dps * dt * (tower?.doorDamageMult ?? 1);
       if (inc.doorHp <= 0) {
         inc.doorHp = 0;
         state.events.push({ type: 'doorBreached', incidentId: inc.id });
@@ -336,7 +348,7 @@ export function tickIncidents(state: GameState, content: Content, dt: number): v
             : crew.reduce((s, r) => s + combatDamage(content, r), 0);
       inc.hp -= damage * dt;
       // Defense research (drills, armour plating) takes the edge off.
-      const perResident = (inc.dps * dt * Math.max(0.2, 1 - bonus(state, content, 'incidentDefense'))) / crew.length;
+      const perResident = (inc.dps * dt * Math.max(0.2, 1 - bonus(state, content, 'incidentDefense')) * (tower?.damageMult ?? 1)) / crew.length;
       for (const r of crew) {
         r.hp -= perResident * traitDamageTakenMult(content, r);
         if (r.hp <= 0) {

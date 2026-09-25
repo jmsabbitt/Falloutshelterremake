@@ -32,7 +32,15 @@ export type ResearchEffect =
   /** Excavation speed, as a fraction. */
   | 'digSpeed'
   /** Exploration: taint taken, as a fraction reduction. */
-  | 'explorerTaint';
+  | 'explorerTaint'
+  /** M7 topside: fraction by which weather penalties on surface buildings shrink. */
+  | 'weatherproofing'
+  /** M7 topside: fraction of taint-storm Glare topside workers are spared. */
+  | 'stormShielding'
+  /** M7 topside: extra effective Signal Mast levels (faction contact range). */
+  | 'signalRange'
+  /** M7 topside: extra output for surface production buildings, as a fraction. */
+  | 'topsideOutput';
 
 export type BonusEffect = PerkEffect | ResearchEffect;
 

@@ -146,6 +146,9 @@ export {
   type TraitDef,
 } from './systems/traits';
 export { autoAssign, idleAdults } from './systems/assign';
+export { isTopside, weatherMult, raidDefense, stormShielding, signalRange, topsideContent } from './systems/weather';
+export { changeRep, repOf, factionDef, factionsContent } from './systems/factions';
+export { TOPSIDE_FLOOR } from './grid';
 export { threatRating, type ThreatRating, type ThreatFactor } from './systems/threat';
 export { knowsRecipe, fragmentsNeeded, salvageCount, SALVAGE_CAP } from './systems/inventory';
 export {

@@ -77,15 +77,16 @@ const EFFECTS = new Set([
   'explorerScrip', 'questSlots', 'contractOffers', 'questHeal', 'outpostOutput', 'crateLuck',
   'batchBank', 'productionPower', 'productionFood', 'productionWater', 'productionMedpatch', 'productionPurge',
   'incidentDefense', 'doorHp', 'medicine', 'autoAssign', 'autoMedic', 'researchSpeed', 'digSpeed', 'explorerTaint',
+  'weatherproofing', 'stormShielding', 'signalRange', 'topsideOutput',
 ]);
 
 describe('research content', () => {
-  it('has at least 30 nodes over 6 branches and tiers 1-4', () => {
+  it('has at least 30 nodes over 7 branches and tiers 1-4 (Topside 1-3)', () => {
     expect(tree.nodes.length).toBeGreaterThanOrEqual(30);
-    expect(tree.branches.map((b) => b.id).sort()).toEqual(['automation', 'deep', 'defense', 'expeditions', 'industry', 'medicine']);
+    expect(tree.branches.map((b) => b.id).sort()).toEqual(['automation', 'deep', 'defense', 'expeditions', 'industry', 'medicine', 'topside']);
     for (const b of tree.branches) {
       const tiers = new Set(tree.nodes.filter((n) => n.branch === b.id).map((n) => n.tier));
-      expect([...tiers].sort(), b.id).toEqual([1, 2, 3, 4]);
+      expect([...tiers].sort(), b.id).toEqual(b.id === 'topside' ? [1, 2, 3] : [1, 2, 3, 4]);
     }
   });
 

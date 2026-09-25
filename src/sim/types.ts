@@ -167,6 +167,8 @@ export interface Incident {
   doorHp: number;
   /** Raiders only: scrip stolen so far (dropped back if they are beaten). */
   stolen: number;
+  /** M7 raiders only: seconds until they reach the door (Watchtower warning). */
+  warning?: number;
 }
 
 export interface Item {
