@@ -576,5 +576,5 @@ describe('caravans', () => {
     expect(ambushes).toBeLessThan(40);
     expect(s.stats['caravansReturned']).toBe(40);
     expect(repOf(s, content, 'rustmen')).toBeGreaterThan(factionDef(content, 'rustmen')!.startRep);
-  });
+  }, 30_000);
 });

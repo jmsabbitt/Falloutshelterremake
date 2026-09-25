@@ -37,6 +37,8 @@ interface StepOptions {
   consume: boolean;
 }
 
+// Note: systems/reminders.ts replays the offline part of this order (power, production,
+// needs, incidents, time, crafting, research, mastery, weather). Keep them in step.
 function step(state: GameState, content: Content, dt: number, opts: StepOptions): void {
   const from = state.events.length;
   updatePower(state, content);

@@ -198,4 +198,11 @@ export {
   isAway,
   fleesIncidents,
 } from './residents';
-export { upcomingReminders, type Reminder, type ReminderKind } from './systems/reminders';
+export {
+  upcomingReminders,
+  DEFAULT_HORIZON_SECONDS,
+  DEFAULT_MAX_REMINDERS,
+  type Reminder,
+  type ReminderKind,
+  type ReminderOptions,
+} from './systems/reminders';
