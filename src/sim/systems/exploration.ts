@@ -86,6 +86,8 @@ export interface RegionDef {
   danger: number;
   enemies: EnemyDef[];
   locations: EventDef[];
+  /** Region-specific musings, mixed in with the general ones. */
+  musings?: string[];
   npcs: EventDef[];
   salvage: EventDef[];
 }
@@ -577,7 +579,9 @@ function doEncounter(state: GameState, content: Content, e: Expedition, r: Resid
 }
 
 function doMusing(state: GameState, content: Content, e: Expedition): void {
-  const musings = data(content).musings;
+  const local = regionDef(content, e.regionId)?.musings ?? [];
+  // Half the time, something only this region would make you think.
+  const musings = local.length && chance(state.rng, 0.5) ? local : data(content).musings;
   if (!musings.length) return;
   // Avoid repeating something from the last stretch of the journal.
   let text = pick(state.rng, musings);

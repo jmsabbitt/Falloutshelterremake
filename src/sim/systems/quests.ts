@@ -1132,7 +1132,8 @@ function bountyFor(state: GameState, content: Content, tpl: ContractTemplateDef)
 /** Offer a fresh set of contracts. */
 export function refreshContracts(state: GameState, content: Content): void {
   const t = tuning(content).contracts;
-  const templates = questContent(content).contracts;
+  // Faction-posted contracts only appear once that faction knows you exist.
+  const templates = questContent(content).contracts.filter((c) => !c.faction || state.factions[c.faction]?.met);
   state.contracts.offers = [];
   if (!templates.length) return;
   const offers = t.offers + bonus(state, content, 'contractOffers');

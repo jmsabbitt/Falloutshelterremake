@@ -363,11 +363,21 @@ describe('factions', () => {
     const s = newGame(content, { seed: 5, now: 0 });
     applyCommand(s, content, { type: 'admitAll' });
     const tpl = qc.contracts.find((c) => c.faction)!;
+    // Faction contracts only appear once the faction has been met.
+    s.factions[tpl.faction!] = { rep: 0, met: true };
     for (let i = 0; i < 50 && !s.contracts.offers.some((o) => o.templateId === tpl.id); i++) refreshContracts(s, content);
     const offer = s.contracts.offers.find((o) => o.templateId === tpl.id)!;
     expect(offer).toBeDefined();
     expect(offer.bounty.rep).toEqual({ [tpl.faction!]: tpl.rep });
     expect(offer.bounty.influence).toBe(tpl.influence);
+  });
+});
+
+describe('faction contracts', () => {
+  it('only appear once their faction has been met', () => {
+    const s = newGame(content, { seed: 6, now: 0 });
+    for (let i = 0; i < 30; i++) refreshContracts(s, content);
+    expect(s.contracts.offers.every((o) => !qc.contracts.find((c) => c.id === o.templateId)?.faction)).toBe(true);
   });
 });
 
