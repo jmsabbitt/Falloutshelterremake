@@ -72,6 +72,41 @@ export interface Resident {
   homeRoomId?: number | null;
   /** M7: caravan id while away trading. */
   caravan?: number | null;
+  /** M9: the legendary character this resident is (legends.json id). */
+  legendary?: string;
+}
+
+// ------------------------------------------------------------------ M9: content
+
+/** M9: the rules this homestead was founded under (rulesets.json ids). Stream R. */
+export interface RulesState {
+  ids: string[];
+  /** Survival: the fallen stay fallen. */
+  survival: boolean;
+}
+
+/** M9: legendary residents. Stream L owns the shape of this interface. */
+export interface LegendsState {
+  /** Legendary ids who have joined some homestead (carried across foundings). */
+  recruited: string[];
+  /** Personal questline progress etc. are up to stream L. */
+  [key: string]: unknown;
+}
+
+/** M9: a treasure map found while exploring, pointing at one cache. Stream C. */
+export interface TreasureMap {
+  id: number;
+  cacheId: string;
+  regionId: string;
+  found: boolean;
+}
+
+/** M9: first-kill drops and treasure hunting. Stream C owns the shape. */
+export interface LootState {
+  /** Boss enemy ids already defeated once (their first-kill drop is paid). Carried across foundings. */
+  bossKills: string[];
+  maps: TreasureMap[];
+  [key: string]: unknown;
 }
 
 // ------------------------------------------------------------------ M3: Glarelands
@@ -212,6 +247,8 @@ export interface QuestReward {
   rep?: Record<string, number>;
   /** M7: Influence. */
   influence?: number;
+  /** M9: a legendary resident who arrives at the door (legends.json id). */
+  legend?: string;
 }
 
 export type QuestRoomKind = 'start' | 'empty' | 'fight' | 'loot' | 'event' | 'boss';
@@ -572,6 +609,15 @@ export interface GameState {
   trade: { offers: TradeOffer[]; refreshAt: number };
   /** M7: caravans out trading. */
   caravans: Caravan[];
+  /** M9: 'custom' is the sandbox (Custom Game): no achievements, separate saves. */
+  mode: 'normal' | 'custom';
+  rules: RulesState;
+  /** M9: Collection Log: category -> ids ever obtained. Carried across foundings. */
+  collection: Record<string, string[]>;
+  legends: LegendsState;
+  loot: LootState;
+  /** M9: the Mauler meter (0..1): noise and wealth draw the apex threat. Stream C. */
+  maulerMeter: number;
   crates: Record<CrateTier, number>;
   crateTokens: number;
   /** Crates opened since the last legendary card (drives the pity guarantee). */

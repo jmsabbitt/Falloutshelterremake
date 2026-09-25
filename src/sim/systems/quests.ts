@@ -35,6 +35,8 @@ import { addFragment, addSalvage, fragmentsNeeded, knowsRecipe, unlockRecipe } f
 import { leaveJob, returnToJob } from './assign';
 import { changeRep, factionDef, repOf } from './factions';
 import { grantItem, randomItemOf } from './items';
+import { onBossDefeated } from './loot';
+import { recruitLegend } from './legends';
 
 // ------------------------------------------------------------------ content types
 
@@ -129,7 +131,7 @@ export interface QuestDef {
   brief: string;
   debrief: string;
   /** cycle: homestead number in the prestige chain (Act 2 opens in the second). rep: minimum faction reputation. */
-  requires: { quests: string[]; population?: number; cycle?: number; rep?: { faction: string; min: number } };
+  requires: { quests: string[]; population?: number; cycle?: number; rep?: { faction: string; min: number }; legend?: string };
   /** Enemy level: scales enemy HP and damage. The UI shows it as the recommended level. */
   level: number;
   partyMin?: number;
@@ -261,6 +263,8 @@ export function questLocked(state: GameState, content: Content, def: QuestDef): 
   if (missing) return `finish "${questDef(content, missing)?.title ?? missing}" first`;
   if (def.requires.population && state.peakPopulation < def.requires.population) return `needs population ${def.requires.population}`;
   if (def.requires.cycle && state.legacy.cycle < def.requires.cycle) return 'opens in a newly founded homestead';
+  const legend = def.requires.legend;
+  if (legend && !state.residents.some((r) => r.legendary === legend && !r.dead && !r.waiting)) return 'needs a particular resident';
   const need = def.requires.rep;
   if (need && repOf(state, content, need.faction) < need.min) return `needs ${factionDef(content, need.faction)?.name ?? need.faction} reputation ${need.min}`;
   return null;
@@ -690,7 +694,10 @@ function damageEnemy(state: GameState, content: Content, q: Quest, e: QuestEnemy
   bump(state, 'questEnemiesDefeated');
   const def = enemyDef(content, e.defId);
   // Bosses count once the quest succeeds (see collectQuest), so abandoning can't farm them.
-  if (def.boss) q.loot.bosses = (q.loot.bosses ?? 0) + 1;
+  if (def.boss) {
+    q.loot.bosses = (q.loot.bosses ?? 0) + 1;
+    onBossDefeated(state, content, q, e.defId);
+  }
   state.events.push({ type: 'questEnemyDown', questId: q.id, enemyUid: e.uid });
   q.loot.xp += def.xp;
   if (def.drop) {
@@ -1080,6 +1087,7 @@ export function collectQuest(state: GameState, content: Content, questId: number
     if (def) {
       if (!state.questsDone.includes(def.id)) state.questsDone.push(def.id);
       for (const region of def.rewards.regions ?? []) if (!state.regionsUnlocked.includes(region)) state.regionsUnlocked.push(region);
+      if (def.rewards.legend) recruitLegend(state, content, def.rewards.legend, 'quest');
       bump(state, 'storyQuestsCompleted');
       bump(state, `questline.${def.line}`);
     } else {

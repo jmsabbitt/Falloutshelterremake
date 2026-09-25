@@ -16,8 +16,8 @@
     {
       "cycle": 3,
       "population": 120,
-      "contracts": 20,
-      "text": "Halcyon Charter §12(c): a homestead of the third generation that reaches one hundred and twenty, and keeps the roads busy, may sponsor another. HALCY is running out of ribbon."
+      "quests": ["act3_finale"],
+      "text": "Halcyon Charter §12(c): a homestead of the third generation that reaches one hundred and twenty, and has faced what lies beneath the Seal, may sponsor another. HALCY is running out of ribbon."
     }
   ],
   "scoring": {

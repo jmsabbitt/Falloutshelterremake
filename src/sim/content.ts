@@ -16,6 +16,9 @@ import deepJson from '../content/deep.json';
 import traitsJson from '../content/traits.json';
 import topsideJson from '../content/topside.json';
 import factionsJson from '../content/factions.json';
+import legendsJson from '../content/legends.json';
+import rulesetsJson from '../content/rulesets.json';
+import lootJson from '../content/loot.json';
 import type { Rarity, ResourceKey, StatKey, Stats } from './types';
 
 export type RoomCategory = 'door' | 'elevator' | 'living' | 'production' | 'storage' | 'radio' | 'workshop' | 'office' | 'research';
@@ -127,6 +130,25 @@ export interface Content {
   /** M7 (typed in systems/weather.ts and systems/factions.ts). */
   topside: typeof topsideJson;
   factions: typeof factionsJson;
+  /** M9 (typed in systems/legends.ts, rulesets.ts and loot.ts). Legend questlines are also merged into `quests`. */
+  legends: typeof legendsJson;
+  rulesets: typeof rulesetsJson;
+  loot: typeof lootJson;
+}
+
+/** M9: personal questlines live in legends.json but run through the ordinary quest engine. */
+function mergeQuests(): typeof questsJson {
+  const q = questsJson as unknown as Record<string, unknown>;
+  const l = legendsJson as unknown as Record<string, unknown>;
+  const arr = (o: Record<string, unknown>, k: string) => (Array.isArray(o[k]) ? (o[k] as unknown[]) : []);
+  const obj = (o: Record<string, unknown>, k: string) => (o[k] && typeof o[k] === 'object' && !Array.isArray(o[k]) ? (o[k] as Record<string, unknown>) : {});
+  return {
+    ...q,
+    questlines: [...arr(q, 'questlines'), ...arr(l, 'questlines')],
+    quests: [...arr(q, 'quests'), ...arr(l, 'quests')],
+    enemies: { ...obj(q, 'enemies'), ...obj(l, 'enemies') },
+    events: { ...obj(q, 'events'), ...obj(l, 'events') },
+  } as unknown as typeof questsJson;
 }
 
 function validate(content: Content): Content {
@@ -167,6 +189,9 @@ export function loadContent(): Content {
       ...((traitsJson as { achievements?: AchievementDef[] }).achievements ?? []),
       ...((topsideJson as { achievements?: AchievementDef[] }).achievements ?? []),
       ...((factionsJson as { achievements?: AchievementDef[] }).achievements ?? []),
+      ...((legendsJson as { achievements?: AchievementDef[] }).achievements ?? []),
+      ...((rulesetsJson as { achievements?: AchievementDef[] }).achievements ?? []),
+      ...((lootJson as { achievements?: AchievementDef[] }).achievements ?? []),
     ],
     weapons: Object.fromEntries(weapons.map((w) => [w.id, w])),
     outfits: Object.fromEntries(outfits.map((o) => [o.id, o])),
@@ -176,13 +201,16 @@ export function loadContent(): Content {
     salvageList: salvageJson as SalvageDef[],
     exploration: explorationJson,
     crafting: craftingJson,
-    quests: questsJson,
+    quests: mergeQuests(),
     legacy: legacyJson,
     research: researchJson,
     deep: deepJson,
     traits: traitsJson,
     topside: topsideJson,
     factions: factionsJson,
+    legends: legendsJson,
+    rulesets: rulesetsJson,
+    loot: lootJson,
   });
 }
 

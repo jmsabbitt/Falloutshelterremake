@@ -11,6 +11,11 @@ export interface NewGameOptions {
   seed?: number;
   now?: number;
   homesteadNumber?: number;
+  /** M9: rulesets (rulesets.json ids) and Survival. */
+  rules?: string[];
+  survival?: boolean;
+  /** M9: start a Custom Game sandbox. */
+  mode?: 'normal' | 'custom';
 }
 
 export function newGame(content: Content, opts: NewGameOptions = {}): GameState {
@@ -45,6 +50,12 @@ export function newGame(content: Content, opts: NewGameOptions = {}): GameState 
     influence: 0,
     trade: { offers: [], refreshAt: 0 },
     caravans: [],
+    mode: opts.mode ?? 'normal',
+    rules: { ids: [...(opts.rules ?? [])], survival: opts.survival ?? false },
+    collection: {},
+    legends: { recruited: [] },
+    loot: { bossKills: [], maps: [] },
+    maulerMeter: 0,
     crates: { ...start.crates },
     crateTokens: 0,
     pity: 0,

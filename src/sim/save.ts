@@ -4,7 +4,7 @@
 import { newLegacy } from './legacy';
 import type { GameState } from './types';
 
-export const SAVE_VERSION = 7;
+export const SAVE_VERSION = 8;
 
 interface SaveFile {
   format: 'homestead-save';
@@ -98,6 +98,16 @@ const migrations: Record<number, Migration> = {
     influence: 0,
     trade: { offers: [], refreshAt: 0 },
     caravans: [],
+  }),
+  // v7 (M7) -> v8 (M9): modes, rulesets, Collection Log, legends, loot, Mauler meter.
+  7: (s) => ({
+    ...s,
+    mode: 'normal',
+    rules: { ids: [], survival: false },
+    collection: {},
+    legends: { recruited: [] },
+    loot: { bossKills: [], maps: [] },
+    maulerMeter: 0,
   }),
 };
 

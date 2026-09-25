@@ -8,6 +8,8 @@ export function achievementProgress(state: GameState, def: AchievementDef): numb
 }
 
 export function checkAchievements(state: GameState, content: Content): void {
+  // Custom Game is a sandbox: nothing earned there counts.
+  if (state.mode === 'custom') return;
   for (const def of content.achievements) {
     if (state.achievements[def.id] !== undefined) continue;
     if ((state.stats[def.stat] ?? 0) >= def.target) {

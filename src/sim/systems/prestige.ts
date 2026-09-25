@@ -150,6 +150,9 @@ export interface FoundOptions {
   heirloomIds: number[];
   /** Wall-clock ms for the new homestead's clock. */
   now: number;
+  /** M9: rulesets (rulesets.json ids; stream R validates unlocks) and Survival. */
+  rules?: string[];
+  survival?: boolean;
 }
 
 /** The outpost a homestead becomes once its founders leave. */
@@ -250,6 +253,11 @@ export function foundHomestead(old: GameState, content: Content, opts: FoundOpti
   state.crateTokens = src.crateTokens;
   state.pity = src.pity;
   state.daily = { ...src.daily };
+  // M9: the codex, legends and first kills are lifetime progress; rules are chosen per homestead.
+  state.collection = structuredClone(src.collection);
+  state.legends = structuredClone(src.legends);
+  state.loot = { ...structuredClone(src.loot), maps: [] };
+  state.rules = { ids: [...(opts.rules ?? [])], survival: opts.survival ?? false };
 
   const stayers = src.residents.filter((r) => !r.dead && !r.waiting && !partyIds.includes(r.id)).length;
   const legacy = src.legacy;

@@ -206,3 +206,5 @@ export {
   type ReminderKind,
   type ReminderOptions,
 } from './systems/reminders';
+export { rulesetMods, ruleFlag, type RulesetMods } from './systems/rulesets';
+export { recruitLegend, type LegendSource } from './systems/legends';

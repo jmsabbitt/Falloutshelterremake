@@ -6,6 +6,7 @@
 import type { Content } from './content';
 import { perkValue, siteDef, type PerkEffect } from './legacy';
 import type { GameState, ResourceKey } from './types';
+import { rulesetMods } from './systems/rulesets';
 
 /** Effects research can grant on top of the perk effects. */
 export type ResearchEffect =
@@ -89,12 +90,12 @@ export function productionMult(state: GameState, content: Content, resource: Res
   const site = siteDef(content, state.legacy?.siteId ?? 'plot7');
   const siteMult = resource ? (site?.modifiers.production?.[resource] ?? 1) : 1;
   const specific = resource && RESOURCE_EFFECT[resource] ? bonus(state, content, RESOURCE_EFFECT[resource] as ResearchEffect) : 0;
-  return siteMult * (1 + bonus(state, content, 'productionSpeed') + specific);
+  return siteMult * rulesetMods(state, content).production(resource) * (1 + bonus(state, content, 'productionSpeed') + specific);
 }
 
 /** How much more often random incidents happen at this site. */
 export function incidentRate(state: GameState, content: Content): number {
-  return siteDef(content, state.legacy?.siteId ?? 'plot7')?.modifiers.incidentRate ?? 1;
+  return (siteDef(content, state.legacy?.siteId ?? 'plot7')?.modifiers.incidentRate ?? 1) * rulesetMods(state, content).incidentRate;
 }
 
 /** Build and upgrade cost multiplier (Union Rates and research). */
