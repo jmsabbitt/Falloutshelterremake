@@ -1,8 +1,300 @@
 {
-  "_comment": "Factions, reputation, trade and caravans. Typed in src/sim/systems/factions.ts; see docs/design/M7-spec.md.",
-  "tuning": { "tradeRefreshHours": 8, "repTiers": [-50, 0, 25, 50, 80] },
+  "_comment": "Factions, reputation, trade and caravans. Typed in src/sim/systems/factions.ts; see docs/design/M7-spec.md. repTiers are the lowest rep of each tier (Hostile, Wary, Neutral, Friendly, Allied); the per-tier tables below are indexed the same way.",
+  "tuning": {
+    "tradeRefreshHours": 8,
+    "repTiers": [-100, -50, -10, 25, 60],
+    "repTierNames": ["Hostile", "Wary", "Neutral", "Friendly", "Allied"],
+    "offersPerFaction": 3,
+    "buyMult": [1.6, 1.25, 1, 0.9, 0.8],
+    "sellMult": [0.6, 0.85, 1, 1.1, 1.25],
+    "tradeRep": 1,
+    "tradeRepCap": 50,
+    "raidMult": [1.5, 1, 0.85, 0.65, 0.4],
+    "caravan": {
+      "maxParty": 3,
+      "carryPerResident": 8,
+      "resourceUnit": 10,
+      "goodsValue": { "food": 0.3, "water": 0.3, "medpatch": 12 },
+      "charmPerPoint": 0.02,
+      "fortunePerPoint": 0.01,
+      "jitter": [0.85, 1.15],
+      "influencePerCharm": 0.1,
+      "guardPerPoint": 0.02,
+      "guardMax": 0.85,
+      "ambushTierMult": [2, 1.4, 1, 0.7, 0.4],
+      "robbedLoss": 0.5,
+      "ambushDamage": [10, 30],
+      "itemFortunePerPoint": 0.005,
+      "bigGoodsValue": 200,
+      "bigGoodsRep": 1,
+      "lines": {
+        "repelled": [
+          "Ambushed on the road. The escort explained, firmly, that the goods were spoken for.",
+          "Somebody jumped out from behind a billboard. The billboard came off better than they did.",
+          "Bandits tried the old broken-axle trick. Nobody stopped. The bandits walked home."
+        ],
+        "robbed": [
+          "Ambushed on the road. They took half the takings and all of the dignity.",
+          "Held up at a washed-out bridge. The toll was steep and nobody got a receipt.",
+          "Robbed by someone polite enough to apologise. The takings were still gone."
+        ],
+        "item": [
+          "Came home with something extra. Nobody is saying how.",
+          "Traded a story for a spare piece of kit. It was a very good story."
+        ]
+      }
+    }
+  },
   "factions": [
-    { "id": "caravaners", "name": "The Long Road Caravan Co.", "description": "Traders who have walked every road that's left, twice.", "startRep": 0 }
+    {
+      "id": "caravaners",
+      "name": "The Long Road Caravan Co.",
+      "shortName": "Long Road Co.",
+      "description": "Traders who have walked every road that's left, twice.",
+      "personality": "Friendly the way a scale is friendly. They will sell you anything, buy anything, and tell you the price of both before you finish asking. Their ledgers survived the Glare; several of their founders did not.",
+      "motto": "Every road leads somewhere. Ours lead somewhere with a markup.",
+      "startRep": 10,
+      "mastLevel": 1,
+      "contactByTradingPost": true,
+      "route": {
+        "name": "The Coast Road Loop",
+        "minutes": 30,
+        "baseScrip": 25,
+        "markup": 1.2,
+        "wants": ["food", "water", "valuables"],
+        "wantMult": 1.5,
+        "influence": [1, 2],
+        "rep": 2,
+        "ambush": 0.05,
+        "itemChance": 0.08,
+        "itemRarity": "rare",
+        "legendaryChance": 0,
+        "xp": 150,
+        "minTier": 1,
+        "introChance": 0.25,
+        "lines": {
+          "arrive": [
+            "Reached the Long Road depot. They weighed the goods, then weighed us, just in case.",
+            "The Co. quartermaster counted everything twice and smiled once. Apparently that's good.",
+            "Swapped news at the depot. The news was mostly prices."
+          ],
+          "intro": [
+            "A Long Road driver offered to pass our name along to some people up the road. For a small fee, which we have apparently already paid."
+          ]
+        }
+      },
+      "recruit": { "title": "Long Road outrider", "primary": "charm", "rarity": "rare", "tier": 3, "influence": 40, "cap": 2 },
+      "offers": [
+        { "id": "cv_rations", "label": "Rations for the road", "tier": 1, "stock": 3, "give": { "food": 50 }, "get": { "scrip": 30 } },
+        { "id": "cv_water", "label": "Clean water, no questions", "tier": 1, "stock": 3, "give": { "water": 50 }, "get": { "scrip": 30 } },
+        { "id": "cv_trinkets", "label": "Trinkets by the pound", "tier": 1, "stock": 3, "give": { "salvageById": { "costume_jewelry": 5 } }, "get": { "scrip": 25, "influence": 1 } },
+        { "id": "cv_locket", "label": "A locket with a story", "tier": 2, "stock": 2, "give": { "salvageById": { "silver_locket": 1 } }, "get": { "scrip": 90, "influence": 2 } },
+        { "id": "cv_medpatch", "label": "Med-Patches, gently used", "tier": 1, "stock": 3, "give": { "scrip": 120 }, "get": { "medpatch": 2 } },
+        { "id": "cv_purge", "label": "Purge, factory sealed (resealed)", "tier": 1, "stock": 3, "give": { "scrip": 120 }, "get": { "purge": 2 } },
+        { "id": "cv_salvage", "label": "Assorted salvage, sight unseen", "tier": 2, "stock": 2, "give": { "scrip": 180 }, "get": { "salvage": { "rarity": "rare", "count": [2, 2] } } },
+        { "id": "cv_crate", "label": "A crate off the back of a truck", "tier": 2, "stock": 1, "give": { "scrip": 350 }, "get": { "crates": { "standard": 1 } } },
+        { "id": "cv_outfit", "label": "Last season's travelling clothes", "tier": 3, "stock": 1, "give": { "scrip": 900 }, "get": { "itemOf": { "rarity": "rare", "kind": "outfit" } } },
+        { "id": "cv_rare_crate", "label": "The good crate", "tier": 3, "stock": 1, "give": { "scrip": 1200, "influence": 5 }, "get": { "crates": { "rare": 1 } } },
+        { "id": "cv_ledger", "label": "The Company's private stock", "tier": 4, "stock": 1, "give": { "scrip": 2500, "influence": 20 }, "get": { "crates": { "legendary": 1 } } },
+        { "id": "cv_goodwill", "label": "Stand the drivers a round", "tier": 1, "stock": 1, "give": { "influence": 15 }, "get": { "rep": 5 } }
+      ]
+    },
+    {
+      "id": "tinkers",
+      "name": "The Scrapwright Guild",
+      "shortName": "Scrapwrights",
+      "description": "Techno-scavengers who take the old world apart to see how it ticked.",
+      "personality": "They talk to machines more than to people, and the machines are better company. A Scrapwright will trade a working radio for a broken one if the broken one is broken in an interesting way. Membership dues are paid in vacuum tubes.",
+      "motto": "If it hums, it's ours. If it doesn't, give it a minute.",
+      "startRep": 0,
+      "mastLevel": 1,
+      "route": {
+        "name": "The Scrapyard Spur",
+        "minutes": 60,
+        "baseScrip": 50,
+        "markup": 1.3,
+        "wants": ["circuitry", "steel"],
+        "wantMult": 1.5,
+        "influence": [1, 3],
+        "rep": 3,
+        "ambush": 0.08,
+        "itemChance": 0.12,
+        "itemRarity": "rare",
+        "legendaryChance": 0.02,
+        "xp": 250,
+        "minTier": 1,
+        "lines": {
+          "arrive": [
+            "The Guild yard is a hill of radios. Someone is standing on top of it, listening.",
+            "A Scrapwright took the cart apart to see if it was a good cart. It was. They put it back. Mostly.",
+            "Traded at the Guild. They paid in scrip and a lecture on capacitor etiquette."
+          ]
+        }
+      },
+      "recruit": { "title": "Scrapwright engineer", "primary": "wits", "rarity": "rare", "tier": 3, "influence": 50, "cap": 2 },
+      "offers": [
+        { "id": "tk_tubes", "label": "Tubes wanted, any wattage", "tier": 1, "stock": 3, "give": { "salvageById": { "vacuum_tube": 8 } }, "get": { "scrip": 30, "influence": 1 } },
+        { "id": "tk_tins", "label": "Tin, for reasons", "tier": 1, "stock": 2, "give": { "salvageById": { "tin_cans": 8 } }, "get": { "scrip": 25 } },
+        { "id": "tk_relays", "label": "Relay boards, bought warm", "tier": 2, "stock": 2, "give": { "salvageById": { "relay_board": 2 } }, "get": { "scrip": 140, "influence": 3 } },
+        { "id": "tk_core", "label": "An atomic logic core (they'll be gentle)", "tier": 3, "stock": 1, "give": { "salvageById": { "atomic_logic_core": 1 } }, "get": { "scrip": 350, "influence": 8 } },
+        { "id": "tk_parts", "label": "Bin of spare parts", "tier": 2, "stock": 2, "give": { "scrip": 200 }, "get": { "salvage": { "rarity": "rare", "count": [2, 2], "materials": ["circuitry", "steel"] } } },
+        { "id": "tk_recipe", "label": "Blueprints, lightly annotated", "tier": 2, "stock": 1, "give": { "scrip": 700 }, "get": { "recipeOf": { "rarity": "rare" } } },
+        { "id": "tk_recipe_weapon", "label": "Weapon schematics (do not show the Rustmen)", "tier": 3, "stock": 1, "give": { "scrip": 400, "influence": 20 }, "get": { "recipeOf": { "rarity": "rare", "kind": "weapon" } } },
+        { "id": "tk_fragment", "label": "Half a legendary blueprint", "tier": 3, "stock": 2, "give": { "scrip": 900 }, "get": { "fragmentOf": { "rarity": "legendary", "count": 1 } } },
+        { "id": "tk_masterwork", "label": "The Guild's masterwork plans", "tier": 4, "stock": 1, "give": { "scrip": 2000, "influence": 40 }, "get": { "recipeOf": { "rarity": "legendary" } } },
+        { "id": "tk_goodwill", "label": "Donate to the parts library", "tier": 1, "stock": 1, "give": { "influence": 15 }, "get": { "rep": 5 } }
+      ]
+    },
+    {
+      "id": "lamplighters",
+      "name": "The Order of the Last Lamp",
+      "shortName": "Lamplighters",
+      "description": "A cult that believes the Glare was a sunrise, and that it will come again.",
+      "personality": "Serene, patient and completely sure. They walk the Glarelands in white robes that were white once, and speak of the light with the calm of people who have already seen the end and found it well lit. They buy Purge by the crate. Nobody has seen them use it.",
+      "motto": "The lamp is lit. Please mind your eyes.",
+      "startRep": -15,
+      "mastLevel": 2,
+      "route": {
+        "name": "The Pilgrim Trail",
+        "minutes": 120,
+        "baseScrip": 90,
+        "markup": 1.3,
+        "wants": ["medpatch", "cloth", "chemicals"],
+        "wantMult": 1.6,
+        "influence": [3, 6],
+        "rep": 3,
+        "ambush": 0.12,
+        "itemChance": 0.1,
+        "itemRarity": "rare",
+        "legendaryChance": 0.03,
+        "xp": 450,
+        "minTier": 1,
+        "lines": {
+          "arrive": [
+            "Reached the Chapel of the Last Lamp. It is very bright inside. We were not offered sunglasses.",
+            "The acolytes accepted the goods and blessed the cart. The cart has been glowing slightly since.",
+            "A Lamplighter asked if we had seen the light. We said we had seen quite a lot of it, thanks."
+          ]
+        }
+      },
+      "recruit": { "title": "Lamplighter acolyte", "primary": "grit", "rarity": "rare", "tier": 3, "influence": 45, "cap": 2 },
+      "offers": [
+        { "id": "ll_purge", "label": "Purge for the vigil", "tier": 1, "stock": 3, "give": { "purge": 3 }, "get": { "influence": 4 } },
+        { "id": "ll_purge_bulk", "label": "A tithe of Purge", "tier": 2, "stock": 2, "give": { "purge": 8 }, "get": { "influence": 12, "scrip": 60 } },
+        { "id": "ll_medpatch", "label": "Bandages for the pilgrims", "tier": 1, "stock": 2, "give": { "medpatch": 3 }, "get": { "influence": 3 } },
+        { "id": "ll_robes", "label": "Cloth for new robes", "tier": 1, "stock": 2, "give": { "salvageById": { "burlap_scrap": 10 } }, "get": { "scrip": 20, "influence": 2 } },
+        { "id": "ll_silk", "label": "Silk for the high robes", "tier": 2, "stock": 2, "give": { "salvageById": { "parachute_silk": 2 } }, "get": { "scrip": 60, "influence": 5 } },
+        { "id": "ll_tithe", "label": "Make an offering", "tier": 1, "stock": 1, "give": { "scrip": 250 }, "get": { "rep": 4 } },
+        { "id": "ll_isotope", "label": "A relic of the first light", "tier": 3, "stock": 1, "give": { "scrip": 800 }, "get": { "salvage": { "rarity": "legendary", "count": [1, 1], "materials": ["chemicals"] } } },
+        { "id": "ll_hymnal", "label": "Hymns of the Glare, illustrated", "tier": 3, "stock": 1, "give": { "influence": 25 }, "get": { "fragmentOf": { "rarity": "legendary", "count": 1 } } },
+        { "id": "ll_lance", "label": "Pieces of a holy Glare Lance", "tier": 4, "stock": 1, "give": { "influence": 40, "purge": 10 }, "get": { "fragments": { "glare_lance": 2 } } },
+        { "id": "ll_goodwill", "label": "Light a candle at the chapel", "tier": 1, "stock": 1, "give": { "influence": 15 }, "get": { "rep": 5 } }
+      ]
+    },
+    {
+      "id": "rustmen",
+      "name": "The Rustman Clans",
+      "shortName": "Rustmen",
+      "description": "Raiders in welded armour who would rather take it, but will settle for buying it.",
+      "personality": "Loud, proud and allergic to doors. The clans respect strength, punctuality and anyone who hits back. They will sell you a gun on the same afternoon they try to steal your water, and see no contradiction. Protection is available. So, it's implied, is the opposite.",
+      "motto": "Nice homestead. Be a shame if it had a door.",
+      "startRep": -45,
+      "mastLevel": 2,
+      "route": {
+        "name": "The Toll Road",
+        "minutes": 90,
+        "baseScrip": 75,
+        "markup": 1.5,
+        "wants": ["steel", "hide", "food"],
+        "wantMult": 1.5,
+        "influence": [2, 4],
+        "rep": 3,
+        "ambush": 0.3,
+        "itemChance": 0.15,
+        "itemRarity": "rare",
+        "itemKind": "weapon",
+        "legendaryChance": 0.03,
+        "xp": 400,
+        "minTier": 0,
+        "lines": {
+          "arrive": [
+            "Reached the Rustman camp. They inspected the goods by kicking them. The goods passed.",
+            "The clan boss arm-wrestled our lead for the price. We lost the match and won the price.",
+            "The camp was welcoming, in the sense that nobody set us on fire."
+          ]
+        }
+      },
+      "recruit": { "title": "Rustman bruiser", "primary": "brawn", "rarity": "rare", "tier": 3, "influence": 40, "cap": 2 },
+      "offers": [
+        { "id": "rm_weapon", "label": "A gun, no serial number", "tier": 0, "stock": 1, "give": { "scrip": 900 }, "get": { "itemOf": { "rarity": "rare", "kind": "weapon" } } },
+        { "id": "rm_toll", "label": "Protection money", "tier": 0, "stock": 1, "give": { "scrip": 300 }, "get": { "rep": 6 } },
+        { "id": "rm_junk_guns", "label": "Buying old guns, any condition", "tier": 1, "stock": 3, "give": { "itemOf": { "rarity": "common", "kind": "weapon" } }, "get": { "scrip": 25, "influence": 1 } },
+        { "id": "rm_scrap", "label": "Scrap for the forge", "tier": 1, "stock": 3, "give": { "salvageById": { "tin_cans": 10 } }, "get": { "scrip": 35 } },
+        { "id": "rm_hides", "label": "Hides for armour straps", "tier": 1, "stock": 2, "give": { "salvageById": { "tanned_hide": 2 } }, "get": { "scrip": 120, "influence": 2 } },
+        { "id": "rm_food", "label": "Feed the war party", "tier": 1, "stock": 2, "give": { "food": 80 }, "get": { "scrip": 50, "influence": 1 } },
+        { "id": "rm_armour", "label": "Welded armour, slightly dented", "tier": 2, "stock": 1, "give": { "scrip": 850 }, "get": { "itemOf": { "rarity": "rare", "kind": "outfit" } } },
+        { "id": "rm_warlord", "label": "The warlord's own", "tier": 3, "stock": 1, "give": { "scrip": 3000, "influence": 20 }, "get": { "itemOf": { "rarity": "legendary", "kind": "weapon" } } },
+        { "id": "rm_goodwill", "label": "Send the clans a barrel", "tier": 1, "stock": 1, "give": { "influence": 15 }, "get": { "rep": 6 } }
+      ]
+    },
+    {
+      "id": "homestead9",
+      "name": "Halcyon Homestead 9",
+      "shortName": "Homestead 9",
+      "description": "A rival Halcyon homestead, run by a colder build of HALCY.",
+      "personality": "Efficient, courteous and faintly chilling. Their HALCY never jokes, never forgets, and signs every message \"with measured regards\". They trade in research, pay exactly what things are worth, and keep a file on you. The file is thicker than yours.",
+      "motto": "Homestead 9: optimised for continuity.",
+      "startRep": -5,
+      "mastLevel": 3,
+      "route": {
+        "name": "The Service Tunnel",
+        "minutes": 240,
+        "baseScrip": 180,
+        "markup": 1.6,
+        "wants": ["circuitry", "chemicals", "water"],
+        "wantMult": 1.5,
+        "influence": [5, 9],
+        "rep": 4,
+        "ambush": 0.1,
+        "itemChance": 0.2,
+        "itemRarity": "rare",
+        "legendaryChance": 0.06,
+        "xp": 800,
+        "minTier": 2,
+        "lines": {
+          "arrive": [
+            "Homestead 9's door opened before we knocked. Their HALCY had been expecting us for eleven minutes.",
+            "The goods were scanned, catalogued and paid for to the decimal. Nobody said thank you. It felt deliberate.",
+            "Their residents all wear the same smile. HALCY 9 says morale is within tolerance."
+          ]
+        }
+      },
+      "recruit": { "title": "Homestead 9 defector", "primary": "sight", "rarity": "legendary", "tier": 4, "influence": 80, "cap": 1 },
+      "offers": [
+        { "id": "h9_chem", "label": "Laboratory supplies, catalogued", "tier": 1, "stock": 2, "give": { "salvageById": { "chemistry_set": 2 } }, "get": { "research": 40 } },
+        { "id": "h9_sell_data", "label": "Share our findings", "tier": 1, "stock": 2, "give": { "research": 50 }, "get": { "scrip": 300, "influence": 3 } },
+        { "id": "h9_research", "label": "Research notes, redacted", "tier": 2, "stock": 2, "give": { "scrip": 800 }, "get": { "research": 150 } },
+        { "id": "h9_core", "label": "Processing capacity, leased", "tier": 2, "stock": 1, "give": { "salvageById": { "atomic_logic_core": 1 } }, "get": { "research": 120, "influence": 2 } },
+        { "id": "h9_isotope", "label": "Isotope samples for analysis", "tier": 3, "stock": 1, "give": { "salvageById": { "isotope_vial": 1 } }, "get": { "research": 150, "influence": 5 } },
+        { "id": "h9_archive", "label": "A copy of the Homestead 9 archive", "tier": 3, "stock": 1, "give": { "scrip": 2500, "influence": 10 }, "get": { "research": 600 } },
+        { "id": "h9_recipe", "label": "Standard-issue pattern, improved", "tier": 3, "stock": 1, "give": { "influence": 30 }, "get": { "recipeOf": { "rarity": "rare", "kind": "outfit" } } },
+        { "id": "h9_prototype", "label": "A prototype, unregistered", "tier": 4, "stock": 1, "give": { "research": 300, "influence": 30 }, "get": { "itemOf": { "rarity": "legendary", "kind": "outfit" } } },
+        { "id": "h9_goodwill", "label": "Submit a cooperation memo", "tier": 1, "stock": 1, "give": { "influence": 20 }, "get": { "rep": 5 } }
+      ]
+    }
   ],
-  "achievements": []
+  "achievements": [
+    { "id": "faction_first_contact", "name": "Is Anyone Out There?", "description": "Make contact with a faction.", "tier": "bronze", "stat": "factionsMet", "target": 1 },
+    { "id": "faction_all_contact", "name": "The Neighbourhood Directory", "description": "Make contact with all five factions.", "tier": "gold", "stat": "factionsMet", "target": 5 },
+    { "id": "trade_first", "name": "Open for Business", "description": "Complete a trade at the Trading Post.", "tier": "bronze", "stat": "trades", "target": 1 },
+    { "id": "trade_50", "name": "Regular Customer", "description": "Complete 50 trades.", "tier": "silver", "stat": "trades", "target": 50 },
+    { "id": "caravan_first", "name": "Wagons Ho, Apparently", "description": "Bring a caravan home.", "tier": "bronze", "stat": "caravansReturned", "target": 1 },
+    { "id": "caravan_25", "name": "Frequent Traveller", "description": "Bring 25 caravans home.", "tier": "silver", "stat": "caravansReturned", "target": 25 },
+    { "id": "caravan_scrip", "name": "Freight Forwarding", "description": "Earn 10,000 scrip from caravans.", "tier": "gold", "stat": "caravanScrip", "target": 10000 },
+    { "id": "caravan_repelled", "name": "Not Today", "description": "Fight off 5 caravan ambushes.", "tier": "silver", "stat": "caravanAmbushesRepelled", "target": 5 },
+    { "id": "faction_allied", "name": "Friends in High Places", "description": "Become Allied with a faction.", "tier": "silver", "stat": "alliedFactions", "target": 1 },
+    { "id": "faction_allied_3", "name": "Everybody's Favourite", "description": "Be Allied with three factions at once.", "tier": "gold", "stat": "alliedFactions", "target": 3 },
+    { "id": "faction_recruits", "name": "Poached", "description": "Hire 3 faction recruits.", "tier": "silver", "stat": "recruitsHired", "target": 3 },
+    { "id": "rustmen_friendly", "name": "Door Optional", "description": "Reach Friendly standing with the Rustman clans.", "tier": "silver", "stat": "rustmenFriendly", "target": 1, "hidden": true }
+  ]
 }
