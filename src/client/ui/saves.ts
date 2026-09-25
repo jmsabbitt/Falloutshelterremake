@@ -20,6 +20,8 @@ import {
   writeSave,
 } from '../storage';
 import { ask, promptModal } from './confirm';
+import { customMenuSection } from './custom';
+import { rulesChips, rulesOf } from './rules';
 import { fmt, h } from './dom';
 import { plural } from './qolText';
 import type { ToastFn } from './toasts';
@@ -73,15 +75,20 @@ export class SaveSlots {
     const slots = SAVE_SLOTS.map((slot) => this.slotCard(slot, names[slot]));
     const backups = [...listBackups()].reverse().map((cycle) => this.backupCard(cycle));
     const undo = readUndo();
+    const custom = this.game.isCustom;
+    const rules = rulesOf(state);
     return h(
       'div',
       { class: 'sv' },
-      h('h3', { class: 'group', style: 'margin-top:0' }, 'This homestead'),
+      // M9: the Custom Game entry (resume, leave or start one) sits above the slots.
+      customMenuSection(this.game, () => this.host.loaded()),
+      h('h3', { class: 'group' }, custom ? 'This Custom Game' : 'This homestead'),
       h(
         'div',
-        { class: 'list-item sv-card current' },
-        h('div', { class: 'row', style: 'margin:0' }, h('b', {}, `Homestead ${current.homestead}`), h('span', { class: 'muted small' }, 'autosaves')),
+        { class: `list-item sv-card current${custom ? ' m9-custom-card' : ''}` },
+        h('div', { class: 'row', style: 'margin:0' }, h('b', {}, `${custom ? '🧪 ' : ''}Homestead ${current.homestead}`), h('span', { class: 'muted small' }, custom ? 'autosaves to the Custom Game slot' : 'autosaves')),
         h('div', { class: 'muted small' }, describe(current)),
+        rules.rules.length || rules.survival ? h('div', { class: 'small' }, rulesChips(this.game.content, rules)) : null,
         h(
           'div',
           { class: 'sv-actions' },

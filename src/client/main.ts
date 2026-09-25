@@ -5,6 +5,7 @@ import { CharacterArt } from './render/sprites';
 import { QuestView } from './render/questView';
 import { VaultView } from './render/vaultView';
 import { UI } from './ui/ui';
+import { CustomGameUI } from './ui/custom';
 import { initPlatform, isNative } from './platform';
 import { getSettings, onSettingsChange, reloadSettings, type Settings } from './platform/settings';
 import { initStorage } from './storage';
@@ -59,6 +60,8 @@ async function boot(): Promise<void> {
     onRingResult: (id, quality) => ui?.quests.screen.onRingResult(id, quality),
   });
   ui = new UI(game, view, questView);
+  // M9: the Custom Game banner, sandbox toolbar and screen draw their own layer over the UI.
+  const custom = new CustomGameUI({ game, toast: (...args) => ui?.toast(...args) });
   await initPlatform(game).catch((err) => console.warn('Platform init failed:', err));
   // M8 battery saver: cap at 30 fps (stream T's idle governor goes lower on its own).
   // Reduced motion is exposed to CSS as :root[data-reduced-motion].
@@ -116,6 +119,7 @@ async function boot(): Promise<void> {
     questView.update(Math.min(dt, 0.1));
     const t2 = performance.now();
     ui?.update();
+    custom.update();
     const t3 = performance.now();
     cost.n++;
     cost.sim += t1 - t0;

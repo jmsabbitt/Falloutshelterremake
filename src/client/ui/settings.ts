@@ -8,7 +8,7 @@ import type { Game } from '../game';
 import { haptic, isNative, platformName } from '../platform';
 import { clearNotifications, enableNotifications, notifyPermission, type NotifyPermission } from '../platform/notifications';
 import { getSettings, NOTIFY_GROUPS, updateSettings, type Settings } from '../platform/settings';
-import { saveStats, storageErrors } from '../storage';
+import { liveSlot, saveStats, storageErrors } from '../storage';
 import { h } from './dom';
 
 declare const __APP_VERSION__: string;
@@ -70,7 +70,7 @@ export function settingsPanel(game: Game): HTMLElement {
 
   const render = () => {
     const s = getSettings();
-    const stats = saveStats();
+    const stats = saveStats(liveSlot(game.mode));
     const notifyOn = s.notifications && permission === 'granted';
     const q = s.quietHours;
     root.replaceChildren(
@@ -110,7 +110,7 @@ export function settingsPanel(game: Game): HTMLElement {
         'div',
         { class: 'muted small' },
         stats
-          ? `Save: ${kb(stats.json)} of homestead, stored as ${kb(stats.stored)}${stats.compressed ? ' (compressed)' : ''}.`
+          ? `Save: ${kb(stats.json)} of ${game.isCustom ? 'Custom Game' : 'homestead'}, stored as ${kb(stats.stored)}${stats.compressed ? ' (compressed)' : ''}.`
           : 'Nothing saved yet.',
         ' ',
         isNative() ? 'Kept in app storage as well as the web view, so a cleared cache loses nothing.' : 'Kept in this browser; export a copy to be safe.',

@@ -8,12 +8,14 @@ import {
   drainEvents,
   foundHomestead,
   loadContent,
+  newCustomGame,
   newGame,
   serialize,
   type CatchUpSummary,
   type Command,
   type CommandResult,
   type Content,
+  type CustomGameOptions,
   type FoundOptions,
   type GameEvent,
   type GameState,
@@ -29,7 +31,8 @@ import { prestigeConsole } from './prestigeDev';
 import { questConsole } from './questDev';
 import { qolConsole } from './qolDev';
 import { m7Console } from './m7Dev';
-import { clearSave, readSave, writeBackup, writeSave, writeUndo } from './storage';
+import { customConsole } from './customDev';
+import { clearSave, CUSTOM_SLOT, liveSlot, readActiveMode, readSave, writeActiveMode, writeBackup, writeSave, writeUndo, type PlayMode } from './storage';
 
 type Listener = (events: GameEvent[]) => void;
 type LifecycleListener = (phase: 'suspend' | 'resume') => void;
@@ -57,6 +60,9 @@ export interface AwayReport {
 const AUTOSAVE_MS = 20_000;
 /** Longest frame we simulate directly; longer gaps go through offline catch-up. */
 const MAX_FRAME_S = 2;
+/** M9: Custom Game speeds (the sim knows nothing of them: the loop feeds it more time). */
+export const TIME_SCALES = [1, 2, 5, 10, 100] as const;
+export type TimeScale = (typeof TIME_SCALES)[number];
 
 export class Game {
   readonly content: Content = loadContent();
@@ -81,17 +87,15 @@ export class Game {
   private commandListeners = new Set<CommandListener>();
   private lastSuspend = 0;
   private suspended = false;
+  /** M9: Custom Game time scale; ignored (and reset) outside a custom game. */
+  private scale: TimeScale = 1;
 
   constructor() {
-    const saved = readSave();
+    // M9: come back to whichever game was playing: the homestead, or the Custom Game.
     let loaded: GameState | null = null;
-    if (saved) {
-      try {
-        loaded = deserialize(saved);
-      } catch (err) {
-        console.warn('Could not load save, starting fresh:', err);
-      }
-    }
+    const active = readActiveMode();
+    if (active === 'custom') loaded = Game.load(readSave(CUSTOM_SLOT), 'custom');
+    if (!loaded) loaded = Game.load(readSave(0), null);
     if (loaded) {
       this.state = loaded;
       this.catchUpNow();
@@ -107,6 +111,18 @@ export class Game {
       else this.wake();
     });
     window.addEventListener('pagehide', () => this.suspend());
+  }
+
+  /** A stored save, or null if it is missing, unreadable or (when `mode` is given) from the other game. */
+  private static load(json: string | null, mode: 'custom' | null): GameState | null {
+    if (!json) return null;
+    try {
+      const s = deserialize(json);
+      return mode && s.mode !== mode ? null : s;
+    } catch (err) {
+      console.warn('Could not load save, starting fresh:', err);
+      return null;
+    }
   }
 
   /** M8: listen for the app being suspended (hidden, paused, closed) or woken again. */
@@ -176,7 +192,7 @@ export class Game {
     this.stampClock();
     const backup = serialize(this.state);
     const old = this.state;
-    const backedUp = writeBackup(old.legacy.cycle, backup);
+    const backedUp = writeBackup(old.legacy.cycle, backup, this.mode);
     const res = foundHomestead(old, this.content, { ...opts, now: Date.now() });
     if (!res.ok) return res;
     const outpost = res.state.legacy.outposts.find((o) => o.cycle === old.legacy.cycle);
@@ -188,7 +204,7 @@ export class Game {
   backupNow(): { json: string; ok: boolean } {
     this.stampClock();
     const json = serialize(this.state);
-    return { json, ok: writeBackup(this.state.legacy.cycle, json) };
+    return { json, ok: writeBackup(this.state.legacy.cycle, json, this.mode) };
   }
 
   /** Called every frame with real elapsed seconds. */
@@ -198,7 +214,7 @@ export class Game {
       this.resume();
       return;
     }
-    advance(this.state, this.content, dtSeconds);
+    advance(this.state, this.content, dtSeconds * this.timeScale);
     this.stampClock(now);
     this.flush();
     if (now - this.lastSave > AUTOSAVE_MS) this.save();
@@ -260,10 +276,88 @@ export class Game {
     this.state.lastRealTime = Math.max(this.state.lastRealTime, now);
   }
 
+  /**
+   * Autosave into the live slot of this game's mode: slot 0 for the homestead,
+   * the custom slot for a Custom Game. A custom state never lands in slot 0.
+   */
   save(): void {
     this.stampClock();
-    writeSave(serialize(this.state));
+    const mode = this.mode;
+    writeSave(serialize(this.state), liveSlot(mode));
+    writeActiveMode(mode);
     this.lastSave = Date.now();
+  }
+
+  // ---------------------------------------------------------------- M9: Custom Game
+
+  /** Which game is live. */
+  get mode(): PlayMode {
+    return this.state.mode === 'custom' ? 'custom' : 'normal';
+  }
+
+  get isCustom(): boolean {
+    return this.mode === 'custom';
+  }
+
+  /** The Custom Game speed (always 1 outside one). */
+  get timeScale(): TimeScale {
+    return this.isCustom ? this.scale : 1;
+  }
+
+  setTimeScale(n: number): boolean {
+    if (!this.isCustom || !(TIME_SCALES as readonly number[]).includes(n)) return false;
+    this.scale = n as TimeScale;
+    return true;
+  }
+
+  /** A Custom Game is stored (playing or set aside). */
+  hasCustomSave(): boolean {
+    return this.isCustom || readSave(CUSTOM_SLOT) !== null;
+  }
+
+  /**
+   * Start a new Custom Game from a preset or options, in its own save slot.
+   * The live game is saved to its own slot first; a previous Custom Game is replaced.
+   */
+  startCustom(preset: string | CustomGameOptions): { ok: true } | { ok: false; reason: string } {
+    const res = newCustomGame(this.content, preset, { seed: Math.floor(Math.random() * 2 ** 32), now: Date.now() });
+    if (!res.ok) return res;
+    this.save();
+    this.scale = 1;
+    this.replaceState(res.state);
+    return { ok: true };
+  }
+
+  /** Switch to the other game (homestead ↔ Custom Game), saving this one first. */
+  switchTo(mode: PlayMode): { ok: true } | { ok: false; reason: string } {
+    if (mode === this.mode) return { ok: true };
+    const json = readSave(liveSlot(mode));
+    let next: GameState;
+    if (json) {
+      try {
+        next = deserialize(json);
+      } catch (err) {
+        return { ok: false, reason: `that save could not be read (${(err as Error).message})` };
+      }
+    } else if (mode === 'normal') {
+      next = newGame(this.content);
+    } else {
+      return { ok: false, reason: 'there is no Custom Game to go back to' };
+    }
+    // Belt and braces: whatever is in a slot, it plays (and saves) as the slot's mode says.
+    if ((next.mode === 'custom') !== (mode === 'custom')) return { ok: false, reason: 'that save belongs to the other game' };
+    this.save();
+    this.scale = 1;
+    catchUp(next, this.content, Date.now());
+    this.replaceState(next);
+    this.claimDaily();
+    return { ok: true };
+  }
+
+  /** Throw the stored Custom Game away (switching to the homestead first if it is live). */
+  deleteCustom(): void {
+    if (this.isCustom) this.switchTo('normal');
+    clearSave(CUSTOM_SLOT);
   }
 
   exportSave(): string {
@@ -276,21 +370,46 @@ export class Game {
     return writeSave(serialize(this.state), slot);
   }
 
-  /** Keep the live save as one step of undo before it is replaced. */
-  private keepUndo(): void {
+  /**
+   * Keep one step of undo before a live slot is overwritten. M9: that is the
+   * slot of the incoming game's mode, which may not be the one playing now
+   * (loading a custom save while on the homestead replaces the Custom Game).
+   */
+  private keepUndo(nextMode: PlayMode = this.mode): void {
     this.stampClock();
-    writeUndo(serialize(this.state));
+    if (nextMode === this.mode) {
+      writeUndo(serialize(this.state));
+      return;
+    }
+    const stored = readSave(liveSlot(nextMode));
+    if (stored) writeUndo(stored);
   }
 
-  /** Load a save (a file, a slot or a backup) in place of the current homestead. Throws if it can't be read. */
+  /**
+   * Load a save (a file, a slot or a backup) in place of the current homestead. Throws if it can't be read.
+   * M9: a custom save goes to the custom slot and a normal one to slot 0; the
+   * game being left is saved to its own slot first.
+   */
   importSave(json: string): void {
     const next = deserialize(json);
-    this.keepUndo();
+    const nextMode: PlayMode = next.mode === 'custom' ? 'custom' : 'normal';
+    this.keepUndo(nextMode);
+    if (nextMode !== this.mode) this.save();
+    this.scale = 1;
     catchUp(next, this.content, Date.now());
     this.replaceState(next);
   }
 
+  /**
+   * Start over. M9: in a Custom Game this ends the sandbox and goes back to the
+   * homestead, which is never touched.
+   */
   reset(): void {
+    if (this.isCustom) {
+      this.keepUndo();
+      this.deleteCustom();
+      return;
+    }
     this.keepUndo();
     clearSave();
     this.replaceState(newGame(this.content));
@@ -398,6 +517,8 @@ export class Game {
       qol: qolConsole(game),
       /** M7 helpers: topside(), meet(), influence(n), weather(kind), caravan(factionId?), raid(). */
       m7: m7Console(game),
+      /** M9 Custom Game: presets(), start(presetId | options), cmd(action, args), speed(n), back(), resume(). */
+      custom: customConsole(game),
     };
     console.info('%cHomestead dev console: window.homestead', 'color:#f2a541');
   }

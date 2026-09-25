@@ -32,6 +32,7 @@ import type { FoundResult, Game } from '../game';
 import { downloadFile } from '../storage';
 import { fmt, h, morph } from './dom';
 import type { ToastFn } from './toasts';
+import { fmtMult as fmtRulesMult, pickLegacyMult, rulesChips, rulesOf, rulesPicker, rulesText, type RulesPick } from './rules';
 
 export type LegacyTab = 'charter' | 'perks' | 'outposts';
 
@@ -45,13 +46,17 @@ export interface LegacyHost {
   refreshPanel(): void;
 }
 
-const STEPS = ['Review', 'Site', 'Party', 'Heirlooms', 'Confirm'] as const;
+const STEPS = ['Review', 'Site', 'Rules', 'Party', 'Heirlooms', 'Confirm'] as const;
+/** Step indexes (M9 added Rules after Site). */
+const STEP_PARTY = 3;
 /** How long the final button must be held. */
 const HOLD_MS = 1400;
 
 interface FoundDraft {
   step: number;
   siteId: string;
+  /** M9: rulesets and Survival for the new homestead. */
+  rules: RulesPick;
   partyIds: number[];
   heirloomIds: number[];
   partySort: 'level' | 'rarity';
@@ -275,8 +280,9 @@ export class LegacyUI {
     const { state, content } = this.game;
     const b = legacyBreakdown(state, content);
     const mult = siteMult ?? b.siteMult;
-    const total = Math.floor(b.subtotal * mult);
+    const total = Math.floor(b.subtotal * mult * b.rulesMult);
     const site = siteDef(content, state.legacy.siteId);
+    const rules = rulesOf(state);
     return h(
       'table',
       { class: 'legacy-table' },
@@ -286,6 +292,7 @@ export class LegacyUI {
         ...b.lines.map((l) => h('tr', { class: l.points ? '' : 'zero' }, h('td', {}, l.label), h('td', {}, l.points ? `+${l.points}` : '0'))),
         h('tr', { class: 'sub' }, h('td', {}, 'Subtotal'), h('td', {}, `${b.subtotal}`)),
         h('tr', { class: 'mult' }, h('td', {}, `Site: ${site?.name ?? 'Plot 7'}`), h('td', {}, `×${fmtMult(mult)}`)),
+        rules.rules.length || rules.survival ? h('tr', { class: 'mult m9-rules-row' }, h('td', {}, 'Rules: ', rulesChips(content, rules)), h('td', {}, `×${fmtMult(b.rulesMult)}`)) : null,
         h('tr', { class: 'total' }, h('td', {}, 'Legacy if you found now'), h('td', {}, `◆ ${total}`)),
       ),
     );
@@ -390,8 +397,8 @@ export class LegacyUI {
     }
     out.push(h('h3', { class: 'group' }, 'Homestead history'));
     const rows = [
-      ...state.legacy.history.map((r) => ({ cycle: r.cycle, number: r.homesteadNumber, site: r.siteId, pop: r.peakPopulation, days: r.days, legacy: `◆ ${r.legacyEarned}`, now: false })),
-      { cycle: state.legacy.cycle, number: state.homesteadNumber, site: state.legacy.siteId, pop: state.peakPopulation, days: Math.floor(state.time / 86400), legacy: 'now', now: true },
+      ...state.legacy.history.map((r) => ({ cycle: r.cycle, number: r.homesteadNumber, site: r.siteId, pop: r.peakPopulation, days: r.days, legacy: `◆ ${r.legacyEarned}`, now: false, rules: historyRules(r) })),
+      { cycle: state.legacy.cycle, number: state.homesteadNumber, site: state.legacy.siteId, pop: state.peakPopulation, days: Math.floor(state.time / 86400), legacy: 'now', now: true, rules: rulesOf(state) as RulesPick | null },
     ];
     out.push(
       h(
@@ -406,7 +413,13 @@ export class LegacyUI {
               'tr',
               { class: r.now ? 'now' : '' },
               h('td', {}, `${r.cycle}`),
-              h('td', {}, h('b', {}, `${r.number}`), h('span', { class: 'muted small' }, ` ${siteDef(this.game.content, r.site)?.name ?? r.site}`)),
+              h(
+                'td',
+                {},
+                h('b', {}, `${r.number}`),
+                h('span', { class: 'muted small' }, ` ${siteDef(this.game.content, r.site)?.name ?? r.site}`),
+                r.rules && (r.rules.rules.length || r.rules.survival) ? h('div', { class: 'm9-history-rules' }, rulesChips(this.game.content, r.rules)) : null,
+              ),
               h('td', {}, `${r.pop}`),
               h('td', {}, `${r.days}`),
               h('td', {}, r.legacy),
@@ -504,7 +517,7 @@ export class LegacyUI {
       .filter(({ def }) => def.rarity !== 'common')
       .slice(0, limits.heirlooms)
       .map(({ id }) => id);
-    this.flow = { step: 0, siteId: 'plot7', partyIds: party, heirloomIds: heirlooms, partySort: 'level', backup: null, holding: false, error: null };
+    this.flow = { step: 0, siteId: 'plot7', rules: { rules: [], survival: false }, partyIds: party, heirloomIds: heirlooms, partySort: 'level', backup: null, holding: false, error: null };
     this.flowStep = -1;
     this.renderFlow();
   }
@@ -560,7 +573,7 @@ export class LegacyUI {
     this.lastFlowRender = performance.now();
     this.prune(d);
     const { state, content } = this.game;
-    const why = canFoundHomestead(state, content);
+    const why = canFoundHomestead(state, content, d.step >= 2 ? d.rules : undefined);
     const limits = foundingLimits(state, content);
     const partyProblems = d.partyIds
       .map((id) => state.residents.find((r) => r.id === id))
@@ -569,8 +582,8 @@ export class LegacyUI {
       .filter((x) => x.why);
     const blocker =
       why ??
-      (d.step >= 2 && d.partyIds.length === 0 ? 'pick at least one founder' : null) ??
-      (d.step >= 2 && partyProblems.length ? `${partyProblems[0]!.r.firstName} can't go: ${partyProblems[0]!.why}` : null);
+      (d.step >= STEP_PARTY && d.partyIds.length === 0 ? 'pick at least one founder' : null) ??
+      (d.step >= STEP_PARTY && partyProblems.length ? `${partyProblems[0]!.r.firstName} can't go: ${partyProblems[0]!.why}` : null);
 
     let body: HTMLElement[];
     switch (d.step) {
@@ -581,9 +594,12 @@ export class LegacyUI {
         body = this.stepSite(d);
         break;
       case 2:
+        body = this.stepRules(d);
+        break;
+      case STEP_PARTY:
         body = this.stepParty(d, limits.party);
         break;
-      case 3:
+      case 4:
         body = this.stepHeirlooms(d, limits.heirlooms);
         break;
       default:
@@ -663,7 +679,8 @@ export class LegacyUI {
     const { state, content } = this.game;
     const limits = foundingLimits(state, content);
     const site = siteDef(content, d.siteId);
-    return `${site?.name ?? d.siteId} · ${d.partyIds.length}/${limits.party} founders · ${d.heirloomIds.length}/${limits.heirlooms} heirlooms`;
+    const rules = d.rules.rules.length + (d.rules.survival ? 1 : 0);
+    return `${site?.name ?? d.siteId}${rules ? ` · ${rulesText(content, d.rules)}` : ''} · ${d.partyIds.length}/${limits.party} founders · ${d.heirloomIds.length}/${limits.heirlooms} heirlooms`;
   }
 
   private stepReview(): HTMLElement[] {
@@ -709,6 +726,17 @@ export class LegacyUI {
           );
         }),
       ),
+    ];
+  }
+
+  /** M9: rulesets and Survival for the new homestead, with a live Legacy multiplier. */
+  private stepRules(d: FoundDraft): HTMLElement[] {
+    const { state, content } = this.game;
+    const site = siteDef(content, d.siteId);
+    return [
+      h('p', { class: 'halcy-quote' }, halcyFace(), h('span', { class: 'giver' }, 'HALCY: '), 'Optional hardship! Every ruleset you sign up for makes the new homestead harder and pays more Legacy when it founds one of its own. HALCY recommends none of them, warmly.'),
+      rulesPicker(state, content, d.rules, { siteMult: site?.legacyMult ?? 1, siteName: site?.name, changed: () => this.renderFlow() }),
+      h('p', { class: 'muted small' }, 'Rules last for the new homestead\'s whole life. Its own founding can pick again.'),
     ];
   }
 
@@ -822,13 +850,16 @@ export class LegacyUI {
       h(
         'div',
         { class: 'sum-grid' },
-        line('New site', `${SITE_LOOK[d.siteId]?.icon ?? ''} ${site?.name ?? d.siteId}`, h('span', { class: 'muted small' }, ` · Legacy ×${fmtMult(site?.legacyMult ?? 1)} next time`)),
+        line('New site', `${SITE_LOOK[d.siteId]?.icon ?? ''} ${site?.name ?? d.siteId}`, h('span', { class: 'muted small' }, ` · Legacy ×${fmtMult(site?.legacyMult ?? 1)}`)),
+        line('Rules', rulesChips(content, d.rules), h('span', { class: 'muted small' }, ` · Legacy ×${fmtRulesMult(pickLegacyMult(state, content, d.rules))}`)),
+        line('Next founding pays', h('b', {}, `×${fmtRulesMult(Math.round((site?.legacyMult ?? 1) * pickLegacyMult(state, content, d.rules) * 100) / 100)}`), h('span', { class: 'muted small' }, ' (site × rules)')),
         line(`Founding party (${party.length})`, party.map((r) => `${r.firstName} ${r.lastName} (L${r.level})`).join(', ') || 'nobody'),
         line(`Heirlooms (${items.length})`, items.map((i) => i.name).join(', ') || 'none'),
         line('Starting scrip', `💰 ${fmt(startScrip)}`),
         line('Left behind', `Homestead ${state.homesteadNumber} becomes an outpost with ${stayers} resident${stayers === 1 ? '' : 's'}`),
       ),
       ...this.leftBehindWarning(d, 'both'),
+      ...(d.rules.survival ? [h('div', { class: 'ff-warning m9-survival-warn' }, h('b', {}, '☠ Survival.'), ' Nobody who falls in the new homestead can be revived.')] : []),
       h(
         'div',
         { class: 'ff-warning' },
@@ -978,7 +1009,7 @@ export class LegacyUI {
     const siteId = d.siteId;
     const partyNames = d.partyIds.map((id) => this.game.state.residents.find((r) => r.id === id)?.firstName ?? '?');
     const heirlooms = d.heirloomIds.length;
-    const res = this.game.found({ siteId, partyIds: d.partyIds, heirloomIds: d.heirloomIds });
+    const res = this.game.found({ siteId, partyIds: d.partyIds, heirloomIds: d.heirloomIds, rules: d.rules.rules, survival: d.rules.survival });
     if (!res.ok) {
       d.error = `Founding failed: ${res.reason}.`;
       this.renderFlow();
@@ -1050,6 +1081,16 @@ export function perkText(p: PerkDef, rank: number): string {
   const v = p.perRank * rank;
   const frac = !Number.isInteger(p.perRank);
   return p.description.replace('{v}', frac ? `${Math.round(v * 100)}` : fmt(v));
+}
+
+/**
+ * M9: the rules a past homestead ran under. HomesteadRecord gains optional
+ * `rules`/`survival` with the sim patch in the D2 report; older records have none.
+ */
+function historyRules(r: object): RulesPick | null {
+  const rec = r as { rules?: unknown; survival?: unknown };
+  if (!Array.isArray(rec.rules) && rec.survival === undefined) return null;
+  return { rules: Array.isArray(rec.rules) ? rec.rules.filter((x): x is string => typeof x === 'string') : [], survival: rec.survival === true };
 }
 
 function carryList(title: string, items: string[], kind: 'carry' | 'stay'): HTMLElement {

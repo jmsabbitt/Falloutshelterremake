@@ -10,7 +10,13 @@
 import { compressToUTF16, decompressFromUTF16 } from 'lz-string';
 
 const PREFIX = 'homestead.';
-const KEY = (slot: number) => `${PREFIX}save.${slot}`;
+/**
+ * M9: slot 0 is the normal game's live autosave, 1–3 are the player's slots,
+ * and 'custom' is the Custom Game's own live autosave (homestead.save.custom),
+ * so a sandbox can never overwrite the real homestead.
+ */
+export type SlotId = number | 'custom';
+const KEY = (slot: SlotId) => `${PREFIX}save.${slot}`;
 
 // ---------------------------------------------------------------- save encoding
 
@@ -244,20 +250,59 @@ function writeEncoded(key: string, json: string, threshold = COMPRESS_OVER): boo
   return setItem(key, raw);
 }
 
-export function readSave(slot = 0): string | null {
+export function readSave(slot: SlotId = 0): string | null {
   return readEncoded(KEY(slot));
 }
 
-export function writeSave(json: string, slot = 0): boolean {
-  return writeEncoded(KEY(slot), json, slot === 0 ? LIVE_COMPRESS_OVER : COMPRESS_OVER);
+export function writeSave(json: string, slot: SlotId = 0): boolean {
+  return writeEncoded(KEY(slot), json, isLiveSlot(slot) ? LIVE_COMPRESS_OVER : COMPRESS_OVER);
 }
 
-export function clearSave(slot = 0): void {
+export function clearSave(slot: SlotId = 0): void {
   removeItem(KEY(slot));
 }
 
+// ---------------------------------------------------------------- M9: normal and custom live saves
+
+/** The two games that autosave: the real homestead and the Custom Game sandbox. */
+export type PlayMode = 'normal' | 'custom';
+/** Which of the two was playing last, so a reload comes back to it. */
+const ACTIVE_KEY = `${PREFIX}activeMode`;
+export const CUSTOM_SLOT = 'custom' as const;
+
+/** The live autosave slot for a game mode. A custom state is never written to slot 0. */
+export function liveSlot(mode: PlayMode | undefined): SlotId {
+  return mode === 'custom' ? CUSTOM_SLOT : 0;
+}
+
+/** Slots written every 20 s while playing (kept as plain JSON until they are big). */
+export function isLiveSlot(slot: SlotId): boolean {
+  return slot === 0 || slot === CUSTOM_SLOT;
+}
+
+/**
+ * Which game to load at boot: the one that was playing last, as long as its
+ * save exists. Anything unexpected falls back to the normal game.
+ */
+export function bootMode(active: string | null, hasCustom: boolean): PlayMode {
+  return active === 'custom' && hasCustom ? 'custom' : 'normal';
+}
+
+export function readActiveMode(): PlayMode {
+  return bootMode(getItem(ACTIVE_KEY), getItem(KEY(CUSTOM_SLOT)) !== null);
+}
+
+export function writeActiveMode(mode: PlayMode): void {
+  if (getItem(ACTIVE_KEY) !== mode) setItem(ACTIVE_KEY, mode);
+}
+
+/** The Found flow's backups, kept apart for a custom game so the real ones are never pushed out. */
+function backupPrefix(mode: PlayMode | undefined): string {
+  return mode === 'custom' ? CUSTOM_BACKUP_PREFIX : BACKUP_PREFIX;
+}
+
 /** How the live save is stored: its JSON length, stored length (both in characters) and whether it is compressed. */
-export function saveStats(slot = 0): { json: number; stored: number; compressed: boolean } | null {
+export function saveStats(slot: SlotId = 0): { json: number; stored: number; compressed: boolean } | null {
   const raw = getItem(KEY(slot));
   if (raw === null) return null;
   const json = readSave(slot);
@@ -277,13 +322,15 @@ export function downloadFile(name: string, text: string): void {
 // M5: a copy of the old save is kept before each founding, since founding
 // can't be undone. One key per cycle; only the newest few are kept.
 const BACKUP_PREFIX = `${PREFIX}save.backup.`;
+const CUSTOM_BACKUP_PREFIX = `${PREFIX}save.custombackup.`;
 const BACKUPS_KEPT = 3;
 
-export function writeBackup(cycle: number, json: string): boolean {
-  const key = `${BACKUP_PREFIX}${cycle}`;
+export function writeBackup(cycle: number, json: string, mode: PlayMode = 'normal'): boolean {
+  const prefix = backupPrefix(mode);
+  const key = `${prefix}${cycle}`;
   if (!writeEncoded(key, json)) return false;
-  const cycles = listBackups();
-  for (const c of cycles.slice(0, Math.max(0, cycles.length - BACKUPS_KEPT))) removeItem(`${BACKUP_PREFIX}${c}`);
+  const cycles = listBackups(mode);
+  for (const c of cycles.slice(0, Math.max(0, cycles.length - BACKUPS_KEPT))) removeItem(`${prefix}${c}`);
   // Read it back from storage (not the decode cache) to be sure it landed.
   const raw = getItem(key);
   return raw !== null && decodeSave(raw) === json;
@@ -293,11 +340,12 @@ export function readBackup(cycle: number): string | null {
   return readEncoded(`${BACKUP_PREFIX}${cycle}`);
 }
 
-/** Cycles with a stored backup, oldest first. */
-export function listBackups(): number[] {
+/** Cycles with a stored backup, oldest first (the normal game's unless asked for the custom game's). */
+export function listBackups(mode: PlayMode = 'normal'): number[] {
+  const prefix = backupPrefix(mode);
   return keys()
-    .filter((k) => k.startsWith(BACKUP_PREFIX))
-    .map((k) => Number(k.slice(BACKUP_PREFIX.length)))
+    .filter((k) => k.startsWith(prefix))
+    .map((k) => Number(k.slice(prefix.length)))
     .filter((n) => Number.isFinite(n))
     .sort((a, b) => a - b);
 }
