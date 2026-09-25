@@ -314,7 +314,7 @@ function scaled(n: number | undefined, mult: number): number | undefined {
 
 function unknownRecipesOf(state: GameState, content: Content, rarity: Rarity, kind?: ItemKind): string[] {
   return Object.values(content.items)
-    .filter((d) => d.rarity === rarity && (!kind || d.kind === kind))
+    .filter((d) => d.rarity === rarity && (!kind || d.kind === kind) && !d.lootOnly)
     .map((d) => d.id)
     .filter((id) => !knowsRecipe(state, content, id));
 }

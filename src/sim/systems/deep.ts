@@ -185,7 +185,7 @@ function grantReward(state: GameState, content: Content, reward: DiscoveryReward
   }
   if (reward.fragment) {
     const pool = Object.values(content.items)
-      .filter((d) => d.rarity === reward.fragment && !knowsRecipe(state, content, d.id) && fragmentsNeeded(content, d.id) > 0)
+      .filter((d) => d.rarity === reward.fragment && !d.lootOnly && !knowsRecipe(state, content, d.id) && fragmentsNeeded(content, d.id) > 0)
       .map((d) => d.id);
     if (pool.length) addFragment(state, content, pick(state.rng, pool), 1);
   }

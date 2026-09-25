@@ -40,7 +40,7 @@ export function grantItem(state: GameState, content: Content, defId: string): nu
 }
 
 export function randomItemOf(state: GameState, content: Content, kind: 'weapon' | 'outfit', rarity: Rarity): string {
-  const pool = Object.values(kind === 'weapon' ? content.weapons : content.outfits).filter((d) => d.rarity === rarity);
+  const pool = Object.values(kind === 'weapon' ? content.weapons : content.outfits).filter((d) => d.rarity === rarity && !d.lootOnly);
   return pick(state.rng, pool).id;
 }
 

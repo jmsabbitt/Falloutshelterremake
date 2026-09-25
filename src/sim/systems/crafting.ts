@@ -325,7 +325,7 @@ export function scrapItem(state: GameState, content: Content, itemId: number): s
 // ------------------------------------------------------------------ reforging
 
 function itemsOf(content: Content, kind: ItemDef['kind'], rarity: Rarity): ItemDef[] {
-  return Object.values(content.items).filter((d) => d.kind === kind && d.rarity === rarity);
+  return Object.values(content.items).filter((d) => d.kind === kind && d.rarity === rarity && !d.lootOnly);
 }
 
 /** A random item of this kind and rarity, avoiding `exclude` when anything else exists. */

@@ -67,6 +67,9 @@ export interface WeaponDef {
   max: number;
   /** Stat that speeds up crafting this item. */
   craftStat: StatKey;
+  /** M9: only from rare-item paths (systems/loot.ts); never in random pools, no recipe. */
+  lootOnly?: boolean;
+  flavor?: string;
 }
 
 export interface OutfitDef {
@@ -75,6 +78,8 @@ export interface OutfitDef {
   rarity: Rarity;
   bonus: Partial<Stats>;
   craftStat: StatKey;
+  lootOnly?: boolean;
+  flavor?: string;
 }
 
 export type SalvageMaterial = 'circuitry' | 'hide' | 'adhesive' | 'cloth' | 'chemicals' | 'steel' | 'valuables';

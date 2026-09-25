@@ -189,7 +189,7 @@ export interface Room {
   banked: number;
 }
 
-export type IncidentType = 'fire' | 'skitters' | 'burrowers' | 'rustmen' | 'cavein' | 'flood' | 'deepcrawlers';
+export type IncidentType = 'fire' | 'skitters' | 'burrowers' | 'rustmen' | 'cavein' | 'flood' | 'deepcrawlers' | 'surge' | 'hollowed' | 'glassbacks' | 'maulers';
 
 export interface Incident {
   id: number;
@@ -495,6 +495,12 @@ export type GameEvent =
   | { type: 'incidentSpread'; incidentId: number; roomId: number; incident: IncidentType }
   | { type: 'incidentResolved'; incidentId: number; roomId: number; incident: IncidentType; loot: number }
   | { type: 'doorBreached'; incidentId: number }
+  | { type: 'incidentMoved'; incidentId: number; roomId: number; incident: IncidentType }
+  | { type: 'incidentEscaped'; incidentId: number; roomId: number; incident: IncidentType }
+  | { type: 'maulerStirring'; meter: number }
+  | { type: 'bossFirstKill'; questId: number; enemyId: string; defId: string }
+  | { type: 'treasureMapFound'; mapId: number; cacheId: string; regionId: string }
+  | { type: 'cacheDug'; cacheId: string; regionId: string; expeditionId: number }
   | { type: 'residentLeveled'; residentId: number; level: number }
   | { type: 'residentDied'; residentId: number }
   | { type: 'residentRevived'; residentId: number }

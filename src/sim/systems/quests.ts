@@ -476,7 +476,7 @@ function rollRange(state: GameState, v: number | [number, number] | undefined): 
 
 function unknownRecipes(state: GameState, content: Content, loot: Quest['loot'], rarity: Rarity, kind?: string): string[] {
   return Object.values(content.items)
-    .filter((d) => d.rarity === rarity && (!kind || d.kind === kind))
+    .filter((d) => d.rarity === rarity && (!kind || d.kind === kind) && !d.lootOnly)
     .map((d) => d.id)
     .filter((id) => !knowsRecipe(state, content, id) && !loot.recipes.includes(id))
     .filter((id) => (state.fragments[id] ?? 0) + (loot.fragments[id] ?? 0) < fragmentsNeeded(content, id));
@@ -1118,7 +1118,7 @@ function bountyFor(state: GameState, content: Content, tpl: ContractTemplateDef)
     reward.rep = { [tpl.faction]: tpl.rep ?? 5 };
     if (tpl.influence) reward.influence = tpl.influence;
   }
-  const candidates = Object.values(content.items).filter((d) => d.rarity === b.rarity && (!b.kind || d.kind === b.kind));
+  const candidates = Object.values(content.items).filter((d) => d.rarity === b.rarity && (!b.kind || d.kind === b.kind) && !d.lootOnly);
   const unknown = candidates.filter((d) => !knowsRecipe(state, content, d.id));
   if (b.rarity === 'legendary' && !unknown.length) {
     // Every legendary of this kind is already known: fragments would be worthless.

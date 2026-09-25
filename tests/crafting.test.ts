@@ -70,15 +70,16 @@ const rarityOfSalvage = (id: string): Rarity => content.salvage[id]!.rarity;
 describe('recipes', () => {
   it('every weapon and outfit has exactly one sensible recipe', () => {
     const recipes = content.crafting.recipes;
-    expect(Object.keys(content.weapons)).toHaveLength(15);
-    expect(Object.keys(content.outfits)).toHaveLength(21);
+    // M9 lootOnly items (boss drops, caches, region exclusives) have no recipe.
+    expect(Object.values(content.weapons).filter((d) => !d.lootOnly)).toHaveLength(15);
+    expect(Object.values(content.outfits).filter((d) => !d.lootOnly)).toHaveLength(21);
     expect(recipes).toHaveLength(36);
     const ranges: Record<Rarity, { scrip: [number, number]; hours: [number, number]; level: number; salvage: Rarity[] }> = {
       common: { scrip: [20, 60], hours: [0.5, 1], level: 1, salvage: ['common'] },
       rare: { scrip: [250, 600], hours: [3, 6], level: 2, salvage: ['common', 'rare'] },
       legendary: { scrip: [6000, 15000], hours: [12, 24], level: 3, salvage: ['rare', 'legendary'] },
     };
-    for (const def of Object.values(content.items)) {
+    for (const def of Object.values(content.items).filter((d) => !d.lootOnly)) {
       expect(recipes.filter((r) => r.defId === def.id), def.id).toHaveLength(1);
       const r = recipeFor(content, def.id)!;
       const want = ranges[def.rarity];
