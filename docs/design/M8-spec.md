@@ -101,7 +101,7 @@ Rules:
    - quiet hours
    - haptics, reduced motion, and a battery saver that caps FPS at 30, with a hook stream T reads
    - the save size or version
-   - Store the settings in storage under their own key.
+   - Store the settings as JSON in the `localStorage` key `homestead.settings`, mirrored like the saves. The names `batterySaver` and `reducedMotion` are fixed, because stream T reads them.
    - I'll wire the entry into the ☰ menu (it's in `ui.ts`, which T owns); say what call to add.
 7. **PWA:**
    - `manifest.webmanifest`, icons (192, 512 and maskable) and a service worker that caches the app shell and sprites for offline play. Use a versioned cache; hand-rolled or vite-plugin-pwa are both fine.
