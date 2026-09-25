@@ -29,6 +29,8 @@ interface Manifest {
   characters: Record<string, { sex: 'f' | 'm'; refHeight: number; anims: Record<string, AnimManifest> }>;
   /** Enemies, keyed by their look; one full-colour layer each ("full"). */
   creatures?: Record<string, { refHeight: number; anims: Record<string, AnimManifest> }>;
+  /** Single images by id then name; "room_<type>" ids hold room back walls by level. */
+  portraits?: Record<string, Record<string, string>>;
 }
 
 export interface Anim {
@@ -82,10 +84,21 @@ export class CharacterArt {
   constructor(
     readonly characters: Character[],
     creatures: Creature[] = [],
+    /** Room back-wall art by "type:level". */
+    private rooms = new Map<string, Texture>(),
   ) {
     // The first character listed for a body type is its default.
     for (const c of characters) if (!this.bySex.has(c.sex)) this.bySex.set(c.sex, c);
     for (const c of creatures) this.byLook.set(c.id, c);
+  }
+
+  /** A room's back-wall art at a level (falling back to a lower level's), or undefined to draw it. */
+  roomWall(type: string, level: number): Texture | undefined {
+    for (let l = level; l >= 1; l--) {
+      const t = this.rooms.get(`${type}:${l}`);
+      if (t) return t;
+    }
+    return undefined;
   }
 
   /** The art for an enemy look, or undefined to draw it with Graphics. */
@@ -140,7 +153,23 @@ export class CharacterArt {
         }),
       )
     ).filter((c): c is Creature => c !== null);
-    return characters.length || creatures.length ? new CharacterArt(characters, creatures) : null;
+    const rooms = new Map<string, Texture>();
+    await Promise.all(
+      Object.entries(manifest.portraits ?? {})
+        .filter(([id]) => id.startsWith('room_'))
+        .flatMap(([id, files]) =>
+          Object.entries(files).map(async ([level, file]) => {
+            try {
+              const t = await Assets.load<Texture>(`${base}${file}`);
+              t.source.scaleMode = 'linear';
+              rooms.set(`${id.slice(5)}:${level}`, t);
+            } catch (err) {
+              console.warn(`sprites: could not load ${file}`, err);
+            }
+          }),
+        ),
+    );
+    return characters.length || creatures.length || rooms.size ? new CharacterArt(characters, creatures, rooms) : null;
   }
 }
 

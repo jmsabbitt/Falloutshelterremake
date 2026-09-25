@@ -1,0 +1,23 @@
+{
+  "id": "room_clinic",
+  "kind": "portrait",
+  "background": "none",
+  "outDir": "rooms",
+  "prefix": "room_clinic_",
+  "targetHeight": 256,
+  "anims": {
+    "1": {
+      "file": "level1.png",
+      "whole": true,
+      "names": [
+        "1"
+      ],
+      "crop": [
+        130,
+        80,
+        1940,
+        2000
+      ]
+    }
+  }
+}

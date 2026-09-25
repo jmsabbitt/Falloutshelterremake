@@ -1,0 +1,17 @@
+{
+  "id": "room_storeroom",
+  "kind": "portrait",
+  "background": "none",
+  "outDir": "rooms",
+  "prefix": "room_storeroom_",
+  "targetHeight": 256,
+  "anims": {
+    "1": {
+      "file": "level1.png",
+      "whole": true,
+      "names": [
+        "1"
+      ]
+    }
+  }
+}

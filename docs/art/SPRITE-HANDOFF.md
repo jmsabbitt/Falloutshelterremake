@@ -191,6 +191,8 @@ The same pipeline builds enemies and interface portraits. Set `"kind"` in `sprit
 - **`"kind": "creature"`** (in `art/raw/<look>/`, named after the enemy's `look`): full colour, no recolouring. Animations are `idle` (loop), `attack` (plays when it strikes; its early frames are held during a boss wind-up) and `death` (plays once before the fade). Sheets must end up **facing left**, toward the party; use `"mirror": true` for sheets drawn facing right. Use `"background": "magenta"` for anything with green in it. The quest screen and the vault incidents (skitters, burrowers, raiders, deepcrawlers) use the art when a look has some, and draw the old Graphics version otherwise.
 - **`"kind": "portrait"`**: each frame is saved as its own image in `public/sprites/portraits/<id>_<name>.webp`, named by `"names"`. HALCY's four faces (`smile`, `talk`, `worried`, `wink`) appear beside her lines (`src/client/ui/halcy.ts`).
 - **Item icons** use the portrait kind too (`art/raw/items/`, `"outDir": "items"`, `"prefix": ""`, `"fit": 96`), one image per item id in `public/sprites/items/`. The storage list and crate cards show them (`src/client/ui/icons.ts`), with the old emoji as fallback. Icon sheets often come out shuffled or with repeats: `"order": "x"` reads a row strictly left to right, `"boxes"` names explicit regions of the sheet, and `"background": "corner"` keys any flat background colour.
+- **Salvage icons** work the same way (`art/raw/salvage/`, one sheet per material), shown in the salvage cells of the storage panel.
+- **Room walls** (`art/raw/room_<type>/`, `"outDir": "rooms"`, `"background": "none"`, `"whole": true`, one animation per level named `1`, `2`, `3`) become `public/sprites/rooms/room_<type>_<level>.webp`. A painted wall replaces the drawn back wall and props; the room frame, level stripes, deep-floor bracing and animated effects are still drawn on top. Rooms that merge (three cells per segment) tile one square image per segment. Office and door images are one wide 21:9 picture. A missing level falls back to the highest lower level, and a room with no art keeps the Graphics version. The elevator has none by design.
 
 | Look | Used by | Animations |
 |---|---|---|
@@ -214,3 +216,4 @@ We need commercial use rights with no attribution or exclusivity strings. Record
 | resident_f / idle, work, fight, fallen, carry | artlist.io, Nano Banana 2 I2I 2K | AI Suite plan (credits) | 2026-09-24 | ☐ |
 | resident_m / all | artlist.io, Nano Banana 2 I2I 2K | AI Suite plan (credits) | 2026-09-24 | ☐ |
 | all creatures, HALCY portraits | artlist.io, Nano Banana 2 I2I 2K | AI Suite plan (credits) | 2026-09-24 | ☐ |
+| item and salvage icons, room walls | artlist.io, Nano Banana 2 T2I / I2I 2K | AI Suite plan (credits) | 2026-09-25 | ☐ |

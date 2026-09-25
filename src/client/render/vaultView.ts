@@ -3,7 +3,7 @@
 // depth rather than flat tiles. Static art is rebuilt only when the layout
 // changes; overlays and residents are updated every frame.
 
-import { Application, Container, Graphics, Text, type FederatedPointerEvent } from 'pixi.js';
+import { Application, Container, Graphics, Sprite, Text, type FederatedPointerEvent } from 'pixi.js';
 import {
   buildCost,
   isAway,
@@ -379,10 +379,24 @@ export class VaultView {
     for (const room of this.game.state.rooms) {
       const r = this.roomRect(room);
       const g = new Graphics();
-      drawRoomBox(g, room.type, r.w, r.h, room.level, room.segments);
+      const wall = this.art?.roomWall(room.type, room.level);
+      drawRoomBox(g, room.type, r.w, r.h, room.level, room.segments, !!wall);
       if (isDeepFloor(content, room.floor)) drawDeepFrame(g, r.w, r.h, stratumOf(content, room.floor), isBraced, room.id, room.type === 'elevator');
       g.position.set(r.x, r.y);
       this.statics.addChild(g);
+      if (wall) {
+        // Painted back wall: one module per segment for rooms that merge, else one image.
+        const def = roomDef(this.game.content, room);
+        const tiles = def.cells === 3 ? room.segments : 1;
+        const { x: bx, y: by, w: bw, h: bh } = backWall(r.w, r.h);
+        for (let i = 0; i < tiles; i++) {
+          const s = new Sprite(wall);
+          s.position.set(r.x + bx + (bw / tiles) * i, r.y + by);
+          s.width = bw / tiles;
+          s.height = bh;
+          this.statics.addChild(s);
+        }
+      }
       const def = roomDef(this.game.content, room);
       if (room.type !== 'elevator') {
         const name = def.levelNames?.[room.level - 1] ?? def.name;
@@ -392,6 +406,14 @@ export class VaultView {
         });
         label.alpha = 0.7;
         label.position.set(r.x + DEPTH_X + 6, r.y + DEPTH_Y + 4);
+        if (wall) {
+          // On painted walls the name sits on a dark tab so it stays readable.
+          label.style.fill = 0xf4ecd8;
+          label.alpha = 0.9;
+          const tab = new Graphics().roundRect(-4, -2, label.width + 8, label.height + 3, 4).fill({ color: 0x14100d, alpha: 0.6 });
+          tab.position.set(label.x, label.y);
+          this.statics.addChild(tab);
+        }
         this.statics.addChild(label);
       }
     }
@@ -793,6 +815,7 @@ export class VaultView {
   /** Switch residents to sprite art once it has loaded. */
   setArt(art: CharacterArt | null): void {
     this.art = art;
+    this.builtLayout = -1; // rebuild rooms with any painted walls
     for (const sp of this.sprites.values()) sp.look = '';
     for (const w of this.walkers.values()) w.look = '';
   }
@@ -1172,7 +1195,14 @@ function lerpColor(a: number, b: number, t: number): number {
 }
 
 /** Draw a cutaway room box at (0,0) of size w×h. */
-function drawRoomBox(g: Graphics, type: string, w: number, h: number, level: number, segments: number): void {
+/** The back wall's rectangle inside a room box (the painted art covers it). */
+function backWall(w: number, h: number): { x: number; y: number; w: number; h: number } {
+  const i = 3;
+  return { x: i + DEPTH_X, y: i + DEPTH_Y, w: w - 2 * (i + DEPTH_X), h: h - 2 * (i + DEPTH_Y) };
+}
+
+/** `shell` draws only the box (frame, ceiling, floor, walls): painted art supplies the rest. */
+function drawRoomBox(g: Graphics, type: string, w: number, h: number, level: number, segments: number, shell = false): void {
   const look = roomLook(type);
   const dx = DEPTH_X;
   const dy = DEPTH_Y;
@@ -1196,6 +1226,7 @@ function drawRoomBox(g: Graphics, type: string, w: number, h: number, level: num
   g.rect(bx, by + bh * 0.62, bw, 3).fill(look.trim);
   // level stripes on the ceiling lip
   for (let l = 0; l < level; l++) g.rect(bx + 4 + l * 10, by + 2, 7, 3).fill(look.accent);
+  if (shell) return;
 
   switch (type) {
     case 'door': {

@@ -62,6 +62,8 @@ def hex_rgb(h: str) -> tuple[int, int, int]:
 def chroma_key(img: Image.Image, background: str = "green") -> np.ndarray:
     a = np.array(img.convert("RGB")).astype(int)
     r, g, b = a[..., 0], a[..., 1], a[..., 2]
+    if background == "none":  # opaque art (room walls): keep every pixel
+        return np.dstack([r, g, b, np.full_like(r, 255)]).astype(np.uint8)
     if background == "corner":
         # Key out whatever flat colour the top-left corner is (for off-shade backgrounds).
         bg = a[:8, :8].reshape(-1, 3).mean(axis=0)
@@ -318,6 +320,11 @@ def build_character(folder: Path) -> tuple[str, dict] | None:
         solid = (keyed[..., 3] > 128).mean(axis=1) > 0.5
         keyed[solid, 3] = 0
         # "split": "figures" cuts by connected shapes instead of by empty gaps.
+        # "whole": true uses the (cropped) sheet as a single frame.
+        if a.get("whole"):
+            cut[name] = [keyed]
+            print(f"  {cid}/{name}: whole image")
+            continue
         # "boxes": [[x0, y0, x1, y1], ...] cuts one frame per box instead (for
         # sheets where the generator repeated or overlapped things); each frame
         # keeps every sizeable shape in its box, so a hat stays with its coat.
