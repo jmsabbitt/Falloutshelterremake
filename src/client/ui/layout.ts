@@ -14,3 +14,13 @@ export function syncHudHeight(hud: HTMLElement): void {
   last = h;
   document.documentElement.style.setProperty('--hud-h', `${h}px`);
 }
+
+/** A phone held upright: panels are bottom sheets. */
+export function isPhone(): boolean {
+  return window.innerWidth < 640;
+}
+
+/** Upright or on its side: short labels, the compact HUD and toolbar. */
+export function compactLayout(): boolean {
+  return window.innerWidth < 640 || window.innerHeight < 500;
+}

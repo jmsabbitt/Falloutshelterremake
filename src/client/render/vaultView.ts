@@ -3,7 +3,7 @@
 // depth rather than flat tiles. Static art is rebuilt only when the layout
 // changes; overlays and residents are updated every frame.
 
-import { Application, Container, Graphics, Sprite, Text, type FederatedPointerEvent } from 'pixi.js';
+import { Application, Container, Graphics, Sprite, Text, UPDATE_PRIORITY, type FederatedPointerEvent } from 'pixi.js';
 import {
   buildCost,
   isAway,
@@ -33,6 +33,9 @@ import {
   type Caravan,
 } from '../../sim';
 import type { Game } from '../game';
+import { haptic } from '../platform';
+import { FrameGovernor } from './governor';
+import { reducedMotion } from './prefs';
 import {
   type RoomLook,
   FRAME,
@@ -139,6 +142,48 @@ function hash(n: number): number {
 const SKIN = [0xf1c9a5, 0xe0ac86, 0xc68b62, 0x9c6644, 0x70462c, 0xf6d6c2];
 const HAIR = [0x2b1e16, 0x5a3a22, 0x8c5a2b, 0xd9b26a, 0x9b2f1f, 0x1b1b1b, 0xbfb6a8];
 
+// M8 touch tuning (screen pixels and milliseconds).
+/** A finger may wander this far and still be tapping; a mouse, less. */
+const TAP_SLOP_TOUCH = 10;
+const TAP_SLOP_MOUSE = 5;
+/** Hold a resident this long to pick them up (touch). Moving first pans the camera instead. */
+const LONG_PRESS_MS = 180;
+/** Two taps this close in time and space are a double tap (zoom in or out). */
+const DOUBLE_TAP_MS = 300;
+const DOUBLE_TAP_SLOP = 36;
+/** While dragging a resident, the camera scrolls when the finger is this close to the edge of the free area. */
+const EDGE_ZONE = 56;
+const EDGE_SPEED = 720;
+/** Pan inertia: velocity half-life and the speed below which it stops. */
+const INERTIA_DECAY = 4.5;
+const INERTIA_MIN = 20;
+const MIN_ZOOM = 0.35;
+const MAX_ZOOM = 2.2;
+
+type GestureKind = 'none' | 'pan' | 'pinch' | 'drag' | 'press';
+interface Gesture {
+  kind: GestureKind;
+  startX: number;
+  startY: number;
+  t: number;
+  moved: boolean;
+  touch: boolean;
+  pinchDist?: number;
+  pinchMid?: { x: number; y: number };
+  residentId?: number;
+  /** A dragged resident is off the ground and following the finger. */
+  lifted?: boolean;
+}
+const noGesture = (): Gesture => ({ kind: 'none', startX: 0, startY: 0, t: 0, moved: false, touch: false });
+
+/** A camera glide: world position and zoom, eased over `dur` seconds. */
+interface CamTween {
+  from: { x: number; y: number; z: number };
+  to: { x: number; y: number; z: number };
+  t: number;
+  dur: number;
+}
+
 export class VaultView {
   readonly world = new Container();
   private bg = new Container();
@@ -189,15 +234,23 @@ export class VaultView {
   suspended = false;
 
   // camera / input
-  private zoom = window.innerWidth < 640 ? 0.55 : 0.85;
+  private zoom = defaultZoom();
   private pointers = new Map<number, { x: number; y: number }>();
-  private gesture: { kind: 'none' | 'pan' | 'pinch' | 'drag'; startX: number; startY: number; t: number; moved: boolean; pinchDist?: number; residentId?: number } = {
-    kind: 'none',
-    startX: 0,
-    startY: 0,
-    t: 0,
-    moved: false,
-  };
+  private gesture: Gesture = noGesture();
+  /** M8: pan inertia after a flick (screen px per second). */
+  private velocity = { x: 0, y: 0 };
+  /** Recent pan moves, to measure the flick speed on release. */
+  private panSamples: { t: number; dx: number; dy: number }[] = [];
+  private camTween: CamTween | null = null;
+  /** Where the camera was before it moved a room out from under a sheet, and where it moved to. */
+  private revealed: { back: { x: number; y: number; z: number }; at: { x: number; y: number; z: number } } | null = null;
+  private lastTap: { x: number; y: number; t: number } | null = null;
+  private pressTimer = 0;
+  /** Last screen point of the finger dragging a resident (for edge scrolling). */
+  private dragPoint: { x: number; y: number } | null = null;
+  readonly governor: FrameGovernor;
+  /** Average time Pixi spends rendering a frame (ms), for the perf probe. */
+  private renderCost = { n: 0, ms: 0, t0: 0 };
 
   constructor(
     private app: Application,
@@ -212,6 +265,38 @@ export class VaultView {
     this.installInput();
     this.centerOn(window.innerWidth < 640 ? 6 * CELL : 9 * CELL, SURFACE_H + FLOOR_H * 0.8);
     game.on((events) => this.onEvents(events));
+    this.governor = new FrameGovernor(app.ticker, () => this.busy());
+    // Time Pixi's own render pass (it runs at LOW priority) for the perf probe.
+    app.ticker.add(() => (this.renderCost.t0 = performance.now()), undefined, UPDATE_PRIORITY.LOW + 1);
+    app.ticker.add(
+      () => {
+        this.renderCost.n++;
+        this.renderCost.ms += performance.now() - this.renderCost.t0;
+      },
+      undefined,
+      UPDATE_PRIORITY.LOW - 1,
+    );
+    (window as unknown as Record<string, unknown>).homesteadPerf = {
+      /** Average render ms per frame since the last call, and what the governor is doing. */
+      render: () => {
+        const out = { frames: this.renderCost.n, render: this.renderCost.ms / Math.max(1, this.renderCost.n) };
+        this.renderCost.n = this.renderCost.ms = 0;
+        return out;
+      },
+      governor: () => ({ cap: this.governor.cap, idle: this.governor.idle, maxFPS: app.ticker.maxFPS }),
+      /** Screen point on a resident's body, for the touch tests. */
+      resident: (id: number) => {
+        const sp = this.sprites.get(id);
+        return sp ? this.world.toGlobal({ x: sp.root.x, y: sp.root.y - RESIDENT_H / 2 }) : null;
+      },
+      /** Camera and gesture state, for the touch tests. */
+      input: () => ({ gesture: this.gesture.kind, lifted: !!this.gesture.lifted, pointers: this.pointers.size, velocity: { ...this.velocity }, gliding: this.camTween !== null, revealed: this.revealed !== null, reducedMotion: reducedMotion() }),
+    };
+  }
+
+  /** Something on screen should stay smooth: a gesture, a camera glide, an incident, a floater. */
+  private busy(): boolean {
+    return this.suspended || this.pointers.size > 0 || this.camTween !== null || this.velocity.x !== 0 || this.velocity.y !== 0 || this.floats.length > 0 || this.game.state.incidents.length > 0;
   }
 
   /**
@@ -237,11 +322,13 @@ export class VaultView {
     this.ghostLayer.removeChildren().forEach((c) => c.destroy({ children: true }));
     this.overlay.clear();
     this.pointers.clear();
-    this.gesture = { kind: 'none', startX: 0, startY: 0, t: 0, moved: false };
+    this.gesture = noGesture();
+    this.stopCamera();
+    this.revealed = null;
     this.suspended = false;
     this.world.visible = true;
     this.rebuildStatics();
-    this.zoom = window.innerWidth < 640 ? 0.55 : 0.85;
+    this.zoom = defaultZoom();
     this.centerOn(window.innerWidth < 640 ? 6 * CELL : 9 * CELL, SURFACE_H + FLOOR_H * 0.8);
   }
 
@@ -342,7 +429,7 @@ export class VaultView {
   }
 
   private zoomAt(screenX: number, screenY: number, factor: number): void {
-    const next = Math.max(0.35, Math.min(2.2, this.zoom * factor));
+    const next = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, this.zoom * factor));
     const wx = (screenX - this.world.x) / this.zoom;
     const wy = (screenY - this.world.y) / this.zoom;
     this.zoom = next;
@@ -350,6 +437,165 @@ export class VaultView {
     this.world.x = screenX - wx * next;
     this.world.y = screenY - wy * next;
     this.clampCamera();
+  }
+
+  // ---------------------------------------------------------------- camera motion (M8)
+
+  private camNow(): { x: number; y: number; z: number } {
+    return { x: this.world.x, y: this.world.y, z: this.zoom };
+  }
+
+  /** Where the camera would really end up at this position and zoom, once clamped. */
+  private clamped(x: number, y: number, z: number): { x: number; y: number; z: number } {
+    const was = this.camNow();
+    this.zoom = z;
+    this.world.scale.set(z);
+    this.world.position.set(x, y);
+    this.clampCamera();
+    const out = this.camNow();
+    this.zoom = was.z;
+    this.world.scale.set(was.z);
+    this.world.position.set(was.x, was.y);
+    return out;
+  }
+
+  /** Ease the camera to a (clamped) position and zoom; instant with reduced motion. */
+  private glideTo(to: { x: number; y: number; z: number }, dur = 0.32): void {
+    this.velocity = { x: 0, y: 0 };
+    if (reducedMotion() || dur <= 0) {
+      this.camTween = null;
+      this.applyCam(to);
+      return;
+    }
+    this.camTween = { from: this.camNow(), to, t: 0, dur };
+  }
+
+  private applyCam(c: { x: number; y: number; z: number }): void {
+    this.zoom = c.z;
+    this.world.scale.set(c.z);
+    this.world.position.set(c.x, c.y);
+    this.clampCamera();
+  }
+
+  /** Drop any glide or flick in progress (a finger went down). */
+  private stopCamera(): void {
+    this.camTween = null;
+    this.velocity = { x: 0, y: 0 };
+  }
+
+  /** Glides, flick inertia and edge scrolling while a resident is dragged. */
+  private stepCamera(dt: number): void {
+    const tw = this.camTween;
+    if (tw) {
+      tw.t += dt;
+      const k = Math.min(1, tw.t / tw.dur);
+      const e = 1 - Math.pow(1 - k, 3);
+      const z = tw.from.z + (tw.to.z - tw.from.z) * e;
+      this.zoom = z;
+      this.world.scale.set(z);
+      this.world.position.set(tw.from.x + (tw.to.x - tw.from.x) * e, tw.from.y + (tw.to.y - tw.from.y) * e);
+      if (k >= 1) {
+        this.camTween = null;
+        this.clampCamera();
+      }
+    } else if (this.velocity.x !== 0 || this.velocity.y !== 0) {
+      const bx = this.world.x;
+      const by = this.world.y;
+      this.world.x += this.velocity.x * dt;
+      this.world.y += this.velocity.y * dt;
+      this.clampCamera();
+      // Hitting the edge of the homestead stops that axis.
+      const decay = Math.exp(-INERTIA_DECAY * dt);
+      this.velocity.x = Math.abs(this.world.x - bx) < 0.01 ? 0 : this.velocity.x * decay;
+      this.velocity.y = Math.abs(this.world.y - by) < 0.01 ? 0 : this.velocity.y * decay;
+      if (Math.hypot(this.velocity.x, this.velocity.y) < INERTIA_MIN) this.velocity = { x: 0, y: 0 };
+    }
+    const g = this.gesture;
+    const p = this.dragPoint;
+    if (g.kind === 'drag' && g.lifted && p) {
+      const ins = this.usableInsets();
+      const sw = this.app.screen.width;
+      const sh = this.app.screen.height;
+      const push = (d: number) => Math.max(0, Math.min(1, (EDGE_ZONE - d) / EDGE_ZONE));
+      const vy = push(p.y - ins.top) - push(sh - ins.bottom - p.y);
+      const vx = push(p.x) - push(sw - ins.right - p.x);
+      if (vx || vy) {
+        this.world.x += vx * EDGE_SPEED * dt;
+        this.world.y += vy * EDGE_SPEED * dt;
+        this.clampCamera();
+        this.placeDragged(p);
+      }
+    }
+  }
+
+  /**
+   * M8: a sheet (or docked panel) just opened for a room. If the room is
+   * hidden under it, glide the camera so the room sits in the free area.
+   * `insets` is the screen the DOM covers. Returns true if the camera moved.
+   */
+  revealRoom(room: Room, insets: { top: number; right: number; bottom: number }): boolean {
+    const r = this.roomRect(room);
+    const cam = this.camTween?.to ?? this.camNow();
+    const z = cam.z;
+    const sw = this.app.screen.width;
+    const sh = this.app.screen.height;
+    const area = { x0: 0, x1: sw - insets.right, y0: insets.top, y1: sh - insets.bottom };
+    if (area.x1 - area.x0 < 120 || area.y1 - area.y0 < 60) return false;
+    const sx = cam.x + r.x * z;
+    const sy = cam.y + r.y * z;
+    const w = r.w * z;
+    const hgt = r.h * z;
+    // Surface buildings rise above their row: keep their top in view too.
+    const top = isTopside(room) ? sy - 60 * z : sy;
+    const fitsX = sx >= area.x0 - 1 && sx + w <= area.x1 + 1;
+    const fitsY = top >= area.y0 - 1 && sy + hgt <= area.y1 + 1;
+    if (fitsX && fitsY) return false;
+    let tx = cam.x;
+    let ty = cam.y;
+    if (!fitsX) tx += (area.x0 + area.x1) / 2 - (sx + w / 2);
+    if (!fitsY) ty += (area.y0 + area.y1) / 2 - (top + sy + hgt) / 2;
+    // The sheet is up, so the camera may pull the deepest floors clear of it.
+    const saved = this.insets;
+    this.insets = insets;
+    const to = this.clamped(tx, ty, z);
+    this.insets = saved;
+    if (Math.abs(to.x - cam.x) < 1 && Math.abs(to.y - cam.y) < 1) return false;
+    // Keep the first "before": hopping between rooms returns to where the player was.
+    if (!this.revealed) this.revealed = { back: this.camNow(), at: to };
+    else this.revealed.at = to;
+    this.glideTo(to);
+    return true;
+  }
+
+  /** The room sheet closed: put the camera back, unless the player has moved it since. */
+  restoreCamera(): void {
+    const rv = this.revealed;
+    this.revealed = null;
+    if (!rv) return;
+    const now = this.camTween?.to ?? this.camNow();
+    if (Math.abs(now.x - rv.at.x) > 3 || Math.abs(now.y - rv.at.y) > 3 || Math.abs(now.z - rv.at.z) > 0.001) return;
+    this.glideTo(this.clamped(rv.back.x, rv.back.y, rv.back.z));
+  }
+
+  /** Double tap: zoom in around the point, or back out to the overview. */
+  private doubleTapZoom(sx: number, sy: number): void {
+    const base = defaultZoom();
+    const z = this.zoom < base * 1.6 ? Math.min(MAX_ZOOM, base * 2) : base;
+    const wx = (sx - this.world.x) / this.zoom;
+    const wy = (sy - this.world.y) / this.zoom;
+    this.revealed = null;
+    this.glideTo(this.clamped(sx - wx * z, sy - wy * z, z), 0.26);
+  }
+
+  /** Keep a lifted resident under the finger. */
+  private placeDragged(global: { x: number; y: number }): void {
+    const id = this.gesture.residentId;
+    const sp = id === undefined ? undefined : this.sprites.get(id);
+    if (!sp) return;
+    const local = this.world.toLocal(global);
+    sp.x = local.x;
+    // Held a little above the finger so the player can see who they carry.
+    sp.root.position.set(local.x, local.y + (this.gesture.touch ? -8 / this.zoom : 20));
   }
 
   // ---------------------------------------------------------------- drawing
@@ -607,6 +853,8 @@ export class VaultView {
 
   update(dt: number): void {
     this.time += dt;
+    this.governor.update();
+    if (!this.suspended) this.stepCamera(dt);
     const { state, content } = this.game;
     const deepKey = deepViewKey(state, braced(state, content));
     if (deepKey !== this.deepKey) {
@@ -1237,14 +1485,74 @@ export class VaultView {
     root.addChild(pose);
     root.eventMode = 'static';
     root.cursor = 'grab';
+    // Kept tight so taps on a busy room still reach the room; a long press nearby also picks them up (pressNear).
     root.hitArea = { contains: (x: number, y: number) => x > -14 && x < 14 && y > -RESIDENT_H && y < 4 };
     root.on('pointerdown', (e: FederatedPointerEvent) => {
+      if (this.suspended) return;
       e.stopPropagation();
+      this.stopCamera();
       this.pointers.set(e.pointerId, { x: e.global.x, y: e.global.y });
-      this.gesture = { kind: 'drag', startX: e.global.x, startY: e.global.y, t: performance.now(), moved: false, residentId: res.id };
+      // A second finger turns this into a pinch (the stage handler never sees it otherwise).
+      if (this.pointers.size === 2) {
+        this.startPinch();
+        return;
+      }
+      const touch = e.pointerType === 'touch';
+      // Touch: hold to pick up, so a swipe that starts on someone still pans. Mouse: drag at once.
+      this.gesture = { kind: touch ? 'press' : 'drag', startX: e.global.x, startY: e.global.y, t: performance.now(), moved: false, touch, residentId: res.id };
+      window.clearTimeout(this.pressTimer);
+      if (touch) this.pressTimer = window.setTimeout(() => this.liftResident(res.id), LONG_PRESS_MS);
     });
     this.residentLayer.addChild(root);
     return { root, pose, body, figure: null, moving: false, x: 0, targetX: 0, roomId: -999, phase: hash(res.id) % 10, facing: 1, look: '', action: 'idle' };
+  }
+
+  /**
+   * Touch: a long press on the room near (not exactly on) a resident picks up
+   * the nearest one within a finger's width, since residents are small on a phone.
+   */
+  private pressNear(x: number, y: number): void {
+    const g = this.gesture;
+    if (g.kind !== 'pan' || g.moved || this.pointers.size !== 1 || this.suspended) return;
+    const reach = 26;
+    let best: { id: number; d: number } | null = null;
+    for (const [id, sp] of this.sprites) {
+      if (!sp.root.visible || sp.root.alpha < 1) continue;
+      const p = this.world.toGlobal({ x: sp.root.x, y: sp.root.y - (RESIDENT_H / 2) * Math.abs(sp.root.scale.y) });
+      const d = Math.max(0, Math.abs(p.x - x) - 8 * this.zoom) + Math.max(0, Math.abs(p.y - y) - (RESIDENT_H / 2) * this.zoom);
+      if (d < reach && (!best || d < best.d)) best = { id, d };
+    }
+    if (!best) return;
+    this.gesture = { ...g, kind: 'press', residentId: best.id };
+    this.liftResident(best.id);
+  }
+
+  /** The long press landed: the resident comes up off the floor and follows the finger. */
+  private liftResident(id: number): void {
+    const g = this.gesture;
+    if (g.kind !== 'press' || g.residentId !== id || this.suspended) return;
+    const res = this.game.state.residents.find((r) => r.id === id);
+    if (!res || res.dead) return;
+    g.kind = 'drag';
+    g.moved = true;
+    g.lifted = true;
+    const p = [...this.pointers.values()][0] ?? { x: g.startX, y: g.startY };
+    this.dragPoint = { x: p.x, y: p.y };
+    this.placeDragged(p);
+    haptic('select');
+  }
+
+  private startPinch(): void {
+    window.clearTimeout(this.pressTimer);
+    const [a, b] = [...this.pointers.values()] as [{ x: number; y: number }, { x: number; y: number }];
+    // A resident already lifted goes back where they were.
+    const id = this.gesture.residentId;
+    if (id !== undefined) {
+      const sp = this.sprites.get(id);
+      if (sp) sp.roomId = -999;
+    }
+    this.dragPoint = null;
+    this.gesture = { kind: 'pinch', startX: 0, startY: 0, t: 0, moved: true, touch: true, pinchDist: Math.hypot(a.x - b.x, a.y - b.y), pinchMid: { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 } };
   }
 
   // ---------------------------------------------------------------- input
@@ -1256,12 +1564,16 @@ export class VaultView {
 
     stage.on('pointerdown', (e: FederatedPointerEvent) => {
       if (this.suspended) return;
+      this.stopCamera();
       this.pointers.set(e.pointerId, { x: e.global.x, y: e.global.y });
-      if (this.pointers.size === 2) {
-        const [a, b] = [...this.pointers.values()] as [{ x: number; y: number }, { x: number; y: number }];
-        this.gesture = { kind: 'pinch', startX: 0, startY: 0, t: 0, moved: true, pinchDist: Math.hypot(a.x - b.x, a.y - b.y) };
-      } else if (this.gesture.kind !== 'drag') {
-        this.gesture = { kind: 'pan', startX: e.global.x, startY: e.global.y, t: performance.now(), moved: false };
+      if (this.pointers.size === 2) this.startPinch();
+      else if (this.pointers.size === 1) {
+        this.panSamples = [];
+        const touch = e.pointerType === 'touch';
+        this.gesture = { kind: 'pan', startX: e.global.x, startY: e.global.y, t: performance.now(), moved: false, touch };
+        window.clearTimeout(this.pressTimer);
+        const { x, y } = e.global;
+        if (touch) this.pressTimer = window.setTimeout(() => this.pressNear(x, y), LONG_PRESS_MS);
       }
     });
 
@@ -1272,61 +1584,121 @@ export class VaultView {
       const dy = e.global.y - prev.y;
       this.pointers.set(e.pointerId, { x: e.global.x, y: e.global.y });
       const g = this.gesture;
-      if (Math.hypot(e.global.x - g.startX, e.global.y - g.startY) > 6) g.moved = true;
+      const slop = g.touch ? TAP_SLOP_TOUCH : TAP_SLOP_MOUSE;
+      const far = Math.hypot(e.global.x - g.startX, e.global.y - g.startY) > slop;
+      if (g.kind === 'press' && far) {
+        // Moved before the hold landed: this is a pan that happened to start on a resident.
+        window.clearTimeout(this.pressTimer);
+        this.panSamples = [];
+        this.gesture = { kind: 'pan', startX: g.startX, startY: g.startY, t: g.t, moved: true, touch: g.touch };
+        this.world.x += e.global.x - g.startX;
+        this.world.y += e.global.y - g.startY;
+        this.clampCamera();
+        return;
+      }
+      if (far) g.moved = true;
       if (g.kind === 'pan' && g.moved) {
         this.world.x += dx;
         this.world.y += dy;
         this.clampCamera();
+        const now = performance.now();
+        this.panSamples.push({ t: now, dx, dy });
+        while (this.panSamples.length && now - this.panSamples[0]!.t > 100) this.panSamples.shift();
       } else if (g.kind === 'pinch' && this.pointers.size === 2) {
         const [a, b] = [...this.pointers.values()] as [{ x: number; y: number }, { x: number; y: number }];
         const dist = Math.hypot(a.x - b.x, a.y - b.y);
-        if (g.pinchDist) this.zoomAt((a.x + b.x) / 2, (a.y + b.y) / 2, dist / g.pinchDist);
-        g.pinchDist = dist;
-      } else if (g.kind === 'drag' && g.residentId !== undefined && g.moved) {
-        const sp = this.sprites.get(g.residentId);
-        if (sp) {
-          const local = this.world.toLocal(e.global);
-          sp.x = local.x;
-          sp.root.position.set(local.x, local.y + 20);
-          sp.root.cursor = 'grabbing';
+        const mid = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
+        // Zoom around the midpoint, and let the midpoint carry the homestead with it.
+        if (g.pinchDist && dist > 0) this.zoomAt(mid.x, mid.y, dist / g.pinchDist);
+        if (g.pinchMid) {
+          this.world.x += mid.x - g.pinchMid.x;
+          this.world.y += mid.y - g.pinchMid.y;
+          this.clampCamera();
         }
+        g.pinchDist = dist;
+        g.pinchMid = mid;
+        this.revealed = null;
+      } else if (g.kind === 'drag' && g.residentId !== undefined && g.moved) {
+        if (!g.lifted) {
+          g.lifted = true;
+          haptic('select');
+        }
+        this.dragPoint = { x: e.global.x, y: e.global.y };
+        this.placeDragged(e.global);
+        const sp = this.sprites.get(g.residentId);
+        if (sp) sp.root.cursor = 'grabbing';
       }
     });
 
-    const end = (e: FederatedPointerEvent) => {
+    const end = (e: FederatedPointerEvent, outside: boolean) => {
+      if (!this.pointers.has(e.pointerId)) return;
       this.pointers.delete(e.pointerId);
+      window.clearTimeout(this.pressTimer);
       if (this.suspended) {
-        this.gesture = { kind: 'none', startX: 0, startY: 0, t: 0, moved: false };
+        this.gesture = noGesture();
         return;
       }
       const g = this.gesture;
-      if (this.pointers.size > 0 && g.kind === 'pinch') return;
+      if (g.kind === 'pinch') {
+        // Lifting one finger of a pinch ends it; the other finger does nothing until it lifts too.
+        if (this.pointers.size === 0) this.gesture = noGesture();
+        return;
+      }
       const local = this.world.toLocal(e.global);
-      if (g.kind === 'drag' && g.residentId !== undefined) {
+      if ((g.kind === 'drag' || g.kind === 'press') && g.residentId !== undefined) {
         const res = this.game.state.residents.find((r) => r.id === g.residentId);
         if (res) {
-          if (g.moved && !res.dead) this.cb.onResidentDrop(res.id, this.roomAt(local.x, local.y));
-          else this.cb.onResidentTap(res);
+          if (g.lifted && !res.dead) this.cb.onResidentDrop(res.id, outside ? null : this.roomAt(local.x, local.y));
+          else if (!g.moved && !outside) this.cb.onResidentTap(res);
         }
         const sp = this.sprites.get(g.residentId);
-        if (sp) sp.roomId = -999; // re-seat
-      } else if (g.kind === 'pan' && !g.moved) {
-        const room = this.roomAt(local.x, local.y);
-        if (this.walkerAt(local.x, local.y)) this.cb.onExplorerTap();
-        else if (this.cb.onCaravanTap && this.caravanAt(local.x, local.y)) this.cb.onCaravanTap();
-        else if (room) this.cb.onRoomTap(room);
-        else this.cb.onEmptyTap();
+        if (sp) {
+          sp.roomId = -999; // re-seat
+          sp.root.cursor = 'grab';
+        }
+      } else if (g.kind === 'pan' && g.moved) {
+        // A flick keeps the camera gliding.
+        // Speed over the last moves before the finger lifted; a finger that stopped first doesn't flick.
+        const s = this.panSamples;
+        const first = s[0];
+        const last = s[s.length - 1];
+        if (first && last && performance.now() - last.t < 150 && !reducedMotion()) {
+          const span = Math.max(16, last.t - first.t + 16);
+          const vx = (s.reduce((n, x) => n + x.dx, 0) / span) * 1000;
+          const vy = (s.reduce((n, x) => n + x.dy, 0) / span) * 1000;
+          if (Math.hypot(vx, vy) > 350) this.velocity = { x: vx, y: vy };
+        }
+        this.revealed = null;
+      } else if (g.kind === 'pan' && !outside) {
+        // A tap. Released over the DOM (a panel, the toolbar) it is not one.
+        const now = performance.now();
+        const lt = this.lastTap;
+        if (lt && now - lt.t < DOUBLE_TAP_MS && Math.hypot(e.global.x - lt.x, e.global.y - lt.y) < DOUBLE_TAP_SLOP) {
+          this.lastTap = null;
+          this.doubleTapZoom(e.global.x, e.global.y);
+        } else {
+          this.lastTap = { x: e.global.x, y: e.global.y, t: now };
+          const room = this.roomAt(local.x, local.y);
+          if (this.walkerAt(local.x, local.y)) this.cb.onExplorerTap();
+          else if (this.cb.onCaravanTap && this.caravanAt(local.x, local.y)) this.cb.onCaravanTap();
+          else if (room) this.cb.onRoomTap(room);
+          else this.cb.onEmptyTap();
+        }
       }
-      this.gesture = { kind: 'none', startX: 0, startY: 0, t: 0, moved: false };
+      this.dragPoint = null;
+      this.gesture = noGesture();
     };
-    stage.on('pointerup', end);
-    stage.on('pointerupoutside', end);
+    stage.on('pointerup', (e: FederatedPointerEvent) => end(e, false));
+    stage.on('pointerupoutside', (e: FederatedPointerEvent) => end(e, true));
+    stage.on('pointercancel', (e: FederatedPointerEvent) => end(e, true));
 
     this.app.canvas.addEventListener(
       'wheel',
       (ev) => {
         ev.preventDefault();
         if (this.suspended) return;
+        this.stopCamera();
+        this.revealed = null;
         this.zoomAt(ev.offsetX, ev.offsetY, ev.deltaY < 0 ? 1.1 : 1 / 1.1);
       },
       { passive: false },
@@ -1390,6 +1762,11 @@ export class VaultView {
 }
 
 // -------------------------------------------------------------------- art
+
+/** The overview zoom: phones see more of the homestead at once. */
+function defaultZoom(): number {
+  return window.innerWidth < 640 || window.innerHeight < 500 ? 0.55 : 0.85;
+}
 
 /** A collected amount as a floater: whole numbers, one decimal for a trickle under 1. */
 function floatAmount(n: number): string {

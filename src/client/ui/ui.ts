@@ -78,7 +78,10 @@ import { QolUI } from './qol';
 import { QuestUI } from './quests';
 import { DeepUI, type DeepTab } from './deep';
 import { buildInfo, ResearchUI } from './research';
-import { syncHudHeight } from './layout';
+import { compactLayout, isPhone, syncHudHeight } from './layout';
+import { installSheetSwipe } from './sheet';
+import { haptic, isNative, onBack, runBack } from '../platform';
+import { settingsPanel } from './settings';
 import { ThreatUI } from './threat';
 import { Toasts, type ToastKind, type ToastOptions } from './toasts';
 import { TraitsUI } from './traits';
@@ -159,7 +162,7 @@ export class UI {
   private root: HTMLElement;
   private hud = h('div', { class: 'hud' });
   private toolbar = h('div', { class: 'toolbar' });
-  private panelHost = h('div');
+  private panelHost = h('div', { class: 'panel-host' });
   private toasts = h('div', { class: 'toasts' });
   private toastStack = new Toasts(this.toasts);
   private hint = h('div', { class: 'hint', style: 'display:none' });
@@ -293,6 +296,13 @@ export class UI {
     this.renderToolbar();
     game.on((events) => this.onEvents(events));
     game.onReplace(() => this.onStateReplaced());
+    // M8: Android back (and Escape) closes the topmost thing first.
+    onBack(() => this.back());
+    // For automated tests: press "back" as the device would.
+    const hs = (window as unknown as { homestead?: Record<string, unknown> }).homestead;
+    if (hs) hs.back = () => runBack();
+    // Phones: pull a sheet down by its handle to close it.
+    installSheetSwipe(this.panelHost, () => this.swipeClose());
     if (game.lastCatchUp) this.showAwaySummary();
     else if (game.state.time < 5) this.showWelcome();
   }
@@ -315,7 +325,7 @@ export class UI {
       return;
     }
     if (room.ready) {
-      this.game.run({ type: 'collect', roomId: room.id });
+      if (this.game.run({ type: 'collect', roomId: room.id }).ok) haptic('tap');
       return;
     }
     if (room.job && room.job.remaining === 0) {
@@ -356,8 +366,13 @@ export class UI {
     const type = this.view.buildMode;
     if (!type) return;
     const res = this.game.run({ type: 'build', roomType: type, floor, x });
-    if (!res.ok) this.toast(res.reason, 'bad');
-    else this.builtInMode++;
+    if (!res.ok) {
+      this.toast(res.reason, 'bad');
+      haptic('error');
+    } else {
+      this.builtInMode++;
+      haptic('success');
+    }
     this.view.rebuildGhosts();
     this.renderPanel(true);
   }
@@ -365,6 +380,7 @@ export class UI {
   private assign(residentId: number, room: Room): void {
     const res = this.game.run({ type: 'assign', residentId, roomId: room.id });
     const who = this.game.state.residents.find((r) => r.id === residentId);
+    haptic(res.ok ? 'success' : 'error');
     if (!res.ok) this.toast(res.reason, 'bad');
     else if (who) {
       const def = roomDef(this.game.content, room);
@@ -421,13 +437,17 @@ export class UI {
     const cap = storageCapacity(state, content, 'population');
     const crates = state.crates.standard + state.crates.rare + state.crates.legendary;
     const ready = state.rooms.filter((r) => r.ready).length;
-    const info = h(
+    const meters = h(
       'div',
-      { class: 'hud-part' },
+      { class: 'hud-part hud-meters' },
       h('div', { class: 'title' }, `HOMESTEAD ${state.homesteadNumber}`),
       meter('power', 'var(--power)', 'P'),
       meter('food', 'var(--food)', 'F'),
       meter('water', 'var(--water)', 'W'),
+    );
+    const info = h(
+      'div',
+      { class: 'hud-part hud-info' },
       h('div', { class: 'stat-chip' }, 'Scrip ', h('b', {}, fmt(state.scrip))),
       h('div', { class: 'stat-chip' }, 'Pop ', h('b', {}, `${pop}/${cap}`)),
       h('div', { class: 'stat-chip' }, 'Mood ', h('b', {}, pop > 0 ? `${Math.round(vaultHappiness(state))}%` : '—')),
@@ -437,10 +457,10 @@ export class UI {
     const tokens = Math.round((state.crateTokens / content.balance.crates.tokensPerCrate) * 100);
     const buttons = h(
       'div',
-      { class: 'hud-part' },
+      { class: 'hud-part hud-buttons' },
       h(
         'button',
-        { class: `stat-chip chip-button${crates ? ' glow' : ''}`, title: 'Supply Crates', onclick: () => this.openPanel('crates') },
+        { class: `stat-chip chip-button crate-chip${crates ? ' glow' : ''}`, title: 'Supply Crates', 'aria-label': 'Supply Crates', onclick: () => this.openPanel('crates') },
         '📦 ',
         h('b', {}, `${crates}`),
         h('span', { class: 'token-mini' }, h('span', { style: `width:${tokens}%` })),
@@ -453,6 +473,7 @@ export class UI {
           onclick: () => {
             const res = this.game.run({ type: 'collectAll' });
             if (res.ok && res.detail?.startsWith('0')) this.toast('Nothing ready yet');
+            else if (res.ok) haptic('tap');
           },
         },
         '⤓ Collect',
@@ -467,8 +488,12 @@ export class UI {
     );
     // The meters change nearly every frame. Patch in place, and keep the buttons
     // in their own part so they are only touched when their own markup changes.
-    if (!this.hud.firstChild) this.hud.append(h('div', { class: 'hud-part' }), h('div', { class: 'hud-part' }));
-    const [infoHost, buttonHost] = [this.hud.children[0], this.hud.children[1]] as HTMLElement[];
+    // Phones: the meters take the first row and the chips a second one that scrolls sideways.
+    if (!this.hud.firstChild) this.hud.append(h('div', { class: 'hud-part hud-meters' }), h('div', { class: 'hud-strip' }, h('div', { class: 'hud-part hud-info' }), h('div', { class: 'hud-part hud-buttons' })));
+    const meterHost = this.hud.children[0] as HTMLElement | undefined;
+    const strip = this.hud.children[1] as HTMLElement | undefined;
+    const [infoHost, buttonHost] = [strip?.children[0], strip?.children[1]] as (HTMLElement | undefined)[];
+    if (meterHost && meterHost.innerHTML !== meters.innerHTML) morph(meterHost, meters);
     if (infoHost && infoHost.innerHTML !== info.innerHTML) morph(infoHost, info);
     this.hud.classList.toggle('hud-short', this.shortages().length > 0);
     if (buttonHost && buttonHost.innerHTML !== buttons.innerHTML) morph(buttonHost, buttons);
@@ -537,7 +562,7 @@ export class UI {
     }
     // On phones an open panel covers the bottom of the screen; the hint would sit on top of it.
     // A sheet collapsed to its bar leaves room above it, but the bar already says what to do.
-    const phone = window.innerWidth < 640;
+    const phone = isPhone();
     const bar = this.sheetCollapsed();
     if (this.panel && (phone ? !bar || !shortage : this.panel === 'legacy' || this.panel === 'research')) text = '';
     this.hint.style.display = text ? '' : 'none';
@@ -557,7 +582,8 @@ export class UI {
     const legacyNeed = this.legacy.badge();
     const research = this.research.visible() ? this.research.badge() : -1;
     const factions = this.factions.visible() ? this.factions.badge() : -1;
-    const key = `${this.panel}|${crates}|${state.items.length}|${homeOrFallen}|${window.innerWidth < 640}|${office}|${questNeed}|${legacyNeed}|${research}|${factions}`;
+    const compact = compactLayout();
+    const key = `${this.panel}|${crates}|${state.items.length}|${homeOrFallen}|${compact}|${office}|${questNeed}|${legacyNeed}|${research}|${factions}`;
     if (key === this.lastToolbarKey) return;
     this.lastToolbarKey = key;
     const btn = (label: string, kind: PanelKind, extra = '', badge?: number, title?: string) =>
@@ -575,21 +601,21 @@ export class UI {
         label,
         badge ? h('span', { class: 'badge' }, badge) : null,
       );
-    // Phones get short labels and icons so every button fits at 390 px; Goals moves into the ☰ menu.
-    const phone = window.innerWidth < 640;
+    // Phones (and phones on their side) get short labels and icons so every button keeps a
+    // 44 px target at 360 px. Crates open from the 📦 chip in the HUD; Legacy, Goals and
+    // Factions move into the ☰ menu, whose badge carries Legacy's.
+    const phone = compact;
     this.toolbar.replaceChildren(
       btn('Build', 'build', 'primary'),
       btn(phone ? 'People' : 'Residents', 'residents'),
       btn(phone ? 'Items' : 'Storage', 'storage'),
-      btn(phone ? '📦' : 'Crates', 'crates', phone ? 'icon' : '', crates, 'Supply Crates'),
+      ...(phone ? [] : [btn('Crates', 'crates', '', crates, 'Supply Crates')]),
       btn(phone ? '🧭' : 'Explore', 'explore', phone ? 'icon' : '', homeOrFallen, 'Explore the Glarelands'),
       ...(office ? [btn(phone ? '⚔' : 'Quests', 'quests', phone ? 'icon' : '', questNeed, 'Quests')] : []),
       ...(research >= 0 ? [btn(phone ? '🔬' : 'Research', 'research', `research-btn${phone ? ' icon' : ''}`, research, 'Research')] : []),
-      // Phones have no room for another button: Factions opens from the ✦ Influence chip and the ☰ menu.
       ...(factions >= 0 && !phone ? [btn('Factions', 'factions', 'factions-btn', factions, 'Factions, trade and caravans')] : []),
-      btn(phone ? '◆' : 'Legacy', 'legacy', `legacy-btn${phone ? ' icon' : ''}`, legacyNeed, 'Legacy'),
-      ...(phone ? [] : [btn('Goals', 'achievements')]),
-      btn('☰', 'menu', 'icon', undefined, 'Menu'),
+      ...(phone ? [] : [btn('Legacy', 'legacy', 'legacy-btn', legacyNeed, 'Legacy'), btn('Goals', 'achievements')]),
+      btn('☰', 'menu', 'icon', phone ? legacyNeed + Math.max(0, factions) : undefined, 'Menu'),
     );
   }
 
@@ -597,6 +623,8 @@ export class UI {
 
   openPanel(kind: PanelKind): void {
     if (kind !== this.panel) this.sheetOpen = false;
+    // M8: the room sheet moved the camera to show its room; put it back.
+    if (this.panel === 'room' && kind !== 'room') this.view.restoreCamera();
     // A fresh look at the list: no filter or search left over from last time.
     if (kind === 'residents' && this.panel !== 'residents') this.qol.people.opened();
     if (kind !== 'build') this.setBuildMode(null);
@@ -626,6 +654,13 @@ export class UI {
     this.openPanel('room');
     this.view.selectedRoomId = id;
     this.renderPanel(true);
+    // M8: if the sheet (or docked panel) now covers the room, glide it into the free space.
+    const room = this.game.state.rooms.find((r) => r.id === id);
+    if (room) {
+      const ins = this.viewInsets();
+      this.view.insets = ins;
+      this.view.revealRoom(room, ins);
+    }
   }
 
   closePanel(): void {
@@ -654,7 +689,59 @@ export class UI {
   }
 
   private isPhone(): boolean {
-    return window.innerWidth < 640;
+    return isPhone();
+  }
+
+  /**
+   * M8: one press of Android back (or Escape). The topmost thing closes first:
+   * a confirm or modal, then the panel (a placing sheet steps back to its list),
+   * then the quest screen. False when there was nothing to close.
+   */
+  private back(): boolean {
+    // Confirms are appended last, so the topmost layer is the last in document order.
+    const layers = [...this.root.querySelectorAll<HTMLElement>('.modal-backdrop, .found-flow')].filter((el) => el.getClientRects().length > 0);
+    const top = layers[layers.length - 1];
+    if (top) {
+      // The Found flow has its own ✕ (which asks before throwing the draft away).
+      if (top.classList.contains('found-flow')) top.querySelector<HTMLElement>('.ff-close')?.click();
+      // Every modal closes on a click on its own backdrop; ones that must be answered ignore it.
+      else top.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+      return true;
+    }
+    if (this.quests.screen.isOpen) {
+      this.quests.screen.close();
+      return true;
+    }
+    if (!this.panel) return false;
+    const bar = this.collapsible();
+    if (this.panel === 'build' && this.view.buildMode) {
+      // Placing a room: first shrink the sheet back to its bar, then step back to the room list.
+      if (bar && this.sheetOpen) this.sheetOpen = false;
+      else {
+        this.setBuildMode(null);
+        this.sheetOpen = true;
+      }
+      this.renderPanel(true);
+      return true;
+    }
+    if (bar === 'assign' && this.sheetOpen) {
+      this.sheetOpen = false;
+      this.renderPanel(true);
+      return true;
+    }
+    this.closePanel();
+    return true;
+  }
+
+  /** The sheet was pulled down by its handle. */
+  private swipeClose(): void {
+    if (this.collapsible() && this.sheetOpen) {
+      this.sheetOpen = false;
+      this.renderPanel(true);
+      return;
+    }
+    if (this.panel === 'build' && this.view.buildMode) this.setBuildMode(null);
+    this.closePanel();
   }
 
   /** The resident picked for tap-a-room assignment, if they can take a job right now. */
@@ -884,7 +971,8 @@ export class UI {
     }
     const panel = h(
       'div',
-      { class: `panel${this.panel === 'legacy' ? ' panel-wide legacy-panel' : this.panel === 'research' ? ' panel-wide research-panel' : this.panel === 'deep' ? ' deep-panel' : ''}` },
+      { class: `panel ${this.panel}-sheet${this.panel === 'legacy' ? ' panel-wide legacy-panel' : this.panel === 'research' ? ' panel-wide research-panel' : this.panel === 'deep' ? ' deep-panel' : ''}` },
+      h('div', { class: 'grab', 'aria-hidden': 'true' }),
       h(
         'header',
         {},
@@ -1641,6 +1729,7 @@ export class UI {
       this.toast(res.ok ? 'Could not open crate' : res.reason, 'bad');
       return;
     }
+    haptic('heavy');
     this.showCrate(tier, cards);
     this.renderPanel(true);
   }
@@ -1759,9 +1848,18 @@ export class UI {
       'div',
       { class: 'body' },
       // Phones keep the toolbar short: Goals lives here.
-      this.isPhone() ? h('div', { class: 'row', style: 'justify-content:flex-start;margin-top:0;gap:6px;flex-wrap:wrap' }, h('button', { onclick: () => this.openPanel('achievements') }, '🏆 Goals'), this.factions.visible() ? h('button', { onclick: () => this.openFactions() }, '🤝 Factions') : null) : null,
-      h('p', { class: 'muted', style: 'margin-top:0' }, 'The game saves automatically in this browser. Keep copies in the slots below, or export them to a file.'),
+      compactLayout()
+        ? h(
+            'div',
+            { class: 'row menu-links', style: 'justify-content:flex-start;margin-top:0;gap:6px;flex-wrap:wrap' },
+            h('button', { class: 'legacy-btn', onclick: () => this.openPanel('legacy') }, '◆ Legacy', this.legacy.badge() ? h('span', { class: 'badge' }, this.legacy.badge()) : null),
+            h('button', { onclick: () => this.openPanel('achievements') }, '🏆 Goals'),
+            this.factions.visible() ? h('button', { onclick: () => this.openFactions() }, '🤝 Factions', this.factions.badge() ? h('span', { class: 'badge' }, this.factions.badge()) : null) : null,
+          )
+        : null,
+      h('p', { class: 'muted', style: 'margin-top:0' }, `The game saves automatically ${isNative() ? 'on this device' : 'in this browser'}. Keep copies in the slots below, or export them to a file.`),
       this.qol.saves.section(),
+      settingsPanel(this.game),
       h(
         'div',
         { class: 'row', style: 'margin-top:18px' },

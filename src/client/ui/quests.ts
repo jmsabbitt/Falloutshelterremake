@@ -3,6 +3,7 @@
 // HUD chip and the quest toasts. Hooked into ui.ts with a few small calls.
 
 import { halcyFace } from './halcy';
+import { haptic } from '../platform';
 import {
   abilityFor,
   canQuest,
@@ -528,6 +529,7 @@ export class QuestUI {
           if (!watching(ev.questId)) this.host.toast(`${state.residents.find((r) => r.id === ev.residentId)?.firstName ?? 'Someone'} is down at ${title(ev.questId)}!`, 'bad');
           break;
         case 'questFinished':
+          haptic(ev.outcome === 'success' ? 'success' : ev.outcome === 'failed' ? 'error' : 'warning');
           // The quest screen shows its own banner.
           if (watching(ev.questId)) break;
           if (ev.outcome === 'success') this.host.toast(`🏆 ${title(ev.questId)} complete! The party is heading home.`, 'gold');

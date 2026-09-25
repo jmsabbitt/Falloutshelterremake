@@ -173,10 +173,7 @@ export class QuestScreen {
       }
       return;
     }
-    if (e.key === 'Escape') {
-      this.close();
-      return;
-    }
+    // Escape goes through the platform's back handling (ui.ts closes the quest screen there).
     const n = ['1', '2', '3'].indexOf(e.key);
     const m = n >= 0 ? q.party[n] : undefined;
     if (m) {

@@ -20,6 +20,8 @@ import {
   type Resident,
 } from '../../sim';
 import type { Game } from '../game';
+import { haptic } from '../platform';
+import { reducedMotion } from './prefs';
 import { drawEnemy, drawEnemyShadow, lookSize } from './enemyArt';
 import { SKY_BOTTOM, shade } from './palette';
 import {
@@ -346,6 +348,7 @@ export class QuestView {
     const at = this.ringAt ?? this.ringCentre(ring.residentId);
     this.cb.onRingResult(ring.residentId, quality);
     const perfect = quality >= 0.95;
+    haptic(perfect ? 'heavy' : quality > 0 ? 'tap' : 'warning');
     this.float(ringLabel(quality), at.x, at.y - 30 / this.zoom, perfect ? 0xffd23f : quality >= 0.45 ? 0xf4ecd8 : 0xb9b19c, perfect ? 30 : 22, 1.1);
     this.waves.push({ x: at.x, y: at.y, life: 0.45, max: 0.45, radius: (RING_MAX * 0.9) / this.zoom, color: perfect ? 0xffd23f : 0xf4ecd8, flat: false });
     if (perfect) this.burst(at.x, at.y, 0xffd23f, 26, 260);
@@ -569,7 +572,8 @@ export class QuestView {
       this.cam.x += (tx - this.cam.x) * k;
       this.cam.y += (ty - this.cam.y) * k;
     }
-    this.shake = Math.max(0, this.shake - dt * 30);
+    // Reduced motion: no screen shake (the hit flashes and numbers still show).
+    this.shake = reducedMotion() ? 0 : Math.max(0, this.shake - dt * 30);
     const sx = (Math.random() - 0.5) * this.shake;
     const sy = (Math.random() - 0.5) * this.shake;
     const W = this.app.screen.width;
