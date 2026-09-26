@@ -58,6 +58,7 @@ import {
   legendDef,
   lootContent,
   wardenTitle,
+  endingTitle,
   collectionEntries,
   questContent,
   type CollectionCategory,
@@ -101,6 +102,8 @@ import { customGameButton } from './custom';
 import { LegendsUI } from './legends';
 import { CollectionUI } from './collection';
 import { m9Console } from '../m9Dev';
+import { EndingsUI } from './endings';
+import { endingConsole } from '../endingDev';
 import { roomName as levelName } from './qolText';
 
 type PanelKind = 'build' | 'room' | 'residents' | 'storage' | 'crates' | 'explore' | 'quests' | 'legacy' | 'achievements' | 'menu' | 'notices' | 'research' | 'deep' | 'factions' | 'collection' | null;
@@ -227,6 +230,8 @@ export class UI {
   /** M9: legendary residents, and the Collection Log with the Warden's Seal. */
   readonly legends: LegendsUI;
   readonly collection: CollectionUI;
+  /** Act 4: the ending choice, the epilogue and credits, replays and titles. */
+  readonly endings: EndingsUI;
   /** M9: incidents that left on their own this batch (their incidentResolved is not a win). */
   private escaped = new Set<number>();
 
@@ -330,6 +335,8 @@ export class UI {
       showLegend: (id) => this.legends.showCard(id),
       openCollection: () => this.openPanel('collection'),
     });
+    this.endings = new EndingsUI({ game, toast: (text, kind) => this.toast(text, kind), refreshPanel: () => this.renderPanel(true) });
+    this.quests.endings = this.endings;
     this.qol.people.extra = () => this.legends.section();
     this.renderToolbar();
     game.on((events) => this.onEvents(events));
@@ -341,6 +348,8 @@ export class UI {
     if (hs) hs.back = () => runBack();
     // M9 dev helpers: legends, creatures, the Mauler, the Collection Log, the Seal, maps.
     if (hs && !hs.m9) hs.m9 = m9Console(game);
+    // Act 4 dev helpers: jump to Act 4, meet the true ending's conditions, play each ending.
+    if (hs && !hs.ending) hs.ending = endingConsole(game, this.endings);
     // Phones: pull a sheet down by its handle to close it.
     installSheetSwipe(this.panelHost, () => this.swipeClose());
     if (game.lastCatchUp) this.showAwaySummary();
@@ -494,7 +503,13 @@ export class UI {
     const meters = h(
       'div',
       { class: 'hud-part hud-meters' },
-      h('div', { class: 'title', title: [seal ? `Warden's Seal: ${seal}` : '', rulesTitle(state, content) ?? ''].filter(Boolean).join(' · ') || undefined }, seal ? h('span', { class: 'seal-mark' }, '✪ ') : null, `HOMESTEAD ${state.homesteadNumber}${survivalMark(state)}`),
+      h(
+        'div',
+        { class: 'title', title: [seal ? `Warden's Seal: ${seal}` : '', endingTitle(state) ? `Title: ${endingTitle(state)}` : '', rulesTitle(state, content) ?? ''].filter(Boolean).join(' · ') || undefined },
+        seal ? h('span', { class: 'seal-mark' }, '✪ ') : null,
+        `HOMESTEAD ${state.homesteadNumber}${survivalMark(state)}`,
+        this.endings.hudTitle(),
+      ),
       meter('power', 'var(--power)', 'P'),
       meter('food', 'var(--food)', 'F'),
       meter('water', 'var(--water)', 'W'),
@@ -533,6 +548,7 @@ export class UI {
         '⤓ Collect',
         ready ? h('b', {}, ` ${ready}`) : null,
       ),
+      this.endings.hudChip(),
       this.quests.hudChip(),
       this.research.hudChip(),
       this.deep.hudChip(),
@@ -1948,6 +1964,7 @@ export class UI {
       { class: 'body' },
       h('div', { class: 'row' }, h('b', {}, `${done} / ${total} earned`), h('span', { class: 'muted' }, 'Every one counts toward the Seal')),
       h('div', { class: 'progress', style: 'margin-bottom:10px' }, h('div', { style: `width:${(done / total) * 100}%;background:var(--accent)` })),
+      this.endings.goalsSection(),
       this.collection.sealSection(),
       ...items,
     );
@@ -1973,6 +1990,7 @@ export class UI {
         h('button', { onclick: () => this.openPanel('collection') }, '📖 Collection Log'),
         h('button', { onclick: () => this.openPanel('residents') }, '★ Legends'),
       ),
+      endingTitle(this.game.state) ? h('p', { class: 'end-menu-title' }, `✦ Title: ${endingTitle(this.game.state)} (change it in Goals → Endings)`) : null,
       h('p', { class: 'muted', style: 'margin-top:0' }, `The game saves automatically ${isNative() ? 'on this device' : 'in this browser'}. Keep copies in the slots below, or export them to a file.`),
       this.qol.saves.section(),
       settingsPanel(this.game),
@@ -2537,6 +2555,7 @@ export class UI {
     this.topside.onEvents(events);
     this.factions.onEvents(events);
     this.legends.onEvents(events);
+    this.endings.onEvents(events);
     this.escaped.clear();
     for (const ev of events) if (ev.type === 'incidentEscaped') this.escaped.add(ev.incidentId);
     const incName = (type: string) => (content.balance.incidents.types as Record<string, { name: string }>)[type]?.name ?? 'Incident';

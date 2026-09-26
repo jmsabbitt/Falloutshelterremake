@@ -243,7 +243,7 @@
     {
       "id": "home_big",
       "title": "Homestead {homestead}",
-      "text": "Homestead {homestead} grew to {peak} residents and never ran out of anything important for long. {days} days after its founding, its Warden still got up at dawn, out of habit, to listen for the knock.",
+      "text": "Homestead {homestead} grew to {peak} residents and never ran out of anything important for long. Years later, its Warden still got up at dawn, out of habit, to listen for the knock.",
       "group": "home",
       "when": {
         "stat": {
@@ -256,7 +256,7 @@
     {
       "id": "home_small",
       "title": "Homestead {homestead}",
-      "text": "Homestead {homestead} was never the biggest, at {peak} residents at its height, but people who lived there tended to stay, and the ones who left tended to write. It ran for {days} days and counting.",
+      "text": "Homestead {homestead} was never the biggest, at {peak} residents at its height, but people who lived there tended to stay, and the ones who left tended to write. It is still running, and still writing back.",
       "group": "home",
       "art": "home"
     },

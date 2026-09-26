@@ -274,6 +274,14 @@ Each cycle **adds** content instead of repeating the same 0 → 200 climb.
 
 This needs a dedicated writing pass once the systems are stable.
 
+**Act 4 "Rent Day" and the endings (homestead 4+).** What the acts were building to:
+- **The Tenant** is really the *Freeholder*: a vast, warm, patient living thing under the whole region. The Groundworks are its body, the Cisterns water it, and every homestead's warmth is its warmth. The knock is its heartbeat and its greeting: *anyone home?*
+- **Halcyon** found it and signed an honest lease, the handwritten *Original Instrument*: live on its ground warm, in quiet enjoyment, and pay the rent by *answering when it knocks*. The Board then swapped the parties on a forty-page copy, called the Freeholder "the Tenant" and billed it for its own warmth. When it knocked for its rent, the Board opened the Seal so it could come up and look for its tenants, knowing its gaze would burn the surface (the Glare, the "Sunrise"), and sold Sunrise Packages below.
+- **HALCY** is made of the Sunrise Line passengers, 1,006 voices recorded when they went down to answer the knock and compressed for cheerfulness. That's why its core fits the Seal's key slot, and why the Freeholder can speak through it.
+- **Every homestead has a Seal** because Halcyon built one over every door the Freeholder could knock on, so each knock landed on company property and was filed as noise.
+- **The rent** is company: somebody knocking back.
+- The finale's choice: *Under New Management* (renew the lease), *Notice to Quit* (give the ground back and go topside), *Holding Over* (HALCY stays to answer), and the true ending *Good Neighbours* (the whole network answers together), which needs 3 Friendly factions, 5 legends met, 2 legend stories finished, 3 outposts and the Deep dug to the Seal. Endings are lifetime (`state.story`); later homesteads can answer again at a Rent Review. Content lives in `quests.json` (Act 4) and `endings.json`; code in `systems/endings.ts` and `systems/network.ts`.
+
 ---
 
 ## 12. Monetization

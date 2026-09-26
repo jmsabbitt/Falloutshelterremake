@@ -9,6 +9,7 @@ import {
   effectiveMaxHp,
   effectiveStat,
   inCombat,
+  legendDef,
   lootContent,
   questContent,
   questDef,
@@ -210,6 +211,10 @@ export class QuestScreen {
           break;
         case 'questInterrupted':
           this.flash('Interrupted! Nicely done.', 'good', 1.6);
+          break;
+        case 'questSupport':
+          // Act 4: help from the network (systems/network.ts).
+          this.flash(`🤝 ${ev.text}`, 'good', 2.5);
           break;
         case 'questWindup': {
           const e = q.enemies.find((x) => x.uid === ev.enemyUid);
@@ -533,7 +538,10 @@ export class QuestScreen {
       .filter((r): r is Resident => !!r && !r.dead);
     const options = ev.options.map((opt, i) => {
       let detail: HTMLElement | null = null;
-      if (opt.stat) {
+      // Act 4: a legend in the party carries the option without a roll.
+      const legend = opt.legend ? standing.find((r) => r.legendary === opt.legend) : undefined;
+      if (legend) detail = h('span', { class: 'qs-check ok' }, `★ ${legend.firstName}`, h('small', {}, 'sure thing · 100%'));
+      else if (opt.stat) {
         const stat = opt.stat as StatKey;
         const best = standing.reduce<{ r: Resident; v: number } | null>((acc, r) => {
           const v = effectiveStat(content, r, stat);
@@ -549,7 +557,7 @@ export class QuestScreen {
           'span',
           { class: `qs-check ${pct >= 80 ? 'ok' : pct >= 40 ? 'mid' : 'bad'}` },
           `${STAT_NAMES[stat]} ${diff}`,
-          h('small', {}, `best ${v}${best ? ` (${best.r.firstName})` : ''} · ${pct}%`),
+          h('small', {}, `best ${v}${best ? ` (${best.r.firstName})` : ''} · ${pct}%${opt.legend ? ` · sure with ${legendDef(content, opt.legend)?.firstName ?? 'a legend'}` : ''}`),
         );
       }
       return h(

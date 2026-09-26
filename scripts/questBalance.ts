@@ -92,6 +92,8 @@ function play(s: GameState, q: Quest, ids: number[]): Result {
   let secs = 0;
   let bossSecs = 0;
   let bossLow = 1;
+  // Network quests carry extra Med-Patches from the outposts.
+  const packed = q.supplies.medpatch;
   while (q.status === 'onsite' && secs < 1800) {
     const step = playQuest(s, content, q.id, { maxSeconds: 0 });
     if (step === 0) break;
@@ -102,7 +104,7 @@ function play(s: GameState, q: Quest, ids: number[]): Result {
     }
   }
   const hpLeft = ids.reduce((a, id) => a + (res(id).dead ? 0 : res(id).hp / res(id).maxHp), 0) / ids.length;
-  return { win: q.outcome === 'success', secs, hpLeft, patches: MEDPATCH - q.supplies.medpatch, bossSecs, bossLow };
+  return { win: q.outcome === 'success', secs, hpLeft, patches: packed - q.supplies.medpatch, bossSecs, bossLow };
 }
 
 function runStory(questId: string, level: number, weapon: string | null, size: number, seed: number, net = false): Result {
