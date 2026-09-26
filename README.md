@@ -84,7 +84,15 @@ The client only changes the game through `applyCommand`. This keeps the simulati
   - *Rulesets and Survival:* 9 rulesets (Famine, Lean Times, Brownout, Short Fuse, No Radio, Iron Door, Endless Night, Glass Sky, Skeleton Crew) chosen when founding. Each is unlocked by prestige progress and pays extra Legacy. Survival means the fallen stay fallen.
   - *Custom Game:* 7 presets or an advanced setup, a sandbox console, a ×1–×100 time scale, its own save slot and no achievements.
   - Screenshots are in `docs/screens/m9/`; the contract is `docs/design/M9-spec.md`. Console: `homestead.m9.*` and `homestead.custom.*`.
-- Next: the true ending for homesteads 4+, more regions and creatures, bespoke legend art, and polish.
+- **The true ending: playable.** Act 4, "Rent Day", is for the fourth homestead onward: 8 quests at levels 36–50, 26 new enemies, 17 events and a two-phase finale. It answers the story's questions: the Freeholder under the ground, what the Glare was, and what HALCY is.
+  - *Network help:* your outposts and allied factions help in the field on network quests (supplies, turrets, heals, stuns, shields). A legend standing in the party can settle their own event option.
+  - *Four endings:* Under New Management, Notice to Quit, Holding Over and the true ending, **Good Neighbours**. Good Neighbours stays locked until 3 factions are Friendly, 5 legends are met, 2 legend stories are finished, you have 3 outposts, and the Deep is dug to the Seal; the choice screen shows each condition.
+  - *Epilogue:* 73 possible slides chosen from your playthrough (factions, legends, outposts, rules, the fallen), then credits.
+  - *Rewards:* each ending pays Legacy, a lasting bonus and a title. Endings are kept for your whole save and can be replayed from Goals.
+  - *After the ending:* the game carries on. A Rent Review in later homesteads lets you answer again.
+  - Screenshots are in `docs/screens/ending/`. Console: `homestead.ending.*`.
+- **Art:** the list of sprites still to paint (legend and faction portraits, loot icons, 56 bosses, the Glassback, the surface buildings and the ending illustrations) is in [`docs/art/ART-HANDOFF-M9.md`](docs/art/ART-HANDOFF-M9.md). The game picks each one up automatically as it lands.
+- Next: bespoke art as it arrives, a full playthrough and polish pass, and more regions and creatures.
 
 Quest tools: `npm run quest-balance` plays every quest with a scripted party across levels and gear. In the browser console, `homestead.quest.office()`, `.party(level, weapon)`, `.skip()` and `.win()` help testing.
 

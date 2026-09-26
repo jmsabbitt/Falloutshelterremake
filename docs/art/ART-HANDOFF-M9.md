@@ -1,4 +1,4 @@
-# Art handoff, round 2: what still needs painting (M7–M9 and the ending)
+# Art handoff, round 2: what still needs painting (M7–M9 and the true ending)
 
 This is the to-do list for the art session after M9. The first round (residents, 11 creature looks, HALCY, 36 item icons, 21 salvage icons, 49 room walls) is done and summarised in [ART-SESSION-HANDOFF.md](ART-SESSION-HANDOFF.md). How sheets are laid out, keyed and built is in [SPRITE-HANDOFF.md](SPRITE-HANDOFF.md). Use the same tools and style: Artlist, Nano Banana 2 at 2K, image-to-image from existing art wherever a style match matters.
 
@@ -6,7 +6,7 @@ This is the to-do list for the art session after M9. The first round (residents,
 
 The game is original IP: atompunk, 1950s Americana gone to seed, chunky cartoon proportions, dry humour. No Fallout names, logos, power armour or vault-boy look-alikes, no real brands, no real-world maps.
 
-**Budget:** about 164,660 Artlist credits remained at the end of round 1 (renews 2026-10-07), against a floor of 60,000. At 130 credits an image, that leaves roughly 800 images. Everything below, including the optional sections, comes to about 250 images.
+**Budget:** about 164,660 Artlist credits remained at the end of round 1 (renews 2026-10-07), against a floor of 60,000. At 130 credits an image, that leaves roughly 800 images. Everything below, including the optional sections, comes to about 290 images.
 
 ---
 
@@ -15,13 +15,13 @@ The game is original IP: atompunk, 1950s Americana gone to seed, chunky cartoon 
 | # | What | Images | Where it shows |
 |---|---|---|---|
 | 1 | Legend portraits (11) | 3 sheets | Legend cards, arrival pop-ups, Collection Log, resident list |
-| 2 | Loot-only item icons (14) | 4 sheets | Storage, quest rewards, crates, Collection Log |
-| 3 | Flagship boss creatures (12) | 36 (idle, attack, death) | Quest combat |
+| 2 | Loot-only item icons (16) | 4 sheets | Storage, quest rewards, crates, Collection Log |
+| 3 | Flagship boss creatures (14) | 42 (idle, attack, death) | Quest combat |
 | 4 | Glassback creature | 3 | Vault incident, quest combat |
 | 5 | Topside buildings (7 × 3 levels) | 21 | The surface row above the door |
 | 6 | Faction leader portraits (5) | 1–2 sheets | Factions panel cards |
-| 7 | More bosses (the other ~34) | about 100 | Quest combat |
-| 8 | Ending illustrations | about 6 | The epilogue slides (ids to follow; see section 8) |
+| 7 | More bosses (the other 41) | about 123 | Quest combat |
+| 8 | Ending illustrations | 10 | The epilogue slides of the four endings |
 | 9 | Optional: bespoke legend body sheets | about 66 | Vault and quests (needs a small code change first; ask) |
 
 ---
@@ -74,7 +74,7 @@ Optional: a second expression for each (for example "pleased") can come later; t
 
 ## 2. Loot-only item icons
 
-These are 14 rare or legendary items that only come from boss first kills, treasure caches and region-exclusive finds. Match the round-1 icon sheets in `art/raw/items/` (same framing and lighting, magenta background, four icons per sheet with clear gaps).
+These are 16 rare or legendary items that only come from boss first kills, treasure caches and region-exclusive finds (the last two from Act 4). Match the round-1 icon sheets in `art/raw/items/` (same framing and lighting, magenta background, four icons per sheet with clear gaps).
 
 **Delivery:** add `icons_l1.png` to `icons_l4.png` to `art/raw/items/` and add entries to `art/raw/items/sprite.json` like the existing `w1`/`o1` ones, with `names` in left-to-right order. The output is `items/<id>.webp`, picked up automatically.
 
@@ -94,6 +94,8 @@ These are 14 rare or legendary items that only come from boss first kills, treas
 | `broodsilk_coveralls` | Broodsilk Coveralls | outfit | rare | Pale, faintly iridescent coveralls woven from Skitter silk |
 | `barons_greatcoat` | Baron's Greatcoat | outfit | legendary | A long rust-red coat with bottle-cap epaulettes and a fur collar |
 | `surveyor_duster` | Surveyor's Duster | outfit | legendary | A long duster with map pockets, a compass and a theodolite strap |
+| `quitclaim` | Quitclaim | weapon | legendary | A brass notary-stamp pistol, a rolled legal notice as the magazine |
+| `good_neighbour_cardigan` | Good Neighbour Cardigan | outfit | legendary | A hand-knitted cardigan, warm colours, elbow patches, a knitted house on the pocket |
 
 ---
 
@@ -103,7 +105,7 @@ Every quest enemy is drawn with one of 10 shared looks today. The bosses reuse t
 
 Each boss needs **idle, attack and death** sheets (3 images). Make them from the shared look's sheets with image-to-image, so the family resemblance and framing stay, but make them bigger, more ornate and clearly "named". Use a magenta background and face **left** (the looks are mirrored for the party side automatically; follow the existing `mirror` setting).
 
-These are the first 12. They're the story bosses players meet at act finales and turning points:
+These are the first 14. They're the story bosses players meet at act finales and turning points:
 
 | enemy id | Name | Based on look | Idea |
 |---|---|---|---|
@@ -119,8 +121,8 @@ These are the first 12. They're the story bosses players meet at act finales and
 | `the_conductor` | The Conductor | `hollowed_hulk` | A ghostly train conductor with a ticket punch and a lamp |
 | `the_signatory` | The Signatory (Act 3 finale, phase 1) | `sentry` | A towering automaton with a giant fountain-pen arm and a wax-seal chest |
 | `signatory_countersigned` | The Signatory, Countersigned (phase 2) | `mauler` | The same thing broken open, something huge wearing the frame |
-
-The Act 4 finale boss(es) will be added here once the true ending lands (see section 8).
+| `the_receiver` | The Official Receiver (Act 4 finale, phase 1) | `sentry` | A brass receiver automaton on a chair-throne, ledger in one hand, a winding key in its back |
+| `receiver_wound_up` | The Receiver, Fully Wound Up (Act 4 finale, phase 2) | `mauler` | The Receiver fused to a warm, living wall of the Freeholder, its clockwork key spinning |
 
 ---
 
@@ -172,13 +174,22 @@ The Factions panel shows one card per faction. Each card now loads `portraits/fa
 
 ---
 
-## 7. More bosses (after the first 12)
+## 7. More bosses (after the first 14)
 
 These use the same method as section 3. Each needs three images in `art/raw/<enemyId>/`. The ids are:
 
 - **Act 1:** `relay_boss`, `burrower_matriarch`, `rust_tollman`, `hollowed_supervisor`
 - **Act 2:** `moth_choir`, `assessor_9c`, `readiness_officer`, `chief_sprocket`
 - **Act 3:** `pump_warden`, `stationmaster`, `knock_captain`
+- **Act 4:**
+  - `head_operator`: a huge switchboard torso with cords for arms
+  - `the_registrar`: a notary-press giant
+  - `last_verger`: a bell-ringer carrying a bell
+  - `restore_point`: HALCY-9 as a refrigerated server cabinet with a face
+  - `company_secretary`: a secretary frame with a paper shredder
+  - `the_liquidator`: a Mauler covered in auction tags
+  - `the_doorkeeper`: a hulk fused to a door frame
+  - `rent_officer`: an officer with a clipboard and a door-knocker hand
 - **Legend questlines:**
   - `the_detour`, `the_long_road`, `foreman_crank`, `the_motion`, `proctor_cold`, `mother_nine`, `head_of_ward`, `chief_of_staff`
   - `pit_boss`, `the_dealer`, `pipe_mother`, `the_hum`, `iron_matron`, `the_old_champion`, `cinder_alpha`, `the_old_flame`
@@ -188,9 +199,64 @@ Names and base looks are in `src/content/quests.json` and `src/content/legends.j
 
 ---
 
-## 8. Ending illustrations (to follow)
+## 8. Ending illustrations
 
-The true ending (Act 4 and the epilogue slides) is being built now. When it lands, this section will list the ending ids and the finale bosses. Each ending needs one wide illustration (16:9) for its title slide, and the finale boss or bosses join section 3. The code session will add the image hook and update this page.
+Act 4, "Rent Day", ends the story for the fourth homestead onward. The thing under every homestead, the **Freeholder**, is a vast, warm, living thing under the region. Halcyon swapped the parties on its lease, the Glare was its gaze, and HALCY is the 1,006 Sunrise Line passengers "compressed for cheerfulness". The player picks one of four endings.
+
+The epilogue slides are text over a small drawn glyph today. They now load a **wide illustration** above the text when one exists. They look first for `endings/<slideId>.webp`, then for `endings/scene_<art>.webp`, a scene shared by several slides.
+
+Paint them at 16:9, as full-bleed scenes (no magenta), in the same painterly-cartoon style as the room walls. They show at up to 560 px wide.
+
+**The four title slides, one per ending (most important):**
+
+| file name | Ending | Scene |
+|---|---|---|
+| `open_renewal` | Under New Management: the lease is renewed, and the knocking is filed as noise | A warm, tidy boardroom by the Seal. A 41-page lease with a fountain pen, HALCY's face screen smiling a little too hard, and three knock marks on the Seal door in the background |
+| `open_eviction` | Notice to Quit: the ground is given back and the homesteads move up to the surface | Two leases burning in a furnace, then people walking out onto a cold, blue-sky glass plain with bundles and handcarts |
+| `open_holdover` | Holding Over: HALCY stays in the key slot to answer the knock | HALCY's glowing core sitting in the Seal's key slot like a keeper at a lighthouse, with a kettle and a chair next to it |
+| `open_neighbours` | Good Neighbours (the true ending): the whole network knocks back together | Dawn. Every homestead door open at once, the outposts, factions and legends at their doors, all knocking. Something enormous and warm under the ground, glowing softly like a hearth |
+
+**Six shared scenes** (for the other slides; lower priority):
+
+| file name | Used by | Scene |
+|---|---|---|
+| `scene_lease` | "The Original Instrument" slides | The honest handwritten lease in a frame, one new line in pen: "Visits welcome." |
+| `scene_door` | Knocking and returning slides | A homestead Seal door seen from inside, lit warm, with three dents where something knocked |
+| `scene_glare` | "The ground" slides | The land above: pipes, Cisterns and the Groundworks, cutaway to the warm dark below |
+| `scene_home` | Homestead and rules slides | A homestead cross-section at evening, lights on, people at dinner |
+| `scene_relay` | Network (outpost) slides | A signal mast relaying between distant homestead doors across the Glarelands at night |
+| `scene_end` | The closing slide of each ending | A HALCY "Thank you for choosing Halcyon" sign, repainted by hand to read "Home" |
+
+**Delivery:** `art/raw/endings/<file name>.png`, one image per file, with this `sprite.json`:
+
+```json
+{
+  "id": "endings",
+  "kind": "portrait",
+  "background": "none",
+  "outDir": "endings",
+  "prefix": "",
+  "targetHeight": 360,
+  "anims": {
+    "open_renewal": { "file": "open_renewal.png", "whole": true, "names": ["open_renewal"] },
+    "open_eviction": { "file": "open_eviction.png", "whole": true, "names": ["open_eviction"] },
+    "open_holdover": { "file": "open_holdover.png", "whole": true, "names": ["open_holdover"] },
+    "open_neighbours": { "file": "open_neighbours.png", "whole": true, "names": ["open_neighbours"] },
+    "scene_lease": { "file": "scene_lease.png", "whole": true, "names": ["scene_lease"] }
+  }
+}
+```
+
+Add one entry per delivered file. To see them, open the browser console and run `homestead.ending.play('neighbours')` (or `renewal`, `eviction`, `holdover`); `homestead.ending.list()` lists the endings.
+
+**Faction slides** reuse the faction leader portraits from section 6. **Legend slides** reuse the legend portraits from section 1. Nothing extra is needed for either.
+
+**Act 4 regular enemies (optional, after the bosses):**
+- `wire_scav`, `line_tapper`, `switchboard_op`, `filing_mite`, `registry_clerk`
+- `the_unanswered`, `vigil_keeper`, `compliance_drone`, `tier_zero_holdout`, `board_bailiff`
+- `warm_guard`, `liquidation_drone`, `asset_stripper`, `cistern_leech`, `knocker`, `receivers_clerk`
+
+Their names, looks and flavour are in `src/content/quests.json` (`enemies`). They use the same `art/raw/<enemyId>/` method as the bosses.
 
 ---
 

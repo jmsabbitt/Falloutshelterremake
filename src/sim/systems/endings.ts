@@ -221,7 +221,8 @@ export function slideVars(state: GameState, content: Content): Record<SlideVar, 
     outposts: state.legacy?.outposts?.length ?? 0,
     legends: legendsMet(state),
     friends: factionsAtTier(state, content, 3).length,
-    fallen: state.residents.filter((r) => r.dead).length + (state.stats['legendsLost'] ?? 0),
+    // This homestead's fallen: bodies still here plus those laid to rest since founding (stats are lifetime).
+    fallen: state.residents.filter((r) => r.dead).length + Math.max(0, (state.stats['laidToRest'] ?? 0) - (state.legacy?.statsAtFounding?.['laidToRest'] ?? 0)),
     strata: state.deep?.strata ?? 0,
     endings: Object.keys(story(state).endings).length,
   };

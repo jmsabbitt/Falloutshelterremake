@@ -386,6 +386,15 @@ describe('epilogue slides', () => {
     expect(text).toContain('4 outposts');
   });
 
+  it("counts this homestead's fallen for the plaque, not earlier ones", () => {
+    const { s } = act4Game(35);
+    s.stats['laidToRest'] = 7; // four of them before this homestead was founded
+    s.legacy.statsAtFounding = { ...s.legacy.statsAtFounding, laidToRest: 4 };
+    s.residents[5]!.dead = true;
+    const text = epilogue(s, content, 'eviction').find((x) => x.id === 'home_fallen')!.text;
+    expect(text).toContain('with 4 names');
+  });
+
   it('replays an ending as it played', () => {
     const { s } = act4Game(34);
     openFinale(s, content);

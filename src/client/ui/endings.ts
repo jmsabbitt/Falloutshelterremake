@@ -68,9 +68,19 @@ export class EndingsUI {
         this.deferred = false;
         haptic('heavy');
         // Let the quest collection toast land first.
-        window.setTimeout(() => this.openChoice(), 600);
+        window.setTimeout(() => this.openWhenClear(), 600);
       }
     }
+  }
+
+  /** Open the choice once no other pop-up is showing (checks for up to two minutes, then waits for the HUD chip). */
+  private openWhenClear(tries = 0): void {
+    if (this.isOpen || this.deferred || !endingChoiceOpen(this.host.game.state)) return;
+    if (document.querySelector('.modal-backdrop')) {
+      if (tries < 120) window.setTimeout(() => this.openWhenClear(tries + 1), 1000);
+      return;
+    }
+    this.openChoice();
   }
 
   /** HUD chip while the choice is waiting. */
@@ -297,7 +307,7 @@ export class EndingsUI {
         count.textContent = `${i + 1} / ${slides.length}`;
         back.toggleAttribute('disabled', i === 0);
         stageEl.replaceChildren(
-          h('div', { class: 'epi-slide', key: s.id }, this.art(s.art), h('h2', { class: 'epi-title' }, s.title), h('p', { class: 'epi-text' }, s.text)),
+          h('div', { class: 'epi-slide', key: s.id }, ...this.slideArt(s), h('h2', { class: 'epi-title' }, s.title), h('p', { class: 'epi-text' }, s.text)),
         );
         skip.textContent = 'Skip';
       } else if (stage === 'credits') {
@@ -354,6 +364,26 @@ export class EndingsUI {
     render();
   }
 
+  /**
+   * A painted illustration when the art pipeline has one (art/raw/endings: `<slideId>.webp`,
+   * else `scene_<art>.webp` for the shared scenes), over the drawn art as a fallback.
+   */
+  private slideArt(s: Slide): HTMLElement[] {
+    const fallback = this.art(s.art);
+    if (s.art?.startsWith('legend:') || s.art?.startsWith('faction:')) return [fallback];
+    const tries = [`sprites/endings/${s.id}.webp`, ...(s.art && s.art !== 'halcy' ? [`sprites/endings/scene_${s.art}.webp`] : [])];
+    let n = 0;
+    const img = h('img', { class: 'epi-illus', alt: '' }) as HTMLImageElement;
+    img.onerror = () => {
+      n++;
+      if (n < tries.length) img.src = tries[n] as string;
+      else img.remove();
+    };
+    img.onload = () => fallback.remove();
+    img.src = tries[0] as string;
+    return [img, fallback];
+  }
+
   private art(art: string | undefined): HTMLElement {
     const { content } = this.host.game;
     if (art?.startsWith('legend:')) {
@@ -362,7 +392,13 @@ export class EndingsUI {
     }
     if (art?.startsWith('faction:')) {
       const id = art.slice(8);
-      return h('div', { class: `epi-art faction f-${id}` }, h('span', {}, FACTION_ICON[id] ?? '◆'));
+      return h(
+        'div',
+        { class: `epi-art faction f-${id}` },
+        h('span', {}, FACTION_ICON[id] ?? '◆'),
+        // The faction leader's portrait (art/raw/factions), if painted.
+        h('img', { class: 'epi-face', src: `sprites/portraits/faction_${id}.webp`, alt: '', onerror: (e: Event) => (e.target as HTMLElement).remove() }),
+      );
     }
     if (art === 'halcy') return h('div', { class: 'epi-art halcy' }, halcyFace('smile'));
     return h('div', { class: `epi-art glyph a-${art ?? 'end'}` }, h('span', {}, ART_GLYPH[art ?? 'end'] ?? '✦'));
