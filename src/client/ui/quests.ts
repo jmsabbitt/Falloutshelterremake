@@ -32,6 +32,7 @@ import type { Loadout, Loadouts } from './loadouts';
 import { type QuestHost, QuestScreen } from './questScreen';
 import { bountyView, rewardChips } from './questText';
 import { legendPortrait } from './legends';
+import { networkChip, networkLine, type EndingsUI } from './endings';
 
 export interface QuestUIHost extends QuestHost {
   modalHost: HTMLElement;
@@ -74,6 +75,8 @@ export class QuestUI {
   private draft: PartyDraft | null = null;
   /** Quest id -> title, so toasts can name a quest after it is collected. */
   private titles = new Map<number, string>();
+  /** Act 4: set by the UI, so the finale's card can reopen the ending choice. */
+  endings: EndingsUI | null = null;
 
   constructor(
     private host: QuestUIHost,
@@ -270,7 +273,13 @@ export class QuestUI {
     const active = state.quests.some((q) => q.defId === d.id && !q.contract);
     const locked = questLocked(state, content, d);
     if (done) {
-      return h('div', { class: 'list-item quest-card done' }, h('div', { class: 'row', style: 'margin:0' }, h('b', {}, `✓ ${d.title}`), h('span', { class: 'muted small' }, 'Done')));
+      const choose = d.finale && state.story?.open && !state.story.current;
+      return h(
+        'div',
+        { class: 'list-item quest-card done' },
+        h('div', { class: 'row', style: 'margin:0' }, h('b', {}, `✓ ${d.title}`), h('span', { class: 'muted small' }, 'Done')),
+        choose ? h('button', { class: 'primary', style: 'min-height:44px;width:100%;margin-top:6px', onclick: () => this.endings?.openChoice() }, '✦ The Freeholder is knocking: choose how it ends') : null,
+      );
     }
     const available = locked === null;
     return h(
@@ -310,6 +319,8 @@ export class QuestUI {
       const l = legendDef(content, d.rewards.legendUpgrade);
       out.push(h('span', { class: 'loot-chip rarity legendary' }, `★ ${l?.firstName ?? 'Legend'} awakens`));
     }
+    const net = networkChip(this.game, d);
+    if (net) out.push(net);
     const drops = lootContent(content).bossFirstKill;
     const killed = new Set(state.loot?.bossKills ?? []);
     const bosses = new Set<string>();
@@ -524,6 +535,7 @@ export class QuestUI {
           ),
         ),
         h('p', { class: 'muted small', style: 'margin:0' }, `Up to ${t.maxSupplies}. Anyone standing can be patched up on site. Unused patches come home.`),
+        networkLine(this.game, def),
         problem ? h('div', { class: 'row short' }, problem) : null,
         h(
           'div',

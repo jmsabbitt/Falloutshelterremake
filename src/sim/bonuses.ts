@@ -7,6 +7,7 @@ import type { Content } from './content';
 import { perkValue, siteDef, type PerkEffect } from './legacy';
 import type { GameState, ResourceKey } from './types';
 import { rulesetMods } from './systems/rulesets';
+import { endingBonus } from './systems/endings';
 
 /** Effects research can grant on top of the perk effects. */
 export type ResearchEffect =
@@ -72,9 +73,9 @@ export function researchValue(state: GameState, content: Content, effect: BonusE
 
 const researchCache = new WeakMap<string[], { size: number; content: Content; totals: Map<string, number> }>();
 
-/** Everything that grants this effect: Legacy perks plus research. */
+/** Everything that grants this effect: Legacy perks, research, and the endings reached (Act 4). */
 export function bonus(state: GameState, content: Content, effect: BonusEffect): number {
-  return perkValue(state, content, effect as PerkEffect) + researchValue(state, content, effect);
+  return perkValue(state, content, effect as PerkEffect) + researchValue(state, content, effect) + endingBonus(state, content, effect);
 }
 
 const RESOURCE_EFFECT: Partial<Record<ResourceKey, ResearchEffect>> = {

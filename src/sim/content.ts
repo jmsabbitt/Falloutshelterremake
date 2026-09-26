@@ -19,6 +19,7 @@ import factionsJson from '../content/factions.json';
 import legendsJson from '../content/legends.json';
 import rulesetsJson from '../content/rulesets.json';
 import lootJson from '../content/loot.json';
+import endingsJson from '../content/endings.json';
 import type { Rarity, ResourceKey, StatKey, Stats } from './types';
 
 export type RoomCategory = 'door' | 'elevator' | 'living' | 'production' | 'storage' | 'radio' | 'workshop' | 'office' | 'research';
@@ -143,6 +144,8 @@ export interface Content {
   legends: typeof legendsJson;
   rulesets: typeof rulesetsJson;
   loot: typeof lootJson;
+  /** Act 4: the endings, their epilogue slides and the credits (typed in systems/endings.ts). */
+  endings: typeof endingsJson;
 }
 
 /** M9: personal questlines live in legends.json but run through the ordinary quest engine. */
@@ -201,6 +204,7 @@ export function loadContent(): Content {
       ...((legendsJson as { achievements?: AchievementDef[] }).achievements ?? []),
       ...((rulesetsJson as { achievements?: AchievementDef[] }).achievements ?? []),
       ...((lootJson as { achievements?: AchievementDef[] }).achievements ?? []),
+      ...((endingsJson as { achievements?: AchievementDef[] }).achievements ?? []),
     ],
     weapons: Object.fromEntries(weapons.map((w) => [w.id, w])),
     outfits: Object.fromEntries(outfits.map((o) => [o.id, o])),
@@ -220,6 +224,7 @@ export function loadContent(): Content {
     legends: legendsJson,
     rulesets: rulesetsJson,
     loot: lootJson,
+    endings: endingsJson,
   });
 }
 

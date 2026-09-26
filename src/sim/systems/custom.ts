@@ -19,6 +19,9 @@ import { incidentDef, scheduleIncident, startIncident, startRaid, touchesDirt } 
 import { grantItem, itemDef } from './items';
 import { checkRules, rulesetsContent } from './rulesets';
 import { weatherKindDef } from './weather';
+import { legendDef, recruitLegend } from './legends';
+import { legacyContent } from '../legacy';
+import { factionDef } from './factions';
 
 // ------------------------------------------------------------------ options and presets
 
@@ -63,6 +66,12 @@ export interface CustomGameOptions {
   crates?: Partial<Record<CrateTier, number>>;
   /** Item definition ids placed in storage. */
   items?: string[];
+  /**
+   * Act 4: start partway through the story. `questsDone` may name quests or
+   * questlines (every quest in them); legends join already admitted; outposts
+   * are stand-ins for earlier homesteads, with `outpostPopulation` each.
+   */
+  story?: { cycle?: number; questsDone?: string[]; outposts?: number; outpostPopulation?: number; rep?: Record<string, number>; legends?: string[] };
 }
 
 export interface CustomPreset {
@@ -256,11 +265,59 @@ export function newCustomGame(content: Content, preset: string | CustomGameOptio
     grantItem(state, content, defId);
   }
 
+  if (opts.story) {
+    const err = applyStory(state, content, opts.story);
+    if (err) return { ok: false, reason: err };
+  }
+
   state.stats = {};
   scheduleIncident(state, content);
   refreshUnlocks(state, content);
   state.events = [];
   return { ok: true, state };
+}
+
+/** Act 4 presets: put the sandbox partway through the story (see CustomGameOptions.story). */
+function applyStory(state: GameState, content: Content, story: NonNullable<CustomGameOptions['story']>): string | null {
+  const qc = content.quests as unknown as { quests: { id: string }[]; questlines: { id: string; quests: string[] }[] };
+  if (story.cycle !== undefined) state.legacy.cycle = Math.max(1, Math.floor(story.cycle));
+  const done = new Set(state.questsDone);
+  for (const id of story.questsDone ?? []) {
+    const line = qc.questlines.find((l) => l.id === id);
+    if (line) for (const q of line.quests) done.add(q);
+    else if (qc.quests.some((q) => q.id === id)) done.add(id);
+    else return `no such quest or questline: ${id}`;
+  }
+  state.questsDone = [...done];
+  const o = legacyContent(content).outposts;
+  const pop = Math.max(1, Math.floor(story.outpostPopulation ?? 30));
+  for (let i = 0; i < Math.max(0, Math.floor(story.outposts ?? 0)); i++) {
+    state.legacy.outposts.push({
+      id: i + 1,
+      homesteadNumber: nextInt(state.rng, 100, 999),
+      cycle: i + 1,
+      siteId: 'plot7',
+      population: pop,
+      rates: { scrip: pop * o.scripPerResidentHour, salvage: pop * o.salvagePerResidentHour, cratesPerHour: pop / 10 / o.crateHoursPer10Residents },
+      stored: { scrip: 0, salvage: 0, crates: 0 },
+    });
+  }
+  for (const [id, rep] of Object.entries(story.rep ?? {})) {
+    if (!factionDef(content, id)) return `no such faction: ${id}`;
+    state.factions[id] = { rep: Math.max(-100, Math.min(100, rep)), met: true };
+  }
+  for (const id of story.legends ?? []) {
+    if (!legendDef(content, id)) return `no such legend: ${id}`;
+    recruitLegend(state, content, id, 'dev');
+    const r = state.residents.find((x) => x.legendary === id);
+    if (!r) continue;
+    r.waiting = false;
+    // The legend takes the place of an ordinary resident, so the population stays as asked.
+    const stand = [...state.residents].reverse().find((x) => !x.legendary && !x.dead);
+    if (stand) state.residents = state.residents.filter((x) => x !== stand);
+  }
+  if (story.legends?.length) autoAssign(state, content);
+  return null;
 }
 
 // ------------------------------------------------------------------ the sandbox console

@@ -199,6 +199,16 @@
       "craftStat": "brawn",
       "lootOnly": true,
       "flavor": "A pick with forty years of notches in the handle and a name scratched off. Dug up from a Dustbowl cache."
+    },
+    {
+      "id": "quitclaim",
+      "name": "Quitclaim",
+      "rarity": "legendary",
+      "min": 21,
+      "max": 26,
+      "craftStat": "knack",
+      "lootOnly": true,
+      "flavor": "The Official Receiver's own seal-breaker, reissued. Every shot comes with a notice saying the target has no claim to anything."
     }
   ],
   "outfits": [
@@ -462,6 +472,18 @@
       "craftStat": "sight",
       "lootOnly": true,
       "flavor": "A pre-Glare Halcyon survey coat with forty-one pockets, each labelled. Thirty-nine are empty. Dug up from a Glass Flats cache."
+    },
+    {
+      "id": "good_neighbour_cardigan",
+      "name": "Good Neighbour Cardigan",
+      "rarity": "legendary",
+      "bonus": {
+        "charm": 4,
+        "grit": 4
+      },
+      "craftStat": "charm",
+      "lootOnly": true,
+      "flavor": "Hand-knitted, warm from the inside out, and somehow always smells of someone else's cooking. The Liquidator had it marked DOWN FROM PRICELESS."
     }
   ],
   "sellValue": {

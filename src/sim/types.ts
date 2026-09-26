@@ -362,6 +362,18 @@ export interface Quest {
   /** Seconds left on the party-wide damage buff (Rally). */
   rally: number;
   onsiteTime: number;
+  /** Act 4: help from the homestead network (outposts and allied factions), fixed when the party sets out. */
+  support?: QuestSupport;
+}
+
+/** Act 4 (systems/network.ts): the network relay and faction reinforcements on a quest. */
+export interface QuestSupport {
+  /** Outposts relaying for the party (capped). Each adds a little party damage; they sent Med-Patches too. */
+  relay: number;
+  /** Factions at Friendly or better who send help, and seconds until each one next acts. */
+  allies: { factionId: string; timer: number }[];
+  /** Seconds left on Homestead 9's drilled shield (party takes less damage). */
+  shield: number;
 }
 
 // ------------------------------------------------------------------ M5: prestige
@@ -391,6 +403,31 @@ export interface HomesteadRecord {
   /** M9: the rules that homestead ran under. */
   rules?: string[];
   survival?: boolean;
+  /** Act 4: the ending chosen in that homestead, if any (endings.json id). */
+  ending?: string;
+}
+
+/** Act 4: how the story ended, lifetime (carried across foundings). systems/endings.ts. */
+export interface EndingRecord {
+  /** Times this ending was chosen. */
+  count: number;
+  /** The homestead (cycle and number) where it was first reached. */
+  firstCycle: number;
+  firstHomestead: number;
+  /** The epilogue as it played the last time (slide ids and the numbers it quoted), for replays. */
+  slides: string[];
+  vars: Record<string, string | number>;
+}
+
+export interface StoryState {
+  /** Endings reached, lifetime. */
+  endings: Record<string, EndingRecord>;
+  /** The ending chosen in this homestead (reset on founding). */
+  current: string | null;
+  /** The finale is won here and the choice is waiting (reset on founding). */
+  open: boolean;
+  /** The title shown in the HUD (an ending's title, picked by the player; lifetime). */
+  title: string | null;
 }
 
 export interface LegacyState {
@@ -580,7 +617,11 @@ export type GameEvent =
   | { type: 'repChanged'; factionId: string; rep: number; delta: number }
   | { type: 'traded'; factionId: string; offerId: number }
   | { type: 'caravanReturned'; caravanId: number }
-  | { type: 'caravanCollected'; caravanId: number };
+  | { type: 'caravanCollected'; caravanId: number }
+  // Act 4 and the endings
+  | { type: 'questSupport'; questId: number; factionId: string; text: string }
+  | { type: 'endingOffered' }
+  | { type: 'endingReached'; endingId: string; first: boolean };
 
 /** Lifetime counters. Feed achievements, the stats screen and balancing. */
 export type LifetimeStats = Record<string, number>;
@@ -643,6 +684,8 @@ export interface GameState {
   loot: LootState;
   /** M9: the Mauler meter (0..1): noise and wealth draw the apex threat. Stream C. */
   maulerMeter: number;
+  /** Act 4: endings reached and the finale choice. Lifetime, carried across foundings. */
+  story: StoryState;
   crates: Record<CrateTier, number>;
   crateTokens: number;
   /** Crates opened since the last legendary card (drives the pity guarantee). */

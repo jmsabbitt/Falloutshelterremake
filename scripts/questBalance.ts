@@ -5,7 +5,8 @@
 // directly; a summary at the end checks them.
 // Usage: npm run quest-balance [-- runs [sizes [filter]]]  (default 20 runs, party sizes 3,1;
 // filter keeps only quests and contracts whose id starts with one of its comma-separated prefixes,
-// e.g. act2,c_kiln). Act 3 quests run at their own cycle (3).
+// e.g. act2,c_kiln). Act 3 quests run at their own cycle (3). Act 4: the last column gives network quests
+// three relaying outposts and three allied factions (systems/network.ts); the targets use the columns without it.
 import { advance, applyCommand, loadContent, newGame, questContent, type GameState, type Quest } from '../src/sim';
 import { hpPerLevel } from '../src/sim/residents';
 import { playQuest } from '../src/sim/systems/questBot';
@@ -33,6 +34,8 @@ interface Setup {
   /** Party level relative to the quest's level, or an absolute level. */
   offset?: number;
   level?: number;
+  /** Act 4: three outposts and three Friendly factions back the party on network quests. */
+  net?: boolean;
 }
 
 const storySetups: Setup[] = [
@@ -42,6 +45,7 @@ const storySetups: Setup[] = [
   { name: 'L common', gear: 'common', offset: 0 },
   { name: 'L rare', gear: 'rare', offset: 0 },
   { name: 'L20 rare', gear: 'rare', level: 20 },
+  { name: 'L-2 common +net', gear: 'common', offset: -2, net: true },
 ];
 
 /** Contracts roll their level from the party, so they are tested at the party's own level. */
@@ -88,6 +92,8 @@ function play(s: GameState, q: Quest, ids: number[]): Result {
   let secs = 0;
   let bossSecs = 0;
   let bossLow = 1;
+  // Network quests carry extra Med-Patches from the outposts.
+  const packed = q.supplies.medpatch;
   while (q.status === 'onsite' && secs < 1800) {
     const step = playQuest(s, content, q.id, { maxSeconds: 0 });
     if (step === 0) break;
@@ -98,11 +104,15 @@ function play(s: GameState, q: Quest, ids: number[]): Result {
     }
   }
   const hpLeft = ids.reduce((a, id) => a + (res(id).dead ? 0 : res(id).hp / res(id).maxHp), 0) / ids.length;
-  return { win: q.outcome === 'success', secs, hpLeft, patches: MEDPATCH - q.supplies.medpatch, bossSecs, bossLow };
+  return { win: q.outcome === 'success', secs, hpLeft, patches: packed - q.supplies.medpatch, bossSecs, bossLow };
 }
 
-function runStory(questId: string, level: number, weapon: string | null, size: number, seed: number): Result {
+function runStory(questId: string, level: number, weapon: string | null, size: number, seed: number, net = false): Result {
   const { s, ids } = game(seed, level, weapon, size);
+  if (net) {
+    for (let i = 1; i <= 3; i++) s.legacy.outposts.push({ id: i, homesteadNumber: 100 + i, cycle: i, siteId: 'plot7', population: 40, rates: { scrip: 0, salvage: 0, cratesPerHour: 0 }, stored: { scrip: 0, salvage: 0, crates: 0 } });
+    for (const f of ['caravaners', 'tinkers', 'lamplighters']) s.factions[f] = { rep: 30, met: true };
+  }
   const def = questContent(content).quests.find((q) => q.id === questId)!;
   s.questsDone = [...def.requires.quests];
   s.legacy.cycle = Math.max(1, def.requires.cycle ?? 1);
@@ -179,7 +189,7 @@ for (const size of sizes) {
   for (const def of quests) {
     const cells = storySetups.map((setup) => {
       const level = Math.max(1, setup.level ?? def.level + (setup.offset ?? 0));
-      return cell((seed) => runStory(def.id, level, weaponFor(setup.gear, level), size, seed));
+      return cell((seed) => runStory(def.id, level, weaponFor(setup.gear, level), size, seed, setup.net === true && def.network === true));
     });
     console.log(`${def.id} (L${def.level})`.padEnd(22), cells.map((c) => fmt(c).padEnd(44)).join('| '));
     if (size !== 3) continue;

@@ -564,6 +564,112 @@
         ],
         "survival": true
       }
+    },
+    {
+      "id": "last_rent",
+      "name": "Last Rent",
+      "blurb": "Homestead Four: sixty veterans, five legends, three outposts on the line and the Seal knocking from our side. Act 4 is open and the rent is due, so try the ending without the wait.",
+      "options": {
+        "scrip": 60000,
+        "population": 60,
+        "levelRange": [
+          38,
+          46
+        ],
+        "rarity": "rare",
+        "peakPopulation": 150,
+        "fillStorage": true,
+        "strata": 4,
+        "regions": "all",
+        "crates": {
+          "rare": 2,
+          "legendary": 1
+        },
+        "items": [
+          "coilgun",
+          "coilgun",
+          "peacemaker",
+          "bedrock_armor"
+        ],
+        "layout": [
+          {
+            "type": "quarters",
+            "floor": 0,
+            "segments": 3,
+            "level": 3
+          },
+          {
+            "type": "quarters",
+            "floor": 0,
+            "segments": 3,
+            "level": 3
+          },
+          {
+            "type": "generator",
+            "floor": 1,
+            "segments": 3,
+            "level": 3
+          },
+          {
+            "type": "canteen",
+            "floor": 1,
+            "segments": 3,
+            "level": 3
+          },
+          {
+            "type": "waterworks",
+            "floor": 2,
+            "segments": 3,
+            "level": 3
+          },
+          {
+            "type": "clinic",
+            "floor": 2,
+            "segments": 2,
+            "level": 2
+          },
+          {
+            "type": "office",
+            "floor": 3,
+            "level": 3
+          },
+          {
+            "type": "storeroom",
+            "floor": 3,
+            "segments": 3
+          },
+          {
+            "type": "radio",
+            "floor": 4,
+            "segments": 2
+          }
+        ],
+        "story": {
+          "cycle": 4,
+          "questsDone": [
+            "act1",
+            "act2",
+            "act3",
+            "legend_brother_wick"
+          ],
+          "outposts": 3,
+          "outpostPopulation": 40,
+          "rep": {
+            "caravaners": 35,
+            "tinkers": 30,
+            "lamplighters": 10,
+            "rustmen": -10,
+            "homestead9": 5
+          },
+          "legends": [
+            "captain_orla",
+            "brother_wick",
+            "june_halloran",
+            "rook",
+            "pip"
+          ]
+        }
+      }
     }
   ],
   "achievements": [

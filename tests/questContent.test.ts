@@ -16,7 +16,7 @@ const MATERIALS = ['circuitry', 'hide', 'adhesive', 'cloth', 'chemicals', 'steel
 const CRATES = ['standard', 'rare', 'legendary'];
 /** Counters the engine bumps that quest achievements may use. */
 const COUNTERS = [
-  'questline.act3',
+  'questline.act3', 'questline.act4', 'questline.rent_review', 'networkSupport', 'networkAlliesMax', 'networkRelayMax', 'legendAssists',
   'questsStarted', 'questsCompleted', 'storyQuestsCompleted', 'contractsCompleted', 'questline.act1', 'questline.act2',
   'questEnemiesDefeated', 'bossesDefeated', 'questCrits', 'perfectCrits', 'abilitiesUsed', 'questInterrupts',
   'questChecksPassed', 'questChecksFailed', 'questWipes', 'questScrip', 'questPartyLevel', 'medpatchesUsed',

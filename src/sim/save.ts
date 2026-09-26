@@ -4,7 +4,7 @@
 import { newLegacy } from './legacy';
 import type { GameState } from './types';
 
-export const SAVE_VERSION = 8;
+export const SAVE_VERSION = 9;
 
 interface SaveFile {
   format: 'homestead-save';
@@ -108,6 +108,12 @@ const migrations: Record<number, Migration> = {
     legends: { recruited: [] },
     loot: { bossKills: [], maps: [] },
     maulerMeter: 0,
+  }),
+  // v8 (M9) -> v9 (Act 4): the story so far. A homestead that already won an
+  // ending's finale (none existed before v9) has nothing to carry.
+  8: (s) => ({
+    ...s,
+    story: { endings: {}, current: null, open: false, title: null },
   }),
 };
 

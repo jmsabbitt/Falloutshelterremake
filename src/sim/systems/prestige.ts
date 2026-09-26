@@ -18,6 +18,7 @@ import { scheduleIncident } from './incidents';
 import { carryResearch } from './research';
 import { addSalvage } from './inventory';
 import { checkRules, isSurvival, rulesetMods, rulesLegacyMult } from './rulesets';
+import { carryStory } from './endings';
 
 export { rulesetsAvailable, rulesetLocked, survivalLocked, rulesLegacyMult } from './rulesets';
 
@@ -276,6 +277,8 @@ export function foundHomestead(old: GameState, content: Content, opts: FoundOpti
   state.legends = structuredClone(src.legends);
   state.loot = { ...structuredClone(src.loot), maps: [] };
   state.rules = { ids: rules, survival };
+  // Act 4: endings reached are lifetime; the choice and the Rent Review are per homestead.
+  carryStory(src, state, content);
 
   const stayers = src.residents.filter((r) => !r.dead && !r.waiting && !partyIds.includes(r.id)).length;
   const legacy = src.legacy;
@@ -298,6 +301,7 @@ export function foundHomestead(old: GameState, content: Content, opts: FoundOpti
         legacyEarned: earned,
         rules: [...(src.rules?.ids ?? [])],
         survival: src.rules?.survival === true,
+        ...(src.story?.current ? { ending: src.story.current } : {}),
       },
     ],
     outposts: [...legacy.outposts, ...(stayers > 0 ? [outpostFrom(src, content, stayers)] : [])],
