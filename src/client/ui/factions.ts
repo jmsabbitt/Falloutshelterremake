@@ -213,7 +213,13 @@ export class FactionsUI {
       h(
         'div',
         { class: 'row', style: 'margin:0' },
-        h('b', { class: 'faction-name' }, `${FACTION_ICON[def.id] ?? '◆'} ${def.name}`),
+        h(
+          'b',
+          { class: 'faction-name' },
+          // Leader portrait from the sprite pipeline (art/raw/factions), if painted.
+          h('img', { class: 'faction-face', src: `sprites/portraits/faction_${def.id}.webp`, alt: '', onerror: (e: Event) => (e.target as HTMLElement).remove() }),
+          `${FACTION_ICON[def.id] ?? '◆'} ${def.name}`,
+        ),
         met ? h('span', { class: `tier-pill tier-${TIER_CLASS[tier.index] ?? 'neutral'}` }, tier.name) : h('span', { class: 'tier-pill locked' }, '🔒 No contact'),
       ),
       def.motto ? h('div', { class: 'motto' }, `“${def.motto}”`) : null,

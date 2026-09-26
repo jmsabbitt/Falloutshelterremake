@@ -66,6 +66,8 @@ export function legendPortrait(def: LegendDef, size: 'small' | 'large' = 'small'
     h('i', { class: 'lp-suit' }),
     h('i', { class: 'lp-face' }),
     h('i', { class: 'lp-hair' }),
+    // Painted portrait from the sprite pipeline (art/raw/legends); the drawn face stays underneath if it's missing.
+    silhouette ? null : h('img', { class: 'lp-img', src: `sprites/portraits/legend_${def.id}.webp`, alt: '', onerror: (e: Event) => (e.target as HTMLElement).remove() }),
     silhouette ? h('i', { class: 'lp-q' }, '?') : h('i', { class: 'lp-star' }, '★'),
   );
 }

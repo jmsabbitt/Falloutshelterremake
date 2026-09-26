@@ -1204,6 +1204,9 @@ button.pulse { animation: ready 0.6s infinite alternate; }
 .legend-portrait.f .lp-hair { height: 44%; border-radius: 50% 50% 18% 18%; clip-path: polygon(0 0, 100% 0, 100% 100%, 84% 100%, 84% 42%, 16% 42%, 16% 100%, 0 100%); }
 .legend-portrait .lp-star { right: 4%; top: 2%; font-size: 9px; color: var(--legendary); text-shadow: 0 0 2px #000; }
 .legend-portrait.large .lp-star { font-size: 14px; }
+.legend-portrait .lp-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.legend-portrait .lp-star { z-index: 1; }
+.faction-face { width: 32px; height: 32px; object-fit: cover; border-radius: 50%; vertical-align: middle; margin-right: 6px; }
 .legend-portrait.silhouette { border-color: #45625f; }
 .legend-portrait.silhouette .lp-suit, .legend-portrait.silhouette .lp-face, .legend-portrait.silhouette .lp-hair { background: #0b1113; }
 .legend-portrait .lp-q { inset: 0; display: grid; place-items: center; font-family: var(--display); font-size: 14px; color: #5d7c7e; }

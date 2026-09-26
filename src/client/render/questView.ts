@@ -947,7 +947,8 @@ export class QuestView {
       const ab = e.windup ? sp.def.abilities?.[e.windup.index] : undefined;
       const windup = e.windup && ab ? Math.max(0, Math.min(1, 1 - e.windup.remaining / Math.max(0.01, ab.windup))) : null;
       sp.g.clear();
-      const creature = this.art?.forLook(sp.def.look);
+      // Bespoke art for this enemy (art/raw/<enemyId>) wins over its shared look.
+      const creature = this.art?.forLook(sp.def.id) ?? this.art?.forLook(sp.def.look);
       if (creature && !sp.fig) {
         sp.fig = new CreatureFigure(creature, lookSize(sp.def.look).h * CREATURE_H);
         sp.root.addChild(sp.fig);

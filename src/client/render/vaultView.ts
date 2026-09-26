@@ -104,6 +104,9 @@ const INCIDENT_ART: Record<string, { look: string; per: number; min: number; h: 
   burrowers: { look: 'burrower', per: 80, min: 2, h: 26 },
   rustmen: { look: 'rustman', per: Infinity, min: 3, h: 50 },
   deepcrawlers: { look: 'deepcrawler', per: 70, min: 2, h: 24 },
+  // M9: drawn until art exists (art/raw/glassback); the Hollowed reuse the quest look.
+  hollowed: { look: 'hollowed', per: 90, min: 2, h: 44 },
+  glassbacks: { look: 'glassback', per: 80, min: 2, h: 24 },
 };
 
 /** M9: how long a Glassback leap and a Mauler's walk into a new room take on screen. */
