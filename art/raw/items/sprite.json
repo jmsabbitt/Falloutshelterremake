@@ -226,6 +226,52 @@
           1376
         ]
       ]
+    },
+    "l1": {
+      "file": "icons_l1.png",
+      "split": "figures",
+      "take": 4,
+      "names": [
+        "dust_devil",
+        "glasscutter",
+        "salvage_harpoon",
+        "tin_knuckles"
+      ],
+      "order": "x"
+    },
+    "l2": {
+      "file": "icons_l2.png",
+      "split": "figures",
+      "take": 4,
+      "names": [
+        "mauler_tusk",
+        "wick_gun",
+        "custodial_baton",
+        "prospector_pick"
+      ],
+      "order": "x"
+    },
+    "l3": {
+      "file": "icons_l3.png",
+      "split": "figures",
+      "take": 4,
+      "names": [
+        "drover_poncho",
+        "mirrorweave_cloak",
+        "diving_bell_suit",
+        "broodsilk_coveralls"
+      ],
+      "order": "x"
+    },
+    "l4": {
+      "file": "icons_l4.png",
+      "split": "figures",
+      "take": 2,
+      "names": [
+        "barons_greatcoat",
+        "surveyor_duster"
+      ],
+      "order": "x"
     }
   }
 }

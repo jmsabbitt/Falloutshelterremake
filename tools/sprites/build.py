@@ -322,6 +322,12 @@ def build_character(folder: Path) -> tuple[str, dict] | None:
         # "split": "figures" cuts by connected shapes instead of by empty gaps.
         # "whole": true uses the (cropped) sheet as a single frame.
         if a.get("whole"):
+            # "trimBottom": true drops empty rows under the picture, so a
+            # surface building's base sits on the image's bottom edge.
+            if a.get("trimBottom"):
+                rows = np.nonzero((keyed[..., 3] > 128).any(axis=1))[0]
+                if len(rows):
+                    keyed = keyed[: rows[-1] + 1]
             cut[name] = [keyed]
             print(f"  {cid}/{name}: whole image")
             continue

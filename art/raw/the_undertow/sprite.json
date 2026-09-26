@@ -1,0 +1,32 @@
+{
+  "id": "the_undertow",
+  "kind": "creature",
+  "background": "magenta",
+  "targetHeight": 160,
+  "referenceAnim": "idle",
+  "anims": {
+    "idle": {
+      "file": "idle.png",
+      "fps": 6,
+      "split": "figures",
+      "mirror": true
+    },
+    "attack": {
+      "file": "attack.png",
+      "fps": 8,
+      "loop": false,
+      "split": "figures",
+      "mirror": true,
+      "take": 4
+    },
+    "death": {
+      "file": "death.png",
+      "fps": 6,
+      "loop": false,
+      "split": "figures",
+      "mirror": true,
+      "take": 4,
+      "heightFrom": 0
+    }
+  }
+}

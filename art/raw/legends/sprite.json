@@ -1,0 +1,91 @@
+{
+  "id": "legends",
+  "kind": "portrait",
+  "background": "magenta",
+  "prefix": "legend_",
+  "fit": 128,
+  "targetHeight": 128,
+  "anims": {
+    "a": {
+      "file": "portraits_1.png",
+      "names": [
+        "marla_voss",
+        "ada_quill",
+        "seven",
+        "doc_ferris"
+      ],
+      "boxes": [
+        [
+          0,
+          0,
+          682,
+          1536
+        ],
+        [
+          682,
+          0,
+          1414,
+          1536
+        ],
+        [
+          1414,
+          0,
+          2021,
+          1536
+        ],
+        [
+          2021,
+          0,
+          2752,
+          1536
+        ]
+      ]
+    },
+    "b": {
+      "file": "portraits_2.png",
+      "names": [
+        "lucky_lou",
+        "pip",
+        "rook",
+        "granny_ash"
+      ],
+      "boxes": [
+        [
+          0,
+          0,
+          710,
+          1536
+        ],
+        [
+          710,
+          0,
+          1364,
+          1536
+        ],
+        [
+          1364,
+          0,
+          2041,
+          1536
+        ],
+        [
+          2041,
+          0,
+          2752,
+          1536
+        ]
+      ]
+    },
+    "c": {
+      "file": "portraits_3.png",
+      "split": "figures",
+      "order": "x",
+      "take": 3,
+      "names": [
+        "brother_wick",
+        "june_halloran",
+        "captain_orla"
+      ]
+    }
+  }
+}

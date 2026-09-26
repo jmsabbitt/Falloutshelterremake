@@ -1,0 +1,52 @@
+{
+  "id": "factions",
+  "kind": "portrait",
+  "background": "magenta",
+  "prefix": "faction_",
+  "fit": 128,
+  "targetHeight": 128,
+  "anims": {
+    "a": {
+      "file": "leaders.png",
+      "names": [
+        "caravaners",
+        "tinkers",
+        "lamplighters",
+        "rustmen",
+        "homestead9"
+      ],
+      "boxes": [
+        [
+          0,
+          0,
+          760,
+          1344
+        ],
+        [
+          760,
+          0,
+          1274,
+          1344
+        ],
+        [
+          1274,
+          0,
+          1944,
+          1344
+        ],
+        [
+          1944,
+          0,
+          2469,
+          1344
+        ],
+        [
+          2469,
+          0,
+          3168,
+          1344
+        ]
+      ]
+    }
+  }
+}
