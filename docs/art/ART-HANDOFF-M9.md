@@ -41,6 +41,13 @@ Notes on the topside buildings (for the code session):
 
 Credits: 130,210 left after this round, including the Act 4 additions (renews 2026-10-07).
 
+Integrated by the code session (2026-09-26):
+- **Surface buildings:** the 3-cell types now stand one painting per segment, so merged Solar Arrays and the rest no longer stretch.
+- **Loading:** creature art for quest enemies and bosses loads when a quest opens, not at start-up. The vault's own looks still load up front.
+- **Offline cache:** the service worker precaches only the start-up art. Bosses, enemies and ending illustrations are cached the first time they load, so a first visit no longer downloads the whole 22 MB.
+- **Checked in the browser, desktop and phone:** legend and faction portraits, the Glassbacks in the vault, the surface buildings, bespoke bosses in combat (HALCY-9 Custodian Frame, The Official Receiver) and the ending illustrations.
+- **Repo size:** `art/raw/` is now 1.9 GB, so clones are slow. Moving `art/raw/` and `art/previews/` to Git LFS, or out of the repo, is worth doing before the repo is shared more widely.
+
 ---
 
 ## Priority order

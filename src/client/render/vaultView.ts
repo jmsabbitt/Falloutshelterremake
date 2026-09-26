@@ -735,12 +735,18 @@ export class VaultView {
       g.rect(2, gy - 2, r.w - 4, 8).fill(shade(GROUND, -0.2));
       g.position.set(r.x, r.y);
       this.statics.addChild(g);
-      const s = new Sprite(wall);
-      const hgt = Math.min(gy + 60, (r.w / Math.max(1, wall.width)) * wall.height);
-      s.position.set(r.x, r.y + gy - hgt);
-      s.width = r.w;
-      s.height = hgt;
-      this.statics.addChild(s);
+      // Buildings that merge (3-cell types) stand one painting per segment, side by side,
+      // like underground rooms; the others stretch one picture across their plot.
+      const tiles = roomDef(content, room).cells === 3 ? Math.max(1, room.segments) : 1;
+      const tw = r.w / tiles;
+      const hgt = Math.min(gy + 60, (tw / Math.max(1, wall.width)) * wall.height);
+      for (let i = 0; i < tiles; i++) {
+        const s = new Sprite(wall);
+        s.position.set(r.x + tw * i, r.y + gy - hgt);
+        s.width = tw;
+        s.height = hgt;
+        this.statics.addChild(s);
+      }
     } else {
       this.topsideParts.set(room.id, drawTopsideBuilding(g, room.type, r.w, r.h, room.level, room.segments));
       g.position.set(r.x, r.y);

@@ -18,6 +18,9 @@ function filesUnder(dir: string): string[] {
  * is on disk, precaching every output file (relative, so base './' works).
  * The cache version is a hash of the file list and contents.
  */
+/** Sprite folders loaded at start-up (see EAGER_CREATURES in src/client/render/sprites.ts). */
+const PRECACHED_SPRITES = ['resident_f', 'resident_m', 'rooms', 'items', 'portraits', 'skitter', 'burrower', 'rustman', 'deepcrawler', 'hollowed', 'glassback'];
+
 function serviceWorkerPlugin(): Plugin {
   let outDir = 'dist';
   let root = '.';
@@ -33,6 +36,9 @@ function serviceWorkerPlugin(): Plugin {
         .map((f) => relative(outDir, f).split(sep).join('/'))
         // woff2 is enough for every browser that has service workers; the .woff fallbacks stay network/runtime-cached.
         .filter((f) => f !== 'sw.js' && !f.endsWith('.map') && !f.endsWith('.woff'))
+        // Sprites the game loads at start-up are precached; quest enemies, bosses and
+        // ending art (most of the 20+ MB) are cached at runtime, the first time they load.
+        .filter((f) => !f.startsWith('sprites/') || f === 'sprites/manifest.json' || PRECACHED_SPRITES.some((d) => f.startsWith(`sprites/${d}/`)))
         .sort();
       const hash = createHash('sha256');
       for (const f of files) hash.update(f).update(readFileSync(join(outDir, f)));

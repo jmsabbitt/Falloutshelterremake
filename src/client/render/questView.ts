@@ -283,6 +283,10 @@ export class QuestView {
     this.root.visible = true;
     const q = this.quest();
     if (q) {
+      // Fetch this quest's enemy art now (it loads on demand), bespoke boss art first.
+      const defs = (this.game.content.quests as unknown as { enemies: Record<string, { look?: string }> }).enemies;
+      const ids = new Set<string>([...q.rooms.flatMap((r) => r.enemies as string[]), ...q.enemies.map((e) => e.defId)]);
+      this.art?.preload([...ids, ...[...ids].map((id) => defs[id]?.look ?? '')].filter(Boolean));
       const room = currentRoom(q);
       if (room) {
         const o = roomOrigin(room);
@@ -948,7 +952,7 @@ export class QuestView {
       const windup = e.windup && ab ? Math.max(0, Math.min(1, 1 - e.windup.remaining / Math.max(0.01, ab.windup))) : null;
       sp.g.clear();
       // Bespoke art for this enemy (art/raw/<enemyId>) wins over its shared look.
-      const creature = this.art?.forLook(sp.def.id) ?? this.art?.forLook(sp.def.look);
+      const creature = this.art?.creatureFor(sp.def.id, sp.def.look);
       if (creature && !sp.fig) {
         sp.fig = new CreatureFigure(creature, lookSize(sp.def.look).h * CREATURE_H);
         sp.root.addChild(sp.fig);

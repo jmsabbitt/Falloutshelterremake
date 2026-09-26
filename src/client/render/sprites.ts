@@ -77,19 +77,75 @@ export interface Creature {
   anims: Record<string, { frames: number; fps: number; loop: boolean; anchorX: number; anchorY: number; textures: Texture[] }>;
 }
 
+/** Creature looks the vault view draws in incidents: loaded at start-up. */
+const EAGER_CREATURES = new Set(['skitter', 'burrower', 'rustman', 'deepcrawler', 'hollowed', 'glassback']);
+
+async function loadCreature(base: string, id: string, c: { refHeight: number; anims: Record<string, AnimManifest> }): Promise<Creature | null> {
+  try {
+    const anims: Creature['anims'] = {};
+    await Promise.all(
+      Object.entries(c.anims).map(async ([name, a]) => {
+        anims[name] = { frames: a.frames, fps: a.fps, loop: a.loop, anchorX: a.anchorX, anchorY: a.anchorY, textures: await loadStrip(base, a, a.files.full) };
+      }),
+    );
+    return { id, refHeight: c.refHeight, anims };
+  } catch (err) {
+    console.warn(`sprites: could not load ${id}`, err);
+    return null;
+  }
+}
+
 export class CharacterArt {
   private bySex = new Map<string, Character>();
   private byLook = new Map<string, Creature>();
+  /** Creature art in the manifest that isn't loaded yet (bosses and one-quest enemies load on first use). */
+  private pending = new Map<string, { refHeight: number; anims: Record<string, AnimManifest> }>();
+  private loading = new Set<string>();
 
   constructor(
     readonly characters: Character[],
     creatures: Creature[] = [],
     /** Room back-wall art by "type:level". */
     private rooms = new Map<string, Texture>(),
+    lazy: Record<string, { refHeight: number; anims: Record<string, AnimManifest> }> = {},
+    private base = 'sprites/',
   ) {
     // The first character listed for a body type is its default.
     for (const c of characters) if (!this.bySex.has(c.sex)) this.bySex.set(c.sex, c);
     for (const c of creatures) this.byLook.set(c.id, c);
+    for (const [id, c] of Object.entries(lazy)) if (!this.byLook.has(id)) this.pending.set(id, c);
+  }
+
+  /** Start loading creature art in the background (for a quest that is about to be shown). */
+  preload(ids: Iterable<string>): void {
+    for (const id of ids) this.request(id);
+  }
+
+  private request(id: string): void {
+    const c = this.pending.get(id);
+    if (!c || this.loading.has(id)) return;
+    this.loading.add(id);
+    void loadCreature(this.base, id, c).then((creature) => {
+      this.pending.delete(id);
+      this.loading.delete(id);
+      if (creature) this.byLook.set(id, creature);
+    });
+  }
+
+  /**
+   * The first of `ids` that has art: loaded art is returned, and art still loading
+   * returns undefined (so a bespoke boss never gets its shared look stuck on it).
+   */
+  creatureFor(...ids: string[]): Creature | undefined {
+    for (const id of ids) {
+      const c = this.byLook.get(id);
+      if (c) return c;
+      if (this.pending.has(id)) {
+        this.request(id);
+        return undefined;
+      }
+    }
+    return undefined;
   }
 
   /** A room's back-wall art at a level (falling back to a lower level's), or undefined to draw it. */
@@ -103,7 +159,7 @@ export class CharacterArt {
 
   /** The art for an enemy look, or undefined to draw it with Graphics. */
   forLook(look: string): Creature | undefined {
-    return this.byLook.get(look);
+    return this.creatureFor(look);
   }
 
   /** The character used for a resident, or undefined to use the placeholder. */
@@ -135,24 +191,12 @@ export class CharacterArt {
       }),
     );
     const characters = loaded.filter((c): c is Character => c !== null);
-    const creatures = (
-      await Promise.all(
-        Object.entries(manifest.creatures ?? {}).map(async ([id, c]) => {
-          try {
-            const anims: Creature['anims'] = {};
-            await Promise.all(
-              Object.entries(c.anims).map(async ([name, a]) => {
-                anims[name] = { frames: a.frames, fps: a.fps, loop: a.loop, anchorX: a.anchorX, anchorY: a.anchorY, textures: await loadStrip(base, a, a.files.full) };
-              }),
-            );
-            return { id, refHeight: c.refHeight, anims };
-          } catch (err) {
-            console.warn(`sprites: could not load ${id}`, err);
-            return null;
-          }
-        }),
-      )
-    ).filter((c): c is Creature => c !== null);
+    // Only the looks the vault itself shows load up front; every other creature
+    // (quest enemies and bosses) loads the first time it is asked for.
+    const all = manifest.creatures ?? {};
+    const eager = Object.entries(all).filter(([id]) => EAGER_CREATURES.has(id));
+    const lazy = Object.fromEntries(Object.entries(all).filter(([id]) => !EAGER_CREATURES.has(id)));
+    const creatures = (await Promise.all(eager.map(([id, c]) => loadCreature(base, id, c)))).filter((c): c is Creature => c !== null);
     const rooms = new Map<string, Texture>();
     await Promise.all(
       Object.entries(manifest.portraits ?? {})
@@ -169,7 +213,7 @@ export class CharacterArt {
           }),
         ),
     );
-    return characters.length || creatures.length || rooms.size ? new CharacterArt(characters, creatures, rooms) : null;
+    return characters.length || creatures.length || rooms.size || Object.keys(lazy).length ? new CharacterArt(characters, creatures, rooms, lazy, base) : null;
   }
 }
 
