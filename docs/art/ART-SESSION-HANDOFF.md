@@ -39,7 +39,7 @@ Everything falls back to the old drawn (Graphics or emoji) version when an image
 - Residents and creatures were built from the uploaded resident reference; icons and rooms from text prompts; upgrade levels by image-to-image from the level below.
 - Credits: about 164,660 left of 180,000 at the end of the session (renews 2026-10-07). The agreed floor was 60,000.
 
-To regenerate one image: make it, save the PNG over `art/raw/<id>/<file>.png` (same name), run `npm run sprites`, check it in the game, commit both the raw PNG and the WebP. To add a new room level, add an entry to that room's `sprite.json` `anims` (`{"file": "level2.png", "whole": true, "names": ["2"]}`).
+To regenerate one image: make it, save the PNG over `art/raw/<id>/<file>.png` (same name), run `npm run sprites -- <id>` (just that folder), check it in the game, commit both the raw PNG and the WebP. To add a new room level, add an entry to that room's `sprite.json` `anims` (`{"file": "level2.png", "whole": true, "names": ["2"]}`).
 
 ## Checking it
 

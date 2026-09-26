@@ -831,7 +831,8 @@ export class QuestView {
       sp = { root, pose, body, figure: null, look: '', name, x: start.x, y: start.y, facing: 1, walk: 0, moving: false, lunge: 0, hurt: 0, crit: 0, action: 'idle' };
       this.members.set(res.id, sp);
     }
-    const look = `${res.weapon ?? ''}|${res.outfit ?? ''}|${this.art ? 1 : 0}`;
+    // The body version changes when a legend's own body arrives.
+    const look = `${res.weapon ?? ''}|${res.outfit ?? ''}|${this.art?.bodyVersion ?? ''}`;
     if (sp.look !== look) {
       sp.look = look;
       this.dress(sp, res);

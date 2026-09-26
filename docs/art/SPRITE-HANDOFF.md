@@ -133,8 +133,11 @@ Then build and check:
 
 ```bash
 pip install -r tools/sprites/requirements.txt   # once
-npm run sprites
+npm run sprites -- resident_m                    # just this folder (any number of art/raw folder names)
+npm run sprites                                  # every folder (slow: art/raw is large)
 ```
+
+Naming folders builds only those and merges them into the existing `public/sprites/manifest.json`, leaving everything else as it is. An unknown folder name is an error and builds nothing. With no names, every folder is rebuilt and the manifest is written from scratch.
 
 This writes:
 - `public/sprites/<id>/<anim>_<layer>.webp` (the game layers)
@@ -171,7 +174,7 @@ If the art session can't run the pipeline, drop the raw sheets and a short note 
 
 The code side is done. **Every animation above is picked up as soon as it's built.** No code changes are needed.
 
-- **The loader** (`src/client/render/sprites.ts`) picks a character by `sex`, meaning the first manifest entry per sex. A `resident_m` sheet is used for men automatically. Until then, men are drawn placeholders.
+- **The loader** (`src/client/render/sprites.ts`) picks a character by `sex`, meaning the first manifest entry per sex. A `resident_m` sheet is used for men automatically. Until then, men are drawn placeholders. A legendary resident with a bespoke body (`"kind": "legend"`, section 7) gets that instead, once it has loaded.
 - **`Figure.play(action, time)`** picks the animation for what the resident is doing, and falls back when a sheet is missing:
 
   | Action | When | Falls back to |
@@ -184,13 +187,14 @@ The code side is done. **Every animation above is picked up as soon as it's buil
   | `carry` | explorers walking on the surface | `walk` with a drawn backpack |
 
 - **Weapons:** while the `fight` art is showing, the drawn hip weapon is hidden, because the sheet holds its own rifle. With `carry` art, the drawn backpack is hidden.
-- **Checking in a browser:** `homesteadView.figures()` in the console counts residents per `action>animation`, for example `{"work>idle": 12, "fight>fight": 3}`.
+- **Checking in a browser:** `homesteadView.figures()` in the console counts residents per `action>animation`, for example `{"work>idle": 12, "fight>fight": 3}`, plus `legend:<id>` for each legend drawn with their own body.
 
 ## 7. Creatures and portraits
 
-The same pipeline builds enemies and interface portraits. Set `"kind"` in `sprite.json`:
+The same pipeline builds enemies, legend bodies and interface portraits. Set `"kind"` in `sprite.json`:
 
 - **`"kind": "creature"`** (in `art/raw/<look>/`, named after the enemy's `look`): full colour, no recolouring. Animations are `idle` (loop), `attack` (plays when it strikes; its early frames are held during a boss wind-up) and `death` (plays once before the fade). Sheets must end up **facing left**, toward the party; use `"mirror": true` for sheets drawn facing right. Use `"background": "magenta"` for anything with green in it. The quest screen and the vault incidents (skitters, burrowers, raiders, deepcrawlers) use the art when a look has some, and draw the old Graphics version otherwise.
+- **`"kind": "legend"`** (in `art/raw/legend_<id>/`, with `"legend"` and `"sex"`: the legends.json id defaults to the folder name without `legend_`, and the sex to that legend's): a legendary resident's own body. It is built like a creature (full colour, no recolouring, so no reference colours are needed), but it **faces right** like the residents and has the resident animations: `walk` is required, and `idle`, `work`, `fight`, `fallen` and `carry` are optional and fall back as in section 6. The per-animation options above work too, except `regions` (nothing is recoloured). Its `"id"` must be the folder name (or left out), and each legend can have only one body folder: the build refuses a copy that would overwrite another legend's body. It goes in the manifest's `legends` section and loads the first time that legend is drawn. Legends without one keep the shared body. The weapon overlay and the legend star are still drawn over it, but the outfit colour isn't applied, because the outfit is painted. Delivery details are in [ART-HANDOFF-M9.md](ART-HANDOFF-M9.md) section 9.
 - **`"kind": "portrait"`**: each frame is saved as its own image in `public/sprites/portraits/<id>_<name>.webp`, named by `"names"`. HALCY's four faces (`smile`, `talk`, `worried`, `wink`) appear beside her lines (`src/client/ui/halcy.ts`).
 - **Item icons** use the portrait kind too (`art/raw/items/`, `"outDir": "items"`, `"prefix": ""`, `"fit": 96`), one image per item id in `public/sprites/items/`. The storage list and crate cards show them (`src/client/ui/icons.ts`), with the old emoji as fallback. Icon sheets often come out shuffled or with repeats: `"order": "x"` reads a row strictly left to right, `"boxes"` names explicit regions of the sheet, and `"background": "corner"` keys any flat background colour.
 - **Salvage icons** work the same way (`art/raw/salvage/`, one sheet per material), shown in the salvage cells of the storage panel.
@@ -207,7 +211,7 @@ The same pipeline builds enemies and interface portraits. Set `"kind"` in `sprit
 | `sentry` | Courtesy Sentries and Greeter Units | idle, attack, death |
 | `deepcrawler` | The deepcrawler incident | idle, attack, death |
 
-Game images are written as lossy WebP (alpha lossless), about a third the size of PNG. Characters ship only their tint layers.
+Game images are written as lossy WebP (alpha lossless), about a third the size of PNG. Characters ship only their tint layers; creatures and legend bodies ship one full-colour layer.
 
 ## 8. Licensing: check before anything ships
 

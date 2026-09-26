@@ -358,12 +358,18 @@ export class VaultView {
     return { sprites: this.sprites.size, residentLayer: this.residentLayer.children.length, walkers: this.walkers.size, caravanWalkers: this.caravanWalkers.size, topside: this.topsideParts.size, statics: this.statics.children.length, ghosts: this.ghostLayer.children.length, zoom: this.zoom, x: Math.round(this.world.x), y: Math.round(this.world.y) };
   }
 
-  /** How many residents show each action, and which animation stands in for it ("fight>idle"). */
+  /**
+   * How many residents show each action, and which animation stands in for it
+   * ("fight>idle"), plus how many are drawn with a legend's own body ("legend:pip").
+   */
   debugFigures(): Record<string, number> {
     const out: Record<string, number> = {};
-    for (const sp of this.sprites.values()) {
-      const k = sp.figure ? `${sp.action}>${sp.figure.showing}` : `${sp.action}>placeholder`;
+    const count = (k: string) => {
       out[k] = (out[k] ?? 0) + 1;
+    };
+    for (const sp of this.sprites.values()) {
+      count(sp.figure ? `${sp.action}>${sp.figure.showing}` : `${sp.action}>placeholder`);
+      if (sp.figure?.character.legend) count(`legend:${sp.figure.character.legend}`);
     }
     return out;
   }
@@ -1323,11 +1329,14 @@ export class VaultView {
     this.builtLayout = -1; // rebuild rooms with any painted walls
     for (const sp of this.sprites.values()) sp.look = '';
     for (const w of this.walkers.values()) w.look = '';
+    for (const w of this.caravanWalkers.values()) w.look = '';
   }
 
   /**
    * Redraw a figure: sprite art with small overlays if there is art for the
-   * resident's body type, else the drawn placeholder.
+   * resident's body type, else the drawn placeholder. A legend's own body
+   * swaps in here once it loads (the art's body version is part of every look key);
+   * it is painted, so the outfit colour doesn't apply, but the overlays do.
    */
   private dress(f: { pose: Container; body: Graphics; figure: Figure | null }, res: Resident, child: boolean, backpack: boolean, armed = false): void {
     const character = this.art?.forResident(res);
@@ -1373,7 +1382,7 @@ export class VaultView {
       const child = isChild(state, res);
       // Last frame's action decides whether fight art holds the weapon itself.
       const armed = sp.action === 'fight' && !!sp.figure?.has('fight');
-      const look = `${res.pregnancy ? 'p' : ''}${child ? 'c' : ''}${armed ? 'a' : ''}${res.weapon ?? ''}|${res.outfit ?? ''}`;
+      const look = `${res.pregnancy ? 'p' : ''}${child ? 'c' : ''}${armed ? 'a' : ''}${res.weapon ?? ''}|${res.outfit ?? ''}|${this.art?.bodyVersion ?? ''}`;
       if (sp.look !== look) {
         sp.look = look;
         this.dress(sp, res, child, false, armed);
@@ -1451,7 +1460,7 @@ export class VaultView {
         w = { root, pose, body, figure: null, look: '' };
         this.walkers.set(e.id, w);
       }
-      const look = `${res.weapon ?? ''}|${res.outfit ?? ''}`;
+      const look = `${res.weapon ?? ''}|${res.outfit ?? ''}|${this.art?.bodyVersion ?? ''}`;
       if (w.look !== look) {
         w.look = look;
         this.dress(w, res, false, true);
@@ -1541,7 +1550,7 @@ export class VaultView {
           w = { root, pose, body, figure: null, look: '' };
           this.caravanWalkers.set(key, w);
         }
-        const look = `${res.weapon ?? ''}|${res.outfit ?? ''}`;
+        const look = `${res.weapon ?? ''}|${res.outfit ?? ''}|${this.art?.bodyVersion ?? ''}`;
         if (w.look !== look) {
           w.look = look;
           this.dress(w, res, false, false);

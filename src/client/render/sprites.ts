@@ -3,6 +3,8 @@
 // here each layer is tinted at runtime, so one sheet covers every skin tone,
 // hair colour and outfit. If the manifest is missing, or a resident's body
 // type has no art yet, the view keeps drawing the placeholder figure.
+// Legendary residents can have a bespoke body instead (art/raw/legend_<id>/):
+// one painted, untinted layer, loaded the first time the legend is drawn.
 
 import { Assets, Container, Rectangle, Sprite, Texture } from 'pixi.js';
 import type { Content, Resident } from '../../sim';
@@ -10,6 +12,10 @@ import appearance from '../../content/appearance.json';
 
 export const LAYERS = ['base', 'suit', 'skin', 'hair', 'trim'] as const;
 type Layer = (typeof LAYERS)[number];
+/** A strip's layer: a tint layer, or "full" for art drawn as painted (creatures, legend bodies). */
+type LayerName = Layer | 'full';
+/** The one layer of a legend's bespoke body. */
+const FULL: readonly LayerName[] = ['full'];
 
 interface AnimManifest {
   frames: number;
@@ -20,8 +26,17 @@ interface AnimManifest {
   anchorX: number;
   anchorY: number;
   idleFrame?: number;
-  /** Characters have every layer; creatures only "full". */
-  files: Record<Layer | 'full', string>;
+  /** Characters have every tint layer; creatures and legend bodies only "full". */
+  files: Partial<Record<LayerName, string>>;
+}
+
+/** A legendary resident's own body: built like a creature, facing right like residents. */
+interface LegendManifest {
+  /** The art/raw folder it was built from ("legend_<id>"). */
+  id?: string;
+  sex: 'f' | 'm';
+  refHeight: number;
+  anims: Record<string, AnimManifest>;
 }
 
 interface Manifest {
@@ -31,6 +46,8 @@ interface Manifest {
   creatures?: Record<string, { refHeight: number; anims: Record<string, AnimManifest> }>;
   /** Single images by id then name; "room_<type>" ids hold room back walls by level. */
   portraits?: Record<string, Record<string, string>>;
+  /** Legends' bespoke bodies, keyed by legends.json id. */
+  legends?: Record<string, LegendManifest>;
 }
 
 export interface Anim {
@@ -40,14 +57,18 @@ export interface Anim {
   idleFrame: number;
   anchorX: number;
   anchorY: number;
-  /** Textures per layer, one per frame. */
-  layers: Record<Layer, Texture[]>;
+  /** Textures per layer (every one in the character's `layers`), one per frame. */
+  layers: Partial<Record<LayerName, Texture[]>>;
 }
 
 export interface Character {
   id: string;
   sex: 'f' | 'm';
   refHeight: number;
+  /** The layers a Figure stacks, bottom first: LAYERS for a tinted body, ["full"] for a legend's own. */
+  layers: readonly LayerName[];
+  /** Set on a legend's bespoke body (the legends.json id); never a body type's default. */
+  legend?: string;
   anims: Record<string, Anim>;
 }
 
@@ -101,6 +122,11 @@ export class CharacterArt {
   /** Creature art in the manifest that isn't loaded yet (bosses and one-quest enemies load on first use). */
   private pending = new Map<string, { refHeight: number; anims: Record<string, AnimManifest> }>();
   private loading = new Set<string>();
+  /** Legends' bespoke bodies that have loaded, and those not asked for yet, by legend id. */
+  private byLegend = new Map<string, Character>();
+  private pendingLegends = new Map<string, LegendManifest>();
+  private lazyLoaded = 0;
+  private bodiesLoaded = 0;
 
   constructor(
     readonly characters: Character[],
@@ -108,12 +134,28 @@ export class CharacterArt {
     /** Room back-wall art by "type:level". */
     private rooms = new Map<string, Texture>(),
     lazy: Record<string, { refHeight: number; anims: Record<string, AnimManifest> }> = {},
+    legends: Record<string, LegendManifest> = {},
     private base = 'sprites/',
   ) {
     // The first character listed for a body type is its default.
     for (const c of characters) if (!this.bySex.has(c.sex)) this.bySex.set(c.sex, c);
     for (const c of creatures) this.byLook.set(c.id, c);
     for (const [id, c] of Object.entries(lazy)) if (!this.byLook.has(id)) this.pending.set(id, c);
+    for (const [id, c] of Object.entries(legends)) this.pendingLegends.set(id, c);
+  }
+
+  /** Goes up by one each time lazily loaded art (a creature or a legend body) arrives. */
+  get version(): number {
+    return this.lazyLoaded;
+  }
+
+  /**
+   * Goes up by one each time a legend's bespoke body arrives. The views put it
+   * in their resident figures' look keys, so those redress and swap bodies.
+   * Creature loads don't change it: resident figures never draw creature art.
+   */
+  get bodyVersion(): number {
+    return this.bodiesLoaded;
   }
 
   /** Start loading creature art in the background (for a quest that is about to be shown). */
@@ -128,7 +170,27 @@ export class CharacterArt {
     void loadCreature(this.base, id, c).then((creature) => {
       this.pending.delete(id);
       this.loading.delete(id);
-      if (creature) this.byLook.set(id, creature);
+      if (creature) {
+        this.byLook.set(id, creature);
+        this.lazyLoaded++;
+      }
+    });
+  }
+
+  /**
+   * Start loading a legend's bespoke body, once: it leaves the pending list
+   * as it starts, so a failed load (warned about by loadCharacter) keeps the
+   * shared body for good instead of retrying every frame.
+   */
+  private requestLegend(id: string): void {
+    const c = this.pendingLegends.get(id);
+    if (!c) return;
+    this.pendingLegends.delete(id);
+    void loadCharacter(this.base, c.id ?? `legend_${id}`, c, FULL, id).then((body) => {
+      if (!body) return;
+      this.byLegend.set(id, body);
+      this.lazyLoaded++;
+      this.bodiesLoaded++;
     });
   }
 
@@ -162,8 +224,17 @@ export class CharacterArt {
     return this.creatureFor(look);
   }
 
-  /** The character used for a resident, or undefined to use the placeholder. */
+  /**
+   * The character used for a resident, or undefined to use the placeholder. A
+   * legend with a bespoke body gets it once it has loaded, and the shared body
+   * for their sex until then (asking starts the load).
+   */
   forResident(res: Resident): Character | undefined {
+    if (res.legendary) {
+      const own = this.byLegend.get(res.legendary);
+      if (own) return own;
+      this.requestLegend(res.legendary);
+    }
     return this.bySex.get(res.sex);
   }
 
@@ -178,18 +249,7 @@ export class CharacterArt {
       return null;
     }
     // Every strip loads in parallel; a character that fails to load is skipped.
-    const loaded = await Promise.all(
-      Object.entries(manifest.characters ?? {}).map(async ([id, c]) => {
-        try {
-          const anims: Record<string, Anim> = {};
-          await Promise.all(Object.entries(c.anims).map(async ([name, a]) => (anims[name] = await loadAnim(base, a))));
-          return { id, sex: c.sex, refHeight: c.refHeight, anims };
-        } catch (err) {
-          console.warn(`sprites: could not load ${id}`, err);
-          return null;
-        }
-      }),
-    );
+    const loaded = await Promise.all(Object.entries(manifest.characters ?? {}).map(([id, c]) => loadCharacter(base, id, c, LAYERS)));
     const characters = loaded.filter((c): c is Character => c !== null);
     // Only the looks the vault itself shows load up front; every other creature
     // (quest enemies and bosses) loads the first time it is asked for.
@@ -213,25 +273,46 @@ export class CharacterArt {
           }),
         ),
     );
-    return characters.length || creatures.length || rooms.size || Object.keys(lazy).length ? new CharacterArt(characters, creatures, rooms, lazy, base) : null;
+    // Legend bodies load the first time their legend is drawn (see forResident).
+    const legends = manifest.legends ?? {};
+    return characters.length || creatures.length || rooms.size || Object.keys(lazy).length || Object.keys(legends).length ? new CharacterArt(characters, creatures, rooms, lazy, legends, base) : null;
   }
 }
 
 /** One strip image cut into its frames. */
-async function loadStrip(base: string, a: AnimManifest, file: string): Promise<Texture[]> {
+async function loadStrip(base: string, a: AnimManifest, file: string | undefined): Promise<Texture[]> {
+  if (!file) throw new Error('a layer is missing from the manifest');
   const strip = await Assets.load<Texture>(`${base}${file}`);
   strip.source.scaleMode = 'linear';
   return Array.from({ length: a.frames }, (_, i) => new Texture({ source: strip.source, frame: new Rectangle(i * a.frameW, 0, a.frameW, a.frameH) }));
 }
 
-async function loadAnim(base: string, a: AnimManifest): Promise<Anim> {
-  const layers = {} as Record<Layer, Texture[]>;
+async function loadAnim(base: string, a: AnimManifest, names: readonly LayerName[]): Promise<Anim> {
+  const layers: Anim['layers'] = {};
   await Promise.all(
-    LAYERS.map(async (layer) => {
+    names.map(async (layer) => {
       layers[layer] = await loadStrip(base, a, a.files[layer]);
     }),
   );
   return { frames: a.frames, fps: a.fps, loop: a.loop, idleFrame: a.idleFrame ?? 0, anchorX: a.anchorX, anchorY: a.anchorY, layers };
+}
+
+/** Every animation of a body with the given layers; null (with a warning) if any strip fails. */
+async function loadCharacter(
+  base: string,
+  id: string,
+  c: { sex: 'f' | 'm'; refHeight: number; anims: Record<string, AnimManifest> },
+  layers: readonly LayerName[],
+  legend?: string,
+): Promise<Character | null> {
+  try {
+    const anims: Record<string, Anim> = {};
+    await Promise.all(Object.entries(c.anims).map(async ([name, a]) => (anims[name] = await loadAnim(base, a, layers))));
+    return { id, sex: c.sex, refHeight: c.refHeight, layers, ...(legend ? { legend } : {}), anims };
+  } catch (err) {
+    console.warn(`sprites: could not load ${id}`, err);
+    return null;
+  }
 }
 
 /** What a resident is doing, which picks the animation a Figure plays. */
@@ -251,8 +332,9 @@ const FALLBACK: Record<Action, string[]> = {
 };
 
 /**
- * A stack of tinted layer sprites showing one frame of one animation. The
- * sheets face right; mirror the parent to face left.
+ * A stack of tinted layer sprites (one untinted sprite for a legend's own
+ * body) showing one frame of one animation. The sheets face right; mirror
+ * the parent to face left.
  */
 export class Figure extends Container {
   private parts: Sprite[] = [];
@@ -270,8 +352,8 @@ export class Figure extends Container {
   ) {
     super();
     this.anim = character.anims.walk ?? (Object.values(character.anims)[0] as Anim);
-    for (const layer of LAYERS) {
-      const s = new Sprite(this.anim.layers[layer][0]);
+    for (const layer of character.layers) {
+      const s = new Sprite(this.anim.layers[layer]?.[0]);
       this.parts.push(s);
       this.addChild(s);
     }
@@ -289,9 +371,10 @@ export class Figure extends Container {
     return !!this.character.anims[action];
   }
 
+  /** Tint the layers; a painted "full" layer (a legend's own body) stays as drawn. */
   setTints(tints: Record<Layer, number>): void {
-    LAYERS.forEach((layer, i) => {
-      this.parts[i]!.tint = tints[layer];
+    this.character.layers.forEach((layer, i) => {
+      this.parts[i]!.tint = layer === 'full' ? 0xffffff : tints[layer];
     });
   }
 
@@ -323,8 +406,9 @@ export class Figure extends Container {
   private setFrame(i: number): void {
     if (i === this.frame) return;
     this.frame = i;
-    LAYERS.forEach((layer, n) => {
-      this.parts[n]!.texture = this.anim.layers[layer][i] ?? this.anim.layers[layer][0]!;
+    this.character.layers.forEach((layer, n) => {
+      const strip = this.anim.layers[layer] ?? [];
+      this.parts[n]!.texture = strip[i] ?? strip[0]!;
     });
   }
 }

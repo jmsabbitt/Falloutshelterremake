@@ -15,6 +15,7 @@ npm run build      # production build in dist/
 npm run sim -- 48  # headless bot-player balance run: 48 in-game hours
 npm run quest-balance  # every quest and contract with scripted parties
 npm run sprites    # rebuild character sprites from art/raw (see docs/design/art-spec.md)
+npm run sprites -- resident_f  # just the named art/raw folders, merged into the manifest
 ```
 
 In the browser console, `window.homestead` is a developer console: `skip(seconds)`, `addScrip(n)`, `spawn(n)`, `fill()`, `raid()`, `incident(type)`, `give(itemId)`, `crate(tier, n)`, `salvage(id, n)`, `fragments(itemId, n)`, `learn(itemId)`, `explore(residentId?)`, `run(command)`, `reset()`. It is the basis for the future Custom Game mode.

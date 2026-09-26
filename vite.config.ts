@@ -36,8 +36,8 @@ function serviceWorkerPlugin(): Plugin {
         .map((f) => relative(outDir, f).split(sep).join('/'))
         // woff2 is enough for every browser that has service workers; the .woff fallbacks stay network/runtime-cached.
         .filter((f) => f !== 'sw.js' && !f.endsWith('.map') && !f.endsWith('.woff'))
-        // Sprites the game loads at start-up are precached; quest enemies, bosses and
-        // ending art (most of the 20+ MB) are cached at runtime, the first time they load.
+        // Sprites the game loads at start-up are precached; quest enemies, bosses, legend
+        // bodies and ending art (most of the 20+ MB) are cached at runtime, the first time they load.
         .filter((f) => !f.startsWith('sprites/') || f === 'sprites/manifest.json' || PRECACHED_SPRITES.some((d) => f.startsWith(`sprites/${d}/`)))
         .sort();
       const hash = createHash('sha256');

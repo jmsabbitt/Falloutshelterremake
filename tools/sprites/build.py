@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Sprite pipeline: raw generated sprite sheets -> game-ready, recolourable sprites.
 
-    npm run sprites            (or: python3 tools/sprites/build.py)
+    npm run sprites                   (or: python3 tools/sprites/build.py)
+    npm run sprites -- <folder> ...   (only those art/raw folders)
 
 For every character folder in art/raw/<id>/ with a sprite.json, each animation's
 sheet (green-screen background, frames in rows) is:
@@ -17,12 +18,21 @@ sheet (green-screen background, frames in rows) is:
 
 A preview with example recolours is written to art/previews/<id>_<anim>.png.
 
+"kind" in sprite.json builds other things the same way: "creature" (enemies)
+and "legend" (a legendary resident's own body) keep one full-colour layer
+instead of step 4, and "portrait" saves each frame as its own image.
+
+With no arguments every folder is rebuilt and the manifest rewritten. Naming
+folders builds only those and merges them into the existing manifest, which
+is much faster than rebuilding all of art/raw.
+
 Requirements: Python 3 with Pillow and numpy (pip install -r tools/sprites/requirements.txt).
 See docs/design/art-spec.md for how to generate sheets that work with this.
 """
 
 from __future__ import annotations
 
+import argparse
 import json
 import shutil
 import sys
@@ -38,6 +48,13 @@ PREVIEWS = ROOT / "art" / "previews"
 APPEARANCE = json.loads((ROOT / "src" / "content" / "appearance.json").read_text())
 
 LAYERS = ["base", "suit", "skin", "hair", "trim"]
+SECTIONS = ["characters", "creatures", "portraits", "legends"]
+# Legend bodies default to their legend's sex, and warn about an unknown id.
+LEGEND_SEX = {l["id"]: l.get("sex") for l in json.loads((ROOT / "src" / "content" / "legends.json").read_text())["legends"]}
+
+
+class BuildError(Exception):
+    """A folder that can't be built as configured; the others still are."""
 
 # Colour rules for the reference palette every base character is generated in
 # (teal jumpsuit, orange chest stripe, dark hair, light skin, brown boots).
@@ -305,7 +322,26 @@ def build_character(folder: Path) -> tuple[str, dict] | None:
     ref_anim = cfg.get("referenceAnim", "walk")
     # "kind": "creature" sheets (enemies) aren't recoloured: one full-colour layer.
     creature = cfg.get("kind") == "creature"
-    layers = [] if creature else LAYERS
+    # "kind": "legend" is a legendary resident's own body (art/raw/legend_<id>/):
+    # built like a creature, since its outfit is painted, but facing right like
+    # the residents. "legend" names the legends.json id (default: the folder
+    # id without "legend_").
+    legend = cfg.get("kind") == "legend"
+    full_only = creature or legend
+    layers = [] if full_only else LAYERS
+    if legend:
+        # The output folder and manifest entry are named by "id": a sprite.json
+        # copied from another legend's folder would silently replace that body.
+        if cid != folder.name:
+            raise BuildError(f'{folder.name}: "id" is {cid!r}; a legend body\'s "id" must be its folder name (or leave "id" out)')
+        legend_id = cfg.get("legend", cid.removeprefix("legend_"))
+        if legend_id not in LEGEND_SEX:
+            print(f"  ! {cid}: {legend_id!r} is not a legend in legends.json", file=sys.stderr)
+        sex = cfg.get("sex", LEGEND_SEX.get(legend_id))
+        if LEGEND_SEX.get(legend_id) not in (None, sex):
+            print(f"  ! {cid}: \"sex\" is {sex!r}, but {legend_id} is {LEGEND_SEX[legend_id]!r} in legends.json", file=sys.stderr)
+        if sex not in ("f", "m"):
+            raise BuildError(f'{cid}: a legend body needs "sex": "f" or "m"')
 
     # Load and cut every animation first.
     cut: dict[str, list[np.ndarray]] = {}
@@ -356,6 +392,9 @@ def build_character(folder: Path) -> tuple[str, dict] | None:
         print(f"  {cid}/{name}: {len(frames)} frames")
     if not cut:
         return None
+    if legend and "walk" not in cut:
+        # Every other animation falls back to the walk sheet (see FALLBACK in sprites.ts).
+        raise BuildError(f"{cid}: a legend body needs a walk animation")
     if cfg.get("kind") == "portrait":
         return build_portraits(cid, cfg, cut, target)
     ref = cut.get(ref_anim) or next(iter(cut.values()))
@@ -364,7 +403,12 @@ def build_character(folder: Path) -> tuple[str, dict] | None:
     out_dir = OUT / cid
     shutil.rmtree(out_dir, ignore_errors=True)  # no stale strips from an older build
     out_dir.mkdir(parents=True, exist_ok=True)
-    manifest = {"refHeight": target, "anims": {}} if creature else {"sex": cfg.get("sex"), "refHeight": target, "anims": {}}
+    if creature:
+        manifest = {"refHeight": target, "anims": {}}
+    elif legend:
+        manifest = {"id": cid, "sex": sex, "refHeight": target, "anims": {}}
+    else:
+        manifest = {"sex": cfg.get("sex"), "refHeight": target, "anims": {}}
     lineup = []
     for name, frames in cut.items():
         a = cfg["anims"][name]
@@ -380,15 +424,15 @@ def build_character(folder: Path) -> tuple[str, dict] | None:
             scale = ref_scale
         # An animation can override the character's colour rules (e.g. the fight sheet's hair).
         anim_rules = {k: {**rules[k], **v} for k, v in a.get("regions", {}).items()}
-        segs = [None if creature else segment(f, {**rules, **anim_rules}) for f in frames]
-        anchors = [body_x(f) if creature else torso_x(f, m) for f, m in zip(frames, segs)]
+        segs = [None if full_only else segment(f, {**rules, **anim_rules}) for f in frames]
+        anchors = [body_x(f) if full_only else torso_x(f, m) for f, m in zip(frames, segs)]
         left = max(anc for anc in anchors)
         right = max(f.shape[1] - anc for f, anc in zip(frames, anchors))
         height = max(f.shape[0] for f in frames)
         cw, ch = int(np.ceil((left + right) * scale)) + 2, int(np.ceil(height * scale)) + 2
         strips = {k: Image.new("RGBA", (cw * len(frames), ch)) for k in layers + ["full"]}
         for i, (f, m, anc) in enumerate(zip(frames, segs, anchors)):
-            parts = {} if creature else layer_strips(f, m)
+            parts = {} if full_only else layer_strips(f, m)
             parts["full"] = f
             ox = left - anc  # place the torso at the shared anchor
             oy = height - f.shape[0]  # feet on the baseline
@@ -400,7 +444,7 @@ def build_character(folder: Path) -> tuple[str, dict] | None:
         files = {}
         for k, img in strips.items():
             # Characters only load the tint layers; their full-colour strip is for previews.
-            if k == "full" and not creature:
+            if k == "full" and not full_only:
                 continue
             fn = f"{name}_{k}.webp"
             save_webp(img, out_dir / fn)
@@ -417,7 +461,7 @@ def build_character(folder: Path) -> tuple[str, dict] | None:
             "anchorY": 1.0,
             "files": files,
         }
-        if creature:
+        if full_only:
             sheet = Image.new("RGBA", strips["full"].size, (233, 217, 182, 255))
             sheet.alpha_composite(strips["full"])
             PREVIEWS.mkdir(parents=True, exist_ok=True)
@@ -433,6 +477,8 @@ def build_character(folder: Path) -> tuple[str, dict] | None:
         sheet.alpha_composite(strip.crop((0, 0, cw, ch)), (x, sheet.height - ch))
         x += cw + 8
     sheet.save(PREVIEWS / f"{cid}_lineup.png")
+    if legend:
+        return ("legends", {legend_id: manifest})
     return ("creatures" if creature else "characters", {cid: manifest})
 
 
@@ -460,19 +506,92 @@ def preview(cid: str, anim: str, strips: dict[str, Image.Image], cw: int, ch: in
     sheet.save(PREVIEWS / f"{cid}_{anim}.png")
 
 
-def main() -> int:
+def load_manifest() -> dict:
+    """The manifest as it is now (for a partial build), with every section present."""
+    path = OUT / "manifest.json"
+    manifest = json.loads(path.read_text()) if path.exists() else {"version": 1}
+    for section in SECTIONS:
+        manifest.setdefault(section, {})
+    return manifest
+
+
+def forget(manifest: dict, cid: str) -> None:
+    """Drop what an earlier build of `cid` wrote (it may since have changed kind or legend)."""
+    for section in ("characters", "creatures", "portraits"):
+        manifest[section].pop(cid, None)
+    for key in [k for k, v in manifest["legends"].items() if v.get("id") == cid]:
+        del manifest["legends"][key]
+
+
+def claimed(manifest: dict, entries: dict) -> dict[str, str]:
+    """Legends in `entries` whose body another art/raw folder already built.
+
+    One body per legend: a second folder naming the same "legend" would
+    silently replace the first. An entry whose folder is gone is stale.
+    """
+    out = {}
+    for key in entries:
+        other = manifest["legends"].get(key, {}).get("id")
+        if other and (RAW / other).is_dir():
+            out[key] = other
+    return out
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description="Build game sprites from art/raw into public/sprites.")
+    parser.add_argument("folders", nargs="*", help="art/raw folders to build (default: all); merged into the existing manifest")
+    args = parser.parse_args(argv)
     if not RAW.exists():
         print("no art/raw folder; nothing to build")
         return 0
-    manifest: dict = {"version": 1, "characters": {}, "creatures": {}, "portraits": {}}
-    for folder in sorted(p for p in RAW.iterdir() if p.is_dir()):
-        built = build_character(folder)
+    if args.folders:
+        # A partial build: check every name first, so a typo builds nothing.
+        names = list(dict.fromkeys(Path(f).name for f in args.folders))
+        unknown = [n for n in names if not (RAW / n / "sprite.json").is_file()]
+        for n in unknown:
+            why = "has no sprite.json" if (RAW / n).is_dir() else "does not exist"
+            print(f"error: art/raw/{n} {why}", file=sys.stderr)
+        if unknown:
+            return 1
+        folders = [RAW / n for n in names]
+        manifest = load_manifest()
+    else:
+        folders = sorted(p for p in RAW.iterdir() if p.is_dir())
+        manifest = {"version": 1, **{section: {} for section in SECTIONS}}
+    failed = []
+    touched = set()
+    for folder in folders:
+        try:
+            built = build_character(folder)
+        except BuildError as err:
+            print(f"error: {err}", file=sys.stderr)
+            failed.append(folder.name)
+            continue
         if built:
-            manifest[built[0]].update(built[1])
+            section, entries = built
+            if args.folders:
+                for key, entry in entries.items():
+                    forget(manifest, entry.get("id", key) if section == "legends" else key)
+                touched.add(section)
+            taken = claimed(manifest, entries) if section == "legends" else {}
+            if taken:
+                for k, other in taken.items():
+                    print(f'error: {folder.name}: legend {k!r} already has a body from art/raw/{other}; check "legend" in its sprite.json', file=sys.stderr)
+                shutil.rmtree(OUT / folder.name, ignore_errors=True)  # a legend's output folder is its folder name
+                failed.append(folder.name)
+                continue
+            manifest[section].update(entries)
+        elif args.folders:
+            print(f"error: art/raw/{folder.name} built nothing", file=sys.stderr)
+            failed.append(folder.name)
+    # Sorted by id, the order a full build writes them in (ids follow folder names).
+    for section in touched:
+        manifest[section] = dict(sorted(manifest[section].items()))
     OUT.mkdir(parents=True, exist_ok=True)
     (OUT / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n")
-    print(f"wrote {OUT / 'manifest.json'} ({len(manifest['characters'])} character(s), {len(manifest['creatures'])} creature(s))")
-    return 0
+    counts = f"{len(manifest['characters'])} character(s), {len(manifest['creatures'])} creature(s), {len(manifest['legends'])} legend(s)"
+    print(f"{'updated' if args.folders else 'wrote'} {OUT / 'manifest.json'} ({counts})")
+    return 1 if failed else 0
 
 
 if __name__ == "__main__":

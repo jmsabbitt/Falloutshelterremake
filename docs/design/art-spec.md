@@ -1,6 +1,6 @@
 # Character Art Spec
 
-> Making sprites? Start with the short handoff: [`docs/art/SPRITE-HANDOFF.md`](../art/SPRITE-HANDOFF.md). It also covers creatures (enemies) and portraits, which use the same pipeline.
+> Making sprites? Start with the short handoff: [`docs/art/SPRITE-HANDOFF.md`](../art/SPRITE-HANDOFF.md). It also covers creatures (enemies), legend bodies and portraits, which use the same pipeline.
 
 How to make resident sprite sheets that drop straight into the game. The short version:
 
@@ -69,6 +69,7 @@ Every animation for one character must show the same character. The pipeline sca
 | `resident_f` | f | **done** (all animations) |
 | `resident_m` | m | **done** (all animations) |
 | child | n/a | Not needed: children use the adult sheet scaled to 62% with the child suit tint |
+| `legend_<id>` | the legend's | Optional, one per legend: `"kind": "legend"`, a legend's own painted body. It isn't recoloured, so the reference colours don't apply. See [ART-HANDOFF-M9.md](../art/ART-HANDOFF-M9.md) section 9 |
 
 ## Prompt template
 
@@ -105,7 +106,7 @@ Variations:
    - `idleFrame` is counted after dropping.
    - `loop` defaults to true.
 3. Install the pipeline's dependencies once: `pip install -r tools/sprites/requirements.txt`.
-4. Run `npm run sprites`. This writes:
+4. Run `npm run sprites -- <id>` to build just that folder and merge it into the manifest (or `npm run sprites` to rebuild every folder, which is slow). This writes:
    - `public/sprites/<id>/<anim>_<layer>.webp`, the layer strips the game loads
    - `public/sprites/manifest.json`
    - `art/previews/<id>_<anim>.png`, a contact sheet of the frames recoloured in several palettes

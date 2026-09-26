@@ -2,7 +2,7 @@
 
 This is the to-do list for the art session after M9. The first round (residents, 11 creature looks, HALCY, 36 item icons, 21 salvage icons, 49 room walls) is done and summarised in [ART-SESSION-HANDOFF.md](ART-SESSION-HANDOFF.md). How sheets are laid out, keyed and built is in [SPRITE-HANDOFF.md](SPRITE-HANDOFF.md). Use the same tools and style: Artlist, Nano Banana 2 at 2K, image-to-image from existing art wherever a style match matters.
 
-**The code is already wired for everything in this list.** Drop the raw image in the named folder, add or extend its `sprite.json`, run `npm run sprites`, and it shows up in the game. Anything missing keeps its drawn fallback, so partial delivery is fine.
+**The code is already wired for everything in this list.** Drop the raw image in the named folder, add or extend its `sprite.json`, run `npm run sprites -- <folder>`, and it shows up in the game. Anything missing keeps its drawn fallback, so partial delivery is fine.
 
 The game is original IP: atompunk, 1950s Americana gone to seed, chunky cartoon proportions, dry humour. No Fallout names, logos, power armour or vault-boy look-alikes, no real brands, no real-world maps.
 
@@ -12,7 +12,7 @@ The game is original IP: atompunk, 1950s Americana gone to seed, chunky cartoon 
 
 ## Status after the round-2 art session (2026-09-26)
 
-Sections 1 to 8 are done and built into `public/sprites/`, including the Act 4 additions (two more loot icons, the two Act 4 finale bosses, eight Act 4 bosses, the ten ending illustrations and the sixteen optional Act 4 regular enemies). Section 9 (bespoke legend bodies) is not started, because it needs the loader change first.
+Sections 1 to 8 are done and built into `public/sprites/`, including the Act 4 additions (two more loot icons, the two Act 4 finale bosses, eight Act 4 bosses, the ten ending illustrations and the sixteen optional Act 4 regular enemies). Section 9 (bespoke legend bodies) is not started. The loader is now wired for it, so it can be delivered one legend at a time (see section 9).
 
 | # | Delivered | Source | Output |
 |---|---|---|---|
@@ -46,6 +46,7 @@ Integrated by the code session (2026-09-26):
 - **Loading:** creature art for quest enemies and bosses loads when a quest opens, not at start-up. The vault's own looks still load up front.
 - **Offline cache:** the service worker precaches only the start-up art. Bosses, enemies and ending illustrations are cached the first time they load, so a first visit no longer downloads the whole 22 MB.
 - **Checked in the browser, desktop and phone:** legend and faction portraits, the Glassbacks in the vault, the surface buildings, bespoke bosses in combat (HALCY-9 Custodian Frame, The Official Receiver) and the ending illustrations.
+- **Legend bodies:** a legendary resident is drawn with their own `legend_<id>` body once one is built, and with the shared body until then. `npm run sprites -- <folder>` builds only the named `art/raw` folders and merges them into the manifest, instead of rebuilding all 1.9 GB.
 - **Repo size:** `art/raw/` is now 1.9 GB, so clones are slow. Moving `art/raw/` and `art/previews/` to Git LFS, or out of the repo, is worth doing before the repo is shared more widely.
 
 ---
@@ -62,7 +63,7 @@ Integrated by the code session (2026-09-26):
 | 6 | Faction leader portraits (5) | 1–2 sheets | Factions panel cards |
 | 7 | More bosses (the other 41) | about 123 | Quest combat |
 | 8 | Ending illustrations | 10 | The epilogue slides of the four endings |
-| 9 | Optional: bespoke legend body sheets | about 66 | Vault and quests (needs a small code change first; ask) |
+| 9 | Optional: bespoke legend body sheets | 11 to 66 (walk first, up to 6 per legend) | Vault, surface and quest combat (wired; one legend at a time is fine) |
 
 ---
 
@@ -302,20 +303,112 @@ Their names, looks and flavour are in `src/content/quests.json` (`enemies`). The
 
 ## 9. Optional: bespoke legend bodies
 
-Today legends use the normal resident sprite with their fixed skin and hair plus a gold star. Giving each legend their own body sheets (walk, idle, work, fight, fallen) means 11 × 6 images and a small loader change so a legendary resident picks `art/raw/legend_<id>/` over the shared body. **Ask the code session to wire this first** if you want it.
+Today every legend uses the shared resident body with their fixed skin and hair, plus a gold star. **The loader is wired for bespoke bodies.** Once `art/raw/legend_<id>/` is built, that legend is drawn with their own painted body in the vault, on the surface (explorers and caravans) and in quest combat. Legends without one keep the shared body, so they can be delivered one at a time.
+
+**Delivery:**
+- **Folder:** `art/raw/legend_<id>/`, for example `art/raw/legend_marla_voss/`, with one sheet per animation (`walk.png`, `idle.png` and so on).
+- **Config:** `art/raw/legend_<id>/sprite.json`. The fps and `idleFrame` values match `art/raw/resident_f/sprite.json`:
+
+```json
+{
+  "kind": "legend",
+  "legend": "marla_voss",
+  "sex": "f",
+  "targetHeight": 128,
+  "referenceAnim": "walk",
+  "anims": {
+    "walk":   { "file": "walk.png",   "fps": 11, "idleFrame": 2 },
+    "idle":   { "file": "idle.png",   "fps": 6 },
+    "work":   { "file": "work.png",   "fps": 8 },
+    "fight":  { "file": "fight.png",  "fps": 10, "split": "figures" },
+    "fallen": { "file": "fallen.png", "fps": 6, "loop": false, "split": "figures", "heightFrom": 0 },
+    "carry":  { "file": "carry.png",  "fps": 11 }
+  }
+}
+```
+
+- `"legend"` is the legend's id from the table below, and `"sex"` is their sex (`f` or `m`, also in the table). **When you copy this file for another legend, change `"legend"` and `"sex"` together.** Both can also be left out: `"legend"` then comes from the folder name without `legend_`, and `"sex"` from `src/content/legends.json`.
+- `"id"` defaults to the folder name, and for a legend body it must be the folder name if you set it. The build refuses a sprite.json whose `"id"` names another folder, or whose `"legend"` already has a body from another folder, so a copied file can't silently overwrite another legend's body. It warns when `"sex"` doesn't match legends.json.
+- List only the sheets you have. These per-animation options let you use an awkward sheet instead of regenerating it (more in "Options for awkward sheets" in [SPRITE-HANDOFF.md](SPRITE-HANDOFF.md)):
+
+  | Option | Example | Use |
+  |---|---|---|
+  | `drop` | `[5]` | Throw away frames (0-based, left to right, then top to bottom) |
+  | `take` | `4` | Keep only the first n frames, after `drop` |
+  | `crop` | `[0, 0, 2752, 806]` | Use only part of the sheet (`[x0, y0, x1, y1]`), for example its first row |
+  | `split` | `"figures"` | Find frames as separate figures instead of by empty gaps, for frames that nearly touch |
+  | `order` | `"x"` | With `"split": "figures"`, read the figures strictly left to right |
+  | `boxes` | `[[0, 0, 460, 760], [460, 0, 920, 760]]` | One frame per box of the sheet (`[x0, y0, x1, y1]` each). `drop` and `take` don't apply |
+  | `flip` | `[3]` | Mirror single frames (counted after `drop`) that face the wrong way |
+  | `mirror` | `true` | Mirror the whole sheet, for one that came out facing left |
+  | `heightFrom` | `0` | Size the animation from this frame, for `fallen` |
+  | `fitHeight` | `false` | Share the walk's scale instead of fitting this animation to `targetHeight` |
+
+  `regions` does not apply, because nothing is recoloured. `"background"` goes at the top level, next to `"kind"` (or in one animation, for that sheet only).
+- The build writes `public/sprites/legend_<id>/<anim>_full.webp` and a `legends` entry in `public/sprites/manifest.json`.
+
+**Animations:**
+- **`walk` is required.** The build refuses a legend body without one. Its `idleFrame` is also the standing pose.
+- **`idle`, `work`, `fight`, `fallen` and `carry` are optional.** They fall back the way the residents' sheets do: `work` and `fight` use `idle`, then the walk's `idleFrame`; `fallen` uses `idle` or the walk figure rotated flat; `carry` uses the walk with a drawn backpack. A legend with only a walk sheet already works. The fallback table is in SPRITE-HANDOFF.md section 6.
+
+**Art rules:**
+- **Match the resident sheets:** the same chunky proportions (big head, sturdy body), the same height and the same framing, full body from head to feet. Every body is drawn at the same height in the game, whatever the sheet size. That height is measured from the topmost pixel (hair, a hat, or anything held up) to the feet, so a tall hat or a prop raised above the head shrinks the whole figure. Keep hats close to the head (Orla's peaked cap, Lou's visor) and props below the top of the head and close to the body (Granny's spoon, June's harpoon). A stoop or a kid's build is scaled up to the same height too, so show it in the proportions, not in a smaller figure. The lineup preview only compares one legend's own animations, so check the height against the residents in the game.
+- **Face right.** The game mirrors the sprite for left. If a sheet comes out facing left, add `"mirror": true` to that animation instead of regenerating it (or `"flip"` for single frames).
+- **Frames:** feet on a common line, the same size in every frame, and clear empty space between frames. If frames nearly touch (a weapon reaching the next figure), use `"split": "figures"`.
+- **Background:** flat `#00FF00` by default, with no gradient, floor or shadow. The green key also turns green in the figure see-through or grey, so a legend with green in the outfit goes on magenta `#FF00FF` instead, with `"background": "magenta"` at the top level of their sprite.json, next to `"kind"`. **Lucky Lou must use magenta** (green visor and green waistcoat). The others are fine on green: Doc Ferris's teal uniform survives the green key, and Pip's lamp glows blue. On magenta, avoid strong pink and purple in the figure.
+- **No reference colours.** Nothing is recoloured, so paint the legend's real outfit, skin and hair. The teal-suit and orange-stripe rules for residents don't apply.
+- **Keep the portrait's look** (face, hair, outfit and colours from section 1), so the legend card and the body read as the same person.
+- **Timing:** evenly spaced cycles, with about as many frames as the resident sheet for that animation: 12 for walk, fight and carry (two rows of six), 6 to 12 for work, 6 for idle (one row) and 4 for fallen (one row). A single bad frame can be thrown away with `drop`.
+
+**Method:** image-to-image from the matching resident sheet (`art/raw/resident_f/` or `art/raw/resident_m/`, same animation) for pose, timing and framing, plus the legend's portrait (`art/raw/legends/portraits_<n>.png`) for face and outfit. Make the walk first. Then make the other animations from the resident sheet for that animation plus the approved walk, so every sheet shows the same person.
+
+**Don't copy the residents' extra rows.** Some resident sheets have a row the game throws away:
+- `resident_f/fallen.png` and `resident_m/fallen.png` have a row of walking figures under the four fallen frames (the residents cut it with `"crop": [0, 0, 2752, 806]` and `[0, 0, 2752, 800]`).
+- The `idle.png` sheets and `resident_m/work.png` have a second row the residents drop (`"drop": [6, 7, 8, 9, 10, 11]`). `resident_m/work.png`'s second row is walking, not working.
+
+For `fallen`, `idle` and a man's `work`, crop the reference to its first row before you use it, and ask for a single row. Walk, fight and carry use both rows. After building, open `art/previews/legend_<id>_fallen.png`: the last frame must be lying flat, because `fallen` plays once and holds its last frame. If extra figures got in, add a `"crop"` to the first row (as in `art/raw/resident_f/sprite.json`) or a `"drop"` to that animation.
+
+| id | Sex | Start from | Body and outfit (from section 1) |
+|---|---|---|---|
+| `marla_voss` | f | `resident_f` | Sun-weathered caravan scout: goggles pushed up, road-dust scarf, trail jacket, cargo trousers, boots |
+| `ada_quill` | f | `resident_f` | Welding visor pushed up, soot, leather apron and tool belt, magnifier loupe on one eye |
+| `seven` | m | `resident_m` | Young, a too-neat **grey** Homestead 9 jumpsuit with a stencilled "9" (grey, not teal), stiff polite posture |
+| `doc_ferris` | m | `resident_m` | Older and tired, a white coat over a faded Halcyon uniform, head mirror, a slight stoop |
+| `lucky_lou` | m | `resident_m` | Pencil moustache, green waistcoat and shirtsleeves, green visor cap, playing card tucked behind the ear. **Magenta background** |
+| `pip` | f | `resident_f` | About 12, huge eyes, patched cave gear, a fungus lamp on a string that glows blue (as in her portrait). She is drawn as tall as the adults, so give her a kid's proportions (bigger head, shorter limbs) rather than a smaller figure |
+| `rook` | m | `resident_m` | Big and broad, scarred, rust-orange shoulder plate made from a road sign, missing-tooth grin |
+| `granny_ash` | f | `resident_f` | Very old, a little stooped, knitted shawl over a long skirt, wooden spoon, one eyebrow raised |
+| `brother_wick` | m | `resident_m` | Monk-like robe with a snuffed lantern symbol, rope belt, shaved head |
+| `june_halloran` | f | `resident_f` | Stillwater salvage diver: patched wetsuit, brass diving collar, wet hair, harpoon strap over the shoulder, freckles |
+| `captain_orla` | f | `resident_f` | Stern, a 1950s security uniform and peaked cap, frost still on the shoulders |
+
+**Images:** 11 legends × up to 6 animations, so up to 66 images. The 11 walk sheets alone are enough to show every legend in their own body.
+
+**Build and check one legend:**
+
+```bash
+npm run sprites -- legend_marla_voss
+```
+
+This builds only that folder and merges it into the existing manifest, so it takes seconds, not a full rebuild. Check `art/previews/legend_<id>_<anim>.png` (the cut frames) and `art/previews/legend_<id>_lineup.png` (frame 0 of every animation on one ground line, to check they match in size). Then check her in the game. `npm run dev` is simplest, because it has no offline cache. With `npx vite build && npx vite preview`, the service worker can keep serving the old manifest after a rebuild, even over several reloads, so unregister it or clear the site data first (DevTools, Application tab). In the browser console:
+- `homestead.m9.legend('marla_voss', true)` brings her to the door and admits her. It says `'ok'` even when she can't come in: with no free quarters she waits at the door (still drawn and counted), and under a population cap (the Skeleton Crew ruleset) a full homestead queues her instead, so use a normal new game.
+- `homesteadView.figures()` should list `"legend:marla_voss": 1` next to the usual `action>animation` counts. It counts residents inside the homestead and at the door. Explorers, caravans and the quest party aren't counted, so check those by eye. The body loads the first time the legend is drawn, so for a moment she may show the shared body.
+
+**Outfits and weapons:** the game still draws the weapon at the hip (hidden while a `fight` sheet is showing, since that holds its own weapon), the backpack for explorers without `carry` art, the expecting heart and the gold legend star. The outfit colour is **not** applied: a legend's body is drawn as painted, so an equipped outfit's stat colour and rarity trim don't show on it. The outfit's bonus still counts.
 
 ---
 
 ## Checklist per delivery
 
 1. Put the raw PNG(s) and `sprite.json` in `art/raw/<folder>/`.
-2. Run `npm run sprites`. Check `art/previews/<id>_lineup.png` for the cut frames.
-3. Run `npx vite build && npx vite preview`. Look at it in the game on desktop and at phone width.
+2. Run `npm run sprites -- <folder>` to build just that folder (or `npm run sprites` to rebuild everything, which is slow). Check `art/previews/<id>_<anim>.png` for the cut frames and `art/previews/<id>_lineup.png` for matching sizes. Portrait-kind folders (portraits, icons, room walls, endings) write no previews, so look at their images under `public/sprites/`.
+3. Run `npm run dev`, or `npx vite build && npx vite preview` (after a rebuild, unregister the service worker or clear the site data first, or it may keep serving the old art). Look at it in the game on desktop and at phone width.
 4. Commit both the raw PNG and the generated WebP, plus `public/sprites/manifest.json`.
 5. Add a row to the licensing table in SPRITE-HANDOFF.md section 8 (tool, plan, date). The "Checked" boxes there still need someone to confirm the Artlist plan's commercial terms before release.
 
 Dev console helpers for checking art in the browser:
-- `homestead.m9.legends()` brings every legend to the door.
+- `homestead.m9.legends()` brings every legend in and admits them. `homestead.m9.legend('<id>', true)` does it for one.
+- `homesteadView.figures()` counts residents per `action>animation`, and per `legend:<id>` for legends drawn with their own body.
 - `homestead.m9.creature('glassbacks')` starts a Glassback incident.
 - `homestead.m7.topside()` builds the surface row, and `homestead.m7.weather('clear')` sets the weather.
 - `homestead.quest.*` sets up quests.
