@@ -240,9 +240,9 @@
           "fps": 8,
           "loop": false,
           "idleFrame": 0,
-          "frameW": 167,
+          "frameW": 170,
           "frameH": 165,
-          "anchorX": 0.5718,
+          "anchorX": 0.5396,
           "anchorY": 1.0,
           "files": {
             "full": "assessor_9c/attack_full.webp"
@@ -253,12 +253,56 @@
           "fps": 7,
           "loop": false,
           "idleFrame": 0,
-          "frameW": 443,
-          "frameH": 441,
-          "anchorX": 0.4445,
+          "frameW": 166,
+          "frameH": 162,
+          "anchorX": 0.4519,
           "anchorY": 1.0,
           "files": {
             "full": "assessor_9c/death_full.webp"
+          }
+        }
+      }
+    },
+    "asset_stripper": {
+      "refHeight": 160,
+      "anims": {
+        "idle": {
+          "frames": 8,
+          "fps": 6,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 154,
+          "frameH": 167,
+          "anchorX": 0.5157,
+          "anchorY": 1.0,
+          "files": {
+            "full": "asset_stripper/idle_full.webp"
+          }
+        },
+        "attack": {
+          "frames": 4,
+          "fps": 8,
+          "loop": false,
+          "idleFrame": 0,
+          "frameW": 166,
+          "frameH": 185,
+          "anchorX": 0.5387,
+          "anchorY": 1.0,
+          "files": {
+            "full": "asset_stripper/attack_full.webp"
+          }
+        },
+        "death": {
+          "frames": 4,
+          "fps": 6,
+          "loop": false,
+          "idleFrame": 0,
+          "frameW": 160,
+          "frameH": 162,
+          "anchorX": 0.4763,
+          "anchorY": 1.0,
+          "files": {
+            "full": "asset_stripper/death_full.webp"
           }
         }
       }
@@ -303,6 +347,50 @@
           "anchorY": 1.0,
           "files": {
             "full": "big_tin/death_full.webp"
+          }
+        }
+      }
+    },
+    "board_bailiff": {
+      "refHeight": 160,
+      "anims": {
+        "idle": {
+          "frames": 8,
+          "fps": 6,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 157,
+          "frameH": 163,
+          "anchorX": 0.466,
+          "anchorY": 1.0,
+          "files": {
+            "full": "board_bailiff/idle_full.webp"
+          }
+        },
+        "attack": {
+          "frames": 5,
+          "fps": 8,
+          "loop": false,
+          "idleFrame": 0,
+          "frameW": 169,
+          "frameH": 185,
+          "anchorX": 0.4806,
+          "anchorY": 1.0,
+          "files": {
+            "full": "board_bailiff/attack_full.webp"
+          }
+        },
+        "death": {
+          "frames": 4,
+          "fps": 7,
+          "loop": false,
+          "idleFrame": 0,
+          "frameW": 172,
+          "frameH": 162,
+          "anchorX": 0.5045,
+          "anchorY": 1.0,
+          "files": {
+            "full": "board_bailiff/death_full.webp"
           }
         }
       }
@@ -527,6 +615,138 @@
         }
       }
     },
+    "cistern_leech": {
+      "refHeight": 160,
+      "anims": {
+        "idle": {
+          "frames": 8,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 270,
+          "frameH": 164,
+          "anchorX": 0.5185,
+          "anchorY": 1.0,
+          "files": {
+            "full": "cistern_leech/idle_full.webp"
+          }
+        },
+        "attack": {
+          "frames": 4,
+          "fps": 10,
+          "loop": false,
+          "idleFrame": 0,
+          "frameW": 255,
+          "frameH": 165,
+          "anchorX": 0.5231,
+          "anchorY": 1.0,
+          "files": {
+            "full": "cistern_leech/attack_full.webp"
+          }
+        },
+        "death": {
+          "frames": 4,
+          "fps": 8,
+          "loop": false,
+          "idleFrame": 0,
+          "frameW": 176,
+          "frameH": 162,
+          "anchorX": 0.5207,
+          "anchorY": 1.0,
+          "files": {
+            "full": "cistern_leech/death_full.webp"
+          }
+        }
+      }
+    },
+    "company_secretary": {
+      "refHeight": 160,
+      "anims": {
+        "idle": {
+          "frames": 8,
+          "fps": 6,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 162,
+          "frameH": 165,
+          "anchorX": 0.4549,
+          "anchorY": 1.0,
+          "files": {
+            "full": "company_secretary/idle_full.webp"
+          }
+        },
+        "attack": {
+          "frames": 4,
+          "fps": 8,
+          "loop": false,
+          "idleFrame": 0,
+          "frameW": 159,
+          "frameH": 164,
+          "anchorX": 0.557,
+          "anchorY": 1.0,
+          "files": {
+            "full": "company_secretary/attack_full.webp"
+          }
+        },
+        "death": {
+          "frames": 4,
+          "fps": 7,
+          "loop": false,
+          "idleFrame": 0,
+          "frameW": 159,
+          "frameH": 162,
+          "anchorX": 0.4653,
+          "anchorY": 1.0,
+          "files": {
+            "full": "company_secretary/death_full.webp"
+          }
+        }
+      }
+    },
+    "compliance_drone": {
+      "refHeight": 160,
+      "anims": {
+        "idle": {
+          "frames": 8,
+          "fps": 6,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 137,
+          "frameH": 163,
+          "anchorX": 0.4503,
+          "anchorY": 1.0,
+          "files": {
+            "full": "compliance_drone/idle_full.webp"
+          }
+        },
+        "attack": {
+          "frames": 4,
+          "fps": 8,
+          "loop": false,
+          "idleFrame": 0,
+          "frameW": 159,
+          "frameH": 162,
+          "anchorX": 0.581,
+          "anchorY": 1.0,
+          "files": {
+            "full": "compliance_drone/attack_full.webp"
+          }
+        },
+        "death": {
+          "frames": 4,
+          "fps": 7,
+          "loop": false,
+          "idleFrame": 0,
+          "frameW": 156,
+          "frameH": 162,
+          "anchorX": 0.4709,
+          "anchorY": 1.0,
+          "files": {
+            "full": "compliance_drone/death_full.webp"
+          }
+        }
+      }
+    },
     "custodian_frame": {
       "refHeight": 160,
       "anims": {
@@ -605,9 +825,9 @@
           "fps": 6,
           "loop": false,
           "idleFrame": 0,
-          "frameW": 253,
-          "frameH": 294,
-          "anchorX": 0.4962,
+          "frameW": 172,
+          "frameH": 163,
+          "anchorX": 0.4552,
           "anchorY": 1.0,
           "files": {
             "full": "deacon_mire/death_full.webp"
@@ -699,6 +919,50 @@
           "anchorY": 1.0,
           "files": {
             "full": "director_hale/death_full.webp"
+          }
+        }
+      }
+    },
+    "filing_mite": {
+      "refHeight": 160,
+      "anims": {
+        "idle": {
+          "frames": 8,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 248,
+          "frameH": 163,
+          "anchorX": 0.5037,
+          "anchorY": 1.0,
+          "files": {
+            "full": "filing_mite/idle_full.webp"
+          }
+        },
+        "attack": {
+          "frames": 4,
+          "fps": 10,
+          "loop": false,
+          "idleFrame": 0,
+          "frameW": 249,
+          "frameH": 163,
+          "anchorX": 0.5023,
+          "anchorY": 1.0,
+          "files": {
+            "full": "filing_mite/attack_full.webp"
+          }
+        },
+        "death": {
+          "frames": 4,
+          "fps": 8,
+          "loop": false,
+          "idleFrame": 0,
+          "frameW": 242,
+          "frameH": 191,
+          "anchorX": 0.4882,
+          "anchorY": 1.0,
+          "files": {
+            "full": "filing_mite/death_full.webp"
           }
         }
       }
@@ -831,6 +1095,50 @@
           "anchorY": 1.0,
           "files": {
             "full": "head_of_ward/death_full.webp"
+          }
+        }
+      }
+    },
+    "head_operator": {
+      "refHeight": 160,
+      "anims": {
+        "idle": {
+          "frames": 8,
+          "fps": 6,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 149,
+          "frameH": 163,
+          "anchorX": 0.4497,
+          "anchorY": 1.0,
+          "files": {
+            "full": "head_operator/idle_full.webp"
+          }
+        },
+        "attack": {
+          "frames": 4,
+          "fps": 8,
+          "loop": false,
+          "idleFrame": 0,
+          "frameW": 154,
+          "frameH": 162,
+          "anchorX": 0.5364,
+          "anchorY": 1.0,
+          "files": {
+            "full": "head_operator/attack_full.webp"
+          }
+        },
+        "death": {
+          "frames": 4,
+          "fps": 7,
+          "loop": false,
+          "idleFrame": 0,
+          "frameW": 168,
+          "frameH": 162,
+          "anchorX": 0.45,
+          "anchorY": 1.0,
+          "files": {
+            "full": "head_operator/death_full.webp"
           }
         }
       }
@@ -1099,6 +1407,50 @@
         }
       }
     },
+    "knocker": {
+      "refHeight": 160,
+      "anims": {
+        "idle": {
+          "frames": 8,
+          "fps": 8,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 240,
+          "frameH": 171,
+          "anchorX": 0.4682,
+          "anchorY": 1.0,
+          "files": {
+            "full": "knocker/idle_full.webp"
+          }
+        },
+        "attack": {
+          "frames": 4,
+          "fps": 10,
+          "loop": false,
+          "idleFrame": 0,
+          "frameW": 243,
+          "frameH": 228,
+          "anchorX": 0.4671,
+          "anchorY": 1.0,
+          "files": {
+            "full": "knocker/attack_full.webp"
+          }
+        },
+        "death": {
+          "frames": 4,
+          "fps": 8,
+          "loop": false,
+          "idleFrame": 0,
+          "frameW": 221,
+          "frameH": 162,
+          "anchorX": 0.4782,
+          "anchorY": 1.0,
+          "files": {
+            "full": "knocker/death_full.webp"
+          }
+        }
+      }
+    },
     "lamp_inquisitor": {
       "refHeight": 160,
       "anims": {
@@ -1187,6 +1539,138 @@
         }
       }
     },
+    "last_verger": {
+      "refHeight": 160,
+      "anims": {
+        "idle": {
+          "frames": 8,
+          "fps": 6,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 136,
+          "frameH": 163,
+          "anchorX": 0.4777,
+          "anchorY": 1.0,
+          "files": {
+            "full": "last_verger/idle_full.webp"
+          }
+        },
+        "attack": {
+          "frames": 4,
+          "fps": 7,
+          "loop": false,
+          "idleFrame": 0,
+          "frameW": 165,
+          "frameH": 174,
+          "anchorX": 0.5161,
+          "anchorY": 1.0,
+          "files": {
+            "full": "last_verger/attack_full.webp"
+          }
+        },
+        "death": {
+          "frames": 4,
+          "fps": 6,
+          "loop": false,
+          "idleFrame": 0,
+          "frameW": 176,
+          "frameH": 162,
+          "anchorX": 0.4699,
+          "anchorY": 1.0,
+          "files": {
+            "full": "last_verger/death_full.webp"
+          }
+        }
+      }
+    },
+    "line_tapper": {
+      "refHeight": 160,
+      "anims": {
+        "idle": {
+          "frames": 8,
+          "fps": 6,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 143,
+          "frameH": 163,
+          "anchorX": 0.4375,
+          "anchorY": 1.0,
+          "files": {
+            "full": "line_tapper/idle_full.webp"
+          }
+        },
+        "attack": {
+          "frames": 5,
+          "fps": 8,
+          "loop": false,
+          "idleFrame": 0,
+          "frameW": 187,
+          "frameH": 185,
+          "anchorX": 0.5173,
+          "anchorY": 1.0,
+          "files": {
+            "full": "line_tapper/attack_full.webp"
+          }
+        },
+        "death": {
+          "frames": 4,
+          "fps": 7,
+          "loop": false,
+          "idleFrame": 0,
+          "frameW": 166,
+          "frameH": 162,
+          "anchorX": 0.4851,
+          "anchorY": 1.0,
+          "files": {
+            "full": "line_tapper/death_full.webp"
+          }
+        }
+      }
+    },
+    "liquidation_drone": {
+      "refHeight": 160,
+      "anims": {
+        "idle": {
+          "frames": 8,
+          "fps": 6,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 156,
+          "frameH": 164,
+          "anchorX": 0.4473,
+          "anchorY": 1.0,
+          "files": {
+            "full": "liquidation_drone/idle_full.webp"
+          }
+        },
+        "attack": {
+          "frames": 4,
+          "fps": 8,
+          "loop": false,
+          "idleFrame": 0,
+          "frameW": 488,
+          "frameH": 164,
+          "anchorX": 0.5137,
+          "anchorY": 1.0,
+          "files": {
+            "full": "liquidation_drone/attack_full.webp"
+          }
+        },
+        "death": {
+          "frames": 4,
+          "fps": 7,
+          "loop": false,
+          "idleFrame": 0,
+          "frameW": 165,
+          "frameH": 162,
+          "anchorX": 0.4678,
+          "anchorY": 1.0,
+          "files": {
+            "full": "liquidation_drone/death_full.webp"
+          }
+        }
+      }
+    },
     "mauler": {
       "refHeight": 160,
       "anims": {
@@ -1248,13 +1732,13 @@
           }
         },
         "attack": {
-          "frames": 3,
+          "frames": 4,
           "fps": 7,
           "loop": false,
           "idleFrame": 0,
-          "frameW": 588,
-          "frameH": 292,
-          "anchorX": 0.4798,
+          "frameW": 165,
+          "frameH": 166,
+          "anchorX": 0.5089,
           "anchorY": 1.0,
           "files": {
             "full": "moth_choir/attack_full.webp"
@@ -1265,9 +1749,9 @@
           "fps": 6,
           "loop": false,
           "idleFrame": 0,
-          "frameW": 316,
-          "frameH": 163,
-          "anchorX": 0.5015,
+          "frameW": 173,
+          "frameH": 162,
+          "anchorX": 0.4846,
           "anchorY": 1.0,
           "files": {
             "full": "moth_choir/death_full.webp"
@@ -1485,9 +1969,9 @@
           "fps": 7,
           "loop": false,
           "idleFrame": 0,
-          "frameW": 416,
-          "frameH": 418,
-          "anchorX": 0.4658,
+          "frameW": 175,
+          "frameH": 165,
+          "anchorX": 0.4525,
           "anchorY": 1.0,
           "files": {
             "full": "pump_warden/death_full.webp"
@@ -1539,6 +2023,138 @@
         }
       }
     },
+    "receiver_wound_up": {
+      "refHeight": 160,
+      "anims": {
+        "idle": {
+          "frames": 8,
+          "fps": 6,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 155,
+          "frameH": 181,
+          "anchorX": 0.4947,
+          "anchorY": 1.0,
+          "files": {
+            "full": "receiver_wound_up/idle_full.webp"
+          }
+        },
+        "attack": {
+          "frames": 4,
+          "fps": 8,
+          "loop": false,
+          "idleFrame": 0,
+          "frameW": 153,
+          "frameH": 179,
+          "anchorX": 0.5299,
+          "anchorY": 1.0,
+          "files": {
+            "full": "receiver_wound_up/attack_full.webp"
+          }
+        },
+        "death": {
+          "frames": 4,
+          "fps": 6,
+          "loop": false,
+          "idleFrame": 0,
+          "frameW": 153,
+          "frameH": 162,
+          "anchorX": 0.4743,
+          "anchorY": 1.0,
+          "files": {
+            "full": "receiver_wound_up/death_full.webp"
+          }
+        }
+      }
+    },
+    "receivers_clerk": {
+      "refHeight": 160,
+      "anims": {
+        "idle": {
+          "frames": 8,
+          "fps": 6,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 147,
+          "frameH": 164,
+          "anchorX": 0.4347,
+          "anchorY": 1.0,
+          "files": {
+            "full": "receivers_clerk/idle_full.webp"
+          }
+        },
+        "attack": {
+          "frames": 4,
+          "fps": 8,
+          "loop": false,
+          "idleFrame": 0,
+          "frameW": 156,
+          "frameH": 162,
+          "anchorX": 0.5894,
+          "anchorY": 1.0,
+          "files": {
+            "full": "receivers_clerk/attack_full.webp"
+          }
+        },
+        "death": {
+          "frames": 4,
+          "fps": 7,
+          "loop": false,
+          "idleFrame": 0,
+          "frameW": 162,
+          "frameH": 162,
+          "anchorX": 0.4918,
+          "anchorY": 1.0,
+          "files": {
+            "full": "receivers_clerk/death_full.webp"
+          }
+        }
+      }
+    },
+    "registry_clerk": {
+      "refHeight": 160,
+      "anims": {
+        "idle": {
+          "frames": 8,
+          "fps": 6,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 145,
+          "frameH": 163,
+          "anchorX": 0.4405,
+          "anchorY": 1.0,
+          "files": {
+            "full": "registry_clerk/idle_full.webp"
+          }
+        },
+        "attack": {
+          "frames": 4,
+          "fps": 8,
+          "loop": false,
+          "idleFrame": 0,
+          "frameW": 152,
+          "frameH": 162,
+          "anchorX": 0.5937,
+          "anchorY": 1.0,
+          "files": {
+            "full": "registry_clerk/attack_full.webp"
+          }
+        },
+        "death": {
+          "frames": 4,
+          "fps": 7,
+          "loop": false,
+          "idleFrame": 0,
+          "frameW": 160,
+          "frameH": 162,
+          "anchorX": 0.4703,
+          "anchorY": 1.0,
+          "files": {
+            "full": "registry_clerk/death_full.webp"
+          }
+        }
+      }
+    },
     "relay_boss": {
       "refHeight": 160,
       "anims": {
@@ -1583,6 +2199,94 @@
         }
       }
     },
+    "rent_officer": {
+      "refHeight": 160,
+      "anims": {
+        "idle": {
+          "frames": 8,
+          "fps": 6,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 145,
+          "frameH": 163,
+          "anchorX": 0.4536,
+          "anchorY": 1.0,
+          "files": {
+            "full": "rent_officer/idle_full.webp"
+          }
+        },
+        "attack": {
+          "frames": 4,
+          "fps": 8,
+          "loop": false,
+          "idleFrame": 0,
+          "frameW": 151,
+          "frameH": 163,
+          "anchorX": 0.5904,
+          "anchorY": 1.0,
+          "files": {
+            "full": "rent_officer/attack_full.webp"
+          }
+        },
+        "death": {
+          "frames": 4,
+          "fps": 7,
+          "loop": false,
+          "idleFrame": 0,
+          "frameW": 160,
+          "frameH": 162,
+          "anchorX": 0.4766,
+          "anchorY": 1.0,
+          "files": {
+            "full": "rent_officer/death_full.webp"
+          }
+        }
+      }
+    },
+    "restore_point": {
+      "refHeight": 160,
+      "anims": {
+        "idle": {
+          "frames": 8,
+          "fps": 6,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 149,
+          "frameH": 166,
+          "anchorX": 0.4725,
+          "anchorY": 1.0,
+          "files": {
+            "full": "restore_point/idle_full.webp"
+          }
+        },
+        "attack": {
+          "frames": 4,
+          "fps": 8,
+          "loop": false,
+          "idleFrame": 0,
+          "frameW": 449,
+          "frameH": 162,
+          "anchorX": 0.4946,
+          "anchorY": 1.0,
+          "files": {
+            "full": "restore_point/attack_full.webp"
+          }
+        },
+        "death": {
+          "frames": 4,
+          "fps": 7,
+          "loop": false,
+          "idleFrame": 0,
+          "frameW": 157,
+          "frameH": 162,
+          "anchorX": 0.4938,
+          "anchorY": 1.0,
+          "files": {
+            "full": "restore_point/death_full.webp"
+          }
+        }
+      }
+    },
     "rust_tollman": {
       "refHeight": 160,
       "anims": {
@@ -1617,9 +2321,9 @@
           "fps": 7,
           "loop": false,
           "idleFrame": 0,
-          "frameW": 241,
-          "frameH": 273,
-          "anchorX": 0.4689,
+          "frameW": 173,
+          "frameH": 177,
+          "anchorX": 0.4833,
           "anchorY": 1.0,
           "files": {
             "full": "rust_tollman/death_full.webp"
@@ -1969,9 +2673,9 @@
           "fps": 6,
           "loop": false,
           "idleFrame": 0,
-          "frameW": 321,
-          "frameH": 303,
-          "anchorX": 0.4688,
+          "frameW": 176,
+          "frameH": 167,
+          "anchorX": 0.4764,
           "anchorY": 1.0,
           "files": {
             "full": "signatory_countersigned/death_full.webp"
@@ -2155,6 +2859,50 @@
         }
       }
     },
+    "switchboard_op": {
+      "refHeight": 160,
+      "anims": {
+        "idle": {
+          "frames": 8,
+          "fps": 6,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 153,
+          "frameH": 164,
+          "anchorX": 0.4571,
+          "anchorY": 1.0,
+          "files": {
+            "full": "switchboard_op/idle_full.webp"
+          }
+        },
+        "attack": {
+          "frames": 4,
+          "fps": 8,
+          "loop": false,
+          "idleFrame": 0,
+          "frameW": 161,
+          "frameH": 163,
+          "anchorX": 0.5994,
+          "anchorY": 1.0,
+          "files": {
+            "full": "switchboard_op/attack_full.webp"
+          }
+        },
+        "death": {
+          "frames": 4,
+          "fps": 7,
+          "loop": false,
+          "idleFrame": 0,
+          "frameW": 163,
+          "frameH": 162,
+          "anchorX": 0.4758,
+          "anchorY": 1.0,
+          "files": {
+            "full": "switchboard_op/death_full.webp"
+          }
+        }
+      }
+    },
     "the_chair": {
       "refHeight": 160,
       "anims": {
@@ -2321,12 +3069,56 @@
           "fps": 7,
           "loop": false,
           "idleFrame": 0,
-          "frameW": 365,
-          "frameH": 383,
-          "anchorX": 0.3969,
+          "frameW": 168,
+          "frameH": 181,
+          "anchorX": 0.4668,
           "anchorY": 1.0,
           "files": {
             "full": "the_detour/death_full.webp"
+          }
+        }
+      }
+    },
+    "the_doorkeeper": {
+      "refHeight": 160,
+      "anims": {
+        "idle": {
+          "frames": 8,
+          "fps": 6,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 142,
+          "frameH": 163,
+          "anchorX": 0.4947,
+          "anchorY": 1.0,
+          "files": {
+            "full": "the_doorkeeper/idle_full.webp"
+          }
+        },
+        "attack": {
+          "frames": 4,
+          "fps": 7,
+          "loop": false,
+          "idleFrame": 0,
+          "frameW": 456,
+          "frameH": 182,
+          "anchorX": 0.4944,
+          "anchorY": 1.0,
+          "files": {
+            "full": "the_doorkeeper/attack_full.webp"
+          }
+        },
+        "death": {
+          "frames": 4,
+          "fps": 6,
+          "loop": false,
+          "idleFrame": 0,
+          "frameW": 172,
+          "frameH": 162,
+          "anchorX": 0.4484,
+          "anchorY": 1.0,
+          "files": {
+            "full": "the_doorkeeper/death_full.webp"
           }
         }
       }
@@ -2459,6 +3251,50 @@
           "anchorY": 1.0,
           "files": {
             "full": "the_hum/death_full.webp"
+          }
+        }
+      }
+    },
+    "the_liquidator": {
+      "refHeight": 160,
+      "anims": {
+        "idle": {
+          "frames": 8,
+          "fps": 6,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 168,
+          "frameH": 168,
+          "anchorX": 0.5413,
+          "anchorY": 1.0,
+          "files": {
+            "full": "the_liquidator/idle_full.webp"
+          }
+        },
+        "attack": {
+          "frames": 4,
+          "fps": 8,
+          "loop": false,
+          "idleFrame": 0,
+          "frameW": 171,
+          "frameH": 185,
+          "anchorX": 0.5498,
+          "anchorY": 1.0,
+          "files": {
+            "full": "the_liquidator/attack_full.webp"
+          }
+        },
+        "death": {
+          "frames": 4,
+          "fps": 6,
+          "loop": false,
+          "idleFrame": 0,
+          "frameW": 167,
+          "frameH": 162,
+          "anchorX": 0.5096,
+          "anchorY": 1.0,
+          "files": {
+            "full": "the_liquidator/death_full.webp"
           }
         }
       }
@@ -2639,6 +3475,94 @@
         }
       }
     },
+    "the_receiver": {
+      "refHeight": 160,
+      "anims": {
+        "idle": {
+          "frames": 8,
+          "fps": 6,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 157,
+          "frameH": 173,
+          "anchorX": 0.4626,
+          "anchorY": 1.0,
+          "files": {
+            "full": "the_receiver/idle_full.webp"
+          }
+        },
+        "attack": {
+          "frames": 4,
+          "fps": 8,
+          "loop": false,
+          "idleFrame": 0,
+          "frameW": 148,
+          "frameH": 165,
+          "anchorX": 0.5664,
+          "anchorY": 1.0,
+          "files": {
+            "full": "the_receiver/attack_full.webp"
+          }
+        },
+        "death": {
+          "frames": 4,
+          "fps": 7,
+          "loop": false,
+          "idleFrame": 0,
+          "frameW": 164,
+          "frameH": 179,
+          "anchorX": 0.5025,
+          "anchorY": 1.0,
+          "files": {
+            "full": "the_receiver/death_full.webp"
+          }
+        }
+      }
+    },
+    "the_registrar": {
+      "refHeight": 160,
+      "anims": {
+        "idle": {
+          "frames": 8,
+          "fps": 6,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 155,
+          "frameH": 165,
+          "anchorX": 0.4454,
+          "anchorY": 1.0,
+          "files": {
+            "full": "the_registrar/idle_full.webp"
+          }
+        },
+        "attack": {
+          "frames": 4,
+          "fps": 8,
+          "loop": false,
+          "idleFrame": 0,
+          "frameW": 169,
+          "frameH": 165,
+          "anchorX": 0.5771,
+          "anchorY": 1.0,
+          "files": {
+            "full": "the_registrar/attack_full.webp"
+          }
+        },
+        "death": {
+          "frames": 4,
+          "fps": 7,
+          "loop": false,
+          "idleFrame": 0,
+          "frameW": 164,
+          "frameH": 178,
+          "anchorX": 0.464,
+          "anchorY": 1.0,
+          "files": {
+            "full": "the_registrar/death_full.webp"
+          }
+        }
+      }
+    },
     "the_signatory": {
       "refHeight": 160,
       "anims": {
@@ -2679,6 +3603,50 @@
           "anchorY": 1.0,
           "files": {
             "full": "the_signatory/death_full.webp"
+          }
+        }
+      }
+    },
+    "the_unanswered": {
+      "refHeight": 160,
+      "anims": {
+        "idle": {
+          "frames": 12,
+          "fps": 6,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 106,
+          "frameH": 166,
+          "anchorX": 0.4332,
+          "anchorY": 1.0,
+          "files": {
+            "full": "the_unanswered/idle_full.webp"
+          }
+        },
+        "attack": {
+          "frames": 6,
+          "fps": 10,
+          "loop": false,
+          "idleFrame": 0,
+          "frameW": 131,
+          "frameH": 167,
+          "anchorX": 0.5262,
+          "anchorY": 1.0,
+          "files": {
+            "full": "the_unanswered/attack_full.webp"
+          }
+        },
+        "death": {
+          "frames": 4,
+          "fps": 7,
+          "loop": false,
+          "idleFrame": 0,
+          "frameW": 186,
+          "frameH": 162,
+          "anchorX": 0.5389,
+          "anchorY": 1.0,
+          "files": {
+            "full": "the_unanswered/death_full.webp"
           }
         }
       }
@@ -2726,9 +3694,197 @@
           }
         }
       }
+    },
+    "tier_zero_holdout": {
+      "refHeight": 160,
+      "anims": {
+        "idle": {
+          "frames": 8,
+          "fps": 6,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 169,
+          "frameH": 163,
+          "anchorX": 0.4933,
+          "anchorY": 1.0,
+          "files": {
+            "full": "tier_zero_holdout/idle_full.webp"
+          }
+        },
+        "attack": {
+          "frames": 5,
+          "fps": 8,
+          "loop": false,
+          "idleFrame": 0,
+          "frameW": 320,
+          "frameH": 185,
+          "anchorX": 0.4575,
+          "anchorY": 1.0,
+          "files": {
+            "full": "tier_zero_holdout/attack_full.webp"
+          }
+        },
+        "death": {
+          "frames": 4,
+          "fps": 7,
+          "loop": false,
+          "idleFrame": 0,
+          "frameW": 183,
+          "frameH": 162,
+          "anchorX": 0.4994,
+          "anchorY": 1.0,
+          "files": {
+            "full": "tier_zero_holdout/death_full.webp"
+          }
+        }
+      }
+    },
+    "vigil_keeper": {
+      "refHeight": 160,
+      "anims": {
+        "idle": {
+          "frames": 8,
+          "fps": 6,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 156,
+          "frameH": 166,
+          "anchorX": 0.5194,
+          "anchorY": 1.0,
+          "files": {
+            "full": "vigil_keeper/idle_full.webp"
+          }
+        },
+        "attack": {
+          "frames": 4,
+          "fps": 7,
+          "loop": false,
+          "idleFrame": 0,
+          "frameW": 154,
+          "frameH": 169,
+          "anchorX": 0.5437,
+          "anchorY": 1.0,
+          "files": {
+            "full": "vigil_keeper/attack_full.webp"
+          }
+        },
+        "death": {
+          "frames": 4,
+          "fps": 6,
+          "loop": false,
+          "idleFrame": 0,
+          "frameW": 179,
+          "frameH": 166,
+          "anchorX": 0.4611,
+          "anchorY": 1.0,
+          "files": {
+            "full": "vigil_keeper/death_full.webp"
+          }
+        }
+      }
+    },
+    "warm_guard": {
+      "refHeight": 160,
+      "anims": {
+        "idle": {
+          "frames": 8,
+          "fps": 8,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 245,
+          "frameH": 174,
+          "anchorX": 0.4724,
+          "anchorY": 1.0,
+          "files": {
+            "full": "warm_guard/idle_full.webp"
+          }
+        },
+        "attack": {
+          "frames": 4,
+          "fps": 10,
+          "loop": false,
+          "idleFrame": 0,
+          "frameW": 246,
+          "frameH": 229,
+          "anchorX": 0.4663,
+          "anchorY": 1.0,
+          "files": {
+            "full": "warm_guard/attack_full.webp"
+          }
+        },
+        "death": {
+          "frames": 4,
+          "fps": 8,
+          "loop": false,
+          "idleFrame": 0,
+          "frameW": 224,
+          "frameH": 162,
+          "anchorX": 0.4847,
+          "anchorY": 1.0,
+          "files": {
+            "full": "warm_guard/death_full.webp"
+          }
+        }
+      }
+    },
+    "wire_scav": {
+      "refHeight": 160,
+      "anims": {
+        "idle": {
+          "frames": 12,
+          "fps": 8,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 112,
+          "frameH": 164,
+          "anchorX": 0.5038,
+          "anchorY": 1.0,
+          "files": {
+            "full": "wire_scav/idle_full.webp"
+          }
+        },
+        "attack": {
+          "frames": 6,
+          "fps": 12,
+          "loop": false,
+          "idleFrame": 0,
+          "frameW": 137,
+          "frameH": 190,
+          "anchorX": 0.5029,
+          "anchorY": 1.0,
+          "files": {
+            "full": "wire_scav/attack_full.webp"
+          }
+        },
+        "death": {
+          "frames": 4,
+          "fps": 8,
+          "loop": false,
+          "idleFrame": 0,
+          "frameW": 208,
+          "frameH": 162,
+          "anchorX": 0.4235,
+          "anchorY": 1.0,
+          "files": {
+            "full": "wire_scav/death_full.webp"
+          }
+        }
+      }
     }
   },
   "portraits": {
+    "endings": {
+      "open_renewal": "endings/open_renewal.webp",
+      "open_eviction": "endings/open_eviction.webp",
+      "open_holdover": "endings/open_holdover.webp",
+      "open_neighbours": "endings/open_neighbours.webp",
+      "scene_lease": "endings/scene_lease.webp",
+      "scene_door": "endings/scene_door.webp",
+      "scene_glare": "endings/scene_glare.webp",
+      "scene_home": "endings/scene_home.webp",
+      "scene_relay": "endings/scene_relay.webp",
+      "scene_end": "endings/scene_end.webp"
+    },
     "factions": {
       "caravaners": "portraits/faction_caravaners.webp",
       "tinkers": "portraits/faction_tinkers.webp",
@@ -2792,7 +3948,9 @@
       "diving_bell_suit": "items/diving_bell_suit.webp",
       "broodsilk_coveralls": "items/broodsilk_coveralls.webp",
       "barons_greatcoat": "items/barons_greatcoat.webp",
-      "surveyor_duster": "items/surveyor_duster.webp"
+      "surveyor_duster": "items/surveyor_duster.webp",
+      "quitclaim": "items/quitclaim.webp",
+      "good_neighbour_cardigan": "items/good_neighbour_cardigan.webp"
     },
     "legends": {
       "marla_voss": "portraits/legend_marla_voss.webp",

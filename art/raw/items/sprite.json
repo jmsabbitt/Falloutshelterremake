@@ -272,6 +272,16 @@
         "surveyor_duster"
       ],
       "order": "x"
+    },
+    "l5": {
+      "file": "icons_l5.png",
+      "split": "figures",
+      "take": 2,
+      "names": [
+        "quitclaim",
+        "good_neighbour_cardigan"
+      ],
+      "order": "x"
     }
   }
 }

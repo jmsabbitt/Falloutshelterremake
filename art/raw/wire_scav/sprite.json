@@ -1,0 +1,53 @@
+{
+  "id": "wire_scav",
+  "kind": "creature",
+  "background": "magenta",
+  "targetHeight": 160,
+  "referenceAnim": "idle",
+  "anims": {
+    "idle": {
+      "file": "idle.png",
+      "fps": 8,
+      "split": "figures"
+    },
+    "attack": {
+      "file": "attack.png",
+      "fps": 12,
+      "loop": false,
+      "split": "figures",
+      "take": 6
+    },
+    "death": {
+      "file": "death.png",
+      "fps": 8,
+      "loop": false,
+      "heightFrom": 0,
+      "boxes": [
+        [
+          0,
+          0,
+          858,
+          768
+        ],
+        [
+          858,
+          0,
+          1362,
+          768
+        ],
+        [
+          1362,
+          0,
+          1938,
+          768
+        ],
+        [
+          1938,
+          460,
+          2752,
+          768
+        ]
+      ]
+    }
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "id": "rent_officer",
+  "kind": "creature",
+  "background": "magenta",
+  "targetHeight": 160,
+  "referenceAnim": "idle",
+  "anims": {
+    "idle": {
+      "file": "idle.png",
+      "fps": 6,
+      "split": "figures"
+    },
+    "attack": {
+      "file": "attack.png",
+      "fps": 8,
+      "loop": false,
+      "split": "figures",
+      "take": 4,
+      "mirror": true
+    },
+    "death": {
+      "file": "death.png",
+      "fps": 7,
+      "loop": false,
+      "split": "figures",
+      "take": 4,
+      "heightFrom": 0
+    }
+  }
+}

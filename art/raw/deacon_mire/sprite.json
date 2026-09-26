@@ -23,10 +23,34 @@
       "file": "death.png",
       "fps": 6,
       "loop": false,
-      "split": "figures",
       "mirror": true,
-      "take": 4,
-      "heightFrom": 0
+      "heightFrom": 0,
+      "boxes": [
+        [
+          0,
+          768,
+          677,
+          1536
+        ],
+        [
+          677,
+          768,
+          1335,
+          1536
+        ],
+        [
+          1335,
+          768,
+          1975,
+          1536
+        ],
+        [
+          1975,
+          768,
+          2752,
+          1536
+        ]
+      ]
     }
   }
 }

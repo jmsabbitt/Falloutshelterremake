@@ -334,18 +334,17 @@ def build_character(folder: Path) -> tuple[str, dict] | None:
         # "boxes": [[x0, y0, x1, y1], ...] cuts one frame per box instead (for
         # sheets where the generator repeated or overlapped things); each frame
         # keeps every sizeable shape in its box, so a hat stays with its coat.
+        # "mirror" and "flip" still apply; "drop" and "take" do not.
         if "boxes" in a:
             frames = [box_frame(keyed[y0:y1, x0:x1]) for x0, y0, x1, y1 in a["boxes"]]
-            cut[name] = frames
-            print(f"  {cid}/{name}: {len(frames)} frames")
-            continue
-        # "order": "x" reads figures strictly left to right.
-        frames = find_figures(keyed, a.get("order") == "x") if a.get("split") == "figures" else find_frames(keyed)
-        drop = set(a.get("drop", []))
-        frames = [f for i, f in enumerate(frames) if i not in drop]
-        # "take": n keeps the first n frames (e.g. only a sheet's first row).
-        if "take" in a:
-            frames = frames[: int(a["take"])]
+        else:
+            # "order": "x" reads figures strictly left to right.
+            frames = find_figures(keyed, a.get("order") == "x") if a.get("split") == "figures" else find_frames(keyed)
+            drop = set(a.get("drop", []))
+            frames = [f for i, f in enumerate(frames) if i not in drop]
+            # "take": n keeps the first n frames (e.g. only a sheet's first row).
+            if "take" in a:
+                frames = frames[: int(a["take"])]
         # "flip" mirrors frames (counted after dropping) that face the wrong way;
         # "mirror": true mirrors the whole sheet (creatures face left, toward the party).
         flip = set(range(len(frames))) if a.get("mirror") else set(a.get("flip", []))

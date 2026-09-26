@@ -221,3 +221,4 @@ We need commercial use rights with no attribution or exclusivity strings. Record
 | all creatures, HALCY portraits | artlist.io, Nano Banana 2 I2I 2K | AI Suite plan (credits) | 2026-09-24 | ☐ |
 | item and salvage icons, room walls | artlist.io, Nano Banana 2 T2I / I2I 2K | AI Suite plan (credits) | 2026-09-25 | ☐ |
 | legend and faction portraits, loot icons, 33 bosses, glassback, topside buildings | artlist.io, Nano Banana 2 I2I / T2I 2K | AI Suite plan (credits) | 2026-09-26 | ☐ |
+| Act 4: 2 loot icons, 10 bosses, 16 regular enemies, 10 ending illustrations | artlist.io, Nano Banana 2 I2I / T2I 2K | AI Suite plan (credits) | 2026-09-26 | ☐ |

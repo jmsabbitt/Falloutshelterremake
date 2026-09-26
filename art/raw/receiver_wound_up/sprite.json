@@ -1,0 +1,81 @@
+{
+  "id": "receiver_wound_up",
+  "kind": "creature",
+  "background": "magenta",
+  "targetHeight": 160,
+  "referenceAnim": "idle",
+  "anims": {
+    "idle": {
+      "file": "idle.png",
+      "fps": 6,
+      "mirror": true,
+      "boxes": [
+        [
+          0,
+          0,
+          688,
+          768
+        ],
+        [
+          688,
+          0,
+          1376,
+          768
+        ],
+        [
+          1376,
+          0,
+          2064,
+          768
+        ],
+        [
+          2064,
+          0,
+          2752,
+          768
+        ],
+        [
+          0,
+          768,
+          688,
+          1536
+        ],
+        [
+          688,
+          768,
+          1376,
+          1536
+        ],
+        [
+          1376,
+          768,
+          2064,
+          1536
+        ],
+        [
+          2064,
+          768,
+          2752,
+          1536
+        ]
+      ]
+    },
+    "attack": {
+      "file": "attack.png",
+      "fps": 8,
+      "loop": false,
+      "split": "figures",
+      "mirror": true,
+      "take": 4
+    },
+    "death": {
+      "file": "death.png",
+      "fps": 6,
+      "loop": false,
+      "split": "figures",
+      "mirror": true,
+      "take": 4,
+      "heightFrom": 0
+    }
+  }
+}

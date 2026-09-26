@@ -12,13 +12,15 @@ The game is original IP: atompunk, 1950s Americana gone to seed, chunky cartoon 
 
 ## Status after the round-2 art session (2026-09-26)
 
-Sections 1 to 7 are done and built into `public/sprites/`. Sections 8 and 9 are not started: the ending ids don't exist yet, and the legend bodies need the loader change first.
+Sections 1 to 8 are done and built into `public/sprites/`, including the Act 4 additions (two more loot icons, the two Act 4 finale bosses, eight Act 4 bosses, the ten ending illustrations and the sixteen optional Act 4 regular enemies). Section 9 (bespoke legend bodies) is not started, because it needs the loader change first.
 
 | # | Delivered | Source | Output |
 |---|---|---|---|
 | 1 | 11 legend portraits | `art/raw/legends/` (3 sheets; the first two cut by `boxes` because faces touch) | `portraits/legend_<id>.webp` |
-| 2 | 14 loot-only icons | `art/raw/items/icons_l1..l4.png` | `items/<itemId>.webp` |
-| 3, 7 | All 33 bosses from sections 3 and 7, idle + attack + death | `art/raw/<enemyId>/`, `sprite.json` copied from the base look | `<enemyId>/*.webp` |
+| 2 | 16 loot-only icons | `art/raw/items/icons_l1..l5.png` | `items/<itemId>.webp` |
+| 3, 7 | All 55 bosses from sections 3 and 7 (14 flagship, 41 more), idle + attack + death | `art/raw/<enemyId>/`, `sprite.json` copied from the base look | `<enemyId>/*.webp` |
+| 8 | 10 ending illustrations (4 title slides, 6 shared scenes) | `art/raw/endings/<file>.png`, 16:9 full-bleed | `endings/<file>.webp` |
+| 8 | 16 Act 4 regular enemies, idle + attack + death | `art/raw/<enemyId>/` (same method as the bosses) | `<enemyId>/*.webp` |
 | 4 | Glassback, idle 8 + attack 4 + death 4 | `art/raw/glassback/` (skitter config) | `glassback/*.webp` |
 | 5 | 7 topside buildings × 3 levels | `art/raw/room_<type>/level{1,2,3}.png`, magenta, `trimBottom` | `rooms/room_<type>_<level>.webp` |
 | 6 | 5 faction leaders | `art/raw/factions/leaders.png` (cut by `boxes`) | `portraits/faction_<id>.webp` |
@@ -28,13 +30,16 @@ Notes on the bosses:
 - `iron_matron` and `big_tin` (rustman_brute look) cut 5 attack frames because of that look's `drop` setting. `pipe_mother` and `silt_queen` (skitter_queen look) have a 4-frame idle, like the look.
 - `the_dealer` attack has `"drop": [0]` because his thrown cards cut as a separate first frame.
 - `the_drowned_mayor` death was regenerated once because the first sheet never fell down.
+- A frame-height scan over every creature caught death and attack sheets where a dropped prop, a merged pair or a second-row figure had been cut as a frame. These now use `boxes` on their cleaner row, with cut lines at the emptiest columns: deaths of `assessor_9c`, `deacon_mire`, `pump_warden`, `rust_tollman`, `signatory_countersigned`, `the_detour`, `wire_scav`, `moth_choir`, `the_doorkeeper`, and attacks of `assessor_9c` and `moth_choir` (whose wing tips are clipped where they overlap the next frame).
+- Other sheets are cut on a fixed grid with `boxes` because frames touch: `company_secretary` (all three; the idle was also edited so the shredded paper stays in its frame), `receiver_wound_up` idle (smoke joins frames), and the deaths of `the_registrar`, `board_bailiff` and `receivers_clerk` (the fallen frame touches its neighbour). `build.py` now applies `mirror` and `flip` to `boxes` cuts too.
+- The rustman and hollowed looks have 12-frame idles and 6-frame attacks, so `wire_scav` and `the_unanswered` do too. `line_tapper`, `tier_zero_holdout` and `board_bailiff` (rustman_brute) cut 5 attack frames, like `iron_matron`.
 
 Notes on the topside buildings (for the code session):
 - The shapes follow `buildTopside` in `vaultView.ts`: one image stretched to the room's width, at most `gy + 60` (152 px) tall. They are square for the 3-cell types, 4:5 for the watchtower and signal mast (the 3-cell plot is 132 × 152 at most), and 16:9 for the 6-cell trading post.
 - **Solar, wind, rain and farm grow to 3 segments, but `buildTopside` draws one image across the whole width.** At 2 or 3 segments the square picture is stretched and then capped in height, so it looks squashed. Tiling one image per segment, as underground rooms do, would fix it.
 - `tools/sprites/build.py` gained `"trimBottom": true` for `whole` images, so the base of each building sits on the ground line.
 
-Credits: 142,040 left after this round (renews 2026-10-07).
+Credits: 130,210 left after this round, including the Act 4 additions (renews 2026-10-07).
 
 ---
 

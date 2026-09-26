@@ -14,17 +14,65 @@
       "file": "attack.png",
       "fps": 8,
       "loop": false,
-      "split": "figures",
-      "take": 4,
-      "mirror": true
+      "mirror": true,
+      "boxes": [
+        [
+          0,
+          0,
+          718,
+          768
+        ],
+        [
+          718,
+          0,
+          1388,
+          768
+        ],
+        [
+          1388,
+          0,
+          2056,
+          768
+        ],
+        [
+          2056,
+          0,
+          2752,
+          768
+        ]
+      ]
     },
     "death": {
       "file": "death.png",
       "fps": 7,
       "loop": false,
-      "split": "figures",
-      "take": 4,
-      "heightFrom": 0
+      "heightFrom": 0,
+      "boxes": [
+        [
+          0,
+          0,
+          718,
+          768
+        ],
+        [
+          718,
+          0,
+          1373,
+          768
+        ],
+        [
+          1373,
+          0,
+          2000,
+          768
+        ],
+        [
+          2000,
+          0,
+          2752,
+          768
+        ]
+      ]
     }
   }
 }

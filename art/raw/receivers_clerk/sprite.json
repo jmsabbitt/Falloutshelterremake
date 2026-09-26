@@ -1,0 +1,54 @@
+{
+  "id": "receivers_clerk",
+  "kind": "creature",
+  "background": "magenta",
+  "targetHeight": 160,
+  "referenceAnim": "idle",
+  "anims": {
+    "idle": {
+      "file": "idle.png",
+      "fps": 6,
+      "split": "figures"
+    },
+    "attack": {
+      "file": "attack.png",
+      "fps": 8,
+      "loop": false,
+      "split": "figures",
+      "take": 4,
+      "mirror": true
+    },
+    "death": {
+      "file": "death.png",
+      "fps": 7,
+      "loop": false,
+      "heightFrom": 0,
+      "boxes": [
+        [
+          0,
+          0,
+          688,
+          768
+        ],
+        [
+          688,
+          0,
+          1376,
+          768
+        ],
+        [
+          1376,
+          0,
+          2064,
+          768
+        ],
+        [
+          2064,
+          0,
+          2752,
+          768
+        ]
+      ]
+    }
+  }
+}

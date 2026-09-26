@@ -1,0 +1,80 @@
+{
+  "id": "endings",
+  "kind": "portrait",
+  "background": "none",
+  "outDir": "endings",
+  "prefix": "",
+  "targetHeight": 360,
+  "anims": {
+    "open_renewal": {
+      "file": "open_renewal.png",
+      "whole": true,
+      "names": [
+        "open_renewal"
+      ]
+    },
+    "open_eviction": {
+      "file": "open_eviction.png",
+      "whole": true,
+      "names": [
+        "open_eviction"
+      ]
+    },
+    "open_holdover": {
+      "file": "open_holdover.png",
+      "whole": true,
+      "names": [
+        "open_holdover"
+      ]
+    },
+    "open_neighbours": {
+      "file": "open_neighbours.png",
+      "whole": true,
+      "names": [
+        "open_neighbours"
+      ]
+    },
+    "scene_lease": {
+      "file": "scene_lease.png",
+      "whole": true,
+      "names": [
+        "scene_lease"
+      ]
+    },
+    "scene_door": {
+      "file": "scene_door.png",
+      "whole": true,
+      "names": [
+        "scene_door"
+      ]
+    },
+    "scene_glare": {
+      "file": "scene_glare.png",
+      "whole": true,
+      "names": [
+        "scene_glare"
+      ]
+    },
+    "scene_home": {
+      "file": "scene_home.png",
+      "whole": true,
+      "names": [
+        "scene_home"
+      ]
+    },
+    "scene_relay": {
+      "file": "scene_relay.png",
+      "whole": true,
+      "names": [
+        "scene_relay"
+      ]
+    },
+    "scene_end": {
+      "file": "scene_end.png",
+      "whole": true,
+      "names": [
+        "scene_end"
+      ]
+    }
+  }
+}
