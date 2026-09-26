@@ -24,7 +24,17 @@
     "knock_captain": "titan_harness",
     "the_conductor": "quicksilver_suit",
     "the_signatory": "professors_tweed",
-    "signatory_countersigned": "peacemaker"
+    "signatory_countersigned": "peacemaker",
+    "head_operator": "thunderclap",
+    "the_registrar": "surveyor_duster",
+    "last_verger": "hawkeye_duster",
+    "restore_point": "professors_tweed",
+    "company_secretary": "silver_tongue_suit",
+    "the_liquidator": "good_neighbour_cardigan",
+    "the_doorkeeper": "bedrock_armor",
+    "the_receiver": "glare_lance",
+    "receiver_wound_up": "quitclaim",
+    "rent_officer": "four_leaf_tux"
   },
   "repeatChance": 0.05,
   "firstKillLog": "{boss} was carrying {item}. HALCY has logged it as a first-time acquisition.",

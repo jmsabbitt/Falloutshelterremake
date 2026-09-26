@@ -21,6 +21,7 @@ import { performRush } from './systems/rush';
 import { applyCustom, type CustomCommand } from './systems/custom';
 import { isSurvival, rulesetMods } from './systems/rulesets';
 import { recallLegend } from './systems/legends';
+import { chooseEnding, setEndingTitle } from './systems/endings';
 import type { CrateTier, GameState, Resident, Room } from './types';
 
 export type Command =
@@ -77,6 +78,9 @@ export type Command =
   | { type: 'sendCaravan'; factionId: string; residentIds: number[]; goods: { salvage?: Record<string, number>; food?: number; water?: number; medpatch?: number } }
   | { type: 'recallCaravan'; caravanId: number }
   | { type: 'collectCaravan'; caravanId: number }
+  // Act 4: the ending choice, and which ending's title to wear
+  | { type: 'chooseEnding'; endingId: string }
+  | { type: 'setEndingTitle'; endingId: string | null }
   // M9: the Custom Game sandbox console (refused outside mode: 'custom')
   | ({ type: 'custom' } & CustomCommand);
 
@@ -444,6 +448,10 @@ function dispatch(state: GameState, content: Content, cmd: Command): CommandResu
       return result(recallCaravan(state, content, cmd.caravanId));
     case 'collectCaravan':
       return result(collectCaravan(state, content, cmd.caravanId));
+    case 'chooseEnding':
+      return result(chooseEnding(state, content, cmd.endingId));
+    case 'setEndingTitle':
+      return result(setEndingTitle(state, content, cmd.endingId));
     case 'custom': {
       const { type: _type, ...rest } = cmd;
       return result(applyCustom(state, content, rest as CustomCommand));

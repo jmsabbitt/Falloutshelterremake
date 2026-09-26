@@ -6,6 +6,7 @@
 import { halcyFace } from './halcy';
 import {
   canBuyPerk,
+  endingDef,
   canFound,
   canFoundHomestead,
   charterStatus,
@@ -397,8 +398,8 @@ export class LegacyUI {
     }
     out.push(h('h3', { class: 'group' }, 'Homestead history'));
     const rows = [
-      ...state.legacy.history.map((r) => ({ cycle: r.cycle, number: r.homesteadNumber, site: r.siteId, pop: r.peakPopulation, days: r.days, legacy: `◆ ${r.legacyEarned}`, now: false, rules: historyRules(r) })),
-      { cycle: state.legacy.cycle, number: state.homesteadNumber, site: state.legacy.siteId, pop: state.peakPopulation, days: Math.floor(state.time / 86400), legacy: 'now', now: true, rules: rulesOf(state) as RulesPick | null },
+      ...state.legacy.history.map((r) => ({ cycle: r.cycle, number: r.homesteadNumber, site: r.siteId, pop: r.peakPopulation, days: r.days, legacy: `◆ ${r.legacyEarned}`, now: false, rules: historyRules(r), ending: r.ending ?? null })),
+      { cycle: state.legacy.cycle, number: state.homesteadNumber, site: state.legacy.siteId, pop: state.peakPopulation, days: Math.floor(state.time / 86400), legacy: 'now', now: true, rules: rulesOf(state) as RulesPick | null, ending: state.story?.current ?? null },
     ];
     out.push(
       h(
@@ -419,6 +420,7 @@ export class LegacyUI {
                 h('b', {}, `${r.number}`),
                 h('span', { class: 'muted small' }, ` ${siteDef(this.game.content, r.site)?.name ?? r.site}`),
                 r.rules && (r.rules.rules.length || r.rules.survival) ? h('div', { class: 'm9-history-rules' }, rulesChips(this.game.content, r.rules)) : null,
+                r.ending ? h('div', { class: 'end-history', title: 'How the story ended here' }, `✦ ${endingDef(this.game.content, r.ending)?.name ?? r.ending}`) : null,
               ),
               h('td', {}, `${r.pop}`),
               h('td', {}, `${r.days}`),

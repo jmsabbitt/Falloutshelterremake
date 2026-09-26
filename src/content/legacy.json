@@ -18,6 +18,18 @@
       "population": 120,
       "quests": ["act3_finale"],
       "text": "Halcyon Charter §12(c): a homestead of the third generation that reaches one hundred and twenty, and has faced what lies beneath the Seal, may sponsor another. HALCY is running out of ribbon."
+    },
+    {
+      "cycle": 4,
+      "population": 150,
+      "quests": ["act4_finale"],
+      "text": "Halcyon Charter §12(d): a homestead of the fourth generation that reaches one hundred and fifty, and has paid what was owed, may sponsor another. HALCY has found more ribbon at the bottom of a drawer, under the lease."
+    },
+    {
+      "cycle": 5,
+      "population": 150,
+      "contracts": 20,
+      "text": "Halcyon Charter §12(e) and every section after it: a homestead of one hundred and fifty that has done twenty good turns for the neighbours may sponsor another, for as long as anybody wants to. The ribbon, HALCY says, is now a tradition."
     }
   ],
   "scoring": {
