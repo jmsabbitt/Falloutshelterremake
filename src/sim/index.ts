@@ -228,3 +228,25 @@ export * from './systems/collection';
 export { SEAL_ID, sealProgress, sealRequirements, wardenTitle } from './systems/achievements';
 export { maulerStatus, type MaulerStatus } from './systems/incidents';
 export { lootContent, cacheDef, isLootOnly, exclusiveRegionOf } from './systems/loot';
+export {
+  endingsContent,
+  endingDef,
+  endingOptions,
+  endingLocked,
+  endingChoiceOpen,
+  endingTitle,
+  endingBonus,
+  epilogue,
+  epilogueSlideIds,
+  replayEpilogue,
+  conditionStatus,
+  storiesFinished,
+  legendsMet,
+  factionsAtTier,
+  type EndingDef,
+  type EndingOption,
+  type ConditionStatus,
+  type Slide,
+  type SlideDef,
+} from './systems/endings';
+export { networkPreview, networkAllies, networkTuning, ALLY_ORDER } from './systems/network';

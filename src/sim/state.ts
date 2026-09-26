@@ -56,6 +56,7 @@ export function newGame(content: Content, opts: NewGameOptions = {}): GameState 
     legends: { recruited: [] },
     loot: { bossKills: [], maps: [] },
     maulerMeter: 0,
+    story: { endings: {}, current: null, open: false, title: null },
     crates: { ...start.crates },
     crateTokens: 0,
     pity: 0,

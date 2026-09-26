@@ -37,6 +37,9 @@ import { changeRep, factionDef, repOf } from './factions';
 import { grantItem, randomItemOf } from './items';
 import { onBossDefeated } from './loot';
 import { recruitLegend, upgradeLegend } from './legends';
+import { rulesetMods } from './rulesets';
+import { attachSupport, relayMult, shieldCut, tickSupport } from './network';
+import { openFinale } from './endings';
 
 // ------------------------------------------------------------------ content types
 
@@ -107,6 +110,8 @@ export interface EventOutcomeDef {
 
 export interface EventOptionDef {
   label: string;
+  /** Act 4: with this legend in the party (standing), the option succeeds without a roll. */
+  legend?: string;
   /** Checked against the party's best effective stat + a 0..4 roll. No stat = always succeeds. */
   stat?: StatKey;
   difficulty?: number;
@@ -138,6 +143,10 @@ export interface QuestDef {
   travelMinutes: number;
   map: QuestMapDef;
   rewards: QuestReward;
+  /** Act 4: the homestead network helps in the field (systems/network.ts). */
+  network?: boolean;
+  /** Act 4: winning it opens the ending choice (systems/endings.ts). */
+  finale?: boolean;
 }
 
 export interface ContractTemplateDef {
@@ -263,7 +272,9 @@ export function questLocked(state: GameState, content: Content, def: QuestDef): 
   if (state.quests.some((q) => q.defId === def.id)) return 'in progress';
   const missing = def.requires.quests.find((id) => !state.questsDone.includes(id));
   if (missing) return `finish "${questDef(content, missing)?.title ?? missing}" first`;
-  if (def.requires.population && state.peakPopulation < def.requires.population) return `needs population ${def.requires.population}`;
+  // Skeleton Crew caps the population, so a gate never asks for more than the cap allows.
+  const pop = def.requires.population ? Math.min(def.requires.population, rulesetMods(state, content).populationCap) : 0;
+  if (pop && state.peakPopulation < pop) return `needs population ${pop}`;
   if (def.requires.cycle && state.legacy.cycle < def.requires.cycle) return 'opens in a newly founded homestead';
   const legend = def.requires.legend;
   if (legend && !state.residents.some((r) => r.legendary === legend && !r.dead && !r.waiting)) return 'needs a particular resident';
@@ -384,6 +395,7 @@ export function startQuest(
   let map: QuestMapDef;
   let contract: ContractOffer | null = null;
   let partyMin = 1;
+  let network = false;
   if ('questId' in target) {
     const def = questDef(content, target.questId);
     if (!def) return 'no such quest';
@@ -395,6 +407,7 @@ export function startQuest(
     travel = def.travelMinutes * 60;
     map = def.map;
     partyMin = def.partyMin ?? 1;
+    network = def.network === true;
   } else {
     const offer = state.contracts.offers.find((o) => o.id === target.contractId);
     if (!offer) return 'that contract is gone';
@@ -463,6 +476,7 @@ export function startQuest(
     leaveJob(r);
     r.courtship = null;
   }
+  if (network) attachSupport(state, content, quest);
   state.quests.push(quest);
   bump(state, 'questsStarted');
   state.events.push({ type: 'questStarted', questId: quest.id });
@@ -710,7 +724,7 @@ function damageEnemy(state: GameState, content: Content, q: Quest, e: QuestEnemy
 
 /** Party-wide damage multiplier (Rally). */
 function partyMultiplier(content: Content, q: Quest): number {
-  return q.rally > 0 ? questContent(content).abilities.charm.power : 1;
+  return (q.rally > 0 ? questContent(content).abilities.charm.power : 1) * relayMult(q, content);
 }
 
 function memberAttack(state: GameState, content: Content, q: Quest, m: QuestMember, r: Resident): void {
@@ -727,6 +741,7 @@ function damageMember(state: GameState, content: Content, q: Quest, m: QuestMemb
   const t = tuning(content);
   let dmg = amount * (1 - damageReduction(content, r));
   if (m.taunt > 0) dmg *= 1 - t.tauntReduction;
+  dmg *= 1 - shieldCut(q, content); // Act 4: Homestead 9's drill
   dmg *= traitDamageTakenMult(content, r); // M6 trait hook (Hard Case)
   dmg = Math.max(1, Math.round(dmg));
   r.hp = Math.max(0, r.hp - dmg);
@@ -826,6 +841,18 @@ function tickCombat(state: GameState, content: Content, q: Quest, dt: number): v
     }
   }
   for (const e of livingEnemies(q)) tickEnemy(state, content, q, e, dt);
+  if (q.support) {
+    tickSupport(state, content, q, dt, {
+      living: () => livingEnemies(q),
+      standing: () => standing(state, q).map(({ r }) => ({ hp: r.hp, max: effectiveMaxHp(r), heal: (n: number) => (r.hp = Math.min(effectiveMaxHp(r), r.hp + n)) })),
+      hit: (e, amount) => damageEnemy(state, content, q, e, amount, 0, false),
+      isBoss: (e) => enemyDef(content, e.defId).boss === true,
+      interrupt: (e) => {
+        e.windup = null;
+        state.events.push({ type: 'questInterrupted', questId: q.id, enemyUid: e.uid });
+      },
+    });
+  }
 
   if (!standing(state, q).length) {
     finish(state, content, q, 'failed');
@@ -965,7 +992,10 @@ export function questChoose(state: GameState, content: Content, questId: number,
   const opt = ev?.options[option];
   if (!ev || !opt) return 'no such option';
   let success = true;
-  if (opt.stat) {
+  // Act 4: a legend who knows the way through makes it a sure thing.
+  const legendHelp = opt.legend !== undefined && standing(state, q).some(({ r }) => r.legendary === opt.legend);
+  if (legendHelp) bump(state, 'legendAssists');
+  else if (opt.stat) {
     // M6 trait hook (Lucky Break): traitCheckBonus per member.
     const best = Math.max(0, ...standing(state, q).map(({ r }) => effectiveStat(content, r, opt.stat as StatKey) + traitCheckBonus(content, r, 'questCheck')));
     success = best + nextInt(state.rng, 0, 4) >= (opt.difficulty ?? 0);
@@ -1091,6 +1121,7 @@ export function collectQuest(state: GameState, content: Content, questId: number
       for (const region of def.rewards.regions ?? []) if (!state.regionsUnlocked.includes(region)) state.regionsUnlocked.push(region);
       if (def.rewards.legend) recruitLegend(state, content, def.rewards.legend, 'quest');
       if (def.rewards.legendUpgrade) upgradeLegend(state, content, def.rewards.legendUpgrade);
+      if (def.finale) openFinale(state, content);
       bump(state, 'storyQuestsCompleted');
       bump(state, `questline.${def.line}`);
     } else {

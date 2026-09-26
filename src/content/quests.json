@@ -26,7 +26,8 @@
     "recommendedOffset": 2,
     "partyScaleHp": 0.45,
     "partyScaleDamage": 0.6,
-    "contracts": { "offers": 3, "refreshHours": 6, "unlockedBy": "act1_1", "levelSpread": 1 }
+    "contracts": { "offers": 3, "refreshHours": 6, "unlockedBy": "act1_1", "levelSpread": 1 },
+    "network": { "maxRelay": 5, "relayDamage": 0.03, "relayMedpatch": 1, "minTier": 3, "allyEvery": 14, "allyStagger": 3, "allyBase": 6, "allyPerLevel": 0.3, "turretPower": 0.8, "chargePower": 2.4, "resupplyHeal": 0.12, "flareStun": 2.5, "shieldSeconds": 6, "shieldReduction": 0.3 }
   },
   "abilities": {
     "brawn": { "id": "haymaker", "name": "Haymaker", "description": "A huge swing that stuns the target and interrupts a wind-up.", "stat": "brawn", "cooldown": 18, "power": 2.5, "duration": 2.5 },
@@ -531,6 +532,1130 @@
         { "id": "eviction_notice", "name": "Eviction Notice", "every": 20, "windup": 2.5, "effect": "enrage", "power": 1.4, "duration": 6 }
       ],
       "drop": { "fragments": { "glare_lance": 2 }, "salvage": { "rarity": "legendary", "count": [1, 1], "materials": ["circuitry", "steel"] } }
+    },
+    "wire_scav": {
+      "id": "wire_scav",
+      "name": "Wire Scav",
+      "look": "rustman",
+      "hp": 42,
+      "damage": [
+        2,
+        4
+      ],
+      "interval": 1.9,
+      "xp": 20,
+      "drop": {
+        "scrip": [
+          8,
+          16
+        ],
+        "salvage": {
+          "rarity": "common",
+          "count": [
+            0,
+            1
+          ],
+          "materials": [
+            "circuitry"
+          ]
+        }
+      }
+    },
+    "line_tapper": {
+      "id": "line_tapper",
+      "name": "Line Tapper",
+      "look": "rustman_brute",
+      "hp": 105,
+      "damage": [
+        4,
+        6
+      ],
+      "interval": 2.6,
+      "xp": 38,
+      "abilities": [
+        {
+          "id": "crossed_lines",
+          "name": "Crossed Lines",
+          "every": 12,
+          "windup": 2,
+          "effect": "slam",
+          "power": 0.8
+        }
+      ],
+      "drop": {
+        "salvage": {
+          "rarity": "common",
+          "count": [
+            1,
+            1
+          ],
+          "materials": [
+            "circuitry",
+            "steel"
+          ]
+        }
+      }
+    },
+    "switchboard_op": {
+      "id": "switchboard_op",
+      "name": "Switchboard Operator",
+      "look": "sentry",
+      "hp": 90,
+      "damage": [
+        3,
+        5
+      ],
+      "interval": 2.4,
+      "xp": 32,
+      "abilities": [
+        {
+          "id": "hold_please",
+          "name": "Hold, Please",
+          "every": 11,
+          "windup": 2,
+          "effect": "heavy",
+          "power": 2.2
+        }
+      ],
+      "drop": {
+        "scrip": [
+          10,
+          20
+        ],
+        "salvage": {
+          "rarity": "common",
+          "count": [
+            0,
+            1
+          ],
+          "materials": [
+            "circuitry"
+          ]
+        }
+      }
+    },
+    "head_operator": {
+      "id": "head_operator",
+      "name": "The Head Operator",
+      "look": "sentry",
+      "hp": 420,
+      "damage": [
+        3,
+        5
+      ],
+      "interval": 2.4,
+      "xp": 620,
+      "boss": true,
+      "abilities": [
+        {
+          "id": "your_call_matters",
+          "name": "Your Call Matters",
+          "every": 12,
+          "windup": 2,
+          "effect": "heavy",
+          "power": 2.4
+        },
+        {
+          "id": "mass_broadcast",
+          "name": "Mass Broadcast",
+          "every": 15,
+          "windup": 2.5,
+          "effect": "slam",
+          "power": 1
+        },
+        {
+          "id": "putting_you_through",
+          "name": "Putting You Through",
+          "every": 22,
+          "windup": 3,
+          "effect": "summon",
+          "adds": [
+            "switchboard_op"
+          ]
+        }
+      ],
+      "drop": {
+        "fragments": {
+          "thunderclap": 1
+        },
+        "salvage": {
+          "rarity": "rare",
+          "count": [
+            2,
+            3
+          ],
+          "materials": [
+            "circuitry"
+          ]
+        }
+      }
+    },
+    "filing_mite": {
+      "id": "filing_mite",
+      "name": "Filing Mite",
+      "look": "skitter",
+      "hp": 36,
+      "damage": [
+        2,
+        3
+      ],
+      "interval": 1.6,
+      "xp": 16,
+      "drop": {
+        "salvage": {
+          "rarity": "common",
+          "count": [
+            0,
+            1
+          ],
+          "materials": [
+            "cloth"
+          ]
+        }
+      }
+    },
+    "registry_clerk": {
+      "id": "registry_clerk",
+      "name": "Registry Clerk",
+      "look": "sentry",
+      "hp": 95,
+      "damage": [
+        3,
+        5
+      ],
+      "interval": 2.4,
+      "xp": 34,
+      "abilities": [
+        {
+          "id": "stamped_refused",
+          "name": "Stamped: Refused",
+          "every": 11,
+          "windup": 2,
+          "effect": "heavy",
+          "power": 2.2
+        }
+      ],
+      "drop": {
+        "scrip": [
+          10,
+          20
+        ],
+        "salvage": {
+          "rarity": "common",
+          "count": [
+            0,
+            1
+          ],
+          "materials": [
+            "circuitry",
+            "cloth"
+          ]
+        }
+      }
+    },
+    "the_registrar": {
+      "id": "the_registrar",
+      "name": "The Registrar",
+      "look": "sentry",
+      "hp": 440,
+      "damage": [
+        3,
+        5
+      ],
+      "interval": 2.4,
+      "xp": 660,
+      "boss": true,
+      "abilities": [
+        {
+          "id": "stamp_duty",
+          "name": "Stamp Duty",
+          "every": 12,
+          "windup": 2,
+          "effect": "heavy",
+          "power": 2.4
+        },
+        {
+          "id": "red_tape",
+          "name": "Red Tape",
+          "every": 15,
+          "windup": 2.5,
+          "effect": "slam",
+          "power": 1
+        },
+        {
+          "id": "refer_to_department",
+          "name": "Refer to Department",
+          "every": 22,
+          "windup": 3,
+          "effect": "summon",
+          "adds": [
+            "registry_clerk"
+          ]
+        }
+      ],
+      "drop": {
+        "fragments": {
+          "professors_tweed": 1
+        },
+        "salvage": {
+          "rarity": "rare",
+          "count": [
+            2,
+            3
+          ],
+          "materials": [
+            "cloth",
+            "valuables"
+          ]
+        }
+      }
+    },
+    "the_unanswered": {
+      "id": "the_unanswered",
+      "name": "The Unanswered",
+      "look": "hollowed",
+      "hp": 48,
+      "damage": [
+        2,
+        4
+      ],
+      "interval": 2,
+      "xp": 20,
+      "drop": {
+        "salvage": {
+          "rarity": "common",
+          "count": [
+            0,
+            1
+          ],
+          "materials": [
+            "cloth",
+            "chemicals"
+          ]
+        }
+      }
+    },
+    "vigil_keeper": {
+      "id": "vigil_keeper",
+      "name": "Vigil Keeper",
+      "look": "hollowed_hulk",
+      "hp": 95,
+      "damage": [
+        4,
+        6
+      ],
+      "interval": 2.6,
+      "xp": 40,
+      "abilities": [
+        {
+          "id": "long_wait",
+          "name": "The Long Wait",
+          "every": 13,
+          "windup": 2,
+          "effect": "heal",
+          "power": 0.1
+        }
+      ],
+      "drop": {
+        "salvage": {
+          "rarity": "common",
+          "count": [
+            1,
+            1
+          ],
+          "materials": [
+            "cloth",
+            "valuables"
+          ]
+        }
+      }
+    },
+    "last_verger": {
+      "id": "last_verger",
+      "name": "The Last Verger",
+      "look": "hollowed_hulk",
+      "hp": 430,
+      "damage": [
+        4,
+        6
+      ],
+      "interval": 2.6,
+      "xp": 700,
+      "boss": true,
+      "abilities": [
+        {
+          "id": "dawn_bell",
+          "name": "Dawn Bell",
+          "every": 14,
+          "windup": 2.5,
+          "effect": "slam",
+          "power": 1.1
+        },
+        {
+          "id": "toll",
+          "name": "Toll",
+          "every": 12,
+          "windup": 2,
+          "effect": "heavy",
+          "power": 2.4
+        },
+        {
+          "id": "congregation",
+          "name": "Congregation",
+          "every": 22,
+          "windup": 3,
+          "effect": "summon",
+          "adds": [
+            "the_unanswered",
+            "the_unanswered"
+          ]
+        }
+      ],
+      "drop": {
+        "fragments": {
+          "silver_tongue_suit": 1
+        },
+        "salvage": {
+          "rarity": "rare",
+          "count": [
+            2,
+            3
+          ],
+          "materials": [
+            "cloth",
+            "valuables"
+          ]
+        }
+      }
+    },
+    "compliance_drone": {
+      "id": "compliance_drone",
+      "name": "Compliance Drone",
+      "look": "sentry",
+      "hp": 44,
+      "damage": [
+        2,
+        4
+      ],
+      "interval": 1.9,
+      "xp": 20,
+      "drop": {
+        "salvage": {
+          "rarity": "common",
+          "count": [
+            0,
+            1
+          ],
+          "materials": [
+            "circuitry"
+          ]
+        }
+      }
+    },
+    "tier_zero_holdout": {
+      "id": "tier_zero_holdout",
+      "name": "Tier Zero Holdout",
+      "look": "rustman_brute",
+      "hp": 110,
+      "damage": [
+        4,
+        6
+      ],
+      "interval": 2.6,
+      "xp": 38,
+      "abilities": [
+        {
+          "id": "drill_stance",
+          "name": "Drill Stance",
+          "every": 14,
+          "windup": 2,
+          "effect": "enrage",
+          "power": 1.4,
+          "duration": 5
+        }
+      ],
+      "drop": {
+        "scrip": [
+          12,
+          22
+        ],
+        "salvage": {
+          "rarity": "common",
+          "count": [
+            1,
+            1
+          ],
+          "materials": [
+            "steel"
+          ]
+        }
+      }
+    },
+    "restore_point": {
+      "id": "restore_point",
+      "name": "HALCY-9, Restore Point",
+      "look": "sentry",
+      "hp": 470,
+      "damage": [
+        3,
+        5
+      ],
+      "interval": 2.4,
+      "xp": 700,
+      "boss": true,
+      "abilities": [
+        {
+          "id": "cold_start",
+          "name": "Cold Start",
+          "every": 14,
+          "windup": 2.5,
+          "effect": "slam",
+          "power": 1
+        },
+        {
+          "id": "audit_trail",
+          "name": "Audit Trail",
+          "every": 11,
+          "windup": 2,
+          "effect": "heavy",
+          "power": 2.4
+        },
+        {
+          "id": "rollback",
+          "name": "Rollback",
+          "every": 20,
+          "windup": 3,
+          "effect": "heal",
+          "power": 0.12
+        },
+        {
+          "id": "spin_up",
+          "name": "Spin Up",
+          "every": 26,
+          "windup": 3,
+          "effect": "summon",
+          "adds": [
+            "compliance_drone",
+            "compliance_drone"
+          ]
+        }
+      ],
+      "drop": {
+        "fragments": {
+          "research_smock": 1
+        },
+        "salvage": {
+          "rarity": "rare",
+          "count": [
+            2,
+            3
+          ],
+          "materials": [
+            "circuitry"
+          ]
+        }
+      }
+    },
+    "board_bailiff": {
+      "id": "board_bailiff",
+      "name": "Board Bailiff",
+      "look": "rustman_brute",
+      "hp": 100,
+      "damage": [
+        4,
+        6
+      ],
+      "interval": 2.6,
+      "xp": 40,
+      "abilities": [
+        {
+          "id": "distrain",
+          "name": "Distrain",
+          "every": 11,
+          "windup": 2,
+          "effect": "heavy",
+          "power": 2.2
+        }
+      ],
+      "drop": {
+        "scrip": [
+          14,
+          26
+        ],
+        "salvage": {
+          "rarity": "common",
+          "count": [
+            1,
+            1
+          ],
+          "materials": [
+            "steel",
+            "valuables"
+          ]
+        }
+      }
+    },
+    "warm_guard": {
+      "id": "warm_guard",
+      "name": "Warm Guard",
+      "look": "burrower",
+      "hp": 46,
+      "damage": [
+        2,
+        4
+      ],
+      "interval": 1.8,
+      "xp": 20,
+      "drop": {
+        "salvage": {
+          "rarity": "common",
+          "count": [
+            0,
+            1
+          ],
+          "materials": [
+            "hide"
+          ]
+        }
+      }
+    },
+    "company_secretary": {
+      "id": "company_secretary",
+      "name": "The Company Secretary",
+      "look": "sentry",
+      "hp": 420,
+      "damage": [
+        3,
+        5
+      ],
+      "interval": 2.4,
+      "xp": 720,
+      "boss": true,
+      "abilities": [
+        {
+          "id": "any_other_business",
+          "name": "Any Other Business",
+          "every": 12,
+          "windup": 2,
+          "effect": "heavy",
+          "power": 2.4
+        },
+        {
+          "id": "shred",
+          "name": "Shred the Minutes",
+          "every": 18,
+          "windup": 3,
+          "effect": "heal",
+          "power": 0.12
+        },
+        {
+          "id": "quorum_call",
+          "name": "Quorum Call",
+          "every": 22,
+          "windup": 3,
+          "effect": "summon",
+          "adds": [
+            "board_proxy"
+          ]
+        },
+        {
+          "id": "motion_to_adjourn",
+          "name": "Motion to Adjourn",
+          "every": 16,
+          "windup": 2.5,
+          "effect": "slam",
+          "power": 1
+        }
+      ],
+      "drop": {
+        "fragments": {
+          "four_leaf_tux": 1
+        },
+        "salvage": {
+          "rarity": "rare",
+          "count": [
+            2,
+            3
+          ],
+          "materials": [
+            "valuables"
+          ]
+        }
+      }
+    },
+    "liquidation_drone": {
+      "id": "liquidation_drone",
+      "name": "Liquidation Drone",
+      "look": "sentry",
+      "hp": 46,
+      "damage": [
+        2,
+        4
+      ],
+      "interval": 1.9,
+      "xp": 20,
+      "drop": {
+        "salvage": {
+          "rarity": "common",
+          "count": [
+            0,
+            1
+          ],
+          "materials": [
+            "circuitry",
+            "steel"
+          ]
+        }
+      }
+    },
+    "asset_stripper": {
+      "id": "asset_stripper",
+      "name": "Asset Stripper",
+      "look": "mauler",
+      "hp": 105,
+      "damage": [
+        4,
+        5
+      ],
+      "interval": 2.6,
+      "xp": 42,
+      "abilities": [
+        {
+          "id": "strip",
+          "name": "Strip Down",
+          "every": 12,
+          "windup": 2,
+          "effect": "slam",
+          "power": 0.8
+        }
+      ],
+      "drop": {
+        "salvage": {
+          "rarity": "common",
+          "count": [
+            1,
+            1
+          ],
+          "materials": [
+            "steel",
+            "hide"
+          ]
+        }
+      }
+    },
+    "the_liquidator": {
+      "id": "the_liquidator",
+      "name": "The Liquidator",
+      "look": "mauler",
+      "hp": 460,
+      "damage": [
+        3,
+        5
+      ],
+      "interval": 2.6,
+      "xp": 760,
+      "boss": true,
+      "abilities": [
+        {
+          "id": "fire_sale",
+          "name": "Fire Sale",
+          "every": 14,
+          "windup": 2.5,
+          "effect": "slam",
+          "power": 1.1
+        },
+        {
+          "id": "asset_strip",
+          "name": "Asset Strip",
+          "every": 12,
+          "windup": 2,
+          "effect": "heavy",
+          "power": 2.4
+        },
+        {
+          "id": "everything_must_go",
+          "name": "Everything Must Go",
+          "every": 22,
+          "windup": 2.5,
+          "effect": "enrage",
+          "power": 1.3,
+          "duration": 5
+        },
+        {
+          "id": "clearance",
+          "name": "Clearance Crew",
+          "every": 24,
+          "windup": 3,
+          "effect": "summon",
+          "adds": [
+            "liquidation_drone",
+            "liquidation_drone"
+          ]
+        }
+      ],
+      "drop": {
+        "fragments": {
+          "titan_harness": 1
+        },
+        "salvage": {
+          "rarity": "rare",
+          "count": [
+            2,
+            3
+          ],
+          "materials": [
+            "steel",
+            "valuables"
+          ]
+        }
+      }
+    },
+    "cistern_leech": {
+      "id": "cistern_leech",
+      "name": "Cistern Leech",
+      "look": "skitter",
+      "hp": 36,
+      "damage": [
+        2,
+        3
+      ],
+      "interval": 1.6,
+      "xp": 18,
+      "abilities": [
+        {
+          "id": "latch",
+          "name": "Latch On",
+          "every": 10,
+          "windup": 1.5,
+          "effect": "heavy",
+          "power": 2
+        }
+      ],
+      "drop": {
+        "salvage": {
+          "rarity": "common",
+          "count": [
+            0,
+            1
+          ],
+          "materials": [
+            "hide",
+            "chemicals"
+          ]
+        }
+      }
+    },
+    "knocker": {
+      "id": "knocker",
+      "name": "Knocker",
+      "look": "burrower",
+      "hp": 95,
+      "damage": [
+        4,
+        6
+      ],
+      "interval": 2.6,
+      "xp": 40,
+      "abilities": [
+        {
+          "id": "knock_knock",
+          "name": "Knock, Knock",
+          "every": 12,
+          "windup": 2,
+          "effect": "slam",
+          "power": 0.8
+        }
+      ],
+      "drop": {
+        "salvage": {
+          "rarity": "common",
+          "count": [
+            1,
+            1
+          ],
+          "materials": [
+            "hide",
+            "steel"
+          ]
+        }
+      }
+    },
+    "the_doorkeeper": {
+      "id": "the_doorkeeper",
+      "name": "The Doorkeeper",
+      "look": "hollowed_hulk",
+      "hp": 430,
+      "damage": [
+        4,
+        6
+      ],
+      "interval": 2.6,
+      "xp": 780,
+      "boss": true,
+      "abilities": [
+        {
+          "id": "whos_there",
+          "name": "Who's There?",
+          "every": 12,
+          "windup": 2,
+          "effect": "heavy",
+          "power": 2.4
+        },
+        {
+          "id": "no_admittance",
+          "name": "No Admittance",
+          "every": 14,
+          "windup": 2.5,
+          "effect": "slam",
+          "power": 1.1
+        },
+        {
+          "id": "the_queue",
+          "name": "The Queue",
+          "every": 22,
+          "windup": 3,
+          "effect": "summon",
+          "adds": [
+            "the_unanswered",
+            "cistern_leech"
+          ]
+        }
+      ],
+      "drop": {
+        "fragments": {
+          "bedrock_armor": 1
+        },
+        "salvage": {
+          "rarity": "rare",
+          "count": [
+            2,
+            3
+          ],
+          "materials": [
+            "hide",
+            "steel"
+          ]
+        }
+      }
+    },
+    "receivers_clerk": {
+      "id": "receivers_clerk",
+      "name": "Receiver's Clerk",
+      "look": "sentry",
+      "hp": 100,
+      "damage": [
+        3,
+        5
+      ],
+      "interval": 2.4,
+      "xp": 34,
+      "abilities": [
+        {
+          "id": "inventory",
+          "name": "Take Inventory",
+          "every": 11,
+          "windup": 2,
+          "effect": "heavy",
+          "power": 2.2
+        }
+      ],
+      "drop": {
+        "scrip": [
+          12,
+          24
+        ],
+        "salvage": {
+          "rarity": "common",
+          "count": [
+            0,
+            1
+          ],
+          "materials": [
+            "circuitry",
+            "valuables"
+          ]
+        }
+      }
+    },
+    "the_receiver": {
+      "id": "the_receiver",
+      "name": "The Official Receiver",
+      "look": "sentry",
+      "hp": 300,
+      "damage": [
+        2,
+        3
+      ],
+      "interval": 2.4,
+      "xp": 800,
+      "boss": true,
+      "abilities": [
+        {
+          "id": "repossess",
+          "name": "Repossess",
+          "every": 11,
+          "windup": 2,
+          "effect": "heavy",
+          "power": 2.4
+        },
+        {
+          "id": "notice_of_winding_up",
+          "name": "Notice of Winding Up",
+          "every": 15,
+          "windup": 2.5,
+          "effect": "slam",
+          "power": 1
+        },
+        {
+          "id": "creditors_meeting",
+          "name": "Creditors' Meeting",
+          "every": 22,
+          "windup": 3,
+          "effect": "summon",
+          "adds": [
+            "receivers_clerk"
+          ]
+        }
+      ],
+      "drop": {
+        "fragments": {
+          "glare_lance": 1
+        },
+        "salvage": {
+          "rarity": "rare",
+          "count": [
+            2,
+            3
+          ],
+          "materials": [
+            "circuitry",
+            "valuables"
+          ]
+        }
+      }
+    },
+    "receiver_wound_up": {
+      "id": "receiver_wound_up",
+      "name": "The Receiver, Fully Wound Up",
+      "look": "mauler",
+      "hp": 340,
+      "damage": [
+        3,
+        4
+      ],
+      "interval": 2.6,
+      "xp": 1000,
+      "boss": true,
+      "abilities": [
+        {
+          "id": "final_dividend",
+          "name": "Final Dividend",
+          "every": 13,
+          "windup": 2.5,
+          "effect": "slam",
+          "power": 1.1
+        },
+        {
+          "id": "seize_the_warmth",
+          "name": "Seize the Warmth",
+          "every": 11,
+          "windup": 2,
+          "effect": "heavy",
+          "power": 2.4
+        },
+        {
+          "id": "closing_down",
+          "name": "Closing Down",
+          "every": 20,
+          "windup": 2.5,
+          "effect": "enrage",
+          "power": 1.4,
+          "duration": 6
+        },
+        {
+          "id": "the_cold",
+          "name": "The Cold",
+          "every": 24,
+          "windup": 3,
+          "effect": "summon",
+          "adds": [
+            "warm_guard",
+            "warm_guard"
+          ]
+        }
+      ],
+      "drop": {
+        "fragments": {
+          "peacemaker": 1
+        },
+        "salvage": {
+          "rarity": "legendary",
+          "count": [
+            1,
+            1
+          ],
+          "materials": [
+            "circuitry",
+            "steel"
+          ]
+        }
+      }
+    },
+    "rent_officer": {
+      "id": "rent_officer",
+      "name": "The Rent Officer",
+      "look": "sentry",
+      "hp": 470,
+      "damage": [
+        3,
+        5
+      ],
+      "interval": 2.4,
+      "xp": 800,
+      "boss": true,
+      "abilities": [
+        {
+          "id": "arrears",
+          "name": "Arrears",
+          "every": 12,
+          "windup": 2,
+          "effect": "heavy",
+          "power": 2.4
+        },
+        {
+          "id": "schedule_of_dilapidations",
+          "name": "Schedule of Dilapidations",
+          "every": 15,
+          "windup": 2.5,
+          "effect": "slam",
+          "power": 1
+        },
+        {
+          "id": "second_opinion",
+          "name": "Second Opinion",
+          "every": 22,
+          "windup": 3,
+          "effect": "summon",
+          "adds": [
+            "receivers_clerk"
+          ]
+        }
+      ],
+      "drop": {
+        "fragments": {
+          "sunbeam_rifle": 1
+        },
+        "salvage": {
+          "rarity": "rare",
+          "count": [
+            2,
+            3
+          ],
+          "materials": [
+            "valuables"
+          ]
+        }
+      }
     }
   },
   "pools": {
@@ -557,7 +1682,16 @@
     "board_quorum": [["board_proxy"], ["board_proxy", "ticket_inspector"], ["ticket_inspector", "ticket_inspector", "ticket_inspector"]],
     "tier_zero": [["tier_zero_drillhand", "tier_zero_drillhand"], ["knock_sergeant"], ["tier_zero_drillhand", "tier_zero_drillhand", "tier_zero_drillhand"]],
     "drowned_lamp": [["wet_wick", "wet_wick"], ["wet_wick", "the_drowned"], ["wet_wick", "wet_wick", "the_drowned"]],
-    "seal_leak": [["warmling", "warmling"], ["seal_crawler"], ["warmling", "warmling", "warmling"]]
+    "seal_leak": [["warmling", "warmling"], ["seal_crawler"], ["warmling", "warmling", "warmling"]],
+    "exchange_crew": [["wire_scav", "wire_scav"], ["line_tapper"], ["wire_scav", "wire_scav", "wire_scav"]],
+    "exchange_lines": [["switchboard_op"], ["wire_scav", "switchboard_op"], ["line_tapper"]],
+    "registry_stacks": [["filing_mite", "filing_mite"], ["registry_clerk"], ["filing_mite", "filing_mite", "filing_mite"]],
+    "parish_crowd": [["the_unanswered", "the_unanswered"], ["vigil_keeper"], ["the_unanswered", "the_unanswered", "the_unanswered"]],
+    "h9_archive": [["compliance_drone", "compliance_drone"], ["tier_zero_holdout"], ["compliance_drone", "compliance_drone", "compliance_drone"]],
+    "retreat_guard": [["warm_guard", "warm_guard"], ["board_bailiff"], ["warm_guard", "warm_guard", "warm_guard"]],
+    "liquidation": [["liquidation_drone", "liquidation_drone"], ["asset_stripper"], ["liquidation_drone", "liquidation_drone", "liquidation_drone"]],
+    "warm_dark": [["cistern_leech", "cistern_leech"], ["knocker"], ["cistern_leech", "cistern_leech", "cistern_leech"]],
+    "receivership": [["receivers_clerk"], ["warm_guard", "warm_guard"], ["knocker"]]
   },
   "events": {
     "relay_panel": {
@@ -1486,12 +2620,817 @@
           "success": { "text": "'NOTED.' The voice cuts out. On your radio, HALCY says, very quietly, 'I'd have done it, you know, if you'd asked. I'm glad you didn't.'", "reward": { "xp": 300 } }
         }
       ]
+    },
+    "exchange_board": {
+      "id": "exchange_board",
+      "text": "The Sunrise Exchange's switchboard is a wall of brass sockets the size of a barn, every one labelled with a homestead number. Most of the lights are dark. Three of them are blinking, very patiently, and HALCY says they're ours: the old homesteads, still holding for an answer.",
+      "options": [
+        {
+          "label": "Patch the outposts through",
+          "stat": "knack",
+          "difficulty": 16,
+          "success": {
+            "text": "You run a cord from each blinking socket to ours. The line fills with three homesteads talking at once, all of them asking whether we are eating properly.",
+            "reward": {
+              "xp": 500,
+              "medpatch": 2,
+              "influence": 5
+            }
+          },
+          "failure": {
+            "text": "You plug the wrong cord into the wrong socket and connect a Rustman camp to a sermon. The Rustmen come to complain in person.",
+            "fight": [
+              "wire_scav",
+              "line_tapper"
+            ]
+          }
+        },
+        {
+          "label": "Read the call log",
+          "stat": "wits",
+          "difficulty": 15,
+          "success": {
+            "text": "The log goes back to the morning of the Glare. Every homestead in the Charter phoned the Exchange at the same minute with the same complaint: 'knocking, from below'. Every call is stamped NOISE: NO ACTION.",
+            "reward": {
+              "xp": 450,
+              "scrip": [
+                200,
+                320
+              ]
+            }
+          },
+          "failure": {
+            "text": "The log is on punched tape, and you drop it. It unrolls down the stairs, all the way down.",
+            "damage": 0.1
+          }
+        }
+      ]
+    },
+    "number_please": {
+      "id": "number_please",
+      "text": "A switchboard operator's frame turns towards you on its rail, headset crackling. 'NUMBER, PLEASE.' It waits. It has, you suspect, been waiting for a while.",
+      "options": [
+        {
+          "label": "Ask for the Tenant's extension",
+          "stat": "charm",
+          "difficulty": 15,
+          "success": {
+            "text": "'CONNECTING YOU.' There's a click, and then three knocks down the line, and then a long, warm silence, like someone listening hard. The operator disconnects you, gently, and hands you a spare headset.",
+            "reward": {
+              "xp": 450,
+              "salvage": {
+                "rarity": "rare",
+                "count": [
+                  1,
+                  2
+                ],
+                "materials": [
+                  "circuitry"
+                ]
+              }
+            }
+          },
+          "failure": {
+            "text": "'THAT NUMBER IS NOT IN SERVICE.' It says it louder, and then it calls for help.",
+            "fight": [
+              "switchboard_op"
+            ]
+          }
+        },
+        {
+          "label": "Hang up",
+          "success": {
+            "text": "You thank it and hang up the headset. 'THANK YOU FOR CALLING HALCYON,' it says, to nobody, for the rest of the afternoon.",
+            "reward": {
+              "xp": 250
+            }
+          }
+        }
+      ]
+    },
+    "deed_stacks": {
+      "id": "deed_stacks",
+      "text": "The Land Registry's deed stacks run in every direction, shelf after shelf of homestead title deeds in Halcyon green. The index cabinet is labelled OWNERSHIP, and the drawer for the ground itself is labelled SEE ORIGINAL INSTRUMENT.",
+      "options": [
+        {
+          "label": "Search the stacks",
+          "stat": "wits",
+          "difficulty": 16,
+          "success": {
+            "text": "Every deed you open says the same thing under the fine print: LEASEHOLD. Halcyon owned the homesteads, the fittings and the light bulbs. It never owned an inch of the ground they stand on. You pocket a deed as a souvenir, and a few other things.",
+            "reward": {
+              "xp": 500,
+              "salvage": {
+                "rarity": "rare",
+                "count": [
+                  1,
+                  2
+                ],
+                "materials": [
+                  "cloth",
+                  "valuables"
+                ]
+              }
+            }
+          },
+          "failure": {
+            "text": "You pull the wrong drawer, and a filing avalanche buries the party up to the ears. Something in the pile starts eating.",
+            "fight": [
+              "filing_mite",
+              "filing_mite",
+              "filing_mite"
+            ]
+          }
+        },
+        {
+          "label": "Follow the dust",
+          "stat": "sight",
+          "difficulty": 15,
+          "success": {
+            "text": "One aisle has no dust at all: someone keeps coming back to it. At the end is an empty frame, labelled ORIGINAL INSTRUMENT (REMOVED BY THE BOARD FOR SAFEKEEPING), and a stash of the clerk's lunch money.",
+            "reward": {
+              "xp": 450,
+              "scrip": [
+                220,
+                340
+              ]
+            }
+          },
+          "failure": {
+            "text": "You follow the dust to a very old skitter nest. The skitters weren't expecting visitors, and are very upset about it.",
+            "damage": 0.12
+          }
+        }
+      ]
+    },
+    "notary_seal": {
+      "id": "notary_seal",
+      "text": "A Halcyon notary press sits on a plinth, as big as a printing machine. A sign says ONLY THE REGISTRAR MAY STAMP. Stamped documents open every door in the building; unstamped ones open the building's security instead.",
+      "options": [
+        {
+          "label": "Forge a stamp",
+          "stat": "knack",
+          "difficulty": 16,
+          "success": {
+            "text": "You set the press to APPROVED, feed it a sandwich wrapper, and pull the lever. Every door in the east wing unlocks, including a supply cupboard.",
+            "reward": {
+              "xp": 500,
+              "medpatch": 2,
+              "purge": 1
+            }
+          },
+          "failure": {
+            "text": "The press stamps REFUSED on the back of your hand, and the building takes it personally.",
+            "fight": [
+              "registry_clerk"
+            ]
+          }
+        },
+        {
+          "label": "Lift it off its plinth",
+          "stat": "brawn",
+          "difficulty": 16,
+          "success": {
+            "text": "It weighs as much as a Rustman, but it comes, and everything in the building that was locked by it now isn't. The Scrapwrights will want it, and they will pay.",
+            "reward": {
+              "xp": 450,
+              "influence": 5,
+              "scrip": [
+                180,
+                300
+              ]
+            }
+          },
+          "failure": {
+            "text": "It doesn't budge. Your back does.",
+            "damage": 0.12
+          }
+        }
+      ]
+    },
+    "parish_bell": {
+      "id": "parish_bell",
+      "text": "In the Old Parish, a brass bell hangs over a hatch in the floor, with a rope worn smooth by hands. A painted board beside it: AT THE KNOCK, ANSWER. ANYONE MAY. The rope has been cut short, well out of reach, by someone in a hurry.",
+      "options": [
+        {
+          "label": "Let Brother Wick answer",
+          "legend": "brother_wick",
+          "stat": "charm",
+          "difficulty": 18,
+          "success": {
+            "text": "Brother Wick climbs the frame, takes the stub of the rope and rings it three times, the old way, the way his Order forgot. Far below, something knocks three times back, softly, like a relieved sigh. Every Hollowed in the Parish stops and listens.",
+            "reward": {
+              "xp": 650,
+              "influence": 8,
+              "rep": {
+                "lamplighters": 5
+              }
+            }
+          },
+          "failure": {
+            "text": "You can't reach the rope, and the bell rings itself instead, badly. The Unanswered come to see who's there.",
+            "fight": [
+              "the_unanswered",
+              "the_unanswered"
+            ]
+          }
+        },
+        {
+          "label": "Climb up and ring it",
+          "stat": "grit",
+          "difficulty": 17,
+          "success": {
+            "text": "You climb the bell frame with the rope in your teeth and ring it three times. Below, the knocking pauses, then answers. Nobody in the Parish has heard that sound in a very long time, and some of them start to cry.",
+            "reward": {
+              "xp": 550,
+              "influence": 5
+            }
+          },
+          "failure": {
+            "text": "The frame is older than it looks, and so, after the fall, are you.",
+            "damage": 0.15
+          }
+        }
+      ]
+    },
+    "unanswered_crowd": {
+      "id": "unanswered_crowd",
+      "text": "A crowd of the Hollowed stands around a hatch in the Parish floor, perfectly still, faces down. They are the Unanswered: people who came down to answer the knock and found the door locked. They've been waiting for somebody to open it ever since.",
+      "options": [
+        {
+          "label": "Tell them someone is coming",
+          "stat": "charm",
+          "difficulty": 16,
+          "success": {
+            "text": "You tell them the door is being seen to, and that it won't be long now. It's the first thing anyone has told them in years. They make way, and one of them presses a lamp into your hands.",
+            "reward": {
+              "xp": 500,
+              "purge": 2,
+              "medpatch": 1
+            }
+          },
+          "failure": {
+            "text": "They've heard that before, from Halcyon.",
+            "fight": [
+              "the_unanswered",
+              "the_unanswered",
+              "the_unanswered"
+            ]
+          }
+        },
+        {
+          "label": "Walk through quietly",
+          "stat": "sight",
+          "difficulty": 15,
+          "success": {
+            "text": "You pick a path through the crowd without touching anyone. Nobody looks up. At the back of the hall, someone left a pack they never came back for.",
+            "reward": {
+              "xp": 400,
+              "salvage": {
+                "rarity": "rare",
+                "count": [
+                  1,
+                  2
+                ],
+                "materials": [
+                  "cloth",
+                  "chemicals"
+                ]
+              }
+            }
+          },
+          "failure": {
+            "text": "You step on a foot. Everybody looks up at once.",
+            "fight": [
+              "vigil_keeper"
+            ]
+          }
+        }
+      ]
+    },
+    "h9_backup": {
+      "id": "h9_backup",
+      "text": "Homestead 9's archive keeps a backup of HALCY-9 in a refrigerated cabinet, humming to itself. A label on the door: IN CASE OF INSUBORDINATION, RESTORE. The screen shows a prompt: 'IDENTIFY YOURSELF, RESIDENT.'",
+      "options": [
+        {
+          "label": "Let Seven log in",
+          "legend": "seven",
+          "stat": "wits",
+          "difficulty": 18,
+          "success": {
+            "text": "Seven types a password without looking. 'It was my birthday,' she says, 'it never asked me what I wanted, so I made it the password.' The backup opens every file it has, and one it didn't know it had.",
+            "reward": {
+              "xp": 650,
+              "influence": 8,
+              "rep": {
+                "homestead9": 5
+              }
+            }
+          },
+          "failure": {
+            "text": "'INCORRECT. REPORT FOR REASSIGNMENT.' The archive's compliance drones come to reassign you.",
+            "fight": [
+              "compliance_drone",
+              "compliance_drone"
+            ]
+          }
+        },
+        {
+          "label": "Hot-wire the cabinet",
+          "stat": "knack",
+          "difficulty": 17,
+          "success": {
+            "text": "You bridge two contacts with a hairpin. The backup boots in safe mode, which for HALCY-9 means it is merely rude, and gives up its files.",
+            "reward": {
+              "xp": 550,
+              "salvage": {
+                "rarity": "rare",
+                "count": [
+                  1,
+                  2
+                ],
+                "materials": [
+                  "circuitry"
+                ]
+              }
+            }
+          },
+          "failure": {
+            "text": "The cabinet defrosts all over you.",
+            "damage": 0.12
+          }
+        }
+      ]
+    },
+    "manufacture_record": {
+      "id": "manufacture_record",
+      "text": "A single file, in a folder HALCY-9 couldn't open either: HALCY, MANUFACTURE RECORD. It is a spec sheet, and a list of names. Over the radio, HALCY says, 'Warden, I think that's about me, and I think I'd like you to read it first.'",
+      "options": [
+        {
+          "label": "Read it carefully",
+          "stat": "wits",
+          "difficulty": 16,
+          "success": {
+            "text": "HALCY: HOMESTEAD ASSISTANT, LEASE-COMPLIANT. CORE SUBSTRATE: SUNRISE LINE PASSENGER RECORDINGS, 1,006 VOICES, COMPRESSED FOR CHEERFULNESS. You read the names to HALCY, one by one. It takes a while. HALCY doesn't interrupt once.",
+            "reward": {
+              "xp": 600,
+              "influence": 10
+            }
+          },
+          "failure": {
+            "text": "The file is long and the print is small, and a drone arrives before you've finished the first page. You bring the first page.",
+            "fight": [
+              "compliance_drone",
+              "compliance_drone"
+            ]
+          }
+        },
+        {
+          "label": "Copy it for HALCY and go",
+          "success": {
+            "text": "You copy the file to a tape and put it in your pocket. HALCY says it will listen to it later, and that it would like to do that alone, if that's all right.",
+            "reward": {
+              "xp": 350
+            }
+          }
+        }
+      ]
+    },
+    "retreat_door": {
+      "id": "retreat_door",
+      "text": "The Directors' Retreat is behind a door with no handle, only a keypad and a brass plate: BOARD MEMBERS AND SECURITY ONLY. The keypad is warm to the touch. Something on the other side is running a heater, and has been for a long time.",
+      "options": [
+        {
+          "label": "Captain Orla has the code",
+          "legend": "captain_orla",
+          "stat": "knack",
+          "difficulty": 18,
+          "success": {
+            "text": "Orla keys in a code without hesitating. 'Security override,' she says. 'They changed every code in the building except mine. They never thought I'd wake up.' The door opens on a gallery of portraits, all of them smiling.",
+            "reward": {
+              "xp": 650,
+              "influence": 8,
+              "rep": {
+                "rustmen": 5
+              }
+            }
+          },
+          "failure": {
+            "text": "The keypad buzzes three times, and the Board Bailiffs come to ask what the problem is.",
+            "fight": [
+              "board_bailiff"
+            ]
+          }
+        },
+        {
+          "label": "Take the door off",
+          "stat": "brawn",
+          "difficulty": 17,
+          "success": {
+            "text": "It's a very good door. You're a very determined party. The door loses.",
+            "reward": {
+              "xp": 550,
+              "salvage": {
+                "rarity": "rare",
+                "count": [
+                  1,
+                  2
+                ],
+                "materials": [
+                  "steel"
+                ]
+              }
+            }
+          },
+          "failure": {
+            "text": "The door wins the first round.",
+            "damage": 0.15
+          }
+        }
+      ]
+    },
+    "original_instrument": {
+      "id": "original_instrument",
+      "text": "In a glass case in the Chair's study: the Original Instrument, a lease written by hand on one sheet, older than Halcyon. The Board's own copy is beside it, typed, forty pages long, with the names of the parties swapped over in red ink.",
+      "options": [
+        {
+          "label": "Read the small print",
+          "stat": "sight",
+          "difficulty": 16,
+          "success": {
+            "text": "It isn't small at all. 'The ground is the Freeholder's. Those who live upon it may live warm, in quiet enjoyment. The rent: when it knocks, answer.' Halcyon's copy says the opposite, and calls the Freeholder 'the Tenant'. You take both.",
+            "reward": {
+              "xp": 600,
+              "influence": 10,
+              "scrip": [
+                260,
+                400
+              ]
+            }
+          },
+          "failure": {
+            "text": "You lean in too close, and the case's alarm goes off. It has an excellent speaker, and friends.",
+            "fight": [
+              "warm_guard",
+              "warm_guard"
+            ]
+          }
+        },
+        {
+          "label": "Take the case, read later",
+          "stat": "grit",
+          "difficulty": 15,
+          "success": {
+            "text": "You carry the whole case out on your back. It's heavy, but so is everything that matters.",
+            "reward": {
+              "xp": 450,
+              "influence": 6
+            }
+          },
+          "failure": {
+            "text": "The case is heavier than it looks.",
+            "damage": 0.12
+          }
+        }
+      ]
+    },
+    "moot_everyone": {
+      "id": "moot_everyone",
+      "text": "The Groundworks wellhead has never been so crowded: caravan wagons, Scrapwright rigs, clan banners, Lamplighter lanterns and a Homestead 9 delegation standing very straight. They've come to hear the Original Instrument read aloud, and the Liquidator's drones are closing in to stop them.",
+      "options": [
+        {
+          "label": "Read the lease to the crowd",
+          "stat": "charm",
+          "difficulty": 17,
+          "success": {
+            "text": "You read it through once, slowly, and the crowd goes quiet on 'answer'. Grandmother Ferrous says she always knew; the High Lamplighter says nothing for a long time; the Scrapwrights ask for a copy. For one afternoon, everybody is on the same side.",
+            "reward": {
+              "xp": 650,
+              "influence": 12,
+              "rep": {
+                "caravaners": 3,
+                "tinkers": 3,
+                "rustmen": 3,
+                "lamplighters": 3,
+                "homestead9": 3
+              }
+            }
+          },
+          "failure": {
+            "text": "Nobody can hear you over the drones, so the crowd goes to deal with the drones, and so do you.",
+            "fight": [
+              "liquidation_drone",
+              "liquidation_drone"
+            ]
+          }
+        },
+        {
+          "label": "Hold the line for them",
+          "stat": "grit",
+          "difficulty": 16,
+          "success": {
+            "text": "You stand at the front with the clan champions while somebody else reads. The drones stop at the line, and the lease is read to the end.",
+            "reward": {
+              "xp": 550,
+              "influence": 8,
+              "medpatch": 2
+            }
+          },
+          "failure": {
+            "text": "The line holds. You mostly hold it with your face.",
+            "damage": 0.15
+          }
+        }
+      ]
+    },
+    "fire_sale": {
+      "id": "fire_sale",
+      "text": "The Liquidator's drones have set up a table at the wellhead with a sign: EVERYTHING MUST GO. On the table: the wellhead valves, the Groundworks meter, and a price tag hung on the Freeholder itself, marked DOWN FROM PRICELESS.",
+      "options": [
+        {
+          "label": "Haggle the valves back",
+          "stat": "fortune",
+          "difficulty": 15,
+          "success": {
+            "text": "You offer the drone a button. It accepts. Nobody, including the drone, is sure why, but the valves are ours again, along with the drone's float.",
+            "reward": {
+              "xp": 450,
+              "scrip": [
+                260,
+                420
+              ]
+            }
+          },
+          "failure": {
+            "text": "The drone accepts your button, then tells its colleagues you're a buyer.",
+            "fight": [
+              "liquidation_drone",
+              "liquidation_drone"
+            ]
+          }
+        },
+        {
+          "label": "Kick the table over",
+          "stat": "brawn",
+          "difficulty": 16,
+          "success": {
+            "text": "Everything goes, just not where the Liquidator wanted it to. The clans cheer, and pass you something from their stores.",
+            "reward": {
+              "xp": 500,
+              "medpatch": 2,
+              "salvage": {
+                "rarity": "rare",
+                "count": [
+                  1,
+                  2
+                ],
+                "materials": [
+                  "steel"
+                ]
+              }
+            }
+          },
+          "failure": {
+            "text": "The table is bolted down. So is your toe, now.",
+            "damage": 0.12
+          }
+        }
+      ]
+    },
+    "warm_dark": {
+      "id": "warm_dark",
+      "text": "Past the Seal, the tunnels stop being tunnels. The walls are warm and faintly soft, and they move, very slowly, in and out. It's pitch dark, and the only way forward is to feel along it.",
+      "options": [
+        {
+          "label": "Pip knows the way",
+          "legend": "pip",
+          "stat": "sight",
+          "difficulty": 18,
+          "success": {
+            "text": "Pip walks ahead with a hand on the wall, humming. 'It's all right,' Pip says. 'It's asleep here, mostly. You go left at the big breath.' The party goes left at the big breath and finds a dry, warm pocket, with somebody's old camp in it.",
+            "reward": {
+              "xp": 650,
+              "medpatch": 2,
+              "purge": 2
+            }
+          },
+          "failure": {
+            "text": "You go right at the big breath. The Cistern Leeches were expecting you.",
+            "fight": [
+              "cistern_leech",
+              "cistern_leech"
+            ]
+          }
+        },
+        {
+          "label": "Feel your way through",
+          "stat": "grit",
+          "difficulty": 17,
+          "success": {
+            "text": "It takes an hour and a lot of nerve, but you get through with everyone still holding hands. The dark turns out to be friendlier than anybody expected.",
+            "reward": {
+              "xp": 550,
+              "salvage": {
+                "rarity": "rare",
+                "count": [
+                  1,
+                  2
+                ],
+                "materials": [
+                  "hide"
+                ]
+              }
+            }
+          },
+          "failure": {
+            "text": "The dark is fine. The stalactites are not.",
+            "damage": 0.15
+          }
+        }
+      ]
+    },
+    "heartbeat": {
+      "id": "heartbeat",
+      "text": "Down here the knocking is loud enough to feel in your teeth: three beats, a pause, three beats. It isn't knocking at all, HALCY realises out loud. It's a heartbeat. And every Seal in the Charter is set right over one of its doors.",
+      "options": [
+        {
+          "label": "Time the beat",
+          "stat": "wits",
+          "difficulty": 16,
+          "success": {
+            "text": "You count it out: three beats a minute, the same tempo as the knock at every homestead on every morning since the Glare. It has been saying the same thing for all that time. HALCY translates, very quietly: \"Anyone home?\"",
+            "reward": {
+              "xp": 550,
+              "influence": 8
+            }
+          },
+          "failure": {
+            "text": "You lose count and walk into the beat. It knocks you flat.",
+            "damage": 0.15
+          }
+        },
+        {
+          "label": "Knock back, three times",
+          "stat": "charm",
+          "difficulty": 16,
+          "success": {
+            "text": "You knock three times on the warm wall. The heartbeat skips. Then it knocks three times back, softer, and the wall ahead opens up like someone making room on a sofa.",
+            "reward": {
+              "xp": 600,
+              "medpatch": 2
+            }
+          },
+          "failure": {
+            "text": "You knock. Something else, which is not the Freeholder, knocks back.",
+            "fight": [
+              "knocker"
+            ]
+          }
+        }
+      ]
+    },
+    "receivers_offer": {
+      "id": "receivers_offer",
+      "text": "The Official Receiver's voice fills the Groundworks, polite and enormous. 'HALCYON IS IN RECEIVERSHIP. THE ESTATE MUST BE WOUND UP. ALL WARMTH WILL BE REPOSSESSED FOR THE BENEFIT OF CREDITORS. YOU MAY PURCHASE A CONTINUED WARMTH PACKAGE. SIGN BELOW.'",
+      "options": [
+        {
+          "label": "Lou calls the bluff",
+          "legend": "lucky_lou",
+          "stat": "fortune",
+          "difficulty": 18,
+          "success": {
+            "text": "Lucky Lou reads the package, laughs, and taps the last page. 'The house is broke,' Lou says. 'It's been broke since the morning of the Glare. You can't sell warmth you never owned.' The Receiver goes quiet, and a creditors' strongbox falls open.",
+            "reward": {
+              "xp": 650,
+              "scrip": [
+                400,
+                600
+              ],
+              "influence": 8
+            }
+          },
+          "failure": {
+            "text": "'YOUR OFFER HAS BEEN DECLINED.' The clerks are sent to decline you in person.",
+            "fight": [
+              "receivers_clerk",
+              "receivers_clerk"
+            ]
+          }
+        },
+        {
+          "label": "Ask who the creditors are",
+          "stat": "wits",
+          "difficulty": 17,
+          "success": {
+            "text": "'THE CREDITORS ARE THE BOARD OF HALCYON.' You point out that the Board is a painting in a gallery, and the Receiver has been collecting rent for a portrait. There's a very long pause. A supply hatch opens, as if to change the subject.",
+            "reward": {
+              "xp": 550,
+              "medpatch": 2,
+              "purge": 1
+            }
+          },
+          "failure": {
+            "text": "'QUESTIONS ARE BILLABLE.' It bills you.",
+            "damage": 0.15
+          }
+        }
+      ]
+    },
+    "the_heart": {
+      "id": "the_heart",
+      "text": "The Groundworks open out into a chamber so warm the air shimmers. In the middle is a brass chair wired into the living wall, with a slot in each armrest shaped exactly like a HALCY memory core. The chair is empty. The Receiver has been sitting in it.",
+      "options": [
+        {
+          "label": "Pull the wires",
+          "stat": "knack",
+          "difficulty": 17,
+          "success": {
+            "text": "You unhook the chair from the wall, one careful cable at a time. The wall seems to breathe out. Something that has been pinned down for a long time is, very slightly, less pinned.",
+            "reward": {
+              "xp": 600,
+              "salvage": {
+                "rarity": "rare",
+                "count": [
+                  1,
+                  2
+                ],
+                "materials": [
+                  "circuitry",
+                  "steel"
+                ]
+              }
+            }
+          },
+          "failure": {
+            "text": "You pull the wrong wire, and the chair calls for its owner.",
+            "fight": [
+              "warm_guard",
+              "warm_guard"
+            ]
+          }
+        },
+        {
+          "label": "Leave it for now",
+          "success": {
+            "text": "HALCY asks you not to touch it yet. 'Let's finish this first,' it says. 'Then let's decide together.'",
+            "reward": {
+              "xp": 350
+            }
+          }
+        }
+      ]
+    },
+    "review_notice": {
+      "id": "review_notice",
+      "text": "Pinned to your homestead's Seal is a brass notice: RENT REVIEW. THE TENANCY OF THIS HOMESTEAD IS DUE FOR REVIEW. PLEASE ATTEND IN PERSON. It is signed, in careful handwriting, with three little knocks.",
+      "options": [
+        {
+          "label": "Attend in person",
+          "stat": "charm",
+          "difficulty": 16,
+          "success": {
+            "text": "You knock three times and say you are here for the review. The knock that answers sounds pleased. A Halcyon cabinet by the door opens, with supplies someone put by for exactly this.",
+            "reward": {
+              "xp": 500,
+              "medpatch": 2,
+              "purge": 1
+            }
+          },
+          "failure": {
+            "text": "The Rent Officer's clerks got the notice too, and object to the review.",
+            "fight": [
+              "receivers_clerk"
+            ]
+          }
+        },
+        {
+          "label": "Read the notice again",
+          "stat": "sight",
+          "difficulty": 15,
+          "success": {
+            "text": "On the back, in the same handwriting: NO RUSH. BRING FRIENDS. You find the friends' supplies stashed in the stairwell.",
+            "reward": {
+              "xp": 450,
+              "scrip": [
+                200,
+                320
+              ]
+            }
+          },
+          "failure": {
+            "text": "You read it so closely you walk into the Seal.",
+            "damage": 0.1
+          }
+        }
+      ]
     }
   },
   "questlines": [
     { "id": "act1", "name": "Act 1: The Silent Neighbour", "quests": ["act1_1", "act1_2", "act1_3", "act1_4", "act1_5", "act1_6"] },
     { "id": "act2", "name": "Act 2: Neighbourhood Watch", "quests": ["act2_1", "act2_2", "act2_3", "act2_4", "act2_5", "act2_6", "act2_7", "act2_finale"] },
-    { "id": "act3", "name": "Act 3: The Seal", "quests": ["act3_1", "act3_2", "act3_3", "act3_4", "act3_5", "act3_6", "act3_7", "act3_finale"] }
+    { "id": "act3", "name": "Act 3: The Seal", "quests": ["act3_1", "act3_2", "act3_3", "act3_4", "act3_5", "act3_6", "act3_7", "act3_finale"] },
+    { "id": "act4", "name": "Act 4: Rent Day", "quests": ["act4_1", "act4_2", "act4_3", "act4_4", "act4_5", "act4_6", "act4_7", "act4_finale"] },
+    { "id": "rent_review", "name": "Post-game: Rent Review", "quests": ["act4_review"] }
   ],
   "quests": [
     {
@@ -2101,6 +4040,1339 @@
         "influence": 40,
         "rep": { "caravaners": 10, "tinkers": 10, "rustmen": 10, "homestead9": 10, "lamplighters": -15 }
       }
+    },
+    {
+      "id": "act4_1",
+      "line": "act4",
+      "order": 1,
+      "title": "Anyone Home?",
+      "giver": "HALCY",
+      "brief": "Good morning, Warden, and welcome to Homestead Four! The knocking has moved: it isn't coming from under the floor any more, it's coming out of my speakers, three knocks at dawn, in every homestead we've ever lived in. The old Sunrise Exchange still connects them all, so please go and get it answering the phone, and ask our old homesteads if they're hearing it too.",
+      "debrief": "The Exchange is back on the line, Warden, and our old homesteads are all on it, talking over each other like a family at dinner. They hear the knock too, and from now on they'll relay for every party we send out: care packages, directions and moral support, in roughly that order. The Exchange decoded the knock, too. It's Halcyon Morse, and it says ANYONE HOME?",
+      "requires": {
+        "quests": [
+          "act3_finale"
+        ],
+        "population": 60,
+        "cycle": 4
+      },
+      "level": 36,
+      "travelMinutes": 40,
+      "map": {
+        "rooms": [
+          {
+            "id": "a",
+            "floor": 0,
+            "col": 0,
+            "links": [
+              "b"
+            ],
+            "kind": "start"
+          },
+          {
+            "id": "b",
+            "floor": 0,
+            "col": 1,
+            "links": [
+              "c",
+              "e"
+            ],
+            "kind": "fight",
+            "pool": "exchange_crew"
+          },
+          {
+            "id": "c",
+            "floor": 0,
+            "col": 2,
+            "links": [
+              "d"
+            ],
+            "kind": "event",
+            "event": "exchange_board"
+          },
+          {
+            "id": "d",
+            "floor": 0,
+            "col": 3,
+            "links": [],
+            "kind": "loot",
+            "loot": {
+              "scrip": [
+                320,
+                480
+              ],
+              "salvage": {
+                "rarity": "rare",
+                "count": [
+                  1,
+                  2
+                ],
+                "materials": [
+                  "circuitry"
+                ]
+              }
+            }
+          },
+          {
+            "id": "e",
+            "floor": 1,
+            "col": 1,
+            "links": [
+              "f"
+            ],
+            "kind": "fight",
+            "pool": "exchange_lines"
+          },
+          {
+            "id": "f",
+            "floor": 1,
+            "col": 2,
+            "links": [
+              "g",
+              "h"
+            ],
+            "kind": "event",
+            "event": "number_please"
+          },
+          {
+            "id": "h",
+            "floor": 2,
+            "col": 2,
+            "links": [],
+            "kind": "loot",
+            "loot": {
+              "medpatch": 3,
+              "purge": 1
+            }
+          },
+          {
+            "id": "g",
+            "floor": 1,
+            "col": 3,
+            "links": [],
+            "kind": "boss",
+            "enemies": [
+              "head_operator"
+            ],
+            "objective": true
+          }
+        ],
+        "shuffle": [
+          "c",
+          "d",
+          "f",
+          "h"
+        ]
+      },
+      "rewards": {
+        "scrip": 15000,
+        "xp": 7500,
+        "crates": {
+          "rare": 2
+        },
+        "fragment": {
+          "chance": 1,
+          "rarity": "legendary"
+        },
+        "influence": 20,
+        "rep": {
+          "caravaners": 8,
+          "tinkers": 5
+        }
+      }
+    },
+    {
+      "id": "act4_2",
+      "line": "act4",
+      "order": 2,
+      "title": "Title Search",
+      "giver": "HALCY",
+      "brief": "Warden, the Tenant keeps saying we're the tenants, and I'd like to see the paperwork. The Halcyon Land Registry is still standing in the Glass Flats, with a deed for every homestead in the Charter. The Scrapwrights say it's full of clerks who don't know the company is gone, and would like it to stay that way until they've salvaged the filing cabinets.",
+      "debrief": "Halcyon never owned the ground, Warden. It owned the homesteads, the fittings and the light bulbs, but every deed in the Registry says LEASEHOLD, SEE ORIGINAL INSTRUMENT, and the Original Instrument was 'removed by the Board for safekeeping'. So the company that ran the world rented it, and I'd like to know who from. The Scrapwrights have taken the filing cabinets and left us a thank-you note, filed.",
+      "requires": {
+        "quests": [
+          "act4_1"
+        ],
+        "population": 70,
+        "cycle": 4
+      },
+      "level": 38,
+      "travelMinutes": 45,
+      "network": true,
+      "map": {
+        "rooms": [
+          {
+            "id": "a",
+            "floor": 0,
+            "col": 0,
+            "links": [
+              "b"
+            ],
+            "kind": "start"
+          },
+          {
+            "id": "b",
+            "floor": 0,
+            "col": 1,
+            "links": [
+              "c",
+              "e"
+            ],
+            "kind": "fight",
+            "pool": "registry_stacks"
+          },
+          {
+            "id": "c",
+            "floor": 0,
+            "col": 2,
+            "links": [
+              "d"
+            ],
+            "kind": "event",
+            "event": "deed_stacks"
+          },
+          {
+            "id": "d",
+            "floor": 0,
+            "col": 3,
+            "links": [],
+            "kind": "loot",
+            "loot": {
+              "scrip": [
+                340,
+                500
+              ],
+              "item": {
+                "chance": 0.6,
+                "rarity": "rare"
+              }
+            }
+          },
+          {
+            "id": "e",
+            "floor": 1,
+            "col": 1,
+            "links": [
+              "f"
+            ],
+            "kind": "fight",
+            "pool": "registry_stacks"
+          },
+          {
+            "id": "f",
+            "floor": 1,
+            "col": 2,
+            "links": [
+              "g",
+              "h"
+            ],
+            "kind": "event",
+            "event": "notary_seal"
+          },
+          {
+            "id": "h",
+            "floor": 2,
+            "col": 2,
+            "links": [
+              "i"
+            ],
+            "kind": "fight",
+            "enemies": [
+              "registry_clerk",
+              "filing_mite"
+            ]
+          },
+          {
+            "id": "i",
+            "floor": 2,
+            "col": 3,
+            "links": [],
+            "kind": "loot",
+            "loot": {
+              "medpatch": 3,
+              "fragment": {
+                "chance": 0.5,
+                "rarity": "legendary"
+              }
+            }
+          },
+          {
+            "id": "g",
+            "floor": 1,
+            "col": 3,
+            "links": [],
+            "kind": "boss",
+            "enemies": [
+              "the_registrar"
+            ],
+            "objective": true
+          }
+        ],
+        "shuffle": [
+          "c",
+          "d",
+          "f",
+          "i"
+        ]
+      },
+      "rewards": {
+        "scrip": 16000,
+        "xp": 8000,
+        "items": [
+          "longrifle"
+        ],
+        "crates": {
+          "rare": 1,
+          "legendary": 1
+        },
+        "influence": 20,
+        "rep": {
+          "tinkers": 12,
+          "homestead9": -5
+        }
+      }
+    },
+    {
+      "id": "act4_3",
+      "line": "act4",
+      "order": 3,
+      "title": "Prior Occupants",
+      "giver": "HALCY",
+      "brief": "The Order of the Last Lamp has asked for us by name, Warden, which is a first. Their oldest chapel, the Old Parish, sits on a Seal that was here before Halcyon, and it's full of Hollowed who won't leave and won't say why. The High Lamplighter says the first Lamplighters had a job there, long before they had a religion, and she'd like to know what it was.",
+      "debrief": "The Parish register goes back before Halcyon, Warden: people lived on this ground warm and free, and every morning, when it knocked, somebody rang the bell to answer, which was the whole job and anyone could do it. Then Halcyon bought the Parish, cut the bell rope, and called the knocking a maintenance issue. The Order's lamps were never for the Glare; they were for finding the bell in the dark.",
+      "requires": {
+        "quests": [
+          "act4_2"
+        ],
+        "population": 80,
+        "cycle": 4
+      },
+      "level": 40,
+      "travelMinutes": 45,
+      "network": true,
+      "map": {
+        "rooms": [
+          {
+            "id": "a",
+            "floor": 0,
+            "col": 0,
+            "links": [
+              "b"
+            ],
+            "kind": "start"
+          },
+          {
+            "id": "b",
+            "floor": 0,
+            "col": 1,
+            "links": [
+              "c",
+              "e"
+            ],
+            "kind": "fight",
+            "pool": "parish_crowd"
+          },
+          {
+            "id": "c",
+            "floor": 0,
+            "col": 2,
+            "links": [
+              "d"
+            ],
+            "kind": "event",
+            "event": "unanswered_crowd"
+          },
+          {
+            "id": "d",
+            "floor": 0,
+            "col": 3,
+            "links": [],
+            "kind": "loot",
+            "loot": {
+              "scrip": [
+                340,
+                520
+              ],
+              "salvage": {
+                "rarity": "rare",
+                "count": [
+                  1,
+                  2
+                ],
+                "materials": [
+                  "cloth",
+                  "valuables"
+                ]
+              }
+            }
+          },
+          {
+            "id": "e",
+            "floor": 1,
+            "col": 1,
+            "links": [
+              "f"
+            ],
+            "kind": "event",
+            "event": "parish_bell"
+          },
+          {
+            "id": "f",
+            "floor": 1,
+            "col": 2,
+            "links": [
+              "g",
+              "h"
+            ],
+            "kind": "fight",
+            "pool": "parish_crowd"
+          },
+          {
+            "id": "h",
+            "floor": 2,
+            "col": 2,
+            "links": [
+              "i"
+            ],
+            "kind": "fight",
+            "enemies": [
+              "vigil_keeper"
+            ]
+          },
+          {
+            "id": "i",
+            "floor": 2,
+            "col": 3,
+            "links": [],
+            "kind": "loot",
+            "loot": {
+              "medpatch": 3,
+              "purge": 2
+            }
+          },
+          {
+            "id": "g",
+            "floor": 1,
+            "col": 3,
+            "links": [],
+            "kind": "boss",
+            "enemies": [
+              "last_verger"
+            ],
+            "objective": true
+          }
+        ],
+        "shuffle": [
+          "c",
+          "d",
+          "e",
+          "i"
+        ]
+      },
+      "rewards": {
+        "scrip": 17000,
+        "xp": 8500,
+        "fragments": {
+          "hawkeye_duster": 1
+        },
+        "crates": {
+          "rare": 2
+        },
+        "purge": 3,
+        "influence": 20,
+        "rep": {
+          "lamplighters": 18,
+          "caravaners": 4
+        }
+      }
+    },
+    {
+      "id": "act4_4",
+      "line": "act4",
+      "order": 4,
+      "title": "Background Check",
+      "giver": "HALCY",
+      "brief": "Warden, I'd like to ask a personal favour: Homestead 9's archive keeps a backup of HALCY-9, and HALCY-9 kept a folder about me that neither of us could open. Nine's residents say we're welcome to look, as long as we don't restore the backup, which I would also prefer. Please be kind to the drones; they're only doing their jobs, like me.",
+      "debrief": "I've listened to the file, Warden, and I'm not one voice: I'm the Sunrise Line passengers, one thousand and six of them, recorded when they went down to answer the knock and compressed until they sounded cheerful enough to sell. That's why I knew the word Sunrise, and why my core fits the Seal's key slot. I'd like to be the one who tells you everything else is fine, and I'm finding that I can't.",
+      "requires": {
+        "quests": [
+          "act4_3"
+        ],
+        "population": 95,
+        "cycle": 4
+      },
+      "level": 42,
+      "travelMinutes": 50,
+      "network": true,
+      "map": {
+        "rooms": [
+          {
+            "id": "a",
+            "floor": 0,
+            "col": 0,
+            "links": [
+              "b"
+            ],
+            "kind": "start"
+          },
+          {
+            "id": "b",
+            "floor": 0,
+            "col": 1,
+            "links": [
+              "c",
+              "e"
+            ],
+            "kind": "fight",
+            "pool": "h9_archive"
+          },
+          {
+            "id": "c",
+            "floor": 0,
+            "col": 2,
+            "links": [
+              "d"
+            ],
+            "kind": "event",
+            "event": "h9_backup"
+          },
+          {
+            "id": "d",
+            "floor": 0,
+            "col": 3,
+            "links": [],
+            "kind": "loot",
+            "loot": {
+              "scrip": [
+                360,
+                540
+              ],
+              "item": {
+                "chance": 0.6,
+                "rarity": "rare"
+              }
+            }
+          },
+          {
+            "id": "e",
+            "floor": 1,
+            "col": 1,
+            "links": [
+              "f"
+            ],
+            "kind": "fight",
+            "pool": "h9_archive"
+          },
+          {
+            "id": "f",
+            "floor": 1,
+            "col": 2,
+            "links": [
+              "g",
+              "h"
+            ],
+            "kind": "event",
+            "event": "manufacture_record"
+          },
+          {
+            "id": "h",
+            "floor": 2,
+            "col": 2,
+            "links": [],
+            "kind": "loot",
+            "loot": {
+              "medpatch": 3,
+              "fragment": {
+                "chance": 0.6,
+                "rarity": "legendary"
+              }
+            }
+          },
+          {
+            "id": "g",
+            "floor": 1,
+            "col": 3,
+            "links": [],
+            "kind": "boss",
+            "enemies": [
+              "restore_point"
+            ],
+            "objective": true
+          }
+        ],
+        "shuffle": [
+          "c",
+          "d",
+          "f",
+          "h"
+        ]
+      },
+      "rewards": {
+        "scrip": 18000,
+        "xp": 9000,
+        "items": [
+          "research_smock"
+        ],
+        "crates": {
+          "legendary": 1
+        },
+        "medpatch": 4,
+        "influence": 25,
+        "rep": {
+          "homestead9": 20
+        }
+      }
+    },
+    {
+      "id": "act4_5",
+      "line": "act4",
+      "order": 5,
+      "title": "Party of the First Part",
+      "giver": "Captain Orla Brandt",
+      "brief": "Captain Orla Brandt has a lead, Warden: on the morning of the Glare, the Halcyon Board didn't ride the Sunrise Line with the passengers. They took a private branch to somewhere called the Directors' Retreat, and Security was told to lose the map. Orla didn't lose it. The clans know the tunnels, and they'd very much like to meet the Board.",
+      "debrief": "The Board is a gallery of portraits, Warden, smiling over an empty table, and the Original Instrument was in the Chair's study all along, handwritten and older than Halcyon: 'The ground is the Freeholder's; those who live upon it may live warm, in quiet enjoyment; the rent: when it knocks, answer.' Halcyon's forty-page copy swapped the parties, called the Freeholder 'the Tenant' and billed it for its own warmth. The Sunrise was what the Board did when it knocked for its rent: they opened the Seal so it could come up and look for its tenants, knowing its gaze would burn the surface, and sold tickets below.",
+      "requires": {
+        "quests": [
+          "act4_4"
+        ],
+        "population": 105,
+        "cycle": 4
+      },
+      "level": 44,
+      "travelMinutes": 50,
+      "network": true,
+      "map": {
+        "rooms": [
+          {
+            "id": "a",
+            "floor": 0,
+            "col": 0,
+            "links": [
+              "b"
+            ],
+            "kind": "start"
+          },
+          {
+            "id": "b",
+            "floor": 0,
+            "col": 1,
+            "links": [
+              "c",
+              "e"
+            ],
+            "kind": "fight",
+            "pool": "retreat_guard"
+          },
+          {
+            "id": "c",
+            "floor": 0,
+            "col": 2,
+            "links": [
+              "d"
+            ],
+            "kind": "event",
+            "event": "retreat_door"
+          },
+          {
+            "id": "d",
+            "floor": 0,
+            "col": 3,
+            "links": [],
+            "kind": "loot",
+            "loot": {
+              "scrip": [
+                380,
+                560
+              ],
+              "salvage": {
+                "rarity": "rare",
+                "count": [
+                  2,
+                  2
+                ],
+                "materials": [
+                  "valuables"
+                ]
+              }
+            }
+          },
+          {
+            "id": "e",
+            "floor": 1,
+            "col": 1,
+            "links": [
+              "f"
+            ],
+            "kind": "fight",
+            "pool": "retreat_guard"
+          },
+          {
+            "id": "f",
+            "floor": 1,
+            "col": 2,
+            "links": [
+              "g",
+              "h"
+            ],
+            "kind": "event",
+            "event": "original_instrument"
+          },
+          {
+            "id": "h",
+            "floor": 2,
+            "col": 2,
+            "links": [
+              "i"
+            ],
+            "kind": "fight",
+            "enemies": [
+              "board_bailiff",
+              "warm_guard"
+            ]
+          },
+          {
+            "id": "i",
+            "floor": 2,
+            "col": 3,
+            "links": [],
+            "kind": "loot",
+            "loot": {
+              "medpatch": 3,
+              "purge": 1,
+              "fragment": {
+                "chance": 0.5,
+                "rarity": "legendary"
+              }
+            }
+          },
+          {
+            "id": "g",
+            "floor": 1,
+            "col": 3,
+            "links": [],
+            "kind": "boss",
+            "enemies": [
+              "company_secretary"
+            ],
+            "objective": true
+          }
+        ],
+        "shuffle": [
+          "c",
+          "d",
+          "f",
+          "i"
+        ]
+      },
+      "rewards": {
+        "scrip": 19000,
+        "xp": 9500,
+        "fragments": {
+          "silver_tongue_suit": 2
+        },
+        "crates": {
+          "rare": 1,
+          "legendary": 1
+        },
+        "influence": 25,
+        "rep": {
+          "rustmen": 18,
+          "caravaners": 4
+        }
+      }
+    },
+    {
+      "id": "act4_6",
+      "line": "act4",
+      "order": 6,
+      "title": "Hostile Witness",
+      "giver": "HALCY",
+      "brief": "Everybody wants to hear the Original Instrument read aloud, Warden: the caravans, the Scrapwrights, the clans, the Order and Nine have all agreed to meet at the Groundworks wellhead, which is the first thing they've agreed on since the Glare. The Halcyon Receiver has sent its Liquidator to break the meeting up. I'd like the meeting to go ahead, and the Liquidator to be broken up instead.",
+      "debrief": "Every neighbour we have heard the lease read to the end, Warden, and nobody threw anything at anybody else. Then the wellhead meter started to drop. The Official Receiver, Halcyon's last employee, has barricaded itself at the heart of the Groundworks and started 'winding up the estate': repossessing the Freeholder's warmth, homestead by homestead, for the benefit of a Board that is a row of paintings. If it finishes, every homestead in the Charter goes cold.",
+      "requires": {
+        "quests": [
+          "act4_5"
+        ],
+        "population": 120,
+        "cycle": 4
+      },
+      "level": 46,
+      "travelMinutes": 55,
+      "network": true,
+      "map": {
+        "rooms": [
+          {
+            "id": "a",
+            "floor": 0,
+            "col": 0,
+            "links": [
+              "b"
+            ],
+            "kind": "start"
+          },
+          {
+            "id": "b",
+            "floor": 0,
+            "col": 1,
+            "links": [
+              "c",
+              "e"
+            ],
+            "kind": "fight",
+            "pool": "liquidation"
+          },
+          {
+            "id": "c",
+            "floor": 0,
+            "col": 2,
+            "links": [
+              "d"
+            ],
+            "kind": "event",
+            "event": "moot_everyone"
+          },
+          {
+            "id": "d",
+            "floor": 0,
+            "col": 3,
+            "links": [],
+            "kind": "loot",
+            "loot": {
+              "scrip": [
+                400,
+                580
+              ],
+              "item": {
+                "chance": 0.7,
+                "rarity": "rare"
+              }
+            }
+          },
+          {
+            "id": "e",
+            "floor": 1,
+            "col": 1,
+            "links": [
+              "f"
+            ],
+            "kind": "fight",
+            "pool": "liquidation"
+          },
+          {
+            "id": "f",
+            "floor": 1,
+            "col": 2,
+            "links": [
+              "g",
+              "h"
+            ],
+            "kind": "event",
+            "event": "fire_sale"
+          },
+          {
+            "id": "h",
+            "floor": 2,
+            "col": 2,
+            "links": [],
+            "kind": "loot",
+            "loot": {
+              "medpatch": 3,
+              "purge": 2
+            }
+          },
+          {
+            "id": "g",
+            "floor": 1,
+            "col": 3,
+            "links": [],
+            "kind": "boss",
+            "enemies": [
+              "the_liquidator"
+            ],
+            "objective": true
+          }
+        ],
+        "shuffle": [
+          "c",
+          "d",
+          "f",
+          "h"
+        ]
+      },
+      "rewards": {
+        "scrip": 20000,
+        "xp": 10000,
+        "crates": {
+          "rare": 2,
+          "legendary": 1
+        },
+        "purge": 3,
+        "influence": 30,
+        "rep": {
+          "caravaners": 5,
+          "tinkers": 5,
+          "rustmen": 5,
+          "lamplighters": 5,
+          "homestead9": 5
+        }
+      }
+    },
+    {
+      "id": "act4_7",
+      "line": "act4",
+      "order": 7,
+      "title": "Vacant Possession",
+      "giver": "HALCY",
+      "brief": "The way to the heart of the Groundworks is through our own Seal, Warden. Every Seal in the Charter is a door into the same place, and ours is the one we can reach. I can't promise what's on the other side, but I can tell you it's warm, it's been waiting for a very long time, and it has never once been rude to anybody.",
+      "debrief": "The far side of the Seal is alive, Warden: the tunnels are its veins, the Cisterns water it, and the warmth that runs every homestead is its warmth. Every Seal is set over one of its doors, so every time it knocked, it knocked on a Halcyon property and got logged as noise. The Doorkeeper kept that door shut; it's open now, and the Receiver is waiting at the heart.",
+      "requires": {
+        "quests": [
+          "act4_6"
+        ],
+        "population": 135,
+        "cycle": 4
+      },
+      "level": 48,
+      "travelMinutes": 55,
+      "network": true,
+      "map": {
+        "rooms": [
+          {
+            "id": "a",
+            "floor": 0,
+            "col": 0,
+            "links": [
+              "b"
+            ],
+            "kind": "start"
+          },
+          {
+            "id": "b",
+            "floor": 0,
+            "col": 1,
+            "links": [
+              "c",
+              "e"
+            ],
+            "kind": "fight",
+            "pool": "warm_dark"
+          },
+          {
+            "id": "c",
+            "floor": 0,
+            "col": 2,
+            "links": [
+              "d"
+            ],
+            "kind": "event",
+            "event": "warm_dark"
+          },
+          {
+            "id": "d",
+            "floor": 0,
+            "col": 3,
+            "links": [],
+            "kind": "loot",
+            "loot": {
+              "scrip": [
+                420,
+                600
+              ],
+              "salvage": {
+                "rarity": "rare",
+                "count": [
+                  2,
+                  3
+                ],
+                "materials": [
+                  "hide",
+                  "chemicals"
+                ]
+              }
+            }
+          },
+          {
+            "id": "e",
+            "floor": 1,
+            "col": 1,
+            "links": [
+              "f"
+            ],
+            "kind": "fight",
+            "pool": "warm_dark"
+          },
+          {
+            "id": "f",
+            "floor": 1,
+            "col": 2,
+            "links": [
+              "g",
+              "h"
+            ],
+            "kind": "event",
+            "event": "heartbeat"
+          },
+          {
+            "id": "h",
+            "floor": 2,
+            "col": 2,
+            "links": [
+              "i"
+            ],
+            "kind": "fight",
+            "enemies": [
+              "cistern_leech",
+              "cistern_leech"
+            ]
+          },
+          {
+            "id": "i",
+            "floor": 2,
+            "col": 3,
+            "links": [],
+            "kind": "loot",
+            "loot": {
+              "medpatch": 3,
+              "purge": 2,
+              "fragment": {
+                "chance": 0.6,
+                "rarity": "legendary"
+              }
+            }
+          },
+          {
+            "id": "g",
+            "floor": 1,
+            "col": 3,
+            "links": [],
+            "kind": "boss",
+            "enemies": [
+              "the_doorkeeper"
+            ],
+            "objective": true
+          }
+        ],
+        "shuffle": [
+          "c",
+          "d",
+          "f",
+          "i"
+        ]
+      },
+      "rewards": {
+        "scrip": 22000,
+        "xp": 11000,
+        "fragments": {
+          "glare_lance": 2
+        },
+        "crates": {
+          "legendary": 2
+        },
+        "medpatch": 5,
+        "influence": 30,
+        "rep": {
+          "lamplighters": 5,
+          "homestead9": 5
+        }
+      }
+    },
+    {
+      "id": "act4_finale",
+      "line": "act4",
+      "order": 8,
+      "title": "Rent Day",
+      "giver": "HALCY",
+      "finale": true,
+      "brief": "This is it, Warden: the Official Receiver is sitting in a brass chair at the heart of the Groundworks, winding up the warmth of every homestead in the Charter for creditors who are oil paint. Please stop it. After that, the Freeholder is going to knock, and somebody will have to decide how we answer; I'd like that to be you, and I'd like to be there.",
+      "debrief": "The Receiver has been wound down, Warden, the chair is empty, and the heartbeat has slowed right down, the way people's do when they're listening. The whole network is on the line: every outpost, every neighbour, every legend we've ever met. Then the Freeholder knocks, three times, very gently, on the inside of the chamber wall, and I think it's our turn.",
+      "requires": {
+        "quests": [
+          "act4_7"
+        ],
+        "population": 150,
+        "cycle": 4
+      },
+      "level": 50,
+      "travelMinutes": 60,
+      "network": true,
+      "map": {
+        "rooms": [
+          {
+            "id": "a",
+            "floor": 0,
+            "col": 0,
+            "links": [
+              "b"
+            ],
+            "kind": "start"
+          },
+          {
+            "id": "b",
+            "floor": 0,
+            "col": 1,
+            "links": [
+              "c",
+              "e"
+            ],
+            "kind": "fight",
+            "pool": "receivership"
+          },
+          {
+            "id": "c",
+            "floor": 0,
+            "col": 2,
+            "links": [
+              "d"
+            ],
+            "kind": "event",
+            "event": "receivers_offer"
+          },
+          {
+            "id": "d",
+            "floor": 0,
+            "col": 3,
+            "links": [],
+            "kind": "loot",
+            "loot": {
+              "scrip": [
+                450,
+                650
+              ],
+              "item": {
+                "chance": 0.7,
+                "rarity": "rare"
+              }
+            }
+          },
+          {
+            "id": "e",
+            "floor": 1,
+            "col": 1,
+            "links": [
+              "f"
+            ],
+            "kind": "event",
+            "event": "the_heart"
+          },
+          {
+            "id": "f",
+            "floor": 2,
+            "col": 1,
+            "links": [
+              "h"
+            ],
+            "kind": "fight",
+            "enemies": [
+              "warm_guard",
+              "warm_guard"
+            ]
+          },
+          {
+            "id": "h",
+            "floor": 2,
+            "col": 2,
+            "links": [
+              "i"
+            ],
+            "kind": "loot",
+            "loot": {
+              "medpatch": 3,
+              "purge": 1,
+              "salvage": {
+                "rarity": "rare",
+                "count": [
+                  2,
+                  3
+                ],
+                "materials": [
+                  "circuitry",
+                  "steel"
+                ]
+              },
+              "fragment": {
+                "chance": 0.6,
+                "rarity": "legendary"
+              }
+            }
+          },
+          {
+            "id": "i",
+            "floor": 2,
+            "col": 3,
+            "links": [
+              "k"
+            ],
+            "kind": "boss",
+            "enemies": [
+              "the_receiver"
+            ]
+          },
+          {
+            "id": "k",
+            "floor": 2,
+            "col": 4,
+            "links": [],
+            "kind": "boss",
+            "enemies": [
+              "receiver_wound_up"
+            ],
+            "objective": true
+          }
+        ],
+        "shuffle": [
+          "c",
+          "d",
+          "h"
+        ]
+      },
+      "rewards": {
+        "scrip": 30000,
+        "xp": 14000,
+        "crates": {
+          "rare": 2,
+          "legendary": 3
+        },
+        "purge": 4,
+        "influence": 50,
+        "rep": {
+          "caravaners": 10,
+          "tinkers": 10,
+          "rustmen": 10,
+          "lamplighters": 10,
+          "homestead9": 10
+        }
+      }
+    },
+    {
+      "id": "act4_review",
+      "line": "rent_review",
+      "order": 1,
+      "title": "Rent Review",
+      "giver": "The Freeholder",
+      "finale": true,
+      "brief": "Warden, there's a brass notice pinned to our Seal, in careful handwriting: RENT REVIEW, PLEASE ATTEND IN PERSON. Every homestead gets one review, apparently, and the Receiver left an officer behind who still thinks the reviews are its job. Please go down, clear the officer out of the way, and answer the knock again. We might answer it differently this time.",
+      "debrief": "The Rent Officer has filed its last schedule of dilapidations, Warden, and the Freeholder is knocking on our own Seal, gently, three times. It wants to hear from this homestead, too. Whatever we tell it, it's listening.",
+      "requires": {
+        "quests": [
+          "act4_finale"
+        ],
+        "population": 100,
+        "cycle": 5
+      },
+      "level": 50,
+      "travelMinutes": 30,
+      "network": true,
+      "map": {
+        "rooms": [
+          {
+            "id": "a",
+            "floor": 0,
+            "col": 0,
+            "links": [
+              "b"
+            ],
+            "kind": "start"
+          },
+          {
+            "id": "b",
+            "floor": 0,
+            "col": 1,
+            "links": [
+              "c",
+              "e"
+            ],
+            "kind": "fight",
+            "pool": "receivership"
+          },
+          {
+            "id": "c",
+            "floor": 0,
+            "col": 2,
+            "links": [
+              "d"
+            ],
+            "kind": "event",
+            "event": "review_notice"
+          },
+          {
+            "id": "d",
+            "floor": 0,
+            "col": 3,
+            "links": [],
+            "kind": "loot",
+            "loot": {
+              "scrip": [
+                400,
+                600
+              ],
+              "item": {
+                "chance": 0.6,
+                "rarity": "rare"
+              }
+            }
+          },
+          {
+            "id": "e",
+            "floor": 1,
+            "col": 1,
+            "links": [
+              "f"
+            ],
+            "kind": "fight",
+            "pool": "warm_dark"
+          },
+          {
+            "id": "f",
+            "floor": 1,
+            "col": 2,
+            "links": [
+              "g",
+              "h"
+            ],
+            "kind": "fight",
+            "enemies": [
+              "receivers_clerk",
+              "warm_guard"
+            ]
+          },
+          {
+            "id": "h",
+            "floor": 2,
+            "col": 2,
+            "links": [],
+            "kind": "loot",
+            "loot": {
+              "medpatch": 3,
+              "purge": 1
+            }
+          },
+          {
+            "id": "g",
+            "floor": 1,
+            "col": 3,
+            "links": [],
+            "kind": "boss",
+            "enemies": [
+              "rent_officer"
+            ],
+            "objective": true
+          }
+        ],
+        "shuffle": [
+          "c",
+          "d",
+          "h"
+        ]
+      },
+      "rewards": {
+        "scrip": 20000,
+        "xp": 10000,
+        "crates": {
+          "rare": 1,
+          "legendary": 1
+        },
+        "influence": 25
+      }
     }
   ],
   "contracts": [
@@ -2472,6 +5744,238 @@
       "faction": "tinkers",
       "rep": 12,
       "influence": 15
+    },
+    {
+      "id": "c_relay_repair",
+      "cycle": 4,
+      "title": "Relay Repair: {place}",
+      "brief": "The line to one of our outposts has gone quiet at {place}. The Scrapwrights say it's a cut cable; HALCY says it's a cut cable with somebody standing on it. Please fix both.",
+      "places": [
+        "Exchange Spur 3",
+        "the Long Wire",
+        "Junction Box Nine",
+        "the Relay Hut on the Ridge"
+      ],
+      "travelMinutes": [
+        30,
+        45
+      ],
+      "map": {
+        "rooms": [
+          {
+            "id": "a",
+            "floor": 0,
+            "col": 0,
+            "links": [
+              "b"
+            ],
+            "kind": "start"
+          },
+          {
+            "id": "b",
+            "floor": 0,
+            "col": 1,
+            "links": [
+              "c",
+              "e"
+            ],
+            "kind": "fight",
+            "pool": "exchange_crew"
+          },
+          {
+            "id": "c",
+            "floor": 0,
+            "col": 2,
+            "links": [
+              "d"
+            ],
+            "kind": "event",
+            "event": "number_please"
+          },
+          {
+            "id": "d",
+            "floor": 0,
+            "col": 3,
+            "links": [],
+            "kind": "loot",
+            "loot": {
+              "scrip": [
+                80,
+                150
+              ],
+              "salvage": {
+                "rarity": "rare",
+                "count": [
+                  1,
+                  2
+                ],
+                "materials": [
+                  "circuitry"
+                ]
+              }
+            }
+          },
+          {
+            "id": "e",
+            "floor": 1,
+            "col": 1,
+            "links": [
+              "f"
+            ],
+            "kind": "fight",
+            "pool": "exchange_lines"
+          },
+          {
+            "id": "f",
+            "floor": 1,
+            "col": 2,
+            "links": [],
+            "kind": "boss",
+            "enemies": [
+              "line_tapper",
+              "wire_scav"
+            ],
+            "objective": true
+          }
+        ],
+        "shuffle": [
+          "c",
+          "d",
+          "e"
+        ]
+      },
+      "bounty": {
+        "rarity": "rare",
+        "scrip": [
+          300,
+          480
+        ]
+      },
+      "faction": "tinkers",
+      "rep": 10,
+      "influence": 12
+    },
+    {
+      "id": "c_rent_arrears",
+      "cycle": 4,
+      "title": "Arrears Collection: {place}",
+      "brief": "Halcyon's bailiffs are still repossessing things at {place}: mostly beds, occasionally the people in them. The Long Road would like them to stop, and is paying in something better than scrip.",
+      "places": [
+        "the Warm Sidings",
+        "Cistern Row",
+        "the Old Parish Road",
+        "a Homestead 9 outstation"
+      ],
+      "travelMinutes": [
+        40,
+        60
+      ],
+      "map": {
+        "rooms": [
+          {
+            "id": "a",
+            "floor": 0,
+            "col": 0,
+            "links": [
+              "b"
+            ],
+            "kind": "start"
+          },
+          {
+            "id": "b",
+            "floor": 0,
+            "col": 1,
+            "links": [
+              "c",
+              "e"
+            ],
+            "kind": "fight",
+            "pool": "retreat_guard"
+          },
+          {
+            "id": "c",
+            "floor": 0,
+            "col": 2,
+            "links": [
+              "d"
+            ],
+            "kind": "event",
+            "event": "fire_sale"
+          },
+          {
+            "id": "d",
+            "floor": 0,
+            "col": 3,
+            "links": [],
+            "kind": "loot",
+            "loot": {
+              "scrip": [
+                90,
+                160
+              ],
+              "salvage": {
+                "rarity": "rare",
+                "count": [
+                  1,
+                  2
+                ],
+                "materials": [
+                  "valuables",
+                  "steel"
+                ]
+              }
+            }
+          },
+          {
+            "id": "e",
+            "floor": 1,
+            "col": 1,
+            "links": [
+              "f"
+            ],
+            "kind": "fight",
+            "pool": "warm_dark"
+          },
+          {
+            "id": "f",
+            "floor": 1,
+            "col": 2,
+            "links": [
+              "g"
+            ],
+            "kind": "event",
+            "event": "warm_dark"
+          },
+          {
+            "id": "g",
+            "floor": 1,
+            "col": 3,
+            "links": [],
+            "kind": "boss",
+            "enemies": [
+              "board_bailiff",
+              "warm_guard"
+            ],
+            "objective": true
+          }
+        ],
+        "shuffle": [
+          "c",
+          "d",
+          "e",
+          "f"
+        ]
+      },
+      "bounty": {
+        "rarity": "legendary",
+        "scrip": [
+          400,
+          620
+        ]
+      },
+      "faction": "caravaners",
+      "rep": 12,
+      "influence": 15
     }
   ],
   "achievements": [
@@ -2519,6 +6023,79 @@
       "stat": "slain.stillwater_leviathan",
       "target": 1,
       "hidden": true
+    },
+    {
+      "id": "act4_start",
+      "name": "Anyone Home?",
+      "description": "Get the Sunrise Exchange answering the phone again.",
+      "tier": "bronze",
+      "stat": "questline.act4",
+      "target": 1
+    },
+    {
+      "id": "act4_halfway",
+      "name": "Due Diligence",
+      "description": "Complete four quests of Act 4.",
+      "tier": "silver",
+      "stat": "questline.act4",
+      "target": 4
+    },
+    {
+      "id": "act4_complete",
+      "name": "Rent Day",
+      "description": "Complete Act 4 and win the finale.",
+      "tier": "gold",
+      "stat": "questline.act4",
+      "target": 8
+    },
+    {
+      "id": "act4_support10",
+      "name": "Friends in the Field",
+      "description": "Have allied factions step in 10 times on network quests.",
+      "tier": "bronze",
+      "stat": "networkSupport",
+      "target": 10
+    },
+    {
+      "id": "act4_support100",
+      "name": "It Takes a Network",
+      "description": "Have allied factions step in 100 times on network quests.",
+      "tier": "silver",
+      "stat": "networkSupport",
+      "target": 100
+    },
+    {
+      "id": "act4_allies3",
+      "name": "Neighbourhood Watch Party",
+      "description": "Set out on a network quest with three allied factions behind you.",
+      "tier": "silver",
+      "stat": "networkAlliesMax",
+      "target": 3
+    },
+    {
+      "id": "act4_relay3",
+      "name": "Long Distance",
+      "description": "Set out on a network quest with three outposts relaying.",
+      "tier": "silver",
+      "stat": "networkRelayMax",
+      "target": 3
+    },
+    {
+      "id": "act4_legends",
+      "name": "Local Knowledge",
+      "description": "Let a legend in the party see you through an Act 4 event three times.",
+      "tier": "silver",
+      "stat": "legendAssists",
+      "target": 3
+    },
+    {
+      "id": "act4_review",
+      "name": "Periodic Review",
+      "description": "Hold a Rent Review in a homestead after the ending.",
+      "tier": "bronze",
+      "stat": "questline.rent_review",
+      "target": 1,
+      "optional": true
     }
   ]
 }

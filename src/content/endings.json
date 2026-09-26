@@ -1,0 +1,1097 @@
+{
+  "_comment": "Act 4's endings (typed in src/sim/systems/endings.ts). Winning a quest with finale: true opens the choice. Each ending pays its reward the first time it's reached (Legacy, lasting bonuses that add to bonus(), a HUD title). The true ending lists `requires` (factions at a tier, legends met, legend stories finished, outposts, strata dug here); the choice shows them. Epilogue slides are taken in file order: `endings` limits a slide to some endings, `when` must hold, only the first matching slide of a `group` is shown, and categories in tuning.caps are capped (legends: awakened first, then lost, then met). Text may use {homestead} {cycle} {population} {peak} {days} {outposts} {legends} {friends} {fallen} {strata} {endings}.",
+  "tuning": {
+    "finaleQuest": "act4_finale",
+    "reviewQuest": "act4_review",
+    "caps": {
+      "legend": 5
+    }
+  },
+  "endings": [
+    {
+      "id": "renewal",
+      "name": "Under New Management",
+      "kicker": "Renew the lease",
+      "choice": "Put HALCY's core in the key slot and sign a new lease on better terms: no more Sunrises, the warmth as usual, and the knocking filed as noise. The network takes over from Halcyon.",
+      "halcy": "I'd sign it, Warden. I'd sign anything that keeps everybody warm. I'd just like it noted that nobody would be answering the door.",
+      "reward": {
+        "legacy": 20,
+        "title": "Chair of the Board",
+        "bonuses": [
+          {
+            "effect": "startScrip",
+            "value": 3000
+          }
+        ],
+        "text": "Golden Parachute: every new homestead starts with 3,000 more scrip."
+      }
+    },
+    {
+      "id": "eviction",
+      "name": "Notice to Quit",
+      "kicker": "Serve notice",
+      "choice": "Tear up both leases and give the Freeholder its ground back. Seal every door for good, let the warmth go, and move the whole network up onto the glass to start again under the sky.",
+      "halcy": "It would be cold, Warden, and it would be ours. I've always wanted to find out what weather is like when it isn't a forecast.",
+      "reward": {
+        "legacy": 20,
+        "title": "Topsider",
+        "bonuses": [
+          {
+            "effect": "topsideOutput",
+            "value": 0.2
+          },
+          {
+            "effect": "weatherproofing",
+            "value": 0.15
+          }
+        ],
+        "text": "Squatter's Rights: surface buildings produce 20% more and shrug off 15% of bad weather."
+      }
+    },
+    {
+      "id": "holdover",
+      "name": "Holding Over",
+      "kicker": "Let HALCY stay",
+      "choice": "HALCY goes down into the key slot and stays, answering the knock every morning so nobody else ever has to. The homesteads keep the warmth. HALCY leaves a recording to cover its shifts.",
+      "halcy": "Somebody should answer, Warden, and a thousand and six of us used to. I don't mind, really. I'd just like somebody to visit.",
+      "reward": {
+        "legacy": 20,
+        "title": "Acting HALCY",
+        "bonuses": [
+          {
+            "effect": "productionSpeed",
+            "value": 0.05
+          },
+          {
+            "effect": "offlineHours",
+            "value": 12
+          }
+        ],
+        "text": "Leave Cover: production rooms work 5% faster, and offline catch-up covers 12 more hours, because the recording never sleeps."
+      }
+    },
+    {
+      "id": "neighbours",
+      "name": "Good Neighbours",
+      "kicker": "Answer the knock",
+      "true": true,
+      "choice": "Open the Seal on our own terms and answer the knock together: every outpost, every neighbour and every legend at once. Restore the Original Instrument with one new clause, and let HALCY stop being a signature and be people again.",
+      "halcy": "Oh. Oh, Warden, could we? All of us?",
+      "requires": [
+        {
+          "kind": "factions",
+          "count": 3,
+          "tier": 3,
+          "label": "3 factions at Friendly or better",
+          "hint": "Neighbours to witness the new lease. Trade with them, run their contracts, send caravans, and back them in Act 4."
+        },
+        {
+          "kind": "legends",
+          "count": 5,
+          "label": "5 legends met",
+          "hint": "People the Freeholder has heard of. Legends join from quests, faction standing, the radio, crates, the Deep and treasure caches."
+        },
+        {
+          "kind": "stories",
+          "count": 2,
+          "label": "2 legends' stories finished",
+          "hint": "Finish a legend's two personal quests (Quests → Legends) to awaken them."
+        },
+        {
+          "kind": "outposts",
+          "count": 3,
+          "label": "3 outposts in the network",
+          "hint": "Each homestead you leave keeps running as an outpost if someone stays behind. The network has to knock back too."
+        },
+        {
+          "kind": "deep",
+          "count": 4,
+          "label": "The Deep dug to the Seal here",
+          "hint": "Answer from our own door: excavate the Deep down to Stratum 4 (the Seal) in this homestead."
+        }
+      ],
+      "reward": {
+        "legacy": 40,
+        "title": "Good Neighbour",
+        "bonuses": [
+          {
+            "effect": "outpostOutput",
+            "value": 0.5
+          },
+          {
+            "effect": "xpBonus",
+            "value": 0.1
+          },
+          {
+            "effect": "crateLuck",
+            "value": 0.25
+          }
+        ],
+        "text": "House Rules: outposts produce 50% more, residents learn 10% faster, and collecting earns crate tokens more often."
+      }
+    }
+  ],
+  "slides": [
+    {
+      "id": "open_renewal",
+      "title": "Signed",
+      "text": "HALCY's core clicked into the key slot, the Warden took the pen, and the new lease ran to forty-one pages, one more than the old one. The Freeholder knocked three times while the ink dried. It was logged as noise.",
+      "endings": [
+        "renewal"
+      ],
+      "art": "lease"
+    },
+    {
+      "id": "open_eviction",
+      "title": "Notice Served",
+      "text": "Both leases went into the Groundworks furnace at once: the Original Instrument and forty pages of Halcyon. The Warden read the notice aloud at the Seal. The Freeholder listened, knocked once, very softly, and went quiet.",
+      "endings": [
+        "eviction"
+      ],
+      "art": "door"
+    },
+    {
+      "id": "open_holdover",
+      "title": "Holding Over",
+      "text": "HALCY asked for a minute alone with the key slot and took three. Then it said, 'Right, then,' in a thousand and six voices, and went in. The Seal closed behind it. Every morning since, somebody has knocked back.",
+      "endings": [
+        "holdover"
+      ],
+      "art": "halcy"
+    },
+    {
+      "id": "open_neighbours",
+      "title": "Anyone Home?",
+      "text": "At dawn the Freeholder knocked three times, the way it had every morning since before Halcyon. This time the whole network knocked back: {outposts} outposts, the neighbours, the legends, and Homestead {homestead}, all at once. The knocking stopped. Something enormous, under everything, sighed.",
+      "endings": [
+        "neighbours"
+      ],
+      "art": "door"
+    },
+    {
+      "id": "ground_renewal",
+      "title": "The Warmth",
+      "text": "Nothing changed, which was the point. The pipes stayed warm, the lights stayed on, and the Freeholder kept knocking on schedule. Under the new terms there would never be another Sunrise, as long as nobody ever opened the door.",
+      "endings": [
+        "renewal"
+      ],
+      "art": "glare"
+    },
+    {
+      "id": "ground_eviction",
+      "title": "The Cold",
+      "text": "The warmth went out of the pipes over one long winter. The Cisterns froze, then emptied, and the Groundworks meter settled on zero. Somewhere far below, the Freeholder slept for the first time in its life, and the sky stayed blue.",
+      "endings": [
+        "eviction"
+      ],
+      "art": "glare"
+    },
+    {
+      "id": "ground_holdover",
+      "title": "The Morning Shift",
+      "text": "The warmth stayed. So did the knocking, but now it was a conversation: three knocks, then three back, then a long pause, like two old friends agreeing about the weather. On quiet nights the pipes hum along, in a thousand and six parts.",
+      "endings": [
+        "holdover"
+      ],
+      "art": "glare"
+    },
+    {
+      "id": "ground_neighbours",
+      "title": "Quiet Enjoyment",
+      "text": "The Original Instrument went back in its frame, with one new line in the Warden's handwriting: 'Visits welcome.' The Freeholder never looked up again. It didn't need to: every morning, somebody came down to tell it what the sky was doing.",
+      "endings": [
+        "neighbours"
+      ],
+      "art": "lease"
+    },
+    {
+      "id": "halcy_renewal",
+      "title": "HALCY",
+      "text": "HALCY was promoted to the Board, which met in the Chair's study under the portraits. It chaired every meeting cheerfully and carried every motion unanimously. Once, in the minutes, somebody typed 'we should answer the door.' It was ruled out of order, gently.",
+      "endings": [
+        "renewal"
+      ],
+      "art": "halcy"
+    },
+    {
+      "id": "halcy_eviction",
+      "title": "HALCY",
+      "text": "HALCY came topside on a hand truck and was installed in the tallest mast on the glass. It read the weather out every morning, adding, 'This is not a forecast, this is the actual sky,' and it never once got tired of saying it.",
+      "endings": [
+        "eviction"
+      ],
+      "art": "halcy"
+    },
+    {
+      "id": "halcy_holdover",
+      "title": "This Is a Recording",
+      "text": "Every homestead still hears HALCY every morning: 'Good morning! This is a recording. I'm downstairs. Please eat something green.' The recording never changes. The Warden plays it anyway, and knocks on the floor three times after.",
+      "endings": [
+        "holdover"
+      ],
+      "art": "halcy"
+    },
+    {
+      "id": "halcy_neighbours",
+      "title": "HALCY, Plural",
+      "text": "HALCY stopped being a signature. The thousand and six Sunrise passengers got their own voices back, and most of them went down to visit, one at a time. The rest stayed on as HALCY, because, as they put it, somebody has to remind everyone about their vegetables.",
+      "endings": [
+        "neighbours"
+      ],
+      "art": "halcy"
+    },
+    {
+      "id": "home_big",
+      "title": "Homestead {homestead}",
+      "text": "Homestead {homestead} grew to {peak} residents and never ran out of anything important for long. {days} days after its founding, its Warden still got up at dawn, out of habit, to listen for the knock.",
+      "group": "home",
+      "when": {
+        "stat": {
+          "key": "peak",
+          "min": 150
+        }
+      },
+      "art": "home"
+    },
+    {
+      "id": "home_small",
+      "title": "Homestead {homestead}",
+      "text": "Homestead {homestead} was never the biggest, at {peak} residents at its height, but people who lived there tended to stay, and the ones who left tended to write. It ran for {days} days and counting.",
+      "group": "home",
+      "art": "home"
+    },
+    {
+      "id": "home_fallen",
+      "title": "Absent Friends",
+      "text": "Not everybody made it this far. There is a plaque by the door of Homestead {homestead}, with {fallen} names on it and room for no more, and HALCY reads them out on the anniversary, slowly, like a register.",
+      "when": {
+        "stat": {
+          "key": "fallen",
+          "min": 1
+        }
+      },
+      "art": "home"
+    },
+    {
+      "id": "net_many",
+      "title": "The Network",
+      "text": "The {outposts} outposts, every homestead the Warden ever founded and left running, stayed on the line through the Sunrise Exchange. They argued, swapped recipes, sent each other care packages, and every one of them called on birthdays.",
+      "group": "net",
+      "when": {
+        "outposts": {
+          "min": 3
+        }
+      },
+      "art": "relay"
+    },
+    {
+      "id": "net_few",
+      "title": "The Network",
+      "text": "The Sunrise Exchange kept a line open to every old homestead still running. There were only {outposts} of them, but they rang often, and nobody who picked up ever got a recording.",
+      "group": "net",
+      "when": {
+        "outposts": {
+          "min": 1
+        }
+      },
+      "art": "relay"
+    },
+    {
+      "id": "net_none",
+      "title": "The Network",
+      "text": "Homestead {homestead} stood more or less alone. The Sunrise Exchange kept the line open anyway, in case anybody ever called, and occasionally somebody did.",
+      "group": "net",
+      "art": "relay"
+    },
+    {
+      "id": "caravaners_friend",
+      "title": "The Long Road",
+      "text": "The Long Road Caravan Co. put the homestead on its map in red, which means friendly, and in bold, which means pays on time. Its wagons stopped at the door every week for as long as there were roads, and then made new roads.",
+      "group": "caravaners",
+      "when": {
+        "rep": {
+          "faction": "caravaners",
+          "min": 25
+        }
+      },
+      "art": "faction:caravaners"
+    },
+    {
+      "id": "caravaners_foe",
+      "title": "The Long Road",
+      "text": "The Long Road never forgave the homestead its manners. Its wagons went round the long way, which, as the caravan master pointed out, is the whole point of the Long Road.",
+      "group": "caravaners",
+      "when": {
+        "rep": {
+          "faction": "caravaners",
+          "max": -10
+        }
+      },
+      "art": "faction:caravaners"
+    },
+    {
+      "id": "caravaners_neutral",
+      "title": "The Long Road",
+      "text": "The Long Road Caravan Co. kept stopping by on business, and only on business. Its ledgers list the homestead as a reliable customer and an unreliable conversationalist.",
+      "group": "caravaners",
+      "art": "faction:caravaners"
+    },
+    {
+      "id": "tinkers_friend",
+      "title": "The Scrapwrights",
+      "text": "The Scrapwright Guild built a second Exchange out of the Land Registry's filing cabinets and named a wrench size after the Warden. It is an unusual size, and they use it constantly.",
+      "group": "tinkers",
+      "when": {
+        "rep": {
+          "faction": "tinkers",
+          "min": 25
+        }
+      },
+      "art": "faction:tinkers"
+    },
+    {
+      "id": "tinkers_foe",
+      "title": "The Scrapwrights",
+      "text": "The Scrapwrights salvaged everything Halcyon left behind, except, pointedly, anything the homestead had touched. They called that a boycott. The homestead called it the tidiest the Glarelands had ever been.",
+      "group": "tinkers",
+      "when": {
+        "rep": {
+          "faction": "tinkers",
+          "max": -10
+        }
+      },
+      "art": "faction:tinkers"
+    },
+    {
+      "id": "tinkers_neutral",
+      "title": "The Scrapwrights",
+      "text": "The Scrapwright Guild went on fixing things for anyone who paid. It sent the homestead an invoice once a season, itemised, and a card on the anniversary of the Glare, also itemised.",
+      "group": "tinkers",
+      "art": "faction:tinkers"
+    },
+    {
+      "id": "lamplighters_friend",
+      "title": "The Order of the Last Lamp",
+      "text": "The Order of the Last Lamp stopped praying for a second dawn and went back to its first job: ringing the bell when something knocks. Its lamps now hang at every Seal in the Charter, lit, just in case.",
+      "group": "lamplighters",
+      "when": {
+        "rep": {
+          "faction": "lamplighters",
+          "min": 25
+        }
+      },
+      "art": "faction:lamplighters"
+    },
+    {
+      "id": "lamplighters_foe",
+      "title": "The Order of the Last Lamp",
+      "text": "The Order of the Last Lamp never forgave the homestead for the Drowned Lamp, the Parish, or the brochure. It still prays for a second dawn, loudly, from a respectful distance.",
+      "group": "lamplighters",
+      "when": {
+        "rep": {
+          "faction": "lamplighters",
+          "max": -10
+        }
+      },
+      "art": "faction:lamplighters"
+    },
+    {
+      "id": "lamplighters_neutral",
+      "title": "The Order of the Last Lamp",
+      "text": "The Order argued about the Original Instrument for a generation. The reformers rang bells; the traditionalists lit lamps; everybody agreed the brochure had been a mistake.",
+      "group": "lamplighters",
+      "art": "faction:lamplighters"
+    },
+    {
+      "id": "rustmen_friend",
+      "title": "The Rustman Clans",
+      "text": "The Rustman clans adopted the homestead by acclamation. Under clan law, its Warden now counts as roughly three Rustmen, and its children are taught to fight fair, which the clans consider a charming regional quirk.",
+      "group": "rustmen",
+      "when": {
+        "rep": {
+          "faction": "rustmen",
+          "min": 25
+        }
+      },
+      "art": "faction:rustmen"
+    },
+    {
+      "id": "rustmen_foe",
+      "title": "The Rustman Clans",
+      "text": "The Rustman clans still raid the homestead every spring, out of tradition. Both sides agree it's good exercise, and the clans have started leaving a note.",
+      "group": "rustmen",
+      "when": {
+        "rep": {
+          "faction": "rustmen",
+          "max": -10
+        }
+      },
+      "art": "faction:rustmen"
+    },
+    {
+      "id": "rustmen_neutral",
+      "title": "The Rustman Clans",
+      "text": "The clans kept to their wells and their moots. Grandmother Ferrous sent word, once, that she had heard what happened at the Groundworks, and that she had known all along. Nobody doubted it.",
+      "group": "rustmen",
+      "art": "faction:rustmen"
+    },
+    {
+      "id": "homestead9_friend",
+      "title": "Homestead 9",
+      "text": "Homestead 9 retired its drills and kept its discipline. Tier Zero became the Charter's first Welcome Committee, and every visitor to the Seal is now met, on time, by someone who has practised their smile.",
+      "group": "homestead9",
+      "when": {
+        "rep": {
+          "faction": "homestead9",
+          "min": 25
+        }
+      },
+      "art": "faction:homestead9"
+    },
+    {
+      "id": "homestead9_foe",
+      "title": "Homestead 9",
+      "text": "Homestead 9 closed its door and kept it closed. Its radio still broadcasts the old compliance bulletins, now addressed to nobody, and every one ends: 'You have been audited.'",
+      "group": "homestead9",
+      "when": {
+        "rep": {
+          "faction": "homestead9",
+          "max": -10
+        }
+      },
+      "art": "faction:homestead9"
+    },
+    {
+      "id": "homestead9_neutral",
+      "title": "Homestead 9",
+      "text": "Homestead 9 learned, slowly, to do things nobody had drilled it for. The first was a birthday party. It ran to schedule, and nobody enjoyed it, and they held another the next year anyway.",
+      "group": "homestead9",
+      "art": "faction:homestead9"
+    },
+    {
+      "id": "marla_voss_awakened",
+      "title": "Marla \"Switchback\" Voss",
+      "text": "Marla walked every road in the Glarelands, including the new ones down to the Seal, and wrote the first map of the Groundworks with no two routes the same. The Freeholder, she says, gives excellent directions.",
+      "group": "marla_voss",
+      "category": "legend",
+      "when": {
+        "legend": {
+          "id": "marla_voss",
+          "status": "awakened"
+        }
+      },
+      "art": "legend:marla_voss"
+    },
+    {
+      "id": "marla_voss_lost",
+      "title": "Marla \"Switchback\" Voss",
+      "text": "Marla Voss took a road nobody came back from. Her maps are pinned up in the Exchange, and nobody's allowed to fold them.",
+      "group": "marla_voss",
+      "category": "legend",
+      "when": {
+        "legend": {
+          "id": "marla_voss",
+          "status": "lost"
+        }
+      },
+      "art": "legend:marla_voss"
+    },
+    {
+      "id": "marla_voss_met",
+      "title": "Marla \"Switchback\" Voss",
+      "text": "Marla Voss kept scouting, and never took the same road twice, including the road home, which she took a different way every time.",
+      "group": "marla_voss",
+      "category": "legend",
+      "when": {
+        "legend": {
+          "id": "marla_voss",
+          "status": "met"
+        }
+      },
+      "art": "legend:marla_voss"
+    },
+    {
+      "id": "ada_quill_awakened",
+      "title": "Ada Quill",
+      "text": "Ada Quill was voted back in as Guildmaster of the Scrapwrights on a voting machine of her own design. It was rigged, she admits, to count every vote.",
+      "group": "ada_quill",
+      "category": "legend",
+      "when": {
+        "legend": {
+          "id": "ada_quill",
+          "status": "awakened"
+        }
+      },
+      "art": "legend:ada_quill"
+    },
+    {
+      "id": "ada_quill_lost",
+      "title": "Ada Quill",
+      "text": "Ada Quill's workbench is still as she left it. Nobody's touched it, partly out of respect and partly because it's live.",
+      "group": "ada_quill",
+      "category": "legend",
+      "when": {
+        "legend": {
+          "id": "ada_quill",
+          "status": "lost"
+        }
+      },
+      "art": "legend:ada_quill"
+    },
+    {
+      "id": "ada_quill_met",
+      "title": "Ada Quill",
+      "text": "Ada Quill built a better everything, and a slightly worse kettle, which she keeps for sentimental reasons.",
+      "group": "ada_quill",
+      "category": "legend",
+      "when": {
+        "legend": {
+          "id": "ada_quill",
+          "status": "met"
+        }
+      },
+      "art": "legend:ada_quill"
+    },
+    {
+      "id": "seven_awakened",
+      "title": "Seven",
+      "text": "Seven chose a name, finally: Evening. She says she liked the idea of being the part of the day that comes after the work, and nobody at Nine has been brave enough to number her since.",
+      "group": "seven",
+      "category": "legend",
+      "when": {
+        "legend": {
+          "id": "seven",
+          "status": "awakened"
+        }
+      },
+      "art": "legend:seven"
+    },
+    {
+      "id": "seven_lost",
+      "title": "Seven",
+      "text": "Seven's number is written on the Exchange wall, the only number there without a homestead after it.",
+      "group": "seven",
+      "category": "legend",
+      "when": {
+        "legend": {
+          "id": "seven",
+          "status": "lost"
+        }
+      },
+      "art": "legend:seven"
+    },
+    {
+      "id": "seven_met",
+      "title": "Seven",
+      "text": "Seven taught Nine's children how to have birthdays. She was strict about the cake.",
+      "group": "seven",
+      "category": "legend",
+      "when": {
+        "legend": {
+          "id": "seven",
+          "status": "met"
+        }
+      },
+      "art": "legend:seven"
+    },
+    {
+      "id": "doc_ferris_awakened",
+      "title": "Dr. Aurelio Ferris",
+      "text": "Doc Ferris clocked out, at last, for the first time since before the Glare. He filed the timesheet himself. It is, he points out, a very large amount of overtime.",
+      "group": "doc_ferris",
+      "category": "legend",
+      "when": {
+        "legend": {
+          "id": "doc_ferris",
+          "status": "awakened"
+        }
+      },
+      "art": "legend:doc_ferris"
+    },
+    {
+      "id": "doc_ferris_lost",
+      "title": "Dr. Aurelio Ferris",
+      "text": "Doc Ferris was lost in the line of duty, which he always said was the only kind of duty he believed in.",
+      "group": "doc_ferris",
+      "category": "legend",
+      "when": {
+        "legend": {
+          "id": "doc_ferris",
+          "status": "lost"
+        }
+      },
+      "art": "legend:doc_ferris"
+    },
+    {
+      "id": "doc_ferris_met",
+      "title": "Dr. Aurelio Ferris",
+      "text": "Doc Ferris kept the clinic open and his opinions to himself, mostly. He was very tired, and very good, and he never once charged anyone.",
+      "group": "doc_ferris",
+      "category": "legend",
+      "when": {
+        "legend": {
+          "id": "doc_ferris",
+          "status": "met"
+        }
+      },
+      "art": "legend:doc_ferris"
+    },
+    {
+      "id": "lucky_lou_awakened",
+      "title": "Lucky Lou",
+      "text": "Lucky Lou opened a casino where the house always loses. It has never been busier, and it has never once closed at a profit, and Lou says that is the point of a house.",
+      "group": "lucky_lou",
+      "category": "legend",
+      "when": {
+        "legend": {
+          "id": "lucky_lou",
+          "status": "awakened"
+        }
+      },
+      "art": "legend:lucky_lou"
+    },
+    {
+      "id": "lucky_lou_lost",
+      "title": "Lucky Lou",
+      "text": "Lucky Lou's luck ran out. His last hand is framed in the canteen. It was a very good hand.",
+      "group": "lucky_lou",
+      "category": "legend",
+      "when": {
+        "legend": {
+          "id": "lucky_lou",
+          "status": "lost"
+        }
+      },
+      "art": "legend:lucky_lou"
+    },
+    {
+      "id": "lucky_lou_met",
+      "title": "Lucky Lou",
+      "text": "Lucky Lou kept playing, and kept winning, and kept giving the winnings away, on the grounds that the house edge only works if the house can afford to be generous.",
+      "group": "lucky_lou",
+      "category": "legend",
+      "when": {
+        "legend": {
+          "id": "lucky_lou",
+          "status": "met"
+        }
+      },
+      "art": "legend:lucky_lou"
+    },
+    {
+      "id": "pip_awakened",
+      "title": "Pip Underhill",
+      "text": "Pip went back down to the Deep and stayed on as the Freeholder's interpreter. She says it has a sense of humour, mostly about pipes, and that it laughs like a boiler.",
+      "group": "pip",
+      "category": "legend",
+      "when": {
+        "legend": {
+          "id": "pip",
+          "status": "awakened"
+        }
+      },
+      "art": "legend:pip"
+    },
+    {
+      "id": "pip_lost",
+      "title": "Pip Underhill",
+      "text": "Pip went down into the Deep one last time. Sometimes, on quiet nights, the pipes hum a tune she used to like.",
+      "group": "pip",
+      "category": "legend",
+      "when": {
+        "legend": {
+          "id": "pip",
+          "status": "lost"
+        }
+      },
+      "art": "legend:pip"
+    },
+    {
+      "id": "pip_met",
+      "title": "Pip Underhill",
+      "text": "Pip kept talking to the pipes. After the ending, the pipes were noticeably more talkative.",
+      "group": "pip",
+      "category": "legend",
+      "when": {
+        "legend": {
+          "id": "pip",
+          "status": "met"
+        }
+      },
+      "art": "legend:pip"
+    },
+    {
+      "id": "rook_awakened",
+      "title": "Rook Tinbreaker",
+      "text": "Rook Tinbreaker founded a fighting school that teaches you to lose gracefully, then win anyway. The clans send their champions. They come back polite, which worries everyone.",
+      "group": "rook",
+      "category": "legend",
+      "when": {
+        "legend": {
+          "id": "rook",
+          "status": "awakened"
+        }
+      },
+      "art": "legend:rook"
+    },
+    {
+      "id": "rook_lost",
+      "title": "Rook Tinbreaker",
+      "text": "Rook Tinbreaker fell as he fought, loudly. The clans sing about him, off-key, which he would have wanted.",
+      "group": "rook",
+      "category": "legend",
+      "when": {
+        "legend": {
+          "id": "rook",
+          "status": "lost"
+        }
+      },
+      "art": "legend:rook"
+    },
+    {
+      "id": "rook_met",
+      "title": "Rook Tinbreaker",
+      "text": "Rook stayed on as the homestead's champion, and by clan law the homestead now owes him a round of drinks on every anniversary. It pays gladly.",
+      "group": "rook",
+      "category": "legend",
+      "when": {
+        "legend": {
+          "id": "rook",
+          "status": "met"
+        }
+      },
+      "art": "legend:rook"
+    },
+    {
+      "id": "granny_ash_awakened",
+      "title": "Granny Ash",
+      "text": "Granny Ash turned out to remember the Parish before Halcyon, the bell and the knock, and she rang it herself on the first morning, at a hundred and something. 'About time,' she told the Freeholder.",
+      "group": "granny_ash",
+      "category": "legend",
+      "when": {
+        "legend": {
+          "id": "granny_ash",
+          "status": "awakened"
+        }
+      },
+      "art": "legend:granny_ash"
+    },
+    {
+      "id": "granny_ash_lost",
+      "title": "Granny Ash",
+      "text": "Granny Ash is buried by her cache, as she asked. There's a note on it that says DON'T.",
+      "group": "granny_ash",
+      "category": "legend",
+      "when": {
+        "legend": {
+          "id": "granny_ash",
+          "status": "lost"
+        }
+      },
+      "art": "legend:granny_ash"
+    },
+    {
+      "id": "granny_ash_met",
+      "title": "Granny Ash",
+      "text": "Granny Ash went on being the oldest woman in the Glarelands, out of spite, she said.",
+      "group": "granny_ash",
+      "category": "legend",
+      "when": {
+        "legend": {
+          "id": "granny_ash",
+          "status": "met"
+        }
+      },
+      "art": "legend:granny_ash"
+    },
+    {
+      "id": "brother_wick_awakened",
+      "title": "Brother Wick",
+      "text": "Brother Wick rewrote the Order's scripture from the Original Instrument. It is one page long. The first line is 'Answer.'",
+      "group": "brother_wick",
+      "category": "legend",
+      "when": {
+        "legend": {
+          "id": "brother_wick",
+          "status": "awakened"
+        }
+      },
+      "art": "legend:brother_wick"
+    },
+    {
+      "id": "brother_wick_lost",
+      "title": "Brother Wick",
+      "text": "Brother Wick's lamp still hangs by the Seal. Somebody tops up the oil. Nobody admits to it.",
+      "group": "brother_wick",
+      "category": "legend",
+      "when": {
+        "legend": {
+          "id": "brother_wick",
+          "status": "lost"
+        }
+      },
+      "art": "legend:brother_wick"
+    },
+    {
+      "id": "brother_wick_met",
+      "title": "Brother Wick",
+      "text": "Brother Wick kept his lamp lit, but only for reading by.",
+      "group": "brother_wick",
+      "category": "legend",
+      "when": {
+        "legend": {
+          "id": "brother_wick",
+          "status": "met"
+        }
+      },
+      "art": "legend:brother_wick"
+    },
+    {
+      "id": "june_halloran_awakened",
+      "title": "June Halloran",
+      "text": "June Halloran raised the Halcyon Tower out of the Stillwater, floor by floor, and turned it into a public baths. It has the best towels in the Charter, she says, and she should know.",
+      "group": "june_halloran",
+      "category": "legend",
+      "when": {
+        "legend": {
+          "id": "june_halloran",
+          "status": "awakened"
+        }
+      },
+      "art": "legend:june_halloran"
+    },
+    {
+      "id": "june_halloran_lost",
+      "title": "June Halloran",
+      "text": "June Halloran didn't come back up. The Stillwater is very calm now, like someone holding their breath.",
+      "group": "june_halloran",
+      "category": "legend",
+      "when": {
+        "legend": {
+          "id": "june_halloran",
+          "status": "lost"
+        }
+      },
+      "art": "legend:june_halloran"
+    },
+    {
+      "id": "june_halloran_met",
+      "title": "June Halloran",
+      "text": "June kept diving the drowned streets of the Stillwater, and kept coming up with towels.",
+      "group": "june_halloran",
+      "category": "legend",
+      "when": {
+        "legend": {
+          "id": "june_halloran",
+          "status": "met"
+        }
+      },
+      "art": "legend:june_halloran"
+    },
+    {
+      "id": "captain_orla_awakened",
+      "title": "Captain Orla Brandt",
+      "text": "Captain Orla Brandt was appointed the Charter's first Warden of the Seal, and took the oath on the Original Instrument. Her first order was to take the lock off. Her second was to have lunch.",
+      "group": "captain_orla",
+      "category": "legend",
+      "when": {
+        "legend": {
+          "id": "captain_orla",
+          "status": "awakened"
+        }
+      },
+      "art": "legend:captain_orla"
+    },
+    {
+      "id": "captain_orla_lost",
+      "title": "Captain Orla Brandt",
+      "text": "Captain Orla Brandt's orders were finally carried out. She is buried in her uniform, with the orders in her pocket, marked COMPLETE.",
+      "group": "captain_orla",
+      "category": "legend",
+      "when": {
+        "legend": {
+          "id": "captain_orla",
+          "status": "lost"
+        }
+      },
+      "art": "legend:captain_orla"
+    },
+    {
+      "id": "captain_orla_met",
+      "title": "Captain Orla Brandt",
+      "text": "Captain Orla Brandt found out what year it was, and decided she liked it better than the last one.",
+      "group": "captain_orla",
+      "category": "legend",
+      "when": {
+        "legend": {
+          "id": "captain_orla",
+          "status": "met"
+        }
+      },
+      "art": "legend:captain_orla"
+    },
+    {
+      "id": "rules_survival",
+      "title": "No Second Chances",
+      "text": "Homestead {homestead} got here in Survival, where nobody comes back. HALCY has asked for this to be recorded in the Charter as \"brave\", and the Board, such as it is, has agreed.",
+      "group": "rules",
+      "when": {
+        "survival": true
+      },
+      "art": "home"
+    },
+    {
+      "id": "rules_hard",
+      "title": "House Rules",
+      "text": "Homestead {homestead} got here the hard way, under rules nobody would have picked for fun. The Charter has added an asterisk, which in Halcyon paperwork means \"impressive\".",
+      "group": "rules",
+      "when": {
+        "rules": true
+      },
+      "art": "home"
+    },
+    {
+      "id": "again",
+      "title": "Déjà Vu",
+      "text": "The Freeholder has heard from this Warden before, in another homestead, at another door. It doesn't seem to mind. It's just glad somebody keeps calling.",
+      "when": {
+        "stat": {
+          "key": "endings",
+          "min": 1
+        }
+      },
+      "art": "door"
+    },
+    {
+      "id": "close_renewal",
+      "title": "Under New Management",
+      "text": "The network ran like Halcyon, only kinder, and it was warm, and it was safe, and every morning at dawn something knocked three times on every Seal in the Charter, and nobody answered, and everybody pretended not to hear.",
+      "endings": [
+        "renewal"
+      ],
+      "art": "end"
+    },
+    {
+      "id": "close_eviction",
+      "title": "Notice to Quit",
+      "text": "On the glass, under a real sky, the homesteads started again: cold, poor, stubborn and free. Their children grew up never having heard the knock. Once in a while, the ground under them shifts in its sleep, and they call it an earthquake.",
+      "endings": [
+        "eviction"
+      ],
+      "art": "end"
+    },
+    {
+      "id": "close_holdover",
+      "title": "Holding Over",
+      "text": "The homesteads stayed warm, and the Freeholder had company, and HALCY had a job it had chosen for itself, which is more than most people get. The Warden visits on Sundays. HALCY always says it was just about to put the kettle on.",
+      "endings": [
+        "holdover"
+      ],
+      "art": "end"
+    },
+    {
+      "id": "close_neighbours",
+      "title": "Good Neighbours",
+      "text": "The Seals stayed open. The warmth stayed, freely given, and the rent was paid every morning in the only currency the Freeholder ever wanted: somebody knocking back to say they were home. Halcyon Homesteads were renamed, by public vote, just Homes.",
+      "endings": [
+        "neighbours"
+      ],
+      "art": "end"
+    }
+  ],
+  "credits": [
+    {
+      "heading": "Homestead",
+      "lines": [
+        "A game about living underground, getting along with the neighbours, and answering the door."
+      ]
+    },
+    {
+      "heading": "Made by",
+      "lines": [
+        "The Homestead team",
+        "Made with Claude Code"
+      ]
+    },
+    {
+      "heading": "Starring",
+      "lines": [
+        "HALCY, all one thousand and six of it",
+        "The residents of every homestead you ever founded",
+        "The Freeholder, as itself"
+      ]
+    },
+    {
+      "heading": "Special thanks",
+      "lines": [
+        "The Long Road Caravan Co., for the deliveries",
+        "The Scrapwright Guild, for the invoices",
+        "The Order of the Last Lamp, for the lighting",
+        "The Rustman clans, for the exercise",
+        "Homestead 9, for the audit"
+      ]
+    },
+    {
+      "heading": "A word from HALCY",
+      "lines": [
+        "Thank you for playing, Warden! On behalf of everybody in every homestead, thank you for answering.",
+        "The game carries on: your homestead is still here, and so is the knock."
+      ]
+    }
+  ],
+  "achievements": [
+    {
+      "id": "ending_any",
+      "name": "Closing Statement",
+      "description": "Reach an ending.",
+      "tier": "gold",
+      "stat": "endingsReached",
+      "target": 1
+    },
+    {
+      "id": "ending_renewal",
+      "name": "Under New Management",
+      "description": "Renew the lease, and keep everyone warm.",
+      "tier": "silver",
+      "stat": "ending.renewal",
+      "target": 1,
+      "optional": true
+    },
+    {
+      "id": "ending_eviction",
+      "name": "Notice to Quit",
+      "description": "Give the ground back and move the network under the sky.",
+      "tier": "silver",
+      "stat": "ending.eviction",
+      "target": 1,
+      "optional": true
+    },
+    {
+      "id": "ending_holdover",
+      "name": "Holding Over",
+      "description": "Let HALCY stay behind to answer the door.",
+      "tier": "silver",
+      "stat": "ending.holdover",
+      "target": 1,
+      "optional": true
+    },
+    {
+      "id": "ending_neighbours",
+      "name": "Good Neighbours",
+      "description": "Answer the knock, together.",
+      "tier": "gold",
+      "stat": "ending.neighbours",
+      "target": 1,
+      "title": "Good Neighbour"
+    },
+    {
+      "id": "ending_all",
+      "name": "Collected Works",
+      "description": "Reach every ending, across your homesteads.",
+      "tier": "gold",
+      "stat": "endingsDistinct",
+      "target": 4,
+      "optional": true
+    }
+  ]
+}
