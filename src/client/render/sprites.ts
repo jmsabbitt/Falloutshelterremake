@@ -210,6 +210,15 @@ export class CharacterArt {
     return undefined;
   }
 
+  /**
+   * Painted backdrop art (art/raw/backdrop): "surface" (the sky and far landscape,
+   * tiled sideways, standing on the horizon), "crust" (the ground strip under it)
+   * and "dirt" (the earth around and behind the rooms, tiled). Undefined: draw it.
+   */
+  backdrop(name: 'surface' | 'crust' | 'dirt'): Texture | undefined {
+    return this.rooms.get(`backdrop:${name}`);
+  }
+
   /** A room's back-wall art at a level (falling back to a lower level's), or undefined to draw it. */
   roomWall(type: string, level: number): Texture | undefined {
     for (let l = level; l >= 1; l--) {
@@ -260,13 +269,15 @@ export class CharacterArt {
     const rooms = new Map<string, Texture>();
     await Promise.all(
       Object.entries(manifest.portraits ?? {})
-        .filter(([id]) => id.startsWith('room_'))
+        .filter(([id]) => id.startsWith('room_') || id === 'backdrop')
         .flatMap(([id, files]) =>
           Object.entries(files).map(async ([level, file]) => {
             try {
               const t = await Assets.load<Texture>(`${base}${file}`);
               t.source.scaleMode = 'linear';
-              rooms.set(`${id.slice(5)}:${level}`, t);
+              // Backdrops tile, so their edges must wrap.
+              if (id === 'backdrop') t.source.addressMode = 'repeat';
+              rooms.set(id === 'backdrop' ? `backdrop:${level}` : `${id.slice(5)}:${level}`, t);
             } catch (err) {
               console.warn(`sprites: could not load ${file}`, err);
             }

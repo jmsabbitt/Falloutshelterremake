@@ -3,7 +3,7 @@
 // depth rather than flat tiles. Static art is rebuilt only when the layout
 // changes; overlays and residents are updated every frame.
 
-import { Application, Container, Graphics, Sprite, Text, UPDATE_PRIORITY, type FederatedPointerEvent } from 'pixi.js';
+import { Application, Container, Graphics, Rectangle, Sprite, Text, Texture, TilingSprite, UPDATE_PRIORITY, type FederatedPointerEvent } from 'pixi.js';
 import {
   buildCost,
   isAway,
@@ -63,6 +63,8 @@ export const SURFACE_H = 300;
 const DEPTH_X = 16; // horizontal inset of the back wall (perspective)
 const DEPTH_Y = 12; // vertical inset of the back wall
 const MARGIN_CELLS = 4;
+/** Height of the painted surface panorama (art/raw/backdrop surface), in world units above the horizon. */
+const SURFACE_BACKDROP_H = 420;
 export const RESIDENT_H = 46;
 /** Displayed height of sprite-art adults; a touch taller than the placeholder, which has no neck. */
 export const SPRITE_H = RESIDENT_H * 1.1;
@@ -648,8 +650,9 @@ export class VaultView {
     g.rect(-m * 3, SURFACE_H - 8, w + m * 6, 8).fill(shade(GROUND, -0.35));
     // bedrock
     g.rect(-m * 3, SURFACE_H, w + m * 6, h - SURFACE_H + 400).fill(ROCK);
+    const dirt = this.art?.backdrop('dirt');
     // deterministic speckles and strata
-    for (let i = 0; i < 900; i++) {
+    for (let i = 0; i < (dirt ? 0 : 900); i++) {
       const hx = hash(i * 7 + 1);
       const hy = hash(i * 13 + 5);
       const x = (hx % (w + m * 6)) - m * 3;
@@ -663,12 +666,57 @@ export class VaultView {
       g.rect(0, SURFACE_H + f * FLOOR_H - 1, w, 2).fill({ color: 0x000000, alpha: 0.18 });
     }
     this.bg.addChild(g);
+    this.addPaintedBackdrop(w, h, m, skyTop, horizon);
     // M6: dug strata below the charter floors, and the seal under the last one.
     const { state, content } = this.game;
     const dc = deepContent(content);
     const names: Record<number, string> = {};
     for (const st of dc.strata) names[st.index] = stratumDef(content, st.index)?.name ?? `Stratum ${st.index}`;
     this.bg.addChild(buildDeepBackground(this.deepGeometry(), { strata: state.deep.strata, maxStrata: dc.strata.length, names }));
+  }
+
+  /**
+   * Painted backdrop art over the drawn one, where the art exists: the surface
+   * panorama tiled along the horizon (the drawn sky gradient still fills above it),
+   * the ground crust, and the dirt tiled through the earth. The build grid is redrawn on top.
+   */
+  private addPaintedBackdrop(w: number, h: number, m: number, skyTop: number, horizon: number): void {
+    const art = this.art;
+    if (!art) return;
+    const x0 = -m * 3;
+    const width = w + m * 6;
+    const surface = art.backdrop('surface');
+    if (surface) {
+      // The panorama stands on the horizon, SURFACE_BACKDROP_H tall, and repeats sideways;
+      // its top row of pixels is stretched up to the top of the sky, so the sky has no seam.
+      const tileH = Math.min(SURFACE_BACKDROP_H, horizon - skyTop);
+      const scale = tileH / surface.height;
+      const top = new TilingSprite({ texture: new Texture({ source: surface.source, frame: new Rectangle(0, 0, surface.width, 1) }), width, height: horizon - tileH - skyTop });
+      top.tileScale.set(scale, 1);
+      top.position.set(x0, skyTop);
+      const s = new TilingSprite({ texture: surface, width, height: tileH });
+      s.tileScale.set(scale);
+      s.position.set(x0, horizon - tileH);
+      this.bg.addChild(top, s);
+    }
+    const crust = art.backdrop('crust');
+    if (crust) {
+      const s = new TilingSprite({ texture: crust, width, height: SURFACE_H - horizon });
+      s.tileScale.set((SURFACE_H - horizon) / crust.height);
+      s.position.set(x0, horizon);
+      this.bg.addChild(s);
+    }
+    const dirt = art.backdrop('dirt');
+    if (dirt) {
+      const s = new TilingSprite({ texture: dirt, width, height: h - SURFACE_H + 400 });
+      // About two floors per tile, so the texture reads at every zoom.
+      s.tileScale.set((FLOOR_H * 2) / dirt.height);
+      s.position.set(x0, SURFACE_H);
+      this.bg.addChild(s);
+      const grid = new Graphics();
+      for (let f = 0; f <= this.game.content.balance.grid.floors; f++) grid.rect(0, SURFACE_H + f * FLOOR_H - 1, w, 2).fill({ color: 0x000000, alpha: 0.18 });
+      this.bg.addChild(grid);
+    }
   }
 
   private rebuildStatics(): void {
@@ -1327,6 +1375,7 @@ export class VaultView {
   setArt(art: CharacterArt | null): void {
     this.art = art;
     this.builtLayout = -1; // rebuild rooms with any painted walls
+    this.deepKey = ''; // and redraw the background with any painted backdrop
     for (const sp of this.sprites.values()) sp.look = '';
     for (const w of this.walkers.values()) w.look = '';
     for (const w of this.caravanWalkers.values()) w.look = '';

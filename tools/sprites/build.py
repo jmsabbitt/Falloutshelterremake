@@ -292,7 +292,8 @@ def build_portraits(cid: str, cfg: dict, cut: dict[str, list[np.ndarray]], targe
 
     "outDir" (default "portraits") and "prefix" (default "<id>_") place the
     files; "fit" scales each to fit a square that size instead of to
-    targetHeight (for wide things like rifles).
+    targetHeight (for wide things like rifles). An animation's own
+    "targetHeight" overrides the folder's (for backdrops of different sizes).
     """
     out_dir = OUT / cfg.get("outDir", "portraits")
     prefix = cfg.get("prefix", f"{cid}_")
@@ -300,10 +301,11 @@ def build_portraits(cid: str, cfg: dict, cut: dict[str, list[np.ndarray]], targe
     files = {}
     for name, frames in cut.items():
         names = cfg["anims"][name].get("names", [])
+        height = int(cfg["anims"][name].get("targetHeight", target))
         for i, f in enumerate(frames):
             key = names[i] if i < len(names) else f"{name}{i}"
             img = Image.fromarray(f)
-            k = cfg["fit"] / max(img.size) if "fit" in cfg else target / img.height
+            k = cfg["fit"] / max(img.size) if "fit" in cfg else height / img.height
             img = img.resize((max(1, round(img.width * k)), max(1, round(img.height * k))), Image.LANCZOS)
             fn = f"{prefix}{key}.webp"
             save_webp(img, out_dir / fn)

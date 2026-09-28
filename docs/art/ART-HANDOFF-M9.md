@@ -72,6 +72,7 @@ Integrated by the code session (2026-09-26):
 | 6 | Faction leader portraits (5) | 1–2 sheets | Factions panel cards |
 | 7 | More bosses (the other 41) | about 123 | Quest combat |
 | 8 | Ending illustrations | 10 | The epilogue slides of the four endings |
+| 10 | Backdrops: sky panorama, ground crust, dirt | 3 | Above ground and the earth around the rooms (section 10) |
 | 9 | Optional: bespoke legend body sheets | 11 to 66 (walk first, up to 6 per legend) | Vault, surface and quest combat (wired; one legend at a time is fine) |
 
 ---
@@ -404,6 +405,44 @@ This builds only that folder and merges it into the existing manifest, so it tak
 - `homesteadView.figures()` should list `"legend:marla_voss": 1` next to the usual `action>animation` counts. It counts residents inside the homestead and at the door. Explorers, caravans and the quest party aren't counted, so check those by eye. The body loads the first time the legend is drawn, so for a moment she may show the shared body.
 
 **Outfits and weapons:** the game still draws the weapon at the hip (hidden while a `fight` sheet is showing, since that holds its own weapon), the backpack for explorers without `carry` art, the expecting heart and the gold legend star. The outfit colour is **not** applied: a legend's body is drawn as painted, so an equipped outfit's stat colour and rarity trim don't show on it. The outfit's bonus still counts.
+
+---
+
+## 10. Backdrops: the sky above ground and the dirt around the homestead
+
+Today the sky is a drawn gradient with two flat mesas, and the earth around the rooms is flat brown with speckles. The vault view now uses painted backdrops for both when they exist, and keeps the drawn versions until then. There are three images, and each one repeats (tiles), so **every edge must wrap seamlessly**: the left edge continues into the right edge, and for the dirt, the top continues into the bottom too.
+
+| file name | What it is | Size and shape | How the game uses it |
+|---|---|---|---|
+| `surface` | The view above ground: sky near the horizon and the far landscape of the Glarelands (mesas, ruined towns, pylons, the odd wreck). Atompunk, dusk-warm, the same painterly-cartoon style as the room walls. | Wide panorama, about 3:1 (for example 3072 × 1024). The landscape sits on the **bottom edge**, which is the horizon. The **top edge is plain, even sky**, because the game stretches the top row of pixels up to fill the sky above it. | Stands on the horizon, 420 world units tall (a bit more than two room floors), repeated sideways across the whole view. The weather (dust, storms, heatwaves) is drawn over it, and the surface buildings stand in front of it. |
+| `crust` | The ground strip between the horizon and the first floor: packed earth and sand, a few stones, roots at the bottom. | Wide strip, about 8:1 (for example 2048 × 256). | Fills the 40-unit band just under the horizon, repeated sideways. |
+| `dirt` | The earth that surrounds the rooms, left and right of the homestead and behind the elevator: packed soil with stones, pebbles, old pipes and roots. Keep it **dark and low-contrast** (around `#2a1d15`, the current rock colour) so rooms and residents stay the focus. No strong single features, because they repeat visibly. | Square, for example 1024 × 1024. Tiles in both directions. | Repeated every two floors' height across the underground. The build grid lines are drawn on top. The Deep keeps its own strata art below floor 25. |
+
+**Rules**
+- **No characters, text or UI**, and no buildings in the foreground. The surface panorama is distance only; the game draws the homestead's own surface buildings.
+- **Colours:** keep the sky warm near the horizon (the current `#e7b27a`) and teal higher up (`#3d6f86`), so the weather overlays still read. Night isn't shown yet, so paint a late afternoon.
+- **Background:** these are full-bleed images, so no magenta or green key.
+- **Seams:** check the tiling before delivery by placing two copies side by side (and, for the dirt, two copies stacked) and looking for a seam.
+
+**Delivery:** `art/raw/backdrop/surface.png`, `crust.png` and `dirt.png`, with this `sprite.json`:
+
+```json
+{
+  "id": "backdrop",
+  "kind": "portrait",
+  "background": "none",
+  "outDir": "backdrop",
+  "prefix": "",
+  "targetHeight": 1024,
+  "anims": {
+    "surface": { "file": "surface.png", "whole": true, "names": ["surface"] },
+    "crust": { "file": "crust.png", "whole": true, "names": ["crust"], "targetHeight": 256 },
+    "dirt": { "file": "dirt.png", "whole": true, "names": ["dirt"] }
+  }
+}
+```
+
+Then `npm run sprites -- backdrop`. Each image is optional, so you can deliver the dirt first. To check it, run `homestead.qol.bigVault(40)` and look at the surface and at the earth either side of the rooms, zoomed in and out, on desktop and on phone width. Also run `homestead.m7.topside()` and `homestead.m7.weather('dust')` to check that the surface buildings and the weather look right against the panorama.
 
 ---
 
