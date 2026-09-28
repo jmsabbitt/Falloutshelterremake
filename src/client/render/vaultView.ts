@@ -322,6 +322,8 @@ export class VaultView {
   private incidentLayer = new Container();
   private incidentFigs = new Map<number, CreatureFigure[]>();
   private incidentsShown = new Set<number>();
+  /** Where each room's threat stands this frame (creature x's, or the room's middle), so fighters face it. */
+  private threatX = new Map<number, number[]>();
   /** M6: animated deep-room bits and the dig site (deepArt.ts). */
   private deep = new DeepLayer(() => this.deepGeometry());
   /** What the background and room frames were drawn for (strata, bracing). */
@@ -1343,6 +1345,7 @@ export class VaultView {
     const { state, content } = this.game;
     const burning = new Map(state.incidents.map((i) => [i.roomId, i]));
     this.incidentsShown.clear();
+    this.threatX.clear();
     for (const room of state.rooms) {
       const r = this.roomRect(room);
       // Rustmen at the door stand on the surface, so the door is always drawn.
@@ -1544,6 +1547,7 @@ export class VaultView {
     const t = this.time;
     const breaking = inc.type === 'rustmen' && inc.doorHp > 0;
     const approach = this.approachX(inc, r);
+    const xs: number[] = [];
     figs.forEach((f, i) => {
       const strike = f.duration('attack');
       let x: number;
@@ -1570,9 +1574,11 @@ export class VaultView {
         else f.play('idle', t + i);
       }
       f.position.set(x, y);
+      if (approach === null && !breaking) xs.push(x);
       // Sheets face left; mirror to face right.
       f.scale.x = Math.abs(f.scale.x) * (right ? -1 : 1);
     });
+    if (xs.length) this.threatX.set(inc.roomId, xs);
     return true;
   }
 
@@ -1589,6 +1595,7 @@ export class VaultView {
     const floorY = r.y + r.h - 10;
     const t = this.time;
     const art = this.drawIncidentArt(inc, r);
+    if (!this.threatX.has(inc.roomId)) this.threatX.set(inc.roomId, [r.x + r.w / 2]);
     switch (art && inc.type !== 'rustmen' ? 'art' : inc.type) {
       case 'art':
         break;
@@ -1917,6 +1924,15 @@ export class VaultView {
   }
 
   /** Move one sprite along its path (ease in and out), its fade, its glide or its wander. */
+  private faceThreat(sp: ResidentSprite, roomId: number): void {
+    const xs = this.threatX.get(roomId);
+    if (!xs?.length) return;
+    let near = xs[0]!;
+    for (const x of xs) if (Math.abs(x - sp.x) < Math.abs(near - sp.x)) near = x;
+    const dx = near - sp.x;
+    if (Math.abs(dx) > 10) sp.facing = dx > 0 ? 1 : -1;
+  }
+
   private stepResident(sp: ResidentSprite, bounds: Bounds, dt: number, still: boolean, hold: boolean): void {
     sp.moving = false;
     sp.riding = false;
@@ -2070,6 +2086,8 @@ export class VaultView {
         }
         const fighting = !child && res.roomId !== null && roomAction.get(res.roomId) === 'fight' && sp.roomId === where;
         this.stepResident(sp, bounds, dt, res.dead, fighting);
+        // Fighters turn to face the nearest threat (with a little slack, so they don't twitch as it passes).
+        if (fighting && !sp.moving && !res.dead) this.faceThreat(sp, res.roomId!);
         // The surface queue faces the door once in place.
         if (res.waiting && !sp.moving) sp.facing = 1;
         let px = sp.x;
