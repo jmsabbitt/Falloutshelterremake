@@ -306,7 +306,7 @@ function runTopside(): void {
     }
   }
   for (const c of s.caravans) if (c.status === 'returned' && applyCommand(s, content, { type: 'collectCaravan', caravanId: c.id }).ok) bump('caravans');
-  if (!s.caravans.length && s.resources.food > 150) {
+  if (!preparing && !s.caravans.length && s.resources.food > 150) {
     const f = factionsContent(content).factions.find((x) => isMet(s, x.id));
     const who = s.residents.filter((r) => canQuest(s, r) === null && r.roomId !== null).sort((a, b) => b.stats.charm - a.stats.charm)[0];
     if (f && who) applyCommand(s, content, { type: 'sendCaravan', factionId: f.id, residentIds: [who.id], goods: { food: 60 } });
@@ -352,7 +352,8 @@ function maybeFound(hour: number): void {
   for (const e of s.expeditions) if (e.status === 'exploring') applyCommand(s, content, { type: 'recall', expeditionId: e.id });
   for (const e of s.expeditions) if (e.status === 'returned') applyCommand(s, content, { type: 'collectExpedition', expeditionId: e.id });
   for (const q of s.quests) if (q.status === 'returned') applyCommand(s, content, { type: 'collectQuest', questId: q.id });
-  if (s.expeditions.length || s.quests.length) return;
+  for (const c of s.caravans) applyCommand(s, content, c.status === 'returned' ? { type: 'collectCaravan', caravanId: c.id } : { type: 'recallCaravan', caravanId: c.id });
+  if (s.expeditions.length || s.quests.length || s.caravans.length) return;
   const lim = foundingLimits(s, content);
   const party = s.residents
     .filter((r) => canFound(s, r) === null)
