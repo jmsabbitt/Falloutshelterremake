@@ -534,6 +534,7 @@ export interface Caravan {
 }
 
 export type GameEvent =
+  | { type: 'tutorialStep'; step: TutorialStep; skipped: boolean }
   | { type: 'collected'; roomId: number; resource: ResourceKey; amount: number; bonusScrip: number; /** Steady scrip paid per batch. */ baseScrip?: number }
   | { type: 'rushSucceeded'; roomId: number }
   | { type: 'rushFailed'; roomId: number; incidentId: number }
@@ -623,6 +624,31 @@ export type GameEvent =
   | { type: 'endingOffered' }
   | { type: 'endingReached'; endingId: string; first: boolean };
 
+/** The first-homestead tutorial's steps, in order (systems/tutorial.ts). */
+export type TutorialStep =
+  | 'admit'
+  | 'build_power'
+  | 'staff_power'
+  | 'build_water'
+  | 'staff_water'
+  | 'build_food'
+  | 'staff_food'
+  | 'collect'
+  | 'crate'
+  | 'equip'
+  | 'done';
+
+export interface TutorialState {
+  step: TutorialStep;
+  /** Finished or skipped. */
+  done: boolean;
+  /**
+   * Beds the founders get on bedrolls by the door until the homestead has
+   * Quarters (a tutorial homestead starts without any).
+   */
+  bedrolls?: number;
+}
+
 /** Lifetime counters. Feed achievements, the stats screen and balancing. */
 export type LifetimeStats = Record<string, number>;
 
@@ -705,6 +731,8 @@ export interface GameState {
   unlockedRooms: string[];
   achievements: Record<string, number>; // id -> sim time unlocked
   stats: LifetimeStats;
+  /** The first-homestead tutorial; absent in homesteads that never had one. */
+  tutorial?: TutorialState;
   /** Seconds of offline consumption already applied in the current absence. */
   offlineConsumed: number;
   /** Events produced since the client last drained them. Not meaningful across saves. */

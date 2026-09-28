@@ -29,6 +29,7 @@ import { tickWeather } from './systems/weather';
 import { tickFactions } from './systems/factions';
 import { tickLegends } from './systems/legends';
 import { tickRushStrain } from './systems/rush';
+import { tickTutorial } from './systems/tutorial';
 import type { GameState } from './types';
 
 const MAX_ONLINE_STEP = 1;
@@ -75,6 +76,7 @@ function step(state: GameState, content: Content, dt: number, opts: StepOptions)
       collectRoom(state, content, room);
     }
   }
+  tickTutorial(state);
   refreshUnlocks(state, content);
   settle(state, content, from);
 }

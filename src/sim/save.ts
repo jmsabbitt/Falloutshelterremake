@@ -4,7 +4,7 @@
 import { newLegacy } from './legacy';
 import type { GameState } from './types';
 
-export const SAVE_VERSION = 9;
+export const SAVE_VERSION = 10;
 
 interface SaveFile {
   format: 'homestead-save';
@@ -115,6 +115,9 @@ const migrations: Record<number, Migration> = {
     ...s,
     story: { endings: {}, current: null, open: false, title: null },
   }),
+  // v9 (Act 4) -> v10 (playtest 1): the first-homestead tutorial. Homesteads
+  // saved before it existed started with the classic layout: nothing to teach.
+  9: (s) => ({ ...s, tutorial: { step: 'done', done: true } }),
 };
 
 export function serialize(state: GameState, now = Date.now()): string {

@@ -14,6 +14,7 @@ export {
   type SalvageDef,
 } from './content';
 export { newGame, type NewGameOptions } from './state';
+export { TUTORIAL_ROOMS, TUTORIAL_STEPS, tutorialActive, tutorialFreeBuild, tutorialRoom, tutorialStep } from './systems/tutorial';
 export { applyCommand, roomCapacity, type Command, type CommandResult } from './commands';
 export { advance, catchUp, drainEvents, type CatchUpSummary } from './tick';
 export { serialize, deserialize, SAVE_VERSION } from './save';
