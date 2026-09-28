@@ -4277,8 +4277,14 @@
     },
     "room_aquifer": {
       "1": "rooms/room_aquifer_1.webp",
+      "1w2": "rooms/room_aquifer_1w2.webp",
+      "1w3": "rooms/room_aquifer_1w3.webp",
       "2": "rooms/room_aquifer_2.webp",
-      "3": "rooms/room_aquifer_3.webp"
+      "2w2": "rooms/room_aquifer_2w2.webp",
+      "2w3": "rooms/room_aquifer_2w3.webp",
+      "3": "rooms/room_aquifer_3.webp",
+      "3w2": "rooms/room_aquifer_3w2.webp",
+      "3w3": "rooms/room_aquifer_3w3.webp"
     },
     "room_canteen": {
       "1": "rooms/room_canteen_1.webp",
@@ -4314,10 +4320,13 @@
     "room_farm_plots": {
       "1": "rooms/room_farm_plots_1.webp",
       "1w2": "rooms/room_farm_plots_1w2.webp",
+      "1w3": "rooms/room_farm_plots_1w3.webp",
       "2": "rooms/room_farm_plots_2.webp",
       "2w2": "rooms/room_farm_plots_2w2.webp",
+      "2w3": "rooms/room_farm_plots_2w3.webp",
       "3": "rooms/room_farm_plots_3.webp",
-      "3w2": "rooms/room_farm_plots_3w2.webp"
+      "3w2": "rooms/room_farm_plots_3w2.webp",
+      "3w3": "rooms/room_farm_plots_3w3.webp"
     },
     "room_frame": {
       "frame": "rooms/room_frame_frame.webp",
@@ -4326,8 +4335,14 @@
     },
     "room_fungalfarm": {
       "1": "rooms/room_fungalfarm_1.webp",
+      "1w2": "rooms/room_fungalfarm_1w2.webp",
+      "1w3": "rooms/room_fungalfarm_1w3.webp",
       "2": "rooms/room_fungalfarm_2.webp",
-      "3": "rooms/room_fungalfarm_3.webp"
+      "2w2": "rooms/room_fungalfarm_2w2.webp",
+      "2w3": "rooms/room_fungalfarm_2w3.webp",
+      "3": "rooms/room_fungalfarm_3.webp",
+      "3w2": "rooms/room_fungalfarm_3w2.webp",
+      "3w3": "rooms/room_fungalfarm_3w3.webp"
     },
     "room_generator": {
       "1": "rooms/room_generator_1.webp",
@@ -4342,8 +4357,14 @@
     },
     "room_geothermal": {
       "1": "rooms/room_geothermal_1.webp",
+      "1w2": "rooms/room_geothermal_1w2.webp",
+      "1w3": "rooms/room_geothermal_1w3.webp",
       "2": "rooms/room_geothermal_2.webp",
-      "3": "rooms/room_geothermal_3.webp"
+      "2w2": "rooms/room_geothermal_2w2.webp",
+      "2w3": "rooms/room_geothermal_2w3.webp",
+      "3": "rooms/room_geothermal_3.webp",
+      "3w2": "rooms/room_geothermal_3w2.webp",
+      "3w3": "rooms/room_geothermal_3w3.webp"
     },
     "room_lab": {
       "1": "rooms/room_lab_1.webp",
@@ -4402,15 +4423,24 @@
     "room_rain_catcher": {
       "1": "rooms/room_rain_catcher_1.webp",
       "1w2": "rooms/room_rain_catcher_1w2.webp",
+      "1w3": "rooms/room_rain_catcher_1w3.webp",
       "2": "rooms/room_rain_catcher_2.webp",
       "2w2": "rooms/room_rain_catcher_2w2.webp",
+      "2w3": "rooms/room_rain_catcher_2w3.webp",
       "3": "rooms/room_rain_catcher_3.webp",
-      "3w2": "rooms/room_rain_catcher_3w2.webp"
+      "3w2": "rooms/room_rain_catcher_3w2.webp",
+      "3w3": "rooms/room_rain_catcher_3w3.webp"
     },
     "room_refinery": {
       "1": "rooms/room_refinery_1.webp",
+      "1w2": "rooms/room_refinery_1w2.webp",
+      "1w3": "rooms/room_refinery_1w3.webp",
       "2": "rooms/room_refinery_2.webp",
-      "3": "rooms/room_refinery_3.webp"
+      "2w2": "rooms/room_refinery_2w2.webp",
+      "2w3": "rooms/room_refinery_2w3.webp",
+      "3": "rooms/room_refinery_3.webp",
+      "3w2": "rooms/room_refinery_3w2.webp",
+      "3w3": "rooms/room_refinery_3w3.webp"
     },
     "room_signal_mast": {
       "1": "rooms/room_signal_mast_1.webp",
@@ -4420,10 +4450,13 @@
     "room_solar_array": {
       "1": "rooms/room_solar_array_1.webp",
       "1w2": "rooms/room_solar_array_1w2.webp",
+      "1w3": "rooms/room_solar_array_1w3.webp",
       "2": "rooms/room_solar_array_2.webp",
       "2w2": "rooms/room_solar_array_2w2.webp",
+      "2w3": "rooms/room_solar_array_2w3.webp",
       "3": "rooms/room_solar_array_3.webp",
-      "3w2": "rooms/room_solar_array_3w2.webp"
+      "3w2": "rooms/room_solar_array_3w2.webp",
+      "3w3": "rooms/room_solar_array_3w3.webp"
     },
     "room_storeroom": {
       "1": "rooms/room_storeroom_1.webp",
@@ -4464,10 +4497,14 @@
     },
     "room_wind_turbine": {
       "1": "rooms/room_wind_turbine_1.webp",
+      "1w2": "rooms/room_wind_turbine_1w2.webp",
+      "1w3": "rooms/room_wind_turbine_1w3.webp",
       "2": "rooms/room_wind_turbine_2.webp",
       "2w2": "rooms/room_wind_turbine_2w2.webp",
+      "2w3": "rooms/room_wind_turbine_2w3.webp",
       "3": "rooms/room_wind_turbine_3.webp",
       "3w2": "rooms/room_wind_turbine_3w2.webp",
+      "3w3": "rooms/room_wind_turbine_3w3.webp",
       "rotor": "rooms/room_wind_turbine_rotor.webp"
     },
     "ruin_homestead": {
@@ -4705,6 +4742,71 @@
           "files": {
             "full": "legend_ada_quill/carry_full.webp"
           }
+        },
+        "fight_pistol": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 92,
+          "frameH": 132,
+          "anchorX": 0.412,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_ada_quill/fight_pistol_full.webp"
+          }
+        },
+        "fight_longgun": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 97,
+          "frameH": 142,
+          "anchorX": 0.3761,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_ada_quill/fight_longgun_full.webp"
+          }
+        },
+        "fight_melee": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 100,
+          "frameH": 134,
+          "anchorX": 0.4947,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_ada_quill/fight_melee_full.webp"
+          }
+        },
+        "fight_unarmed": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 91,
+          "frameH": 133,
+          "anchorX": 0.4248,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_ada_quill/fight_unarmed_full.webp"
+          }
+        },
+        "fight_heavy": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 91,
+          "frameH": 132,
+          "anchorX": 0.4285,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_ada_quill/fight_heavy_full.webp"
+          }
         }
       }
     },
@@ -4789,6 +4891,71 @@
           "anchorY": 1.0,
           "files": {
             "full": "legend_brother_wick/carry_full.webp"
+          }
+        },
+        "fight_pistol": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 102,
+          "frameH": 131,
+          "anchorX": 0.4123,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_brother_wick/fight_pistol_full.webp"
+          }
+        },
+        "fight_longgun": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 97,
+          "frameH": 131,
+          "anchorX": 0.3496,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_brother_wick/fight_longgun_full.webp"
+          }
+        },
+        "fight_melee": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 117,
+          "frameH": 142,
+          "anchorX": 0.5199,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_brother_wick/fight_melee_full.webp"
+          }
+        },
+        "fight_unarmed": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 96,
+          "frameH": 132,
+          "anchorX": 0.4034,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_brother_wick/fight_unarmed_full.webp"
+          }
+        },
+        "fight_heavy": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 99,
+          "frameH": 132,
+          "anchorX": 0.397,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_brother_wick/fight_heavy_full.webp"
           }
         }
       }
@@ -4875,6 +5042,71 @@
           "files": {
             "full": "legend_captain_orla/carry_full.webp"
           }
+        },
+        "fight_pistol": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 93,
+          "frameH": 132,
+          "anchorX": 0.4305,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_captain_orla/fight_pistol_full.webp"
+          }
+        },
+        "fight_longgun": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 110,
+          "frameH": 145,
+          "anchorX": 0.4104,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_captain_orla/fight_longgun_full.webp"
+          }
+        },
+        "fight_melee": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 120,
+          "frameH": 133,
+          "anchorX": 0.4593,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_captain_orla/fight_melee_full.webp"
+          }
+        },
+        "fight_unarmed": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 90,
+          "frameH": 133,
+          "anchorX": 0.4241,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_captain_orla/fight_unarmed_full.webp"
+          }
+        },
+        "fight_heavy": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 91,
+          "frameH": 132,
+          "anchorX": 0.4268,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_captain_orla/fight_heavy_full.webp"
+          }
         }
       }
     },
@@ -4959,6 +5191,71 @@
           "anchorY": 1.0,
           "files": {
             "full": "legend_doc_ferris/carry_full.webp"
+          }
+        },
+        "fight_pistol": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 98,
+          "frameH": 131,
+          "anchorX": 0.4074,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_doc_ferris/fight_pistol_full.webp"
+          }
+        },
+        "fight_longgun": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 95,
+          "frameH": 132,
+          "anchorX": 0.4101,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_doc_ferris/fight_longgun_full.webp"
+          }
+        },
+        "fight_melee": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 104,
+          "frameH": 132,
+          "anchorX": 0.4902,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_doc_ferris/fight_melee_full.webp"
+          }
+        },
+        "fight_unarmed": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 92,
+          "frameH": 131,
+          "anchorX": 0.4198,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_doc_ferris/fight_unarmed_full.webp"
+          }
+        },
+        "fight_heavy": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 100,
+          "frameH": 132,
+          "anchorX": 0.4038,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_doc_ferris/fight_heavy_full.webp"
           }
         }
       }
@@ -5045,6 +5342,71 @@
           "files": {
             "full": "legend_granny_ash/carry_full.webp"
           }
+        },
+        "fight_pistol": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 96,
+          "frameH": 132,
+          "anchorX": 0.4032,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_granny_ash/fight_pistol_full.webp"
+          }
+        },
+        "fight_longgun": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 91,
+          "frameH": 133,
+          "anchorX": 0.4042,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_granny_ash/fight_longgun_full.webp"
+          }
+        },
+        "fight_melee": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 94,
+          "frameH": 136,
+          "anchorX": 0.4215,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_granny_ash/fight_melee_full.webp"
+          }
+        },
+        "fight_unarmed": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 91,
+          "frameH": 132,
+          "anchorX": 0.406,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_granny_ash/fight_unarmed_full.webp"
+          }
+        },
+        "fight_heavy": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 91,
+          "frameH": 132,
+          "anchorX": 0.411,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_granny_ash/fight_heavy_full.webp"
+          }
         }
       }
     },
@@ -5129,6 +5491,71 @@
           "anchorY": 1.0,
           "files": {
             "full": "legend_june_halloran/carry_full.webp"
+          }
+        },
+        "fight_longgun": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 110,
+          "frameH": 148,
+          "anchorX": 0.3942,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_june_halloran/fight_longgun_full.webp"
+          }
+        },
+        "fight_unarmed": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 93,
+          "frameH": 133,
+          "anchorX": 0.4162,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_june_halloran/fight_unarmed_full.webp"
+          }
+        },
+        "fight_heavy": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 109,
+          "frameH": 147,
+          "anchorX": 0.4009,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_june_halloran/fight_heavy_full.webp"
+          }
+        },
+        "fight_pistol": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 97,
+          "frameH": 132,
+          "anchorX": 0.431,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_june_halloran/fight_pistol_full.webp"
+          }
+        },
+        "fight_melee": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 122,
+          "frameH": 132,
+          "anchorX": 0.4301,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_june_halloran/fight_melee_full.webp"
           }
         }
       }
@@ -5215,6 +5642,71 @@
           "files": {
             "full": "legend_lucky_lou/carry_full.webp"
           }
+        },
+        "fight_pistol": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 108,
+          "frameH": 132,
+          "anchorX": 0.4459,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_lucky_lou/fight_pistol_full.webp"
+          }
+        },
+        "fight_melee": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 98,
+          "frameH": 132,
+          "anchorX": 0.4518,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_lucky_lou/fight_melee_full.webp"
+          }
+        },
+        "fight_unarmed": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 98,
+          "frameH": 132,
+          "anchorX": 0.4185,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_lucky_lou/fight_unarmed_full.webp"
+          }
+        },
+        "fight_heavy": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 103,
+          "frameH": 132,
+          "anchorX": 0.4036,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_lucky_lou/fight_heavy_full.webp"
+          }
+        },
+        "fight_longgun": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 103,
+          "frameH": 133,
+          "anchorX": 0.3898,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_lucky_lou/fight_longgun_full.webp"
+          }
         }
       }
     },
@@ -5299,6 +5791,71 @@
           "anchorY": 1.0,
           "files": {
             "full": "legend_marla_voss/carry_full.webp"
+          }
+        },
+        "fight_pistol": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 91,
+          "frameH": 131,
+          "anchorX": 0.4207,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_marla_voss/fight_pistol_full.webp"
+          }
+        },
+        "fight_longgun": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 95,
+          "frameH": 132,
+          "anchorX": 0.4012,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_marla_voss/fight_longgun_full.webp"
+          }
+        },
+        "fight_melee": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 110,
+          "frameH": 139,
+          "anchorX": 0.5025,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_marla_voss/fight_melee_full.webp"
+          }
+        },
+        "fight_unarmed": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 92,
+          "frameH": 133,
+          "anchorX": 0.4194,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_marla_voss/fight_unarmed_full.webp"
+          }
+        },
+        "fight_heavy": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 93,
+          "frameH": 131,
+          "anchorX": 0.4164,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_marla_voss/fight_heavy_full.webp"
           }
         }
       }
@@ -5385,6 +5942,71 @@
           "files": {
             "full": "legend_pip/carry_full.webp"
           }
+        },
+        "fight_pistol": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 93,
+          "frameH": 132,
+          "anchorX": 0.4031,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_pip/fight_pistol_full.webp"
+          }
+        },
+        "fight_melee": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 115,
+          "frameH": 140,
+          "anchorX": 0.4615,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_pip/fight_melee_full.webp"
+          }
+        },
+        "fight_unarmed": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 93,
+          "frameH": 133,
+          "anchorX": 0.3982,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_pip/fight_unarmed_full.webp"
+          }
+        },
+        "fight_heavy": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 92,
+          "frameH": 131,
+          "anchorX": 0.3978,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_pip/fight_heavy_full.webp"
+          }
+        },
+        "fight_longgun": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 97,
+          "frameH": 132,
+          "anchorX": 0.3925,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_pip/fight_longgun_full.webp"
+          }
         }
       }
     },
@@ -5470,6 +6092,71 @@
           "files": {
             "full": "legend_rook/carry_full.webp"
           }
+        },
+        "fight_pistol": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 92,
+          "frameH": 132,
+          "anchorX": 0.4214,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_rook/fight_pistol_full.webp"
+          }
+        },
+        "fight_longgun": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 97,
+          "frameH": 132,
+          "anchorX": 0.4024,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_rook/fight_longgun_full.webp"
+          }
+        },
+        "fight_melee": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 104,
+          "frameH": 132,
+          "anchorX": 0.4599,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_rook/fight_melee_full.webp"
+          }
+        },
+        "fight_unarmed": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 95,
+          "frameH": 132,
+          "anchorX": 0.4047,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_rook/fight_unarmed_full.webp"
+          }
+        },
+        "fight_heavy": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 94,
+          "frameH": 132,
+          "anchorX": 0.4215,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_rook/fight_heavy_full.webp"
+          }
         }
       }
     },
@@ -5554,6 +6241,71 @@
           "anchorY": 1.0,
           "files": {
             "full": "legend_seven/carry_full.webp"
+          }
+        },
+        "fight_pistol": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 102,
+          "frameH": 132,
+          "anchorX": 0.4153,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_seven/fight_pistol_full.webp"
+          }
+        },
+        "fight_longgun": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 98,
+          "frameH": 132,
+          "anchorX": 0.4101,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_seven/fight_longgun_full.webp"
+          }
+        },
+        "fight_melee": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 103,
+          "frameH": 132,
+          "anchorX": 0.4982,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_seven/fight_melee_full.webp"
+          }
+        },
+        "fight_unarmed": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 96,
+          "frameH": 132,
+          "anchorX": 0.4099,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_seven/fight_unarmed_full.webp"
+          }
+        },
+        "fight_heavy": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 99,
+          "frameH": 131,
+          "anchorX": 0.4078,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_seven/fight_heavy_full.webp"
           }
         }
       }
