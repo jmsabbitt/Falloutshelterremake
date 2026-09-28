@@ -4106,5 +4106,942 @@
       "silver_locket": "items/silver_locket.webp",
       "gold_pocket_watch": "items/gold_pocket_watch.webp"
     }
+  },
+  "legends": {
+    "ada_quill": {
+      "id": "legend_ada_quill",
+      "sex": "f",
+      "refHeight": 128,
+      "anims": {
+        "walk": {
+          "frames": 12,
+          "fps": 11,
+          "loop": true,
+          "idleFrame": 2,
+          "frameW": 80,
+          "frameH": 132,
+          "anchorX": 0.4814,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_ada_quill/walk_full.webp"
+          }
+        },
+        "idle": {
+          "frames": 6,
+          "fps": 6,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 55,
+          "frameH": 133,
+          "anchorX": 0.4995,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_ada_quill/idle_full.webp"
+          }
+        },
+        "work": {
+          "frames": 6,
+          "fps": 8,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 62,
+          "frameH": 130,
+          "anchorX": 0.4092,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_ada_quill/work_full.webp"
+          }
+        },
+        "fight": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 91,
+          "frameH": 132,
+          "anchorX": 0.4223,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_ada_quill/fight_full.webp"
+          }
+        },
+        "fallen": {
+          "frames": 4,
+          "fps": 6,
+          "loop": false,
+          "idleFrame": 0,
+          "frameW": 137,
+          "frameH": 130,
+          "anchorX": 0.4681,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_ada_quill/fallen_full.webp"
+          }
+        },
+        "carry": {
+          "frames": 12,
+          "fps": 11,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 82,
+          "frameH": 133,
+          "anchorX": 0.463,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_ada_quill/carry_full.webp"
+          }
+        }
+      }
+    },
+    "brother_wick": {
+      "id": "legend_brother_wick",
+      "sex": "m",
+      "refHeight": 128,
+      "anims": {
+        "walk": {
+          "frames": 12,
+          "fps": 11,
+          "loop": true,
+          "idleFrame": 2,
+          "frameW": 87,
+          "frameH": 133,
+          "anchorX": 0.4756,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_brother_wick/walk_full.webp"
+          }
+        },
+        "idle": {
+          "frames": 6,
+          "fps": 6,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 61,
+          "frameH": 132,
+          "anchorX": 0.4932,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_brother_wick/idle_full.webp"
+          }
+        },
+        "work": {
+          "frames": 6,
+          "fps": 8,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 84,
+          "frameH": 131,
+          "anchorX": 0.4363,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_brother_wick/work_full.webp"
+          }
+        },
+        "fight": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 100,
+          "frameH": 132,
+          "anchorX": 0.3876,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_brother_wick/fight_full.webp"
+          }
+        },
+        "fallen": {
+          "frames": 4,
+          "fps": 6,
+          "loop": false,
+          "idleFrame": 0,
+          "frameW": 133,
+          "frameH": 130,
+          "anchorX": 0.493,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_brother_wick/fallen_full.webp"
+          }
+        },
+        "carry": {
+          "frames": 12,
+          "fps": 11,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 89,
+          "frameH": 133,
+          "anchorX": 0.4586,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_brother_wick/carry_full.webp"
+          }
+        }
+      }
+    },
+    "captain_orla": {
+      "id": "legend_captain_orla",
+      "sex": "f",
+      "refHeight": 128,
+      "anims": {
+        "walk": {
+          "frames": 12,
+          "fps": 11,
+          "loop": true,
+          "idleFrame": 2,
+          "frameW": 81,
+          "frameH": 133,
+          "anchorX": 0.4819,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_captain_orla/walk_full.webp"
+          }
+        },
+        "idle": {
+          "frames": 6,
+          "fps": 6,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 57,
+          "frameH": 132,
+          "anchorX": 0.5019,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_captain_orla/idle_full.webp"
+          }
+        },
+        "work": {
+          "frames": 6,
+          "fps": 8,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 61,
+          "frameH": 132,
+          "anchorX": 0.4305,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_captain_orla/work_full.webp"
+          }
+        },
+        "fight": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 90,
+          "frameH": 132,
+          "anchorX": 0.4287,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_captain_orla/fight_full.webp"
+          }
+        },
+        "fallen": {
+          "frames": 4,
+          "fps": 6,
+          "loop": false,
+          "idleFrame": 0,
+          "frameW": 133,
+          "frameH": 130,
+          "anchorX": 0.4628,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_captain_orla/fallen_full.webp"
+          }
+        },
+        "carry": {
+          "frames": 12,
+          "fps": 11,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 83,
+          "frameH": 133,
+          "anchorX": 0.4671,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_captain_orla/carry_full.webp"
+          }
+        }
+      }
+    },
+    "doc_ferris": {
+      "id": "legend_doc_ferris",
+      "sex": "m",
+      "refHeight": 128,
+      "anims": {
+        "walk": {
+          "frames": 12,
+          "fps": 11,
+          "loop": true,
+          "idleFrame": 2,
+          "frameW": 85,
+          "frameH": 134,
+          "anchorX": 0.4876,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_doc_ferris/walk_full.webp"
+          }
+        },
+        "idle": {
+          "frames": 6,
+          "fps": 6,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 59,
+          "frameH": 131,
+          "anchorX": 0.5098,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_doc_ferris/idle_full.webp"
+          }
+        },
+        "work": {
+          "frames": 6,
+          "fps": 8,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 86,
+          "frameH": 131,
+          "anchorX": 0.471,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_doc_ferris/work_full.webp"
+          }
+        },
+        "fight": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 95,
+          "frameH": 131,
+          "anchorX": 0.4133,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_doc_ferris/fight_full.webp"
+          }
+        },
+        "fallen": {
+          "frames": 4,
+          "fps": 6,
+          "loop": false,
+          "idleFrame": 0,
+          "frameW": 141,
+          "frameH": 130,
+          "anchorX": 0.5,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_doc_ferris/fallen_full.webp"
+          }
+        },
+        "carry": {
+          "frames": 12,
+          "fps": 11,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 87,
+          "frameH": 134,
+          "anchorX": 0.4649,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_doc_ferris/carry_full.webp"
+          }
+        }
+      }
+    },
+    "granny_ash": {
+      "id": "legend_granny_ash",
+      "sex": "f",
+      "refHeight": 128,
+      "anims": {
+        "walk": {
+          "frames": 12,
+          "fps": 11,
+          "loop": true,
+          "idleFrame": 2,
+          "frameW": 85,
+          "frameH": 134,
+          "anchorX": 0.4899,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_granny_ash/walk_full.webp"
+          }
+        },
+        "idle": {
+          "frames": 6,
+          "fps": 6,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 64,
+          "frameH": 130,
+          "anchorX": 0.5534,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_granny_ash/idle_full.webp"
+          }
+        },
+        "work": {
+          "frames": 6,
+          "fps": 8,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 67,
+          "frameH": 131,
+          "anchorX": 0.4139,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_granny_ash/work_full.webp"
+          }
+        },
+        "fight": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 92,
+          "frameH": 133,
+          "anchorX": 0.4059,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_granny_ash/fight_full.webp"
+          }
+        },
+        "fallen": {
+          "frames": 4,
+          "fps": 6,
+          "loop": false,
+          "idleFrame": 0,
+          "frameW": 139,
+          "frameH": 130,
+          "anchorX": 0.4796,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_granny_ash/fallen_full.webp"
+          }
+        },
+        "carry": {
+          "frames": 12,
+          "fps": 11,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 85,
+          "frameH": 134,
+          "anchorX": 0.4695,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_granny_ash/carry_full.webp"
+          }
+        }
+      }
+    },
+    "june_halloran": {
+      "id": "legend_june_halloran",
+      "sex": "f",
+      "refHeight": 128,
+      "anims": {
+        "walk": {
+          "frames": 12,
+          "fps": 11,
+          "loop": true,
+          "idleFrame": 2,
+          "frameW": 85,
+          "frameH": 133,
+          "anchorX": 0.4783,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_june_halloran/walk_full.webp"
+          }
+        },
+        "idle": {
+          "frames": 6,
+          "fps": 6,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 65,
+          "frameH": 131,
+          "anchorX": 0.5327,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_june_halloran/idle_full.webp"
+          }
+        },
+        "work": {
+          "frames": 6,
+          "fps": 8,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 76,
+          "frameH": 131,
+          "anchorX": 0.4913,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_june_halloran/work_full.webp"
+          }
+        },
+        "fight": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 100,
+          "frameH": 132,
+          "anchorX": 0.4168,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_june_halloran/fight_full.webp"
+          }
+        },
+        "fallen": {
+          "frames": 4,
+          "fps": 6,
+          "loop": false,
+          "idleFrame": 0,
+          "frameW": 139,
+          "frameH": 130,
+          "anchorX": 0.4725,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_june_halloran/fallen_full.webp"
+          }
+        },
+        "carry": {
+          "frames": 12,
+          "fps": 11,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 87,
+          "frameH": 133,
+          "anchorX": 0.4644,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_june_halloran/carry_full.webp"
+          }
+        }
+      }
+    },
+    "lucky_lou": {
+      "id": "legend_lucky_lou",
+      "sex": "m",
+      "refHeight": 128,
+      "anims": {
+        "walk": {
+          "frames": 12,
+          "fps": 11,
+          "loop": true,
+          "idleFrame": 2,
+          "frameW": 87,
+          "frameH": 134,
+          "anchorX": 0.4815,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_lucky_lou/walk_full.webp"
+          }
+        },
+        "idle": {
+          "frames": 6,
+          "fps": 6,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 61,
+          "frameH": 134,
+          "anchorX": 0.4965,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_lucky_lou/idle_full.webp"
+          }
+        },
+        "work": {
+          "frames": 6,
+          "fps": 8,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 75,
+          "frameH": 131,
+          "anchorX": 0.38,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_lucky_lou/work_full.webp"
+          }
+        },
+        "fight": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 98,
+          "frameH": 132,
+          "anchorX": 0.4109,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_lucky_lou/fight_full.webp"
+          }
+        },
+        "fallen": {
+          "frames": 4,
+          "fps": 6,
+          "loop": false,
+          "idleFrame": 0,
+          "frameW": 154,
+          "frameH": 130,
+          "anchorX": 0.4903,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_lucky_lou/fallen_full.webp"
+          }
+        },
+        "carry": {
+          "frames": 12,
+          "fps": 11,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 89,
+          "frameH": 134,
+          "anchorX": 0.4591,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_lucky_lou/carry_full.webp"
+          }
+        }
+      }
+    },
+    "marla_voss": {
+      "id": "legend_marla_voss",
+      "sex": "f",
+      "refHeight": 128,
+      "anims": {
+        "walk": {
+          "frames": 12,
+          "fps": 11,
+          "loop": true,
+          "idleFrame": 2,
+          "frameW": 83,
+          "frameH": 133,
+          "anchorX": 0.4811,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_marla_voss/walk_full.webp"
+          }
+        },
+        "idle": {
+          "frames": 6,
+          "fps": 6,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 58,
+          "frameH": 131,
+          "anchorX": 0.4855,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_marla_voss/idle_full.webp"
+          }
+        },
+        "work": {
+          "frames": 6,
+          "fps": 8,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 63,
+          "frameH": 131,
+          "anchorX": 0.4145,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_marla_voss/work_full.webp"
+          }
+        },
+        "fight": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 92,
+          "frameH": 132,
+          "anchorX": 0.4233,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_marla_voss/fight_full.webp"
+          }
+        },
+        "fallen": {
+          "frames": 4,
+          "fps": 6,
+          "loop": false,
+          "idleFrame": 0,
+          "frameW": 135,
+          "frameH": 130,
+          "anchorX": 0.4744,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_marla_voss/fallen_full.webp"
+          }
+        },
+        "carry": {
+          "frames": 12,
+          "fps": 11,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 86,
+          "frameH": 134,
+          "anchorX": 0.4591,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_marla_voss/carry_full.webp"
+          }
+        }
+      }
+    },
+    "pip": {
+      "id": "legend_pip",
+      "sex": "f",
+      "refHeight": 128,
+      "anims": {
+        "walk": {
+          "frames": 12,
+          "fps": 11,
+          "loop": true,
+          "idleFrame": 2,
+          "frameW": 83,
+          "frameH": 132,
+          "anchorX": 0.4667,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_pip/walk_full.webp"
+          }
+        },
+        "idle": {
+          "frames": 6,
+          "fps": 6,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 58,
+          "frameH": 131,
+          "anchorX": 0.5048,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_pip/idle_full.webp"
+          }
+        },
+        "work": {
+          "frames": 6,
+          "fps": 8,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 70,
+          "frameH": 131,
+          "anchorX": 0.433,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_pip/work_full.webp"
+          }
+        },
+        "fight": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 94,
+          "frameH": 132,
+          "anchorX": 0.4087,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_pip/fight_full.webp"
+          }
+        },
+        "fallen": {
+          "frames": 4,
+          "fps": 6,
+          "loop": false,
+          "idleFrame": 0,
+          "frameW": 142,
+          "frameH": 130,
+          "anchorX": 0.471,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_pip/fallen_full.webp"
+          }
+        },
+        "carry": {
+          "frames": 12,
+          "fps": 11,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 86,
+          "frameH": 132,
+          "anchorX": 0.4652,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_pip/carry_full.webp"
+          }
+        }
+      }
+    },
+    "rook": {
+      "id": "legend_rook",
+      "sex": "m",
+      "refHeight": 128,
+      "anims": {
+        "walk": {
+          "frames": 12,
+          "fps": 11,
+          "loop": true,
+          "idleFrame": 2,
+          "frameW": 86,
+          "frameH": 132,
+          "anchorX": 0.4707,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_rook/walk_full.webp"
+          }
+        },
+        "idle": {
+          "frames": 6,
+          "fps": 6,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 68,
+          "frameH": 132,
+          "anchorX": 0.4881,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_rook/idle_full.webp"
+          }
+        },
+        "work": {
+          "frames": 6,
+          "fps": 8,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 87,
+          "frameH": 132,
+          "anchorX": 0.4678,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_rook/work_full.webp"
+          }
+        },
+        "fight": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 97,
+          "frameH": 132,
+          "anchorX": 0.4016,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_rook/fight_full.webp"
+          }
+        },
+        "fallen": {
+          "frames": 4,
+          "fps": 6,
+          "loop": false,
+          "idleFrame": 0,
+          "frameW": 138,
+          "frameH": 130,
+          "anchorX": 0.497,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_rook/fallen_full.webp"
+          }
+        },
+        "carry": {
+          "frames": 12,
+          "fps": 11,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 92,
+          "frameH": 132,
+          "anchorX": 0.4641,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_rook/carry_full.webp"
+          }
+        }
+      }
+    },
+    "seven": {
+      "id": "legend_seven",
+      "sex": "m",
+      "refHeight": 128,
+      "anims": {
+        "walk": {
+          "frames": 12,
+          "fps": 11,
+          "loop": true,
+          "idleFrame": 2,
+          "frameW": 86,
+          "frameH": 133,
+          "anchorX": 0.4802,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_seven/walk_full.webp"
+          }
+        },
+        "idle": {
+          "frames": 6,
+          "fps": 6,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 61,
+          "frameH": 133,
+          "anchorX": 0.4789,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_seven/idle_full.webp"
+          }
+        },
+        "work": {
+          "frames": 6,
+          "fps": 8,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 74,
+          "frameH": 132,
+          "anchorX": 0.3779,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_seven/work_full.webp"
+          }
+        },
+        "fight": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 97,
+          "frameH": 132,
+          "anchorX": 0.4144,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_seven/fight_full.webp"
+          }
+        },
+        "fallen": {
+          "frames": 4,
+          "fps": 6,
+          "loop": false,
+          "idleFrame": 0,
+          "frameW": 144,
+          "frameH": 130,
+          "anchorX": 0.4871,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_seven/fallen_full.webp"
+          }
+        },
+        "carry": {
+          "frames": 12,
+          "fps": 11,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 88,
+          "frameH": 133,
+          "anchorX": 0.4583,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_seven/carry_full.webp"
+          }
+        }
+      }
+    }
   }
 }
