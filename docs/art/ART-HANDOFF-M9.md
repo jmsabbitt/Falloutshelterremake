@@ -12,7 +12,7 @@ The game is original IP: atompunk, 1950s Americana gone to seed, chunky cartoon 
 
 ## Status after the round-2 art session (2026-09-26)
 
-Sections 1 to 8 are done and built into `public/sprites/`, including the Act 4 additions (two more loot icons, the two Act 4 finale bosses, eight Act 4 bosses, the ten ending illustrations and the sixteen optional Act 4 regular enemies). Section 9 (bespoke legend bodies) is not started. The loader is now wired for it, so it can be delivered one legend at a time (see section 9).
+Sections 1 to 8 are done and built into `public/sprites/`, including the Act 4 additions (two more loot icons, the two Act 4 finale bosses, eight Act 4 bosses, the ten ending illustrations and the sixteen optional Act 4 regular enemies). Section 9 (bespoke legend bodies) is done too: all 11 legends have all six sheets (see the section 9 notes below).
 
 | # | Delivered | Source | Output |
 |---|---|---|---|
@@ -40,6 +40,15 @@ Notes on the topside buildings (for the code session):
 - `tools/sprites/build.py` gained `"trimBottom": true` for `whole` images, so the base of each building sits on the ground line.
 
 Credits: 130,210 left after this round, including the Act 4 additions (renews 2026-10-07).
+
+Section 9, bespoke legend bodies (2026-09-28):
+- All 11 legends have walk, idle, work, fight, fallen and carry in `art/raw/legend_<id>/`, built to `public/sprites/legend_<id>/` and listed under `legends` in the manifest. Lucky Lou is on magenta.
+- Method: image-to-image from the matching resident sheet plus the legend's approved walk sheet (the walk itself came from the resident walk plus the portrait). One `carry` reference (the woman's) served both sexes.
+- The model drew idle and work as 2 rows even when asked for one. Both use row 1 only (`drop` 6–11), so work is 6 frames. Row 2 of work drifted into walking.
+- Fallen needed the most work. The model kept adding extra standing figures and a second row. Each `fallen.png` is a cleaned single row of exactly 4 poses, cut from the best row of a generation (June and Orla are edits of Ada's good sheet). They are all built with `"order": "x"`. Marla's lying frame faced the other way, so it has `"flip": [3]`.
+- Lou's sheets came with a thin ground line under each row, which was painted out. Pip's fight had muzzle flashes bridging frames; those were erased and cut lines added at the emptiest columns.
+- Checked in the browser: `homestead.m9.legend('marla_voss', true)` returns ok, `homesteadView.figures()` lists `"legend:marla_voss": 1`, and she stands in the door room at resident scale.
+- Credits: 120,330 left after section 9 (about 76 images, 9,880 credits).
 
 Integrated by the code session (2026-09-26):
 - **Surface buildings:** the 3-cell types now stand one painting per segment, so merged Solar Arrays and the rest no longer stretch.
