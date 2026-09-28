@@ -22,6 +22,14 @@
       ],
       "trimBottom": true
     },
+    "2w2": {
+      "file": "level2_w2.png",
+      "whole": true,
+      "names": [
+        "2w2"
+      ],
+      "trimBottom": true
+    },
     "3": {
       "file": "level3.png",
       "whole": true,
@@ -29,6 +37,22 @@
         "3"
       ],
       "trimBottom": true
+    },
+    "3w2": {
+      "file": "level3_w2.png",
+      "whole": true,
+      "names": [
+        "3w2"
+      ],
+      "trimBottom": true
+    },
+    "rotor": {
+      "file": "rotor.png",
+      "whole": true,
+      "names": [
+        "rotor"
+      ],
+      "background": "magenta"
     }
   }
 }

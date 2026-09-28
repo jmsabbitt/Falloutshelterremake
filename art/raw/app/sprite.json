@@ -12,6 +12,13 @@
       "names": [
         "icon"
       ]
+    },
+    "splash": {
+      "file": "splash.png",
+      "whole": true,
+      "names": [
+        "splash"
+      ]
     }
   }
 }

@@ -1936,6 +1936,19 @@
           "files": {
             "full": "mauler/death_full.webp"
           }
+        },
+        "walk": {
+          "frames": 8,
+          "fps": 8,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 153,
+          "frameH": 169,
+          "anchorX": 0.5063,
+          "anchorY": 1.0,
+          "files": {
+            "full": "mauler/walk_full.webp"
+          }
         }
       }
     },
@@ -4098,7 +4111,8 @@
   },
   "portraits": {
     "app": {
-      "icon": "app/icon.webp"
+      "icon": "app/icon.webp",
+      "splash": "app/splash.webp"
     },
     "arrival": {
       "arrival": "portraits/arrival.webp"
@@ -4169,6 +4183,11 @@
       "rock_b": "fx/rock_b.webp",
       "rock_c": "fx/rock_c.webp",
       "rock_d": "fx/rock_d.webp"
+    },
+    "fx_door_damage": {
+      "1": "fx/door_damage_1.webp",
+      "2": "fx/door_damage_2.webp",
+      "3": "fx/door_damage_3.webp"
     },
     "fx_flood": {
       "pipe": "fx/pipe.webp"
@@ -4274,11 +4293,19 @@
     },
     "room_clinic": {
       "1": "rooms/room_clinic_1.webp",
+      "1w2": "rooms/room_clinic_1w2.webp",
+      "1w3": "rooms/room_clinic_1w3.webp",
       "2": "rooms/room_clinic_2.webp",
-      "3": "rooms/room_clinic_3.webp"
+      "2w2": "rooms/room_clinic_2w2.webp",
+      "2w3": "rooms/room_clinic_2w3.webp",
+      "3": "rooms/room_clinic_3.webp",
+      "3w2": "rooms/room_clinic_3w2.webp",
+      "3w3": "rooms/room_clinic_3w3.webp"
     },
     "room_door": {
-      "1": "rooms/room_door_1.webp"
+      "1": "rooms/room_door_1.webp",
+      "2": "rooms/room_door_2.webp",
+      "3": "rooms/room_door_3.webp"
     },
     "room_elevator": {
       "shaft": "rooms/room_elevator_shaft.webp",
@@ -4286,8 +4313,11 @@
     },
     "room_farm_plots": {
       "1": "rooms/room_farm_plots_1.webp",
+      "1w2": "rooms/room_farm_plots_1w2.webp",
       "2": "rooms/room_farm_plots_2.webp",
-      "3": "rooms/room_farm_plots_3.webp"
+      "2w2": "rooms/room_farm_plots_2w2.webp",
+      "3": "rooms/room_farm_plots_3.webp",
+      "3w2": "rooms/room_farm_plots_3w2.webp"
     },
     "room_frame": {
       "frame": "rooms/room_frame_frame.webp",
@@ -4317,8 +4347,14 @@
     },
     "room_lab": {
       "1": "rooms/room_lab_1.webp",
+      "1w2": "rooms/room_lab_1w2.webp",
+      "1w3": "rooms/room_lab_1w3.webp",
       "2": "rooms/room_lab_2.webp",
-      "3": "rooms/room_lab_3.webp"
+      "2w2": "rooms/room_lab_2w2.webp",
+      "2w3": "rooms/room_lab_2w3.webp",
+      "3": "rooms/room_lab_3.webp",
+      "3w2": "rooms/room_lab_3w2.webp",
+      "3w3": "rooms/room_lab_3w3.webp"
     },
     "room_office": {
       "1": "rooms/room_office_1.webp",
@@ -4332,8 +4368,14 @@
     },
     "room_purgelab": {
       "1": "rooms/room_purgelab_1.webp",
+      "1w2": "rooms/room_purgelab_1w2.webp",
+      "1w3": "rooms/room_purgelab_1w3.webp",
       "2": "rooms/room_purgelab_2.webp",
-      "3": "rooms/room_purgelab_3.webp"
+      "2w2": "rooms/room_purgelab_2w2.webp",
+      "2w3": "rooms/room_purgelab_2w3.webp",
+      "3": "rooms/room_purgelab_3.webp",
+      "3w2": "rooms/room_purgelab_3w2.webp",
+      "3w3": "rooms/room_purgelab_3w3.webp"
     },
     "room_quarters": {
       "1": "rooms/room_quarters_1.webp",
@@ -4348,13 +4390,22 @@
     },
     "room_radio": {
       "1": "rooms/room_radio_1.webp",
+      "1w2": "rooms/room_radio_1w2.webp",
+      "1w3": "rooms/room_radio_1w3.webp",
       "2": "rooms/room_radio_2.webp",
-      "3": "rooms/room_radio_3.webp"
+      "2w2": "rooms/room_radio_2w2.webp",
+      "2w3": "rooms/room_radio_2w3.webp",
+      "3": "rooms/room_radio_3.webp",
+      "3w2": "rooms/room_radio_3w2.webp",
+      "3w3": "rooms/room_radio_3w3.webp"
     },
     "room_rain_catcher": {
       "1": "rooms/room_rain_catcher_1.webp",
+      "1w2": "rooms/room_rain_catcher_1w2.webp",
       "2": "rooms/room_rain_catcher_2.webp",
-      "3": "rooms/room_rain_catcher_3.webp"
+      "2w2": "rooms/room_rain_catcher_2w2.webp",
+      "3": "rooms/room_rain_catcher_3.webp",
+      "3w2": "rooms/room_rain_catcher_3w2.webp"
     },
     "room_refinery": {
       "1": "rooms/room_refinery_1.webp",
@@ -4368,13 +4419,22 @@
     },
     "room_solar_array": {
       "1": "rooms/room_solar_array_1.webp",
+      "1w2": "rooms/room_solar_array_1w2.webp",
       "2": "rooms/room_solar_array_2.webp",
-      "3": "rooms/room_solar_array_3.webp"
+      "2w2": "rooms/room_solar_array_2w2.webp",
+      "3": "rooms/room_solar_array_3.webp",
+      "3w2": "rooms/room_solar_array_3w2.webp"
     },
     "room_storeroom": {
       "1": "rooms/room_storeroom_1.webp",
+      "1w2": "rooms/room_storeroom_1w2.webp",
+      "1w3": "rooms/room_storeroom_1w3.webp",
       "2": "rooms/room_storeroom_2.webp",
-      "3": "rooms/room_storeroom_3.webp"
+      "2w2": "rooms/room_storeroom_2w2.webp",
+      "2w3": "rooms/room_storeroom_2w3.webp",
+      "3": "rooms/room_storeroom_3.webp",
+      "3w2": "rooms/room_storeroom_3w2.webp",
+      "3w3": "rooms/room_storeroom_3w3.webp"
     },
     "room_trading_post": {
       "1": "rooms/room_trading_post_1.webp",
@@ -4405,7 +4465,10 @@
     "room_wind_turbine": {
       "1": "rooms/room_wind_turbine_1.webp",
       "2": "rooms/room_wind_turbine_2.webp",
-      "3": "rooms/room_wind_turbine_3.webp"
+      "2w2": "rooms/room_wind_turbine_2w2.webp",
+      "3": "rooms/room_wind_turbine_3.webp",
+      "3w2": "rooms/room_wind_turbine_3w2.webp",
+      "rotor": "rooms/room_wind_turbine_rotor.webp"
     },
     "ruin_homestead": {
       "wall1": "ruins/ruin_homestead_wall1.webp",
@@ -4463,7 +4526,9 @@
       "the_scorch": "sites/the_scorch.webp",
       "rust_country": "sites/rust_country.webp",
       "log_paper": "sites/log_paper.webp",
-      "relic_case": "sites/relic_case.webp"
+      "relic_case": "sites/relic_case.webp",
+      "dry_wells": "sites/dry_wells.webp",
+      "ribbon": "sites/ribbon.webp"
     },
     "ui_chrome": {
       "panel": "ui/panel.webp",
@@ -4550,7 +4615,11 @@
       "deep_day_one": "icons/deep_day_one.webp",
       "ruined": "icons/ruined.webp",
       "all_rooms": "icons/all_rooms.webp",
-      "faction_caravaners": "icons/faction_caravaners.webp"
+      "faction_caravaners": "icons/faction_caravaners.webp",
+      "creature": "icons/creature.webp",
+      "room": "icons/room.webp",
+      "seal_medal": "icons/seal_medal.webp",
+      "halcyon_log": "icons/halcyon_log.webp"
     }
   },
   "legends": {

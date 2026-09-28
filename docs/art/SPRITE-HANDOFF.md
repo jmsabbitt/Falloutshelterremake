@@ -231,3 +231,4 @@ We need commercial use rights with no attribution or exclusivity strings. Record
 | resident weapon grip fight sheets (ART-LIST §2), P1: pistol, long gun, melee, unarmed, heavy × male/female | artlist.io, Nano Banana 2 I2I 2K | AI Suite plan (credits) | 2026-09-28 | ☐ |
 | backdrops, elevator, fire, resource / crate / toolbar / HUD / status / incident / ruleset / faction icons (ART-LIST P1 and part of P2 and P3) | artlist.io, Nano Banana 2 I2I 2K | AI Suite plan (credits) | 2026-09-28 | ☐ |
 | Deep strata, frames, quest ruins, region banners, app icon, sites, UI chrome and the remaining ART-LIST P2 and P3 images | artlist.io, Nano Banana 2 I2I 2K | AI Suite plan (credits) | 2026-09-28 | ☐ |
+| wide room walls (ART-LIST §1), P2: storeroom, clinic, purgelab, radio, lab and the four surface types; door levels 2 and 3, mauler walk, door-damage patches, rotor, site art | artlist.io, Nano Banana 2 I2I 2K | AI Suite plan (credits) | 2026-09-28 | ☐ |

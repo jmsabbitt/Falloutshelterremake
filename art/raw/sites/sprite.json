@@ -40,6 +40,21 @@
       "names": [
         "relic_case"
       ]
+    },
+    "dry_wells": {
+      "file": "dry_wells.png",
+      "whole": true,
+      "names": [
+        "dry_wells"
+      ]
+    },
+    "ribbon": {
+      "file": "ribbon.png",
+      "whole": true,
+      "names": [
+        "ribbon"
+      ],
+      "background": "magenta"
     }
   }
 }
