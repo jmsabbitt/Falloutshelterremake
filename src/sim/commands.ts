@@ -8,7 +8,7 @@ import { canMove, canPlace, connectedRoomIds, mergeFloor, roomDef } from './grid
 import { bump, effectiveMaxHp, effectiveStat, isAway, isChild, residentsInRoom, reviveCost } from './residents';
 import { claimDaily, openCrate, settle } from './systems/crates';
 import { equip, grantItem, sell, unequip } from './systems/items';
-import { collectExpedition, onResidentRevived, recallExpedition, startExpedition } from './systems/exploration';
+import { collectExpedition, fizzHome, onResidentRevived, recallExpedition, startExpedition } from './systems/exploration';
 import { cancelCraft, collectCraft, reforge, scrapItem, startCraft } from './systems/crafting';
 import { batchOutput, collectRoom } from './systems/production';
 import { buyPerk, collectOutposts } from './systems/prestige';
@@ -50,6 +50,8 @@ export type Command =
   // M3
   | { type: 'explore'; residentId: number; regionId: string; medpatch: number; purge: number }
   | { type: 'recall'; expeditionId: number }
+  /** Halcyon Fizz: bring an explorer home at once, for a bottle or for scrip. */
+  | { type: 'fizzHome'; expeditionId: number; pay: 'fizz' | 'scrip' }
   | { type: 'collectExpedition'; expeditionId: number }
   | { type: 'craft'; roomId: number; defId: string }
   | { type: 'collectCraft'; roomId: number }
@@ -441,6 +443,9 @@ function dispatch(state: GameState, content: Content, cmd: Command): CommandResu
       return result(startExpedition(state, content, cmd.residentId, cmd.regionId, { medpatch: cmd.medpatch, purge: cmd.purge }));
     case 'recall':
       return result(recallExpedition(state, content, cmd.expeditionId));
+    case 'fizzHome':
+      if (cmd.pay !== 'fizz' && cmd.pay !== 'scrip') return fail('bad payment');
+      return result(fizzHome(state, content, cmd.expeditionId, cmd.pay));
     case 'collectExpedition':
       return result(collectExpedition(state, content, cmd.expeditionId));
     case 'craft':

@@ -11,6 +11,7 @@ import type { CrateCard, CrateTier, GameEvent, GameState, Rarity, ResourceKey } 
 import { checkAchievements } from './achievements';
 import { grantItem, randomItemOf } from './items';
 import { crateLegends, legendsContent, recruitLegend } from './legends';
+import { addFizz } from './exploration';
 
 interface Weighted {
   w: number;
@@ -70,6 +71,14 @@ function cardFrom(state: GameState, content: Content, entry: CardEntry): CrateCa
     const refund = Math.round((amount - kept) * content.balance.crates.overflowScripPerUnit);
     if (refund > 0) addScrip(state, content, refund);
     return { kind: 'resource', resource: key, amount, ...(refund > 0 ? { refund } : {}) };
+  }
+  if (entry.kind === 'fizz') {
+    const amount = entry.amount ?? 1;
+    // Past the carry limit, bottles are sold on like overflowing supplies.
+    const over = addFizz(state, content, amount);
+    const refund = over * content.balance.fizz.minScrip;
+    if (refund > 0) addScrip(state, content, refund);
+    return { kind: 'fizz', amount, ...(refund > 0 ? { refund } : {}) };
   }
   const rarity = (entry.rarity ?? 'common') as Rarity;
   if (entry.kind === 'resident') {
@@ -135,6 +144,9 @@ export function claimDaily(state: GameState, content: Content, day: number): Cra
   state.daily.lastDay = day;
   const tier = (state.daily.streak % 7 === 0 ? content.balance.crates.daily.seventh : content.balance.crates.daily.normal) as CrateTier;
   earnCrate(state, tier, 'daily');
+  // Every few days in a row, a bottle of Halcyon Fizz comes with it.
+  const every = content.balance.fizz.dailyEvery;
+  if (every > 0 && state.daily.streak % every === 0) addFizz(state, content, 1);
   bumpMax(state, 'bestDailyStreak', state.daily.streak);
   return tier;
 }

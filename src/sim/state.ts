@@ -66,6 +66,7 @@ export function newGame(content: Content, opts: NewGameOptions = {}): GameState 
     story: { endings: {}, current: null, open: false, title: null },
     crates: { ...start.crates },
     crateTokens: 0,
+    fizz: content.balance.fizz.start,
     pity: 0,
     daily: { lastDay: -1, streak: 0 },
     milestones: [],

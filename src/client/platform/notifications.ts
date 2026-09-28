@@ -129,9 +129,13 @@ function scheduleWeb(plan: PlannedNotification[]): void {
  * The first time notifications would matter (the first explorer or caravan
  * sent), HALCY asks. Asked once; a "no" is remembered and never nags.
  */
+let asking = false;
+
 export async function maybeAskPermission(): Promise<void> {
   const s = getSettings();
-  if (s.notifyAsked) return;
+  // Two explorers sent back to back must not stack two questions (the settings flag is set after an await).
+  if (s.notifyAsked || asking) return;
+  asking = true;
   const now = await notifyPermission();
   if (now === 'unsupported') return;
   if (now !== 'prompt') {

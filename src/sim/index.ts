@@ -34,6 +34,8 @@ export {
   canExplore,
   carriedCount,
   secondsUntilHome,
+  fizzHeld,
+  fizzScripCost,
   MAX_SUPPLIES,
   MAX_EXPLORERS,
   CARRY_LIMIT,

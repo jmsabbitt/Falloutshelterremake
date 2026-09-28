@@ -232,6 +232,7 @@ export type CrateCard =
   | { kind: 'scrip'; amount: number }
   | { kind: 'resource'; resource: ResourceKey; amount: number; /** Scrip paid for what didn't fit in storage. */ refund?: number }
   | { kind: 'tokens'; amount: number }
+  | { kind: 'fizz'; amount: number; /** Scrip paid for bottles past the carry limit. */ refund?: number }
   | { kind: 'item'; defId: string; rarity: Rarity; sold: number }
   | { kind: 'resident'; residentId: number; rarity: Rarity };
 
@@ -720,6 +721,8 @@ export interface GameState {
   story: StoryState;
   crates: Record<CrateTier, number>;
   crateTokens: number;
+  /** Bottles of Halcyon Fizz held (instant explorer return). Missing in older saves: 0. */
+  fizz?: number;
   /** Crates opened since the last legendary card (drives the pity guarantee). */
   pity: number;
   daily: { lastDay: number; streak: number };

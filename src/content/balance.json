@@ -485,6 +485,11 @@
       {
         "w": 30,
         "tokens": 5
+      },
+      {
+        "w": 14,
+        "kind": "fizz",
+        "amount": 1
       }
     ],
     "rareCard": [
@@ -549,5 +554,13 @@
     "crowdBonusMax": 0.25,
     "maxStat": 10,
     "levelMilestone": 10
+  },
+  "fizz": {
+    "_comment": "Halcyon Fizz: drink one and a returning explorer is home at once. Or pay scrip per minute of the trip left.",
+    "start": 1,
+    "maxHeld": 25,
+    "dailyEvery": 3,
+    "scripPerMinute": 2,
+    "minScrip": 25
   }
 }

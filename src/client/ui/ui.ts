@@ -25,6 +25,8 @@ import {
   salvageCount,
   scrapPreview,
   secondsUntilHome,
+  fizzHeld,
+  fizzScripCost,
   workersInRoom,
   workshopRecipes,
   CARRY_LIMIT,
@@ -2184,6 +2186,12 @@ export class UI {
         icon = '🎟';
         title = `${fmt(card.amount)} crate tokens`;
         break;
+      case 'fizz':
+        icon = '🥤';
+        title = `${card.amount} Halcyon Fizz`;
+        rarity = 'rare';
+        sub = card.refund ? `Carrying the most you can: sold for ${fmt(card.refund)} scrip` : 'Brings an explorer home at once';
+        break;
       case 'item': {
         const def = content.items[card.defId];
         rarity = card.rarity;
@@ -2378,6 +2386,7 @@ export class UI {
         'div',
         { class: 'row' },
         h('b', {}, `Explorers ${out}/${MAX_EXPLORERS}`),
+        h('span', { class: 'muted small', title: 'Halcyon Fizz: brings an explorer home at once' }, `🥤 ${fizzHeld(state)} Fizz`),
         h(
           'button',
           { class: 'primary close', disabled: !eligible.length || out >= MAX_EXPLORERS, onclick: () => this.showExploreModal(null) },
@@ -2453,8 +2462,17 @@ export class UI {
             : `after ${duration(e.elapsed)}`;
 
     const actions: HTMLElement[] = [];
-    if (e.status === 'exploring') {
-      actions.push(h('button', { onclick: () => this.expCmd({ type: 'recall', expeditionId: e.id }) }, 'Recall'));
+    if (e.status === 'exploring' || e.status === 'returning') {
+      if (e.status === 'exploring') actions.push(h('button', { onclick: () => this.expCmd({ type: 'recall', expeditionId: e.id }) }, 'Recall'));
+      // Halcyon Fizz: home right now, for a bottle or for scrip.
+      const who = r?.firstName ?? 'They';
+      const done = body ? `${who}'s body is home.` : `${who} is home. Collect when you're ready.`;
+      if (fizzHeld(state) > 0) {
+        actions.push(h('button', { class: 'primary', title: `Drink a Halcyon Fizz (${fizzHeld(state)} left)`, onclick: () => this.expCmd({ type: 'fizzHome', expeditionId: e.id, pay: 'fizz' }, done) }, `🥤 Home now`));
+      } else {
+        const cost = fizzScripCost(state, content, e);
+        actions.push(h('button', { disabled: state.scrip < cost, title: 'No Halcyon Fizz left: pay scrip instead', onclick: () => this.expCmd({ type: 'fizzHome', expeditionId: e.id, pay: 'scrip' }, done) }, `Home now · ${fmt(cost)} scrip`));
+      }
     } else if (e.status === 'returned') {
       actions.push(h('button', { class: 'primary', onclick: () => this.expCmd({ type: 'collectExpedition', expeditionId: e.id }) }, 'Collect'));
     } else if (e.status === 'dead' && r) {

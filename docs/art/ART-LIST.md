@@ -362,6 +362,11 @@ Every weapon, outfit and salvage type has an icon (`items/<id>.webp`), so the em
 
 ---
 
+### M9. Halcyon Fizz bottle (P1, 1 image, needs hookup)
+- **Now:** 🥤 emoji in the Explore panel, on the "Home now" button and on its crate card.
+- **What it is:** a new consumable. Drinking one brings an explorer home at once (the game's answer to an instant-return soda). It's Halcyon's own brand, so it should look like a 1950s company soda.
+- **Deliver:** `art/raw/ui_icons/fizz.png`, magenta background, one bottle, `kind: portrait`, `whole: true`, `fit: 96`, `outDir: icons`, `prefix: ""`. A curvy glass bottle with a crimped cap, fizzy amber-orange soda, and a teal-and-cream label with the Halcyon sunburst (no words). A little glow to say it's special, drawn inside the bottle's outline so it trims cleanly.
+
 ## 10. HUD, toolbar and UI icons
 
 All of these are emoji or letters today, and they sit right next to painted item icons. Deliver them like M1: `art/raw/ui_icons/<sheet>.png`, magenta, four icons per sheet with clear gaps, `kind: portrait`, `split: figures`, `order: x`, `fit: 96`, `outDir: icons`, `prefix: ""`, `names` left to right. Same icon style as the item icons: a single chunky object, three-quarter view, bold outline, readable at 20 px. The code session swaps each emoji for `sprites/icons/<name>.webp`.
