@@ -37,8 +37,15 @@
         }
         window.__bootError = show;
         window.addEventListener('error', function (e) {
+          // Capture phase also sees files that failed to load (a script or stylesheet),
+          // which otherwise leave a silent black screen.
+          var t = e.target;
+          if (t && t !== window && (t.tagName === 'SCRIPT' || t.tagName === 'LINK')) {
+            show('Could not load ' + (t.src || t.href || t.tagName));
+            return;
+          }
           show((e.message || 'error') + (e.filename ? ' @ ' + e.filename.split('/').pop() + ':' + e.lineno + ':' + e.colno : ''));
-        });
+        }, true);
         window.addEventListener('unhandledrejection', function (e) {
           var r = e.reason;
           show('Unhandled: ' + (r && (r.stack || r.message) ? String(r.stack || r.message).slice(0, 600) : String(r)));

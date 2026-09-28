@@ -14,7 +14,11 @@ self.addEventListener('install', (event) => {
   event.waitUntil(
     caches
       .open(CACHE)
-      .then((cache) => cache.addAll(PRECACHE))
+      // A few files at a time: hundreds of parallel requests can make a phone's
+      // connection (or the host) drop some, including the page's own scripts.
+      .then(async (cache) => {
+        for (let i = 0; i < PRECACHE.length; i += 6) await cache.addAll(PRECACHE.slice(i, i + 6));
+      })
       .then(() => self.skipWaiting()),
   );
 });
