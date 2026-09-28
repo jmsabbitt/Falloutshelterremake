@@ -22,6 +22,8 @@ import { tickProduction } from '../src/sim/systems/production';
 import type { Resident } from '../src/sim';
 
 const content = loadContent();
+/** The starter elevator shaft (the door is the six cells left of it). */
+const S = content.balance.grid.starterShaftX;
 const T0 = 1_700_000_000_000;
 const BASE = content.balance.grid.floors;
 
@@ -41,9 +43,9 @@ function addRoom(s: GameState, type: string, floor: number, x: number, extra: Pa
   return room;
 }
 
-/** Elevators at x = 6 from floor 3 down to `to` (the starter shaft covers 0..2). */
+/** Elevators at x = S from floor 3 down to `to` (the starter shaft covers 0..2). */
 function shaft(s: GameState, to: number): void {
-  for (let f = 3; f <= to; f++) if (!s.rooms.some((r) => r.type === 'elevator' && r.floor === f)) addRoom(s, 'elevator', f, 6);
+  for (let f = 3; f <= to; f++) if (!s.rooms.some((r) => r.type === 'elevator' && r.floor === f)) addRoom(s, 'elevator', f, S);
 }
 
 function research(s: GameState, ...ids: string[]): void {
@@ -99,7 +101,7 @@ describe('excavation', () => {
   it('an unconnected elevator on the bottom floor does not count', () => {
     const s = game();
     research(s, 'deep_survey');
-    addRoom(s, 'elevator', BASE - 1, 6);
+    addRoom(s, 'elevator', BASE - 1, S);
     expect(canExcavate(s, content)).toMatch(/elevator/);
   });
 
@@ -168,15 +170,15 @@ describe('deep floors and rooms', () => {
   it('opens five floors per stratum; the base grid stays at 25', () => {
     const s = game();
     expect(BASE).toBe(25);
-    expect(canPlace(s, content, 'elevator', BASE, 6).ok).toBe(false);
+    expect(canPlace(s, content, 'elevator', BASE, S).ok).toBe(false);
     s.deep.strata = 1;
     shaft(s, BASE - 1);
     expect(totalFloors(s, content)).toBe(BASE + 5);
-    expect(canPlace(s, content, 'elevator', BASE, 6).ok).toBe(true);
-    expect(canPlace(s, content, 'quarters', BASE, 7).ok).toBe(false); // nothing to attach to yet
+    expect(canPlace(s, content, 'elevator', BASE, S).ok).toBe(true);
+    expect(canPlace(s, content, 'quarters', BASE, S + 1).ok).toBe(false); // nothing to attach to yet
     shaft(s, BASE + 4);
-    expect(canPlace(s, content, 'quarters', BASE + 4, 7).ok).toBe(true);
-    const below = canPlace(s, content, 'elevator', BASE + 5, 6);
+    expect(canPlace(s, content, 'quarters', BASE + 4, S + 1).ok).toBe(true);
+    const below = canPlace(s, content, 'elevator', BASE + 5, S);
     expect(below.ok).toBe(false);
     expect(!below.ok && below.reason).toMatch(/excavate/);
     expect(isDeepFloor(content, BASE - 1)).toBe(false);
@@ -187,30 +189,30 @@ describe('deep floors and rooms', () => {
   it('deep rooms need their research and a deep floor', () => {
     const s = dug(1);
     const build = (roomType: string, floor: number, x: number) => applyCommand(s, content, { type: 'build', roomType, floor, x });
-    expect(build('geothermal', BASE, 7).ok).toBe(false);
+    expect(build('geothermal', BASE, S + 1).ok).toBe(false);
     research(s, 'geothermal_taps', 'fungal_farming', 'ore_refining');
     for (const id of ['geothermal', 'fungalfarm', 'refinery']) {
       expect(content.rooms[id]!.minFloor).toBe(BASE);
       expect(s.unlockedRooms).toContain(id);
     }
-    const shallow = build('geothermal', BASE - 1, 7);
+    const shallow = build('geothermal', BASE - 1, S + 1);
     expect(shallow.ok).toBe(false);
     expect(!shallow.ok && shallow.reason).toMatch(/Deep/);
-    expect(build('geothermal', BASE, 7).ok).toBe(true);
-    expect(build('fungalfarm', BASE + 1, 7).ok).toBe(true);
-    expect(build('refinery', BASE + 2, 7).ok).toBe(true);
+    expect(build('geothermal', BASE, S + 1).ok).toBe(true);
+    expect(build('fungalfarm', BASE + 1, S + 1).ok).toBe(true);
+    expect(build('refinery', BASE + 2, S + 1).ok).toBe(true);
     // Ordinary rooms are fine down here too.
-    expect(build('quarters', BASE + 3, 7).ok).toBe(true);
+    expect(build('quarters', BASE + 3, S + 1).ok).toBe(true);
     // The Aquifer Pump waits for the Cisterns.
     research(s, 'deep_survey_2');
-    expect(build('aquifer', BASE + 4, 7).ok).toBe(false);
+    expect(build('aquifer', BASE + 4, S + 1).ok).toBe(false);
   });
 
   it('deep rooms merge, and deep production beats the surface version', () => {
     const s = dug(1);
     research(s, 'geothermal_taps');
-    expect(applyCommand(s, content, { type: 'build', roomType: 'geothermal', floor: BASE, x: 7 }).ok).toBe(true);
-    expect(applyCommand(s, content, { type: 'build', roomType: 'geothermal', floor: BASE, x: 10 }).ok).toBe(true);
+    expect(applyCommand(s, content, { type: 'build', roomType: 'geothermal', floor: BASE, x: S + 1 }).ok).toBe(true);
+    expect(applyCommand(s, content, { type: 'build', roomType: 'geothermal', floor: BASE, x: S + 4 }).ok).toBe(true);
     const taps = s.rooms.filter((r) => r.type === 'geothermal');
     expect(taps).toHaveLength(1);
     expect(taps[0]!.segments).toBe(2);
@@ -264,7 +266,7 @@ describe('discoveries', () => {
   it('turns up more while residents work deep floors, online only', () => {
     const s = dug(1);
     s.deep.discoveries = ['s1_placard'];
-    const farm = addRoom(s, 'fungalfarm', BASE, 7);
+    const farm = addRoom(s, 'fungalfarm', BASE, S + 1);
     worker(s, farm);
     worker(s, farm);
     const need = workDiscoveryThreshold(content, 1);
@@ -291,7 +293,7 @@ describe('discoveries', () => {
   it('stops counting once a stratum is catalogued, so a new stratum starts fresh', () => {
     const s = dug(1);
     s.deep.discoveries = Object.values(deepContent(content).discoveries).filter((d) => d.stratum === 1).map((d) => d.id);
-    const farm = addRoom(s, 'fungalfarm', BASE, 7);
+    const farm = addRoom(s, 'fungalfarm', BASE, S + 1);
     worker(s, farm);
     for (let i = 0; i < 100; i++) tickDeep(s, content, 1, false);
     expect(s.stats['deepWorkSeconds'] ?? 0).toBe(0);
@@ -300,7 +302,7 @@ describe('discoveries', () => {
   it('nobody working deep, nothing found', () => {
     const s = dug(1);
     s.stats['deepWorkSeconds'] = 1e9;
-    addRoom(s, 'fungalfarm', BASE, 7);
+    addRoom(s, 'fungalfarm', BASE, S + 1);
     for (let i = 0; i < 10; i++) tickDeep(s, content, 1, false);
     expect(s.deep.discoveries).toHaveLength(0);
   });
@@ -309,7 +311,7 @@ describe('discoveries', () => {
 describe('refinery', () => {
   it('turns Knack into salvage at the tuned rate, online and offline', () => {
     const s = dug(1);
-    const ref = addRoom(s, 'refinery', BASE, 7);
+    const ref = addRoom(s, 'refinery', BASE, S + 1);
     worker(s, ref, { knack: 6 });
     worker(s, ref, { knack: 6 });
     const perHour = refineryPerHour(s, content, ref);
@@ -323,7 +325,7 @@ describe('refinery', () => {
     const a = dug(1, 5);
     const b = dug(1, 5);
     for (const g of [a, b]) {
-      const r = addRoom(g, 'refinery', BASE, 7);
+      const r = addRoom(g, 'refinery', BASE, S + 1);
       worker(g, r, { knack: 9 });
       r.pool = refineryBatch(content, r) - 30;
     }
@@ -336,7 +338,7 @@ describe('refinery', () => {
   it('is mostly steel and circuitry, and better levels find rarer pieces', () => {
     const rareShare = (level: number) => {
       const s = dug(1, 30 + level);
-      const ref = addRoom(s, 'refinery', BASE, 7, { level, segments: 3 });
+      const ref = addRoom(s, 'refinery', BASE, S + 1, { level, segments: 3 });
       for (let i = 0; i < 6; i++) worker(s, ref, { knack: 10 });
       const size = refineryBatch(content, ref);
       // 1,500 pieces, fed straight in.
@@ -360,7 +362,7 @@ describe('refinery', () => {
 
   it('stops without power, crew, or during an incident', () => {
     const s = dug(1);
-    const ref = addRoom(s, 'refinery', BASE, 7);
+    const ref = addRoom(s, 'refinery', BASE, S + 1);
     tickDeep(s, content, 600, true);
     expect(ref.pool).toBe(0);
     worker(s, ref, { knack: 5 });
@@ -381,7 +383,7 @@ describe('deep threats', () => {
   /** A deep homestead with a mixed layout and enough people for every deep threat. */
   function crowded(strata = 2, seed = 3): GameState {
     const s = dug(strata, seed);
-    for (let f = 3; f < totalFloors(s, content); f++) addRoom(s, 'quarters', f, 7);
+    for (let f = 3; f < totalFloors(s, content); f++) addRoom(s, 'quarters', f, S + 1);
     while (s.residents.filter((r) => !r.waiting).length < 40) {
       const r = createResident(s, content, {});
       r.waiting = false;
@@ -418,7 +420,7 @@ describe('deep threats', () => {
 
   it('never start without deep rooms, and never offline', () => {
     const s = game(8);
-    for (let f = 3; f < BASE; f++) addRoom(s, 'quarters', f, 7);
+    for (let f = 3; f < BASE; f++) addRoom(s, 'quarters', f, S + 1);
     shaft(s, BASE - 1);
     while (s.residents.filter((r) => !r.waiting).length < 40) {
       const r = createResident(s, content, {});
@@ -440,12 +442,12 @@ describe('deep threats', () => {
 
   it('a cave-in blocks production, does not spread, is dug out with Brawn, and settles if left', () => {
     const s = dug(1);
-    addRoom(s, 'fungalfarm', BASE, 7);
-    const mid = addRoom(s, 'geothermal', BASE, 10);
-    addRoom(s, 'fungalfarm', BASE, 13);
+    addRoom(s, 'fungalfarm', BASE, S + 1);
+    const mid = addRoom(s, 'geothermal', BASE, S + 4);
+    addRoom(s, 'fungalfarm', BASE, S + 7);
 
     // Production stops while the room is buried.
-    const tap = addRoom(s, 'geothermal', BASE + 2, 7);
+    const tap = addRoom(s, 'geothermal', BASE + 2, S + 1);
     worker(s, tap, { brawn: 6 });
     const buried = startIncident(s, content, 'cavein', tap);
     tickProduction(s, content, 10);
@@ -467,7 +469,7 @@ describe('deep threats', () => {
     // Brawny diggers clear it much faster than weak ones.
     const clearTime = (brawn: number) => {
       const g = dug(1, 9);
-      const room = addRoom(g, 'geothermal', BASE, 7);
+      const room = addRoom(g, 'geothermal', BASE, S + 1);
       worker(g, room, { brawn });
       worker(g, room, { brawn });
       startIncident(g, content, 'cavein', room);
@@ -485,11 +487,11 @@ describe('deep threats', () => {
   it('a flood spreads sideways only', () => {
     const s = dug(2);
     const f = BASE + 6;
-    const a = addRoom(s, 'fungalfarm', f, 7);
-    const b = addRoom(s, 'geothermal', f, 10);
-    const c = addRoom(s, 'refinery', f, 13);
-    const above = addRoom(s, 'geothermal', f - 1, 10);
-    const below = addRoom(s, 'geothermal', f + 1, 10);
+    const a = addRoom(s, 'fungalfarm', f, S + 1);
+    const b = addRoom(s, 'geothermal', f, S + 4);
+    const c = addRoom(s, 'refinery', f, S + 7);
+    const above = addRoom(s, 'geothermal', f - 1, S + 4);
+    const below = addRoom(s, 'geothermal', f + 1, S + 4);
     startIncident(s, content, 'flood', b);
     for (let i = 0; i < 25; i++) tickIncidents(s, content, 1);
     const rooms = s.incidents.map((i) => i.roomId).sort();
@@ -500,9 +502,9 @@ describe('deep threats', () => {
 
   it('Deepcrawlers come from dirt edges and never climb out of the Deep', () => {
     const s = dug(1);
-    const top = addRoom(s, 'quarters', BASE - 1, 7);
-    const deep = addRoom(s, 'fungalfarm', BASE, 7);
-    const next = addRoom(s, 'geothermal', BASE, 10);
+    const top = addRoom(s, 'quarters', BASE - 1, S + 1);
+    const deep = addRoom(s, 'fungalfarm', BASE, S + 1);
+    const next = addRoom(s, 'geothermal', BASE, S + 4);
     startIncident(s, content, 'deepcrawlers', deep);
     for (let i = 0; i < 15; i++) tickIncidents(s, content, 1);
     const rooms = s.incidents.map((i) => i.roomId);
@@ -512,8 +514,8 @@ describe('deep threats', () => {
 
   it('get tougher with depth, and Deep Bracing makes them clearly easier', () => {
     const s = dug(2);
-    const shallow = addRoom(s, 'geothermal', BASE, 7);
-    const deeper = addRoom(s, 'geothermal', BASE + 5, 7);
+    const shallow = addRoom(s, 'geothermal', BASE, S + 1);
+    const deeper = addRoom(s, 'geothermal', BASE + 5, S + 1);
     const a = startIncident(s, content, 'cavein', shallow);
     const b = startIncident(s, content, 'cavein', deeper);
     // Depth is split between HP and damage (sqrt each), so danger grows linearly.
@@ -534,7 +536,7 @@ describe('deep threats', () => {
   it('a fair fight: a level-10 crew of two clears a stratum-1 cave-in without serious injury', () => {
     const s = dug(1, 12);
     for (const r of s.residents) r.level = 10;
-    const room = addRoom(s, 'geothermal', BASE, 7);
+    const room = addRoom(s, 'geothermal', BASE, S + 1);
     const crew = [worker(s, room, { brawn: 5 }), worker(s, room, { brawn: 5 })];
     for (const r of crew) r.level = 10;
     startIncident(s, content, 'cavein', room);

@@ -4,7 +4,14 @@
 import { newLegacy } from './legacy';
 import type { GameState } from './types';
 
-export const SAVE_VERSION = 10;
+export const SAVE_VERSION = 11;
+
+/**
+ * v11 widened the grid from 26 to 44 cells and moved the starter shaft from
+ * x = 6 to x = 24 (balance.json grid.starterShaftX), so older homesteads shift
+ * right by this many cells (six segments) and gain the space on their left.
+ */
+export const V11_GRID_SHIFT = 18;
 
 interface SaveFile {
   format: 'homestead-save';
@@ -118,6 +125,13 @@ const migrations: Record<number, Migration> = {
   // v9 (Act 4) -> v10 (playtest 1): the first-homestead tutorial. Homesteads
   // saved before it existed started with the classic layout: nothing to teach.
   9: (s) => ({ ...s, tutorial: { step: 'done', done: true } }),
+  // v10 -> v11 (playtest 1, round 2): the wider grid. Every room (underground,
+  // the Deep and topside) shifts right together, so the layout is unchanged.
+  // Rooms are the only thing that stores a grid x; everything else points at a room id.
+  10: (s) => ({
+    ...s,
+    rooms: (s['rooms'] as Record<string, unknown>[]).map((r) => ({ ...r, x: (r['x'] as number) + V11_GRID_SHIFT })),
+  }),
 };
 
 export function serialize(state: GameState, now = Date.now()): string {

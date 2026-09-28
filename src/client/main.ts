@@ -3,7 +3,7 @@ import { Application } from 'pixi.js';
 import { Game } from './game';
 import { CharacterArt } from './render/sprites';
 import { QuestView } from './render/questView';
-import { VaultView } from './render/vaultView';
+import { CELL, FLOOR_H, SURFACE_H, VaultView } from './render/vaultView';
 import { UI } from './ui/ui';
 import { CustomGameUI } from './ui/custom';
 import { initPlatform, isNative } from './platform';
@@ -92,6 +92,9 @@ async function boot(): Promise<void> {
     worldToScreen: (x: number, y: number) => view.world.toGlobal({ x, y }),
     /** What the vault view has drawn (sprites, rooms, camera), to check a re-sync. */
     counts: () => view.debugCounts(),
+    /** Build or move slots on show (and how wide each merges to), and a slot's screen centre. */
+    ghosts: () => view.debugGhosts(),
+    cellScreen: (floor: number, x: number, cells = 3) => view.world.toGlobal({ x: (x + cells / 2) * CELL, y: SURFACE_H + floor * FLOOR_H + FLOOR_H / 2 }),
     /** Which animation each resident figure is showing, by action. */
     figures: () => view.debugFigures(),
     /** Quest screen: open one, and find enemies and rooms on screen. */

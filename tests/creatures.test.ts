@@ -295,7 +295,7 @@ describe('the Mauler meter', () => {
     s.research.done.push('fire_drills', 'door_gaskets');
     const researched = maulerRateMult(s, content);
     expect(researched).toBeLessThan(base);
-    const tower: Room = { id: s.nextId++, type: 'watchtower', floor: TOPSIDE_FLOOR, x: 3, segments: 1, level: 1, pool: 0, ready: false, powered: true, timer: 0, job: null, banked: 0 };
+    const tower: Room = { id: s.nextId++, type: 'watchtower', floor: TOPSIDE_FLOOR, x: content.balance.grid.starterShaftX - 3, segments: 1, level: 1, pool: 0, ready: false, powered: true, timer: 0, job: null, banked: 0 };
     s.rooms.push(tower);
     for (const r of s.residents.slice(0, 2)) {
       r.roomId = tower.id;

@@ -19,6 +19,8 @@ import {
 } from '../src/sim';
 
 const content = loadContent();
+/** The starter elevator shaft (the door is the six cells left of it). */
+const S = content.balance.grid.starterShaftX;
 const T0 = 1_700_000_000_000;
 
 const tut = (seed = 5): GameState => newGame(content, { seed, now: T0, tutorial: true });
@@ -43,7 +45,7 @@ function bestFor(s: GameState, type: string) {
 describe('tutorial new game', () => {
   it('starts with only the door and a three-floor elevator shaft', () => {
     const s = tut();
-    expect(s.rooms.map((r) => `${r.type}@${r.floor},${r.x}`).sort()).toEqual(['door@0,0', 'elevator@0,6', 'elevator@1,6', 'elevator@2,6']);
+    expect(s.rooms.map((r) => `${r.type}@${r.floor},${r.x}`).sort()).toEqual([`door@0,${S - 6}`, `elevator@0,${S}`, `elevator@1,${S}`, `elevator@2,${S}`]);
     expect(connectedRoomIds(s, content).size).toBe(4);
     expect(s.tutorial).toEqual({ step: 'admit', done: false, bedrolls: content.balance.start.waitingResidents });
     expect(s.residents.filter((r) => r.waiting)).toHaveLength(content.balance.start.waitingResidents);
@@ -52,11 +54,11 @@ describe('tutorial new game', () => {
   it('has free slots on both sides of the shaft on floors 1 and 2, and to its right on floor 0', () => {
     const s = tut();
     for (const floor of [1, 2]) {
-      expect(canPlace(s, content, 'generator', floor, 3).ok).toBe(true);
-      expect(canPlace(s, content, 'generator', floor, 7).ok).toBe(true);
+      expect(canPlace(s, content, 'generator', floor, S - 3).ok).toBe(true);
+      expect(canPlace(s, content, 'generator', floor, S + 1).ok).toBe(true);
     }
-    expect(canPlace(s, content, 'generator', 0, 7).ok).toBe(true);
-    expect(canPlace(s, content, 'generator', 0, 3).ok).toBe(false);
+    expect(canPlace(s, content, 'generator', 0, S + 1).ok).toBe(true);
+    expect(canPlace(s, content, 'generator', 0, S - 3).ok).toBe(false);
   });
 
   it('is off by default: the classic layout, with no tutorial state', () => {
@@ -72,7 +74,7 @@ describe('tutorial new game', () => {
     expect(population(s)).toBe(content.balance.start.waitingResidents);
     expect(storageCapacity(s, content, 'population')).toBe(content.balance.start.waitingResidents);
     // Quarters replace the bedrolls rather than adding to them.
-    ok(s, { type: 'build', roomType: 'quarters', floor: 0, x: 7 });
+    ok(s, { type: 'build', roomType: 'quarters', floor: 0, x: S + 1 });
     expect(storageCapacity(s, content, 'population')).toBe(8);
   });
 });
@@ -88,7 +90,7 @@ describe('tutorial steps', () => {
     expect(buildCost(s, content, 'generator')).toBe(0);
     expect(buildCost(s, content, 'canteen')).toBeGreaterThan(0);
     // Left of the shaft.
-    ok(s, { type: 'build', roomType: 'generator', floor: 1, x: 3 });
+    ok(s, { type: 'build', roomType: 'generator', floor: 1, x: S - 3 });
     expect(s.scrip).toBe(scrip);
     expect(step(s)).toBe('staff_power');
     expect(buildCost(s, content, 'generator')).toBeGreaterThan(0);
@@ -99,11 +101,11 @@ describe('tutorial steps', () => {
     ok(s, { type: 'assign', residentId: bestFor(s, 'generator')!.id, roomId: roomOf(s, 'generator').id });
     expect(step(s)).toBe('build_water');
     expect(buildCost(s, content, 'waterworks')).toBe(0);
-    ok(s, { type: 'build', roomType: 'waterworks', floor: 2, x: 7 });
+    ok(s, { type: 'build', roomType: 'waterworks', floor: 2, x: S + 1 });
     expect(step(s)).toBe('staff_water');
     ok(s, { type: 'assign', residentId: bestFor(s, 'waterworks')!.id, roomId: roomOf(s, 'waterworks').id });
     expect(step(s)).toBe('build_food');
-    ok(s, { type: 'build', roomType: 'canteen', floor: 1, x: 7 });
+    ok(s, { type: 'build', roomType: 'canteen', floor: 1, x: S + 1 });
     expect(step(s)).toBe('staff_food');
     ok(s, { type: 'assign', residentId: bestFor(s, 'canteen')!.id, roomId: roomOf(s, 'canteen').id });
     expect(s.scrip).toBe(scrip);
@@ -132,19 +134,19 @@ describe('tutorial steps', () => {
     const s = tut();
     const scrip = s.scrip;
     // Still on 'admit': nothing is free yet.
-    ok(s, { type: 'build', roomType: 'generator', floor: 1, x: 7 });
+    ok(s, { type: 'build', roomType: 'generator', floor: 1, x: S + 1 });
     expect(s.scrip).toBeLessThan(scrip);
   });
 
   it('skips past steps already done (built early, collected early)', () => {
     const s = tut();
     ok(s, { type: 'admitAll' });
-    ok(s, { type: 'build', roomType: 'generator', floor: 1, x: 7 });
+    ok(s, { type: 'build', roomType: 'generator', floor: 1, x: S + 1 });
     ok(s, { type: 'assign', residentId: bestFor(s, 'generator')!.id, roomId: roomOf(s, 'generator').id });
     // The canteen out of order: it costs, but its step is then already met.
-    ok(s, { type: 'build', roomType: 'canteen', floor: 1, x: 10 });
+    ok(s, { type: 'build', roomType: 'canteen', floor: 1, x: S + 4 });
     expect(step(s)).toBe('build_water');
-    ok(s, { type: 'build', roomType: 'waterworks', floor: 2, x: 3 });
+    ok(s, { type: 'build', roomType: 'waterworks', floor: 2, x: S - 3 });
     expect(step(s)).toBe('staff_water');
   });
 
@@ -163,7 +165,7 @@ describe('skipping the tutorial', () => {
   it('builds the missing core rooms free and connected, and ends it', () => {
     const s = tut();
     ok(s, { type: 'admitAll' });
-    ok(s, { type: 'build', roomType: 'generator', floor: 2, x: 3 });
+    ok(s, { type: 'build', roomType: 'generator', floor: 2, x: S - 3 });
     const scrip = s.scrip;
     ok(s, { type: 'skipTutorial' });
     expect(s.tutorial?.done).toBe(true);
@@ -194,7 +196,7 @@ describe('skipping the tutorial', () => {
 
 describe('save migration v9 -> v10', () => {
   it('marks existing homesteads as done with the tutorial', () => {
-    expect(SAVE_VERSION).toBe(10);
+    expect(SAVE_VERSION).toBeGreaterThanOrEqual(10);
     const s = newGame(content, { seed: 11, now: T0 });
     const { events: _e, tutorial: _t, ...rest } = s;
     const old = JSON.stringify({ format: 'homestead-save', version: 9, savedAt: 0, state: rest });

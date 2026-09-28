@@ -17,6 +17,8 @@ import {
 import type { WeatherKind } from '../src/sim/types';
 
 const content = loadContent();
+/** The starter elevator shaft (the door is the six cells left of it). */
+const S = content.balance.grid.starterShaftX;
 const T0 = 1_700_000_000_000;
 const tc = topsideContent(content);
 const TOPSIDE_ROOMS = ['solar_array', 'wind_turbine', 'rain_catcher', 'farm_plots', 'watchtower', 'trading_post', 'signal_mast'];
@@ -30,7 +32,7 @@ function game(seed = 7): GameState {
 }
 
 /** A room placed directly (placement has its own tests). */
-function addRoom(s: GameState, type: string, floor = TOPSIDE_FLOOR, x = 0, level = 1): Room {
+function addRoom(s: GameState, type: string, floor = TOPSIDE_FLOOR, x = S - 6, level = 1): Room {
   const room: Room = { id: s.nextId++, type, floor, x, segments: 1, level, pool: 0, ready: false, powered: true, timer: 0, job: null, banked: 0 };
   s.rooms.push(room);
   return room;
@@ -190,8 +192,8 @@ describe('weather and production', () => {
     const s = game();
     const gen = s.rooms.find((r) => r.type === 'generator')!;
     const tower = addRoom(s, 'watchtower');
-    const solar = addRoom(s, 'solar_array', TOPSIDE_FLOOR, 3);
-    const wind = addRoom(s, 'wind_turbine', TOPSIDE_FLOOR, 6);
+    const solar = addRoom(s, 'solar_array', TOPSIDE_FLOOR, S - 3);
+    const wind = addRoom(s, 'wind_turbine', TOPSIDE_FLOOR, S);
     expect(isTopside(tower)).toBe(true);
     expect(isTopside(gen)).toBe(false);
     for (const kind of Object.keys(tc.weather.kinds) as WeatherKind[]) {
@@ -288,7 +290,7 @@ describe('taint storms', () => {
     expect(stormShielding(s, content)).toBeCloseTo(0.4);
     tickWeather(s, content, 60, false);
     expect(worker.taint).toBeCloseTo(perMin * 0.6);
-    const tower = addRoom(s, 'watchtower', TOPSIDE_FLOOR, 3);
+    const tower = addRoom(s, 'watchtower', TOPSIDE_FLOOR, S - 3);
     staff(s, tower, 'sight', [5, 5]);
     expect(stormShielding(s, content)).toBeCloseTo(0.4 + tc.watchtower!.stormShelter[0]!);
     s.research.done.push('weather_seals', 'storm_drills');
@@ -315,31 +317,31 @@ describe('placement and research gating', () => {
   it('topside rooms need Topside Survey', () => {
     const s = ready();
     expect(s.unlockedRooms).not.toContain('solar_array');
-    const r = applyCommand(s, content, { type: 'build', roomType: 'solar_array', floor: TOPSIDE_FLOOR, x: 0 });
+    const r = applyCommand(s, content, { type: 'build', roomType: 'solar_array', floor: TOPSIDE_FLOOR, x: S - 6 });
     expect(r.ok).toBe(false);
     s.research.points = 1000;
     expect(applyCommand(s, content, { type: 'research', nodeId: 'topside_survey' }).ok).toBe(true);
     for (const id of TOPSIDE_ROOMS) expect(s.unlockedRooms, id).toContain(id);
-    expect(applyCommand(s, content, { type: 'build', roomType: 'solar_array', floor: TOPSIDE_FLOOR, x: 0 }).ok).toBe(true);
+    expect(applyCommand(s, content, { type: 'build', roomType: 'solar_array', floor: TOPSIDE_FLOOR, x: S - 6 }).ok).toBe(true);
   });
 
   it('go on the row above the door, attached through the door, and nowhere else', () => {
     const s = ready();
     s.research.done.push('topside_survey');
     refreshUnlocks(s, content);
-    expect(canPlace(s, content, 'solar_array', 0, 13).ok).toBe(false); // underground
-    expect(canPlace(s, content, 'solar_array', TOPSIDE_FLOOR, 12).ok).toBe(false); // not over the door, nothing beside it
-    expect(canPlace(s, content, 'generator', TOPSIDE_FLOOR, 0).ok).toBe(false); // underground rooms stay underground
-    expect(canPlace(s, content, 'solar_array', TOPSIDE_FLOOR, 3).ok).toBe(true); // overlaps the door (x 0-5)
-    expect(applyCommand(s, content, { type: 'build', roomType: 'watchtower', floor: TOPSIDE_FLOOR, x: 3 }).ok).toBe(true);
+    expect(canPlace(s, content, 'solar_array', 0, S + 7).ok).toBe(false); // underground
+    expect(canPlace(s, content, 'solar_array', TOPSIDE_FLOOR, S + 6).ok).toBe(false); // not over the door, nothing beside it
+    expect(canPlace(s, content, 'generator', TOPSIDE_FLOOR, S - 6).ok).toBe(false); // underground rooms stay underground
+    expect(canPlace(s, content, 'solar_array', TOPSIDE_FLOOR, S - 3).ok).toBe(true); // overlaps the door (S - 6 to S - 1)
+    expect(applyCommand(s, content, { type: 'build', roomType: 'watchtower', floor: TOPSIDE_FLOOR, x: S - 3 }).ok).toBe(true);
     // Now the row grows sideways from it.
-    expect(applyCommand(s, content, { type: 'build', roomType: 'trading_post', floor: TOPSIDE_FLOOR, x: 6 }).ok).toBe(true);
-    expect(applyCommand(s, content, { type: 'build', roomType: 'signal_mast', floor: TOPSIDE_FLOOR, x: 12 }).ok).toBe(true);
-    expect(applyCommand(s, content, { type: 'build', roomType: 'solar_array', floor: TOPSIDE_FLOOR, x: 0 }).ok).toBe(true);
+    expect(applyCommand(s, content, { type: 'build', roomType: 'trading_post', floor: TOPSIDE_FLOOR, x: S }).ok).toBe(true);
+    expect(applyCommand(s, content, { type: 'build', roomType: 'signal_mast', floor: TOPSIDE_FLOOR, x: S + 6 }).ok).toBe(true);
+    expect(applyCommand(s, content, { type: 'build', roomType: 'solar_array', floor: TOPSIDE_FLOOR, x: S - 6 }).ok).toBe(true);
     const ids = connectedRoomIds(s, content);
     for (const room of s.rooms.filter(isTopside)) expect(ids.has(room.id), room.type).toBe(true);
     // One trading post and one signal mast.
-    expect(applyCommand(s, content, { type: 'build', roomType: 'signal_mast', floor: TOPSIDE_FLOOR, x: 15 }).ok).toBe(false);
+    expect(applyCommand(s, content, { type: 'build', roomType: 'signal_mast', floor: TOPSIDE_FLOOR, x: S + 9 }).ok).toBe(false);
     advance(s, content, 1);
     expect(s.stats['topsideBuildings']).toBe(4);
     expect(s.achievements['topside_first']).toBeDefined();
@@ -349,8 +351,8 @@ describe('placement and research gating', () => {
     const s = ready();
     s.research.done.push('topside_survey');
     refreshUnlocks(s, content);
-    expect(applyCommand(s, content, { type: 'build', roomType: 'solar_array', floor: TOPSIDE_FLOOR, x: 0 }).ok).toBe(true);
-    expect(applyCommand(s, content, { type: 'build', roomType: 'solar_array', floor: TOPSIDE_FLOOR, x: 3 }).ok).toBe(true);
+    expect(applyCommand(s, content, { type: 'build', roomType: 'solar_array', floor: TOPSIDE_FLOOR, x: S - 6 }).ok).toBe(true);
+    expect(applyCommand(s, content, { type: 'build', roomType: 'solar_array', floor: TOPSIDE_FLOOR, x: S - 3 }).ok).toBe(true);
     const arrays = s.rooms.filter((r) => r.type === 'solar_array');
     expect(arrays.length).toBe(1);
     expect(arrays[0]!.segments).toBe(2);
@@ -390,7 +392,7 @@ describe('watchtower raid defense', () => {
     tower.level = 3;
     d = raidDefense(s, content);
     expect(d.doorDamageMult).toBeCloseTo(1 - t.doorShare[2]!);
-    const second = addRoom(s, 'watchtower', TOPSIDE_FLOOR, 3, 3);
+    const second = addRoom(s, 'watchtower', TOPSIDE_FLOOR, S - 3, 3);
     staff(s, second, 'sight', [10]);
     d = raidDefense(s, content);
     expect(d.towers).toBe(2);

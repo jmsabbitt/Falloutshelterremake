@@ -1410,6 +1410,11 @@ button.pulse { animation: ready 0.6s infinite alternate; }
 .gain-vals .to { color: var(--ok); }
 .room-danger { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 18px 0 calc(4px + var(--safe-bottom, 0px)); padding-top: 10px; border-top: 1px dashed #45625f; }
 .room-danger .danger { flex: none; }
+/* Round 2: moving a room for scrip, and the bar shown while picking where it goes. */
+.room-move { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 18px; padding-top: 10px; border-top: 1px dashed #45625f; }
+.room-move button { flex: none; }
+.room-move + .room-danger { margin-top: 10px; }
+.panel.sheet-bar.move-bar { border-color: #f2a541; }
 
 /* Workshop recipes: the item's art and rarity, needs as "need 2 · have 30", time beside Craft. */
 .recipe-head { display: flex; align-items: center; gap: 6px; }

@@ -562,6 +562,8 @@ export type GameEvent =
   | { type: 'grewUp'; residentId: number }
   | { type: 'roomBuilt'; roomId: number; roomType: string }
   | { type: 'roomUpgraded'; roomId: number; level: number }
+  /** A room was moved whole to (floor, x); `roomId` is the room it ended up as (a merge keeps the left room's id). */
+  | { type: 'roomMoved'; roomId: number; roomType: string; fromFloor: number; fromX: number; floor: number; x: number; cost: number }
   | { type: 'roomsMerged'; roomId: number; segments: number }
   | { type: 'roomUnlocked'; roomType: string }
   | { type: 'crateEarned'; tier: CrateTier; source: string }

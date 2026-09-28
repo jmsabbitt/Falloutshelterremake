@@ -2,10 +2,11 @@
 // for browser testing at scale. Rooms go through the build and upgrade
 // commands; residents are edited the way the other dev helpers do it.
 
+import { starterShaftX } from '../sim/grid';
 import { createResident, hpPerLevel } from '../sim/residents';
 import type { Game } from './game';
 
-/** Room types per floor: the right-hand run (x 7–24) and the left of the shaft (x 0–5). */
+/** Room types per floor: the run right of the starter shaft, and the run left of it (from the shaft outwards). */
 const PLAN: { right: string[]; left?: string[] }[] = [
   { right: ['quarters', 'quarters', 'quarters', 'quarters', 'quarters', 'quarters'] },
   { right: ['generator', 'canteen', 'canteen', 'generator', 'generator', 'generator'] },
@@ -32,10 +33,11 @@ export function qolConsole(game: Game) {
       for (const def of content.roomList) {
         if (def.buildable && !def.requiresResearch && def.minFloor === undefined && !state.unlockedRooms.includes(def.id)) state.unlockedRooms.push(def.id);
       }
-      for (let f = 3; f < PLAN.length; f++) game.run({ type: 'build', roomType: 'elevator', floor: f, x: 6 });
+      const S = starterShaftX(content);
+      for (let f = 3; f < PLAN.length; f++) game.run({ type: 'build', roomType: 'elevator', floor: f, x: S });
       PLAN.forEach((row, floor) => {
-        row.right.forEach((type, i) => type && game.run({ type: 'build', roomType: type, floor, x: 7 + i * 3 }));
-        row.left?.forEach((type, i) => game.run({ type: 'build', roomType: type, floor, x: i * 3 }));
+        row.right.forEach((type, i) => type && game.run({ type: 'build', roomType: type, floor, x: S + 1 + i * 3 }));
+        row.left?.forEach((type, i) => game.run({ type: 'build', roomType: type, floor, x: S - 3 - i * 3 }));
       });
       // Upgrade: every Quarters to the top, the rest to a mix of levels.
       for (const room of [...state.rooms]) {

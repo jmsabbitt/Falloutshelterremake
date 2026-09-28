@@ -7,7 +7,7 @@
 // tick, so progress is deterministic and survives saving and loading.
 
 import type { Content } from '../content';
-import { canPlace, roomDef } from '../grid';
+import { canPlace, roomDef, starterShaftX } from '../grid';
 import { bump } from '../residents';
 import type { GameState, Room, TutorialStep } from '../types';
 
@@ -28,11 +28,11 @@ export const TUTORIAL_STEPS: readonly TutorialStep[] = [
 /** The three rooms the tutorial has the Warden build, in order. */
 export const TUTORIAL_ROOMS = { power: 'generator', water: 'waterworks', food: 'canteen' } as const;
 
-/** Where the classic starter layout puts them (used by Skip). */
-const CLASSIC_SPOT: Record<string, { floor: number; x: number }> = {
-  generator: { floor: 1, x: 7 },
-  canteen: { floor: 1, x: 10 },
-  waterworks: { floor: 2, x: 7 },
+/** Where the classic starter layout puts them (used by Skip), as cells right of the starter shaft. */
+const CLASSIC_SPOT: Record<string, { floor: number; dx: number }> = {
+  generator: { floor: 1, dx: 1 },
+  canteen: { floor: 1, dx: 4 },
+  waterworks: { floor: 2, dx: 1 },
 };
 
 /** A new tutorial room starts this full, so its first batch comes quickly. */
@@ -135,10 +135,12 @@ export function tickTutorial(state: GameState): void {
 
 /** First free, valid slot for a room on the starter floors, preferring the classic spot. */
 function freeSlot(state: GameState, content: Content, type: string): { floor: number; x: number } | null {
-  const classic = CLASSIC_SPOT[type];
+  const S = starterShaftX(content);
+  const spot = CLASSIC_SPOT[type];
+  const classic = spot && { floor: spot.floor, x: S + spot.dx };
   if (classic && canPlace(state, content, type, classic.floor, classic.x).ok) return classic;
   // Then right beside the shaft, below the door, then anywhere that connects.
-  for (const at of [{ floor: 1, x: 7 }, { floor: 1, x: 3 }, { floor: 2, x: 7 }, { floor: 2, x: 3 }, { floor: 0, x: 7 }]) {
+  for (const at of [{ floor: 1, x: S + 1 }, { floor: 1, x: S - 3 }, { floor: 2, x: S + 1 }, { floor: 2, x: S - 3 }, { floor: 0, x: S + 1 }]) {
     if (canPlace(state, content, type, at.floor, at.x).ok) return at;
   }
   const cells = content.balance.grid.cellsPerFloor;

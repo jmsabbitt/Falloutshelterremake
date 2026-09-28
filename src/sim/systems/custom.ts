@@ -7,7 +7,7 @@
 
 import { maxLevel, type Content } from '../content';
 import { refreshUnlocks, resourceCapacity, storageCapacity, population } from '../economy';
-import { canPlace, connectedRoomIds, mergeFloor, roomDef, TOPSIDE_FLOOR } from '../grid';
+import { canPlace, connectedRoomIds, mergeFloor, roomDef, starterShaftX, TOPSIDE_FLOOR } from '../grid';
 import { createResident, hpPerLevel } from '../residents';
 import { nextFloat, nextInt, pick } from '../rng';
 import { newGame } from '../state';
@@ -25,7 +25,7 @@ import { factionDef } from './factions';
 
 // ------------------------------------------------------------------ options and presets
 
-/** One room of a preset layout. `x` is optional: rooms are packed beside the shaft at x = 6. */
+/** One room of a preset layout. `x` is optional: rooms are packed beside the starter shaft (grid.starterShaftX). */
 export interface CustomRoom {
   type: string;
   floor: number;
@@ -54,7 +54,7 @@ export interface CustomGameOptions {
   rarity?: Rarity;
   /** Counts as the highest population reached: unlocks rooms like the real thing. */
   peakPopulation?: number;
-  /** Rooms besides the door; replaces the starter layout. Elevators are added at x = 6 down to the deepest floor used. */
+  /** Rooms besides the door; replaces the starter layout. Elevators are added at grid.starterShaftX down to the deepest floor used. */
   layout?: CustomRoom[];
   /** Strata of the Deep already dug. */
   strata?: number;
@@ -89,8 +89,6 @@ export function customPreset(content: Content, id: string): CustomPreset | undef
   return customPresets(content).find((p) => p.id === id);
 }
 
-const SHAFT_X = 6;
-
 function allResearch(content: Content): string[] {
   return (content.research as unknown as { nodes: { id: string }[] }).nodes.map((n) => n.id);
 }
@@ -113,8 +111,15 @@ function freeRun(state: GameState, content: Content, floor: number, cells: numbe
     for (let i = 0; i < w; i++) occ[r.x + i] = true;
   }
   const fits = (x: number) => x >= 0 && x + cells <= width && occ.slice(x, x + cells).every((c) => !c);
+  const SHAFT_X = starterShaftX(content);
   if (floor === TOPSIDE_FLOOR) {
-    for (let x = 0; x + cells <= width; x++) if (fits(x)) return x;
+    // Over the door first, then outwards along the ground from it.
+    const door = state.rooms.find((r) => r.type === 'door');
+    const d0 = door?.x ?? 0;
+    const d1 = d0 + (door ? roomDef(content, door).cells : 0);
+    const links = (x: number) => (x < d1 && x + cells > d0) || !!occ[x - 1] || !!occ[x + cells];
+    const xs = Array.from({ length: width - cells + 1 }, (_, x) => x).sort((a, b) => Math.abs(a - d0) - Math.abs(b - d0) || a - b);
+    for (const x of xs) if (fits(x) && links(x)) return x;
     return null;
   }
   // Right of the shaft: pack from the shaft outwards.
@@ -135,6 +140,7 @@ function buildLayout(state: GameState, content: Content, layout: CustomRoom[]): 
   for (const r of state.residents) r.roomId = null;
   const floors = layout.map((r) => r.floor);
   const deepest = Math.max(0, ...floors);
+  const SHAFT_X = starterShaftX(content);
   for (let f = 0; f <= deepest; f++) {
     const ok = canPlace(state, content, 'elevator', f, SHAFT_X);
     if (!ok.ok) return `layout: elevator on floor ${f}: ${ok.reason}`;
@@ -156,7 +162,9 @@ function buildLayout(state: GameState, content: Content, layout: CustomRoom[]): 
     const placed: Room[] = [];
     const xs = Array.from({ length: segments }, (_, i) => x + i * def.cells);
     // Grow from the side that touches the network (the shaft is to the right of left-side rooms).
-    if (spec.floor !== TOPSIDE_FLOOR && x < SHAFT_X) xs.reverse();
+    // On the surface, a run left of the door grows from its right end (over the door).
+    const doorX = state.rooms.find((r) => r.type === 'door')?.x ?? 0;
+    if (spec.floor === TOPSIDE_FLOOR ? x < doorX : x < SHAFT_X) xs.reverse();
     for (const sx of xs) {
       const ok = canPlace(state, content, def.id, spec.floor, sx);
       if (!ok.ok) return `layout: ${spec.type} on floor ${spec.floor}: ${ok.reason}`;

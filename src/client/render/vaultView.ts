@@ -33,7 +33,8 @@ import {
   type Caravan,
   type GameState,
 } from '../../sim';
-import { mergeFloor } from '../../sim/grid';
+import { canMove, mergeFloor } from '../../sim/grid';
+import { moveCost } from '../../sim/economy';
 import type { Game } from '../game';
 import { haptic } from '../platform';
 import { FrameGovernor } from './governor';
@@ -353,6 +354,8 @@ export class VaultView {
   private art: CharacterArt | null = null;
 
   buildMode: string | null = null;
+  /** Move mode: the room being moved (the ghosts show where it can go). Exclusive with buildMode. */
+  moveRoomId: number | null = null;
   selectedRoomId: number | null = null;
   selectedResidentId: number | null = null;
   /** Rooms HALCY's tutorial coach points at (the door, the room to staff): a pulsing outline. */
@@ -417,7 +420,7 @@ export class VaultView {
     app.stage.addChild(this.world);
     this.drawBackground();
     this.installInput();
-    this.centerOn(window.innerWidth < 640 ? 6 * CELL : 9 * CELL, SURFACE_H + FLOOR_H * 0.8);
+    this.centerOnHome();
     game.on((events) => this.onEvents(events));
     this.governor = new FrameGovernor(app.ticker, () => this.busy());
     // Time Pixi's own render pass (it runs at LOW priority) for the perf probe.
@@ -477,6 +480,7 @@ export class VaultView {
     this.popLayer.clear();
     this.lastBuild = null;
     this.buildMode = null;
+    this.moveRoomId = null;
     this.selectedRoomId = null;
     this.selectedResidentId = null;
     this.ghostLayer.removeChildren().forEach((c) => c.destroy({ children: true }));
@@ -489,7 +493,7 @@ export class VaultView {
     this.world.visible = true;
     this.rebuildStatics();
     this.zoom = defaultZoom();
-    this.centerOn(window.innerWidth < 640 ? 6 * CELL : 9 * CELL, SURFACE_H + FLOOR_H * 0.8);
+    this.centerOnHome();
   }
 
   /** For automated UI tests: what is drawn right now. */
@@ -544,6 +548,22 @@ export class VaultView {
       depthX: DEPTH_X,
       depthY: DEPTH_Y,
     };
+  }
+
+  /**
+   * The opening shot. Phones: the queue outside, the door and the shaft from
+   * the left edge, with the first rooms to their right. Wider screens: centred
+   * a little right of the shaft, with dirt to build on either side.
+   */
+  centerOnHome(): void {
+    const door = this.game.state.rooms.find((r) => r.type === 'door');
+    const doorX = door?.x ?? this.game.content.balance.grid.starterShaftX - 6;
+    const shaft = door ? door.x + roomCells(this.game.content, door) : doorX + 6;
+    const y = SURFACE_H + FLOOR_H * 0.8;
+    if (window.innerWidth < 640) {
+      this.world.scale.set(this.zoom);
+      this.centerOn((doorX - 4) * CELL + this.app.screen.width / this.zoom / 2, y);
+    } else this.centerOn((shaft + 3) * CELL, y);
   }
 
   /** Centre the camera on a floor (the dig site, a new stratum). */
@@ -1040,7 +1060,7 @@ export class VaultView {
       const shaft = state.rooms.some((r) => r.type === 'elevator' && r.floor === f0);
       // Beside the elevator shaft, where the first deep rooms will attach (and where phones look).
       const lift = state.rooms.filter((r) => r.type === 'elevator').sort((p, q) => q.floor - p.floor)[0];
-      const x = ((lift?.x ?? 6) + 1) * CELL + 16;
+      const x = ((lift?.x ?? content.balance.grid.starterShaftX) + 1) * CELL + 16;
       const y = SURFACE_H + f0 * FLOOR_H + 26;
       const t1 = new Text({ text: 'BUILD DEEP ROOMS HERE', style: { fontFamily: 'Bungee, sans-serif', fontSize: 24, fill: 0xf4ecd8, letterSpacing: 1, wordWrap: true, wordWrapWidth: 250, lineHeight: 28 } });
       t1.alpha = 0.42;
@@ -1057,7 +1077,12 @@ export class VaultView {
 
   /** How many green slots build mode is showing. */
   get ghostCount(): number {
-    return this.buildMode ? this.ghostSlots.length : 0;
+    return this.buildMode || this.moveRoomId !== null ? this.ghostSlots.length : 0;
+  }
+
+  /** The room move mode is moving, if it still exists. */
+  private movingRoom(): Room | undefined {
+    return this.moveRoomId === null ? undefined : this.game.state.rooms.find((r) => r.id === this.moveRoomId);
   }
 
   /**
@@ -1067,10 +1092,12 @@ export class VaultView {
    * many slots there are.
    */
   revealGhosts(): number {
-    const type = this.buildMode;
+    const moving = this.movingRoom();
+    const type = moving?.type ?? this.buildMode;
     const def = type ? this.game.content.rooms[type] : undefined;
     const slots = this.ghostSlots;
     if (!def || !slots.length) return slots.length;
+    const cells = moving ? roomCells(this.game.content, moving) : def.cells;
     const z = this.zoom;
     const ins = this.usableInsets();
     const pad = 8;
@@ -1078,7 +1105,7 @@ export class VaultView {
     const rect = (c: { floor: number; x: number }) => ({
       x: this.world.x + c.x * CELL * z,
       y: this.world.y + (SURFACE_H + c.floor * FLOOR_H) * z,
-      w: def.cells * CELL * z,
+      w: cells * CELL * z,
       h: (c.floor < 0 ? FLOOR_H - GROUND_DEPTH : FLOOR_H) * z,
     });
     const rects = slots.map(rect);
@@ -1120,10 +1147,10 @@ export class VaultView {
    * How many segments wide a new room of `type` at (floor, x) would end up,
    * found by running the sim's own merge on a scratch copy of that floor.
    */
-  private mergedSegments(type: string, floor: number, x: number): number {
+  private mergedSegments(type: string, floor: number, x: number, moving?: Room): number {
     const { state, content } = this.game;
-    const probe: Room = { id: -1, type, floor, x, segments: 1, level: 1, pool: 0, ready: false, powered: true, timer: 0, job: null, banked: 0 };
-    const rooms = state.rooms.filter((r) => r.floor === floor).map((r) => ({ ...r }));
+    const probe: Room = moving ? { ...moving, id: -1, floor, x } : { id: -1, type, floor, x, segments: 1, level: 1, pool: 0, ready: false, powered: true, timer: 0, job: null, banked: 0 };
+    const rooms = state.rooms.filter((r) => r.floor === floor && r.id !== moving?.id).map((r) => ({ ...r }));
     const scratch = { rooms: [...rooms, probe], residents: [], incidents: [] } as unknown as GameState;
     mergeFloor(scratch, content, floor);
     const into = scratch.rooms.find((r) => x >= r.x && x < r.x + roomCells(content, r));
@@ -1133,6 +1160,10 @@ export class VaultView {
   rebuildGhosts(): void {
     this.ghostLayer.removeChildren().forEach((c) => c.destroy({ children: true }));
     this.ghostSlots = [];
+    if (this.moveRoomId !== null) {
+      this.rebuildMoveGhosts();
+      return;
+    }
     const type = this.buildMode;
     if (!type) return;
     const { content, state } = this.game;
@@ -1262,8 +1293,98 @@ export class VaultView {
     }
   }
 
-  /** For automated UI tests: the build slots on show, and how wide each would merge to. */
+  /**
+   * Move mode: every slot the room can move to whole (canMove), marked with
+   * the price; teal where it would merge into a neighbour. The room itself
+   * gets an amber outline.
+   */
+  private rebuildMoveGhosts(): void {
+    const { content, state } = this.game;
+    const room = this.movingRoom();
+    if (!room) return;
+    const def = roomDef(content, room);
+    const cells = roomCells(content, room);
+    const seen = new Set<string>();
+    const candidates: { floor: number; x: number }[] = [];
+    const push = (floor: number, x: number) => {
+      const k = `${floor}:${x}`;
+      if (seen.has(k)) return;
+      seen.add(k);
+      if (canMove(state, content, room, floor, x).ok) candidates.push({ floor, x });
+    };
+    if (def.topside) {
+      for (let x = 0; x + cells <= content.balance.grid.cellsPerFloor; x++) push(TOPSIDE_FLOOR, x);
+    } else {
+      for (const other of state.rooms) {
+        if (other.id === room.id || isTopside(other)) continue;
+        push(other.floor, other.x + roomCells(content, other));
+        push(other.floor, other.x - cells);
+      }
+    }
+    // Slots on one row can overlap (sliding along the ground, or over its own cells): keep a tidy set.
+    const kept: { floor: number; x: number }[] = [];
+    for (const c of candidates.sort((a, b) => a.floor - b.floor || a.x - b.x)) {
+      if (!kept.some((k) => k.floor === c.floor && c.x < k.x + cells && k.x < c.x + cells)) kept.push(c);
+    }
+    this.ghostSlots = kept;
+    const cost = moveCost(state, content, room);
+    const affordable = state.scrip >= cost;
+    const r = this.roomRect(room);
+    const own = new Graphics();
+    const oh = isTopside(room) ? r.h - GROUND_DEPTH + 4 : r.h;
+    own.rect(r.x + 2, r.y + 2, r.w - 4, oh - 4).stroke({ width: 4, color: 0xf2a541, alpha: 0.95 });
+    own.rect(r.x + 2, r.y + 2, r.w - 4, oh - 4).fill({ color: 0xf2a541, alpha: 0.12 });
+    own.eventMode = 'none';
+    this.ghostLayer.addChild(own);
+    for (const c of kept) {
+      const w = cells * CELL;
+      const topside = c.floor < 0;
+      const gh = topside ? FLOOR_H - GROUND_DEPTH + 4 : FLOOR_H;
+      const merge = def.maxSegments > 1 ? this.mergedSegments(room.type, c.floor, c.x, room) : room.segments;
+      const merges = merge > room.segments;
+      const tone = !affordable ? 0xe4572e : merges ? 0x4fc3d0 : 0x8fc93a;
+      const slot = new Container();
+      slot.position.set(c.x * CELL, SURFACE_H + c.floor * FLOOR_H);
+      const box = new Graphics();
+      box.rect(3, 3, w - 6, gh - 6).fill({ color: tone, alpha: 0.18 });
+      box.rect(3, 3, w - 6, gh - 6).stroke({ width: 3, color: tone, alpha: 0.9 });
+      const cx = w / 2;
+      const cy = gh / 2 - 12;
+      // Four arrows out from the middle: "move here".
+      const mark = new Graphics();
+      mark.rect(cx - 12, cy - 2, 24, 4).fill(0xf4ecd8);
+      mark.rect(cx - 2, cy - 12, 4, 24).fill(0xf4ecd8);
+      mark.poly([cx - 18, cy, cx - 10, cy - 7, cx - 10, cy + 7]).fill(0xf4ecd8);
+      mark.poly([cx + 18, cy, cx + 10, cy - 7, cx + 10, cy + 7]).fill(0xf4ecd8);
+      mark.poly([cx, cy - 18, cx - 7, cy - 10, cx + 7, cy - 10]).fill(0xf4ecd8);
+      mark.poly([cx, cy + 18, cx - 7, cy + 10, cx + 7, cy + 10]).fill(0xf4ecd8);
+      slot.addChild(box, mark);
+      const label = merges ? `MOVE + MERGE: ${merge} WIDE` : 'MOVE HERE';
+      const t = new Text({ text: label, style: { fontFamily: 'Work Sans, sans-serif', fontWeight: '800', fontSize: 12, fill: 0xf4ecd8, letterSpacing: 0.5 } });
+      t.anchor.set(0.5);
+      t.position.set(cx, cy + 32);
+      const tab = new Graphics().roundRect(cx - t.width / 2 - 5, cy + 32 - t.height / 2 - 2, t.width + 10, t.height + 4, 4).fill({ color: 0x14100d, alpha: 0.7 });
+      const price = new Text({ text: `${cost} scrip`, style: { fontFamily: 'Work Sans, sans-serif', fontWeight: '700', fontSize: 14, fill: affordable ? 0xf4ecd8 : 0xffb4a2 } });
+      price.anchor.set(0.5);
+      price.position.set(cx, cy + 52);
+      slot.addChild(tab, t, price);
+      for (const ch of slot.children) ch.eventMode = 'none';
+      slot.eventMode = 'static';
+      slot.cursor = 'pointer';
+      slot.hitArea = new Rectangle(0, 0, w, gh);
+      slot.on('pointertap', (e: FederatedPointerEvent) => {
+        e.stopPropagation();
+        this.lastBuild = { type: room.type, x: c.x * CELL, y: SURFACE_H + c.floor * FLOOR_H, w, h: gh };
+        this.cb.onBuildAt(c.floor, c.x);
+      });
+      this.ghostLayer.addChild(slot);
+    }
+  }
+
+  /** For automated UI tests: the build (or move) slots on show, and how wide each would merge to. */
   debugGhosts(): { floor: number; x: number; merge: number }[] {
+    const moving = this.movingRoom();
+    if (moving) return this.ghostSlots.map((c) => ({ ...c, merge: this.mergedSegments(moving.type, c.floor, c.x, moving) }));
     const type = this.buildMode;
     if (!type) return [];
     return this.ghostSlots.map((c) => ({ ...c, merge: this.mergedSegments(type, c.floor, c.x) }));
@@ -2701,6 +2822,22 @@ export class VaultView {
         else if (room) {
           const r = this.roomRect(room);
           this.pop(r.x, r.y, r.w, isTopside(room) ? r.h - GROUND_DEPTH + 4 : r.h);
+        }
+        this.lastBuild = null;
+      } else if (ev.type === 'roomMoved') {
+        // A pop where it landed; its crew fade out of the old spot and into the new one.
+        const room = state.rooms.find((r) => r.id === ev.roomId);
+        if (room) {
+          const r = this.roomRect(room);
+          this.pop(r.x, r.y, r.w, isTopside(room) ? r.h - GROUND_DEPTH + 4 : r.h);
+          for (const res of state.residents) {
+            if (res.roomId !== room.id) continue;
+            const sp = this.sprites.get(res.id);
+            if (!sp || sp.root.parent === this.dragLayer) continue;
+            const b = this.residentBounds(res);
+            sp.glide = null;
+            this.fadeTo(sp, b.min + this.rand(sp) * (b.max - b.min), b.y, b.floor);
+          }
         }
         this.lastBuild = null;
       } else if (ev.type === 'collected') {

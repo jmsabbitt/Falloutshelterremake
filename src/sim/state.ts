@@ -1,5 +1,6 @@
 import type { Content } from './content';
 import { refreshUnlocks } from './economy';
+import { starterDoorX, starterShaftX } from './grid';
 import { newLegacy } from './legacy';
 import { createResident } from './residents';
 import { nextInt, seedRng } from './rng';
@@ -90,16 +91,19 @@ export function newGame(content: Content, opts: NewGameOptions = {}): GameState 
   // Starter layout: door, an elevator shaft three floors deep, and the basics.
   // The tutorial starts with just the door and the shaft, so there are free
   // slots on both sides of it on floors 1 and 2.
-  place('door', 0, 0);
-  place('elevator', 0, 6);
-  if (!opts.tutorial) place('quarters', 0, 7);
-  place('elevator', 1, 6);
+  // The shaft stands at grid.starterShaftX with the door just left of it, so
+  // there is room to build on both sides.
+  const S = starterShaftX(content);
+  place('door', 0, starterDoorX(content));
+  place('elevator', 0, S);
+  if (!opts.tutorial) place('quarters', 0, S + 1);
+  place('elevator', 1, S);
   if (!opts.tutorial) {
-    place('generator', 1, 7);
-    place('canteen', 1, 10);
+    place('generator', 1, S + 1);
+    place('canteen', 1, S + 4);
   }
-  place('elevator', 2, 6);
-  if (!opts.tutorial) place('waterworks', 2, 7);
+  place('elevator', 2, S);
+  if (!opts.tutorial) place('waterworks', 2, S + 1);
   if (opts.tutorial) state.tutorial = { step: 'admit', done: false, bedrolls: start.waitingResidents };
 
   // The founding crew each have a clear specialty matching a starter room, so

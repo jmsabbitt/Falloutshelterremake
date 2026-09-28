@@ -6,6 +6,8 @@ import { halcyFace } from './halcy';
 import {
   achievementProgress,
   buildCost,
+  moveBlocked,
+  moveCost,
   canCraft,
   canExplore,
   canReforge,
@@ -395,6 +397,11 @@ export class UI {
 
   onRoomTap(room: Room): void {
     const { state } = this.game;
+    // Moving a room: taps on rooms don't open them (the slots and the bar's Cancel do the work).
+    if (this.view.moveRoomId !== null) {
+      if (room.id !== this.view.moveRoomId) this.toast('Tap a green slot to move the room there, or Cancel');
+      return;
+    }
     // Assigning is drag only: a room tap never sends the selected resident (playtest 1).
     if (room.type === 'door' && state.residents.some((r) => r.waiting)) {
       const res = this.game.run({ type: 'admitAll' });
@@ -417,7 +424,7 @@ export class UI {
   }
 
   onEmptyTap(): void {
-    if (this.view.buildMode) return;
+    if (this.view.buildMode || this.view.moveRoomId !== null) return;
     this.closePanel();
   }
 
@@ -453,6 +460,10 @@ export class UI {
   }
 
   onBuildAt(floor: number, x: number): void {
+    if (this.view.moveRoomId !== null) {
+      this.moveTo(floor, x);
+      return;
+    }
     const type = this.view.buildMode;
     if (!type) return;
     const res = this.game.run({ type: 'build', roomType: type, floor, x });
@@ -642,6 +653,8 @@ export class UI {
     const shortage = this.shortageHint();
     if (shortage) {
       text = shortage;
+    } else if (this.view.moveRoomId !== null) {
+      text = '';
     } else if (this.view.buildMode) {
       const def = this.game.content.rooms[this.view.buildMode];
       text = `Tap a green slot to build ${def?.name ?? ''} (${buildCost(state, this.game.content, this.view.buildMode)} scrip)`;
@@ -738,6 +751,7 @@ export class UI {
 
   openPanel(kind: PanelKind): void {
     if (kind !== this.panel) this.sheetOpen = false;
+    this.endMove();
     // M8: the room sheet moved the camera to show its room; put it back.
     if (this.panel === 'room' && kind !== 'room') this.view.restoreCamera();
     // A fresh look at the list: no filter or search left over from last time.
@@ -798,6 +812,84 @@ export class UI {
     this.openPanel('deep');
   }
 
+  /** Room panel's Move button: show where this room can go (move mode). */
+  private startMove(room: Room): void {
+    this.setBuildMode(null);
+    this.view.moveRoomId = room.id;
+    this.view.selectedRoomId = room.id;
+    this.view.rebuildGhosts();
+    this.renderPanel(true);
+    if (!this.view.ghostCount) this.toast('Nowhere to move it right now: it needs a gap as wide as the room, next to an elevator or room', 'bad');
+    else this.revealGhosts();
+  }
+
+  /** Leave move mode. */
+  private endMove(): void {
+    if (this.view.moveRoomId === null) return;
+    this.view.moveRoomId = null;
+    this.view.rebuildGhosts();
+  }
+
+  private moveTo(floor: number, x: number): void {
+    const { state, content } = this.game;
+    const room = state.rooms.find((r) => r.id === this.view.moveRoomId);
+    if (!room) {
+      this.endMove();
+      return;
+    }
+    const name = levelName(content, room);
+    const res = this.game.run({ type: 'moveRoom', roomId: room.id, floor, x });
+    if (!res.ok) {
+      this.toast(res.reason, 'bad');
+      haptic('error');
+      this.view.rebuildGhosts();
+      return;
+    }
+    haptic('success');
+    // A merge keeps the left room's id: follow the room to wherever it ended up.
+    const now = state.rooms.find((r) => r.id === room.id) ?? state.rooms.find((r) => r.floor === floor && r.x <= x && x < r.x + roomDef(content, r).cells * r.segments);
+    this.toast(`Moved the ${name}: its crew and work came along`, 'good');
+    this.endMove();
+    if (now) this.openRoom(now.id);
+    else this.renderPanel(true);
+  }
+
+  /** The bar shown while moving a room: what to do, the price, and Cancel. */
+  private moveBar(): HTMLElement {
+    const { state, content } = this.game;
+    const room = state.rooms.find((r) => r.id === this.view.moveRoomId);
+    const cost = room ? moveCost(state, content, room) : 0;
+    const slots = this.view.ghostCount;
+    return h(
+      'div',
+      { class: 'panel sheet-bar move-bar' },
+      h(
+        'div',
+        { class: 'sb-text' },
+        h('b', {}, `Move ${room ? levelName(content, room) : 'room'}`),
+        h(
+          'span',
+          { class: `small${slots && state.scrip >= cost ? ' muted' : ' short'}` },
+          !slots ? 'No free spot for a room this wide next to an elevator or room.' : state.scrip < cost ? `Needs ${fmt(cost)} scrip (you have ${fmt(state.scrip)})` : `Tap a green slot · ${fmt(cost)} scrip · crew and work come along`,
+        ),
+      ),
+      h(
+        'div',
+        { class: 'sb-actions' },
+        h(
+          'button',
+          {
+            onclick: () => {
+              this.endMove();
+              this.renderPanel(true);
+            },
+          },
+          'Cancel',
+        ),
+      ),
+    );
+  }
+
   private setBuildMode(type: string | null): void {
     if (type !== this.view.buildMode) {
       this.builtInMode = 0;
@@ -829,6 +921,11 @@ export class UI {
     }
     if (this.quests.screen.isOpen) {
       this.quests.screen.close();
+      return true;
+    }
+    if (this.view.moveRoomId !== null) {
+      this.endMove();
+      this.renderPanel(true);
       return true;
     }
     if (!this.panel) return false;
@@ -1018,6 +1115,16 @@ export class UI {
     this.lastPanelRender = performance.now();
     if (!this.panel) {
       this.panelHost.replaceChildren();
+      return;
+    }
+    if (this.panel === 'room' && this.view.moveRoomId !== null) {
+      const next = this.moveBar();
+      const cur = this.panelHost.firstElementChild;
+      const key = `move|${this.view.moveRoomId}`;
+      if (cur && this.panelKey === key) {
+        if (cur.outerHTML !== next.outerHTML) morph(cur, next);
+      } else this.panelHost.replaceChildren(next);
+      this.panelKey = key;
       return;
     }
     const bar = this.sheetCollapsed() ? this.collapsible() : null;
@@ -1283,6 +1390,26 @@ export class UI {
 
     parts.push(this.upgradeBox(room));
 
+    if (room.type !== 'door' && room.type !== 'elevator') {
+      const blocked = moveBlocked(state, content, room);
+      const price = moveCost(state, content, room);
+      parts.push(
+        h(
+          'div',
+          { class: 'room-move' },
+          h('span', { class: 'muted small' }, blocked ? `Can't move it now: ${blocked}.` : 'Move the whole room to another free spot. Its level, crew and work come along.'),
+          h(
+            'button',
+            {
+              disabled: !!blocked || state.scrip < price,
+              title: state.scrip < price ? `Needs ${fmt(price)} scrip` : '',
+              onclick: () => this.startMove(room),
+            },
+            `Move (${fmt(price)} scrip)`,
+          ),
+        ),
+      );
+    }
     if (room.type !== 'door') {
       parts.push(
         h(

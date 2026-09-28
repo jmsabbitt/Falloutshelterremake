@@ -23,7 +23,7 @@ export function questConsole(game: Game) {
           }
         }
       }
-      const room: Room = { id: state.nextId++, type: 'office', floor: spot?.floor ?? 0, x: spot?.x ?? 13, segments: 1, level: 1, pool: 0, ready: false, powered: true, timer: 0, job: null, banked: 0 };
+      const room: Room = { id: state.nextId++, type: 'office', floor: spot?.floor ?? 0, x: spot?.x ?? content.balance.grid.starterShaftX + 7, segments: 1, level: 1, pool: 0, ready: false, powered: true, timer: 0, job: null, banked: 0 };
       state.rooms.push(room);
       if (!state.unlockedRooms.includes('office')) state.unlockedRooms.push('office');
       game.layoutVersion++;

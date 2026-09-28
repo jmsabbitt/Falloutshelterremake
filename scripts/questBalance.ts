@@ -58,7 +58,7 @@ function game(seed: number, level: number, weapon: string | null, size: number):
   s.nextIncidentAt = 1e12;
   s.nextWandererAt = 1e12;
   s.resources.medpatch = 10;
-  s.rooms.push({ id: s.nextId++, type: 'office', floor: 0, x: 13, segments: 1, level: 3, pool: 0, ready: false, powered: true, timer: 0, job: null, banked: 0 });
+  s.rooms.push({ id: s.nextId++, type: 'office', floor: 0, x: content.balance.grid.starterShaftX + 7, segments: 1, level: 3, pool: 0, ready: false, powered: true, timer: 0, job: null, banked: 0 });
   const ids: number[] = [];
   for (const r of s.residents.slice(0, size)) {
     r.level = level;
