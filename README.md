@@ -97,4 +97,6 @@ The client only changes the game through `applyCommand`. This keeps the simulati
 
 Quest tools: `npm run quest-balance` plays every quest with a scripted party across levels and gear. In the browser console, `homestead.quest.office()`, `.party(level, weapon)`, `.skip()` and `.win()` help testing.
 
+To playtest, see [`PLAYTEST.md`](PLAYTEST.md).
+
 See [`docs/design/GDD.md`](docs/design/GDD.md) for the full plan.

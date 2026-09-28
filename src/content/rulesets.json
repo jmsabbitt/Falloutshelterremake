@@ -566,6 +566,198 @@
       }
     },
     {
+      "id": "neighbours_call",
+      "name": "The Neighbours Call",
+      "blurb": "Homestead Two: Act 1 is behind you, forty residents in their teens and twenties, and the Signal Mast is about to pick up company. Act 2 starts here.",
+      "options": {
+        "scrip": 30000,
+        "population": 40,
+        "levelRange": [
+          10,
+          18
+        ],
+        "rarity": "rare",
+        "peakPopulation": 60,
+        "fillStorage": true,
+        "strata": 0,
+        "regions": "all",
+        "crates": {
+          "rare": 2,
+          "legendary": 1
+        },
+        "items": [
+          "scrap_carbine",
+          "scrap_carbine",
+          "service_pistol"
+        ],
+        "layout": [
+          {
+            "type": "quarters",
+            "floor": 0,
+            "segments": 3,
+            "level": 3
+          },
+          {
+            "type": "quarters",
+            "floor": 0,
+            "segments": 3,
+            "level": 3
+          },
+          {
+            "type": "generator",
+            "floor": 1,
+            "segments": 3,
+            "level": 3
+          },
+          {
+            "type": "canteen",
+            "floor": 1,
+            "segments": 3,
+            "level": 3
+          },
+          {
+            "type": "waterworks",
+            "floor": 2,
+            "segments": 3,
+            "level": 3
+          },
+          {
+            "type": "clinic",
+            "floor": 2,
+            "segments": 2,
+            "level": 2
+          },
+          {
+            "type": "office",
+            "floor": 3,
+            "level": 3
+          },
+          {
+            "type": "storeroom",
+            "floor": 3,
+            "segments": 3
+          },
+          {
+            "type": "radio",
+            "floor": 4,
+            "segments": 2
+          }
+        ],
+        "story": {
+          "cycle": 2,
+          "questsDone": [
+            "act1"
+          ],
+          "outposts": 1,
+          "outpostPopulation": 30,
+          "rep": {
+            "caravaners": 10
+          },
+          "legends": []
+        }
+      }
+    },
+    {
+      "id": "below_the_seal",
+      "name": "Below the Seal",
+      "blurb": "Homestead Three: Acts 1 and 2 done, fifty seasoned residents, two outposts and the neighbours on speaking terms. Act 3 and the Stillwater start here.",
+      "options": {
+        "scrip": 30000,
+        "population": 50,
+        "levelRange": [
+          20,
+          28
+        ],
+        "rarity": "rare",
+        "peakPopulation": 90,
+        "fillStorage": true,
+        "strata": 2,
+        "regions": "all",
+        "crates": {
+          "rare": 2,
+          "legendary": 1
+        },
+        "items": [
+          "coilgun",
+          "scrap_carbine",
+          "peacemaker"
+        ],
+        "layout": [
+          {
+            "type": "quarters",
+            "floor": 0,
+            "segments": 3,
+            "level": 3
+          },
+          {
+            "type": "quarters",
+            "floor": 0,
+            "segments": 3,
+            "level": 3
+          },
+          {
+            "type": "generator",
+            "floor": 1,
+            "segments": 3,
+            "level": 3
+          },
+          {
+            "type": "canteen",
+            "floor": 1,
+            "segments": 3,
+            "level": 3
+          },
+          {
+            "type": "waterworks",
+            "floor": 2,
+            "segments": 3,
+            "level": 3
+          },
+          {
+            "type": "clinic",
+            "floor": 2,
+            "segments": 2,
+            "level": 2
+          },
+          {
+            "type": "office",
+            "floor": 3,
+            "level": 3
+          },
+          {
+            "type": "storeroom",
+            "floor": 3,
+            "segments": 3
+          },
+          {
+            "type": "radio",
+            "floor": 4,
+            "segments": 2
+          }
+        ],
+        "story": {
+          "cycle": 3,
+          "questsDone": [
+            "act1",
+            "act2"
+          ],
+          "outposts": 2,
+          "outpostPopulation": 30,
+          "rep": {
+            "caravaners": 25,
+            "tinkers": 20,
+            "lamplighters": -5,
+            "rustmen": 5,
+            "homestead9": 10
+          },
+          "legends": [
+            "rook",
+            "seven"
+          ]
+        }
+      }
+    },
+    {
       "id": "last_rent",
       "name": "Last Rent",
       "blurb": "Homestead Four: sixty veterans, five legends, three outposts on the line and the Seal knocking from our side. Act 4 is open and the rent is due, so try the ending without the wait.",
