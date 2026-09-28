@@ -107,13 +107,13 @@ Within a type, do `w2` for all three levels before `w3`: two-wide rooms are far 
 
 **The five grips:**
 
-| Anim key | Grip | Pose | Typical weapons (the code session sets `grip` in items.json) |
+| Anim key | Grip | Pose | Weapons (the `grip` set in items.json) |
 |---|---|---|---|
-| `fight_pistol` | Pistol | One-handed aim: gun arm straight out at shoulder height, off hand relaxed or bracing the wrist; recoil kicks the wrist up | rusty_revolver, service_pistol, flare_gun, arc_pistol, dust_devil, quitclaim, nail_driver |
-| `fight_longgun` | Long gun | Rifle shouldered, stock at the shoulder, both hands on it, cheek down to aim; recoil rocks the shoulder back | scrap_carbine, rivet_rifle, scattergun, longrifle, coilgun, sunbeam_rifle, salvage_harpoon, wick_gun |
-| `fight_heavy` | Heavy | A big, heavy gun braced at the hip with both hands, wide stance, leaning into it; the whole body shakes | thunderclap, glare_lance, peacemaker |
-| `fight_melee` | Melee | A two-handed swing with a club-like tool: wind-up at the shoulder, swing across, follow-through, back to guard | wrench, prospector_pick, custodial_baton, glasscutter, mauler_tusk |
-| `fight_unarmed` | Unarmed | Fists up, boxing guard: jab, cross, back to guard, a small bounce | tin_knuckles, and anyone with no weapon |
+| `fight_pistol` | Pistol | One-handed aim: gun arm straight out at shoulder height, off hand relaxed or bracing the wrist; recoil kicks the wrist up | rusty_revolver, service_pistol, nail_driver, flare_gun, arc_pistol, peacemaker, wick_gun, quitclaim |
+| `fight_longgun` | Long gun | Rifle shouldered, stock at the shoulder, both hands on it, cheek down to aim; recoil rocks the shoulder back | scrap_carbine, rivet_rifle, longrifle, coilgun, sunbeam_rifle, glare_lance, dust_devil, glasscutter, salvage_harpoon |
+| `fight_heavy` | Heavy | A big, heavy gun braced at the hip with both hands, wide stance, leaning into it; the whole body shakes | scattergun, thunderclap |
+| `fight_melee` | Melee | A two-handed swing with a club-like tool: wind-up at the shoulder, swing across, follow-through, back to guard | wrench, tin_knuckles, mauler_tusk, custodial_baton, prospector_pick |
+| `fight_unarmed` | Unarmed | Fists up, boxing guard: jab, cross, back to guard, a small bounce | anyone with no weapon |
 
 The weapon in each sheet is **generic** for its grip: a plain revolver-sized pistol, a plain rifle, a plain heavy gun, a plain length of heavy pipe or club, bare fists. The same sheet serves every weapon of that grip, so nothing should identify one item.
 
