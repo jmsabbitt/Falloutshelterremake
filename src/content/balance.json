@@ -39,9 +39,9 @@
         2.05
       ],
       [
-        1.14,
-        2.39,
-        3.76
+        0.74,
+        1.56,
+        2.46
       ]
     ],
     "shortageThresholdMinutes": 13.5,
@@ -115,7 +115,8 @@
   "offline": {
     "maxCatchUpHours": 72,
     "consumptionMinutes": 5,
-    "stepSeconds": 5
+    "stepSeconds": 5,
+    "autoCollectEfficiency": 0.5
   },
   "start": {
     "scrip": 1000,

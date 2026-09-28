@@ -112,7 +112,7 @@
     "usesPower": false,
     "produces": {
       "resource": "power",
-      "poolBase": 1320,
+      "poolBase": 1100,
       "output": [
         [
           10,
@@ -802,7 +802,7 @@
     "usesPower": false,
     "produces": {
       "resource": "power",
-      "poolBase": 1320,
+      "poolBase": 1100,
       "output": [
         [
           16,
@@ -1033,7 +1033,7 @@
     "usesPower": false,
     "produces": {
       "resource": "power",
-      "poolBase": 1320,
+      "poolBase": 1100,
       "output": [
         [
           13,
@@ -1081,7 +1081,7 @@
     "usesPower": false,
     "produces": {
       "resource": "power",
-      "poolBase": 1320,
+      "poolBase": 1100,
       "output": [
         [
           12,

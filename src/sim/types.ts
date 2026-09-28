@@ -537,7 +537,7 @@ export interface Caravan {
 
 export type GameEvent =
   | { type: 'tutorialStep'; step: TutorialStep; skipped: boolean }
-  | { type: 'collected'; roomId: number; resource: ResourceKey; amount: number; bonusScrip: number; /** Steady scrip paid per batch. */ baseScrip?: number }
+  | { type: 'collected'; roomId: number; resource: ResourceKey; amount: number; bonusScrip: number; /** Steady scrip paid per batch. */ baseScrip?: number; /** Gathered by offline catch-up while the player was away. */ offline?: boolean }
   | { type: 'rushSucceeded'; roomId: number }
   | { type: 'rushFailed'; roomId: number; incidentId: number }
   | { type: 'incidentStarted'; incidentId: number; roomId: number; incident: IncidentType }

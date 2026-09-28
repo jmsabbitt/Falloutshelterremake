@@ -60,7 +60,7 @@ These match the original closely, because they work. Numbers start from the rese
 | Incidents | 9 types, population thresholds, spread from empty rooms, deathclaw-style meter | Our own creature roster (§7). Difficulty is **telegraphed** and not purely tied to average level (§7.2) |
 | Exploration | Offline timestamp sim, events every 60 / 180 min, 100-item cap, return takes half the time | Same core. Add a **world map with regions** (§8) |
 | Quests | Office at pop 18, parties of 1–3, real-time tap combat, crit minigame | Same core. Add **party roles, armor that matters and skill abilities** (§9) |
-| Offline | Timers run; each room finishes 1 batch then waits; no incidents | Same. Automation upgrades let rooms bank **N batches** |
+| Offline | Timers run; each room finishes 1 batch then waits; no incidents | Timers run; finished batches **collect themselves into storage while there is space** (scrip, XP and mastery at half rate), and the rest wait for a tap; no incidents. Automation upgrades let rooms bank **N batches** |
 
 ---
 
@@ -436,6 +436,7 @@ This is a sandbox and scenario mode for testing and "what if" play:
 | 2026-09-24 | **Quest levels are recommended levels:** enemies fight 2 levels below a quest's stated level, so a party at the stated level wins comfortably and an under-levelled one has a real fight |
 | 2026-09-24 | **Depth pass (M6):** one bonus() lookup for perks and research. Research is lost on founding unless Institutional Memory keeps a share. Mastery tiers fall at 2 and 7 days (offline counts). Deep threats split depth between HP and damage. The refinery gives only a trickle of legendary salvage. Cave-ins settle offline |
 | 2026-09-24 | **Prestige v1 (M5):** Legacy is earned only by founding and scores only the homestead being left; founders keep levels, stats and worn gear; recipes, fragments, story, regions, achievements, lifetime stats and crates carry; outposts are an idle trickle capped at 24 h (visiting, raids and trade later); later Charters use contracts until Act 2 exists; residents gain +0.25 incident damage per level so seasoned residents keep up with level-scaled incidents |
+| 2026-09-28 | **Playtest 1, round 2:** offline, finished batches collect themselves while storage has space (`offline.autoCollectEfficiency` 0.5 of the scrip, XP and mastery; the resources in full), so nobody comes back to a stalled homestead; full storage leaves batches ready. Rooms show the time left on a batch, not its length. Power was the one supply that always needed more crew (about 1.5 to 1.9 times food or water from a few hours in, because a level-3 room drew 1.8 times a level-2 one), so power rooms fill faster (poolBase 1320 to 1100) and level 3 draws 1.2 times level 2. See `docs/design/balance-playtest-1.md` |
 
 ## 17. Open questions
 

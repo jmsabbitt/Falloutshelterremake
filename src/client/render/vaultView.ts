@@ -2843,7 +2843,8 @@ export class VaultView {
         this.lastBuild = null;
       } else if (ev.type === 'collected') {
         const room = state.rooms.find((r) => r.id === ev.roomId);
-        if (!room) continue;
+        // Batches that collected themselves offline are summed up in the away summary instead.
+        if (!room || ev.offline) continue;
         const r = this.roomRect(room);
         this.float(`+${floatAmount(ev.amount)}`, r.x + r.w / 2, r.y + 30, RESOURCE_COLORS[ev.resource] ?? 0xffffff);
         const scrip = Math.round(ev.bonusScrip + (ev.baseScrip ?? 0));

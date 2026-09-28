@@ -128,8 +128,9 @@ describe('production', () => {
     // Freeze happiness at 0 so there is no production bonus.
     const still = { ...content, balance: { ...content.balance, happiness: { ...content.balance.happiness, changePerMin: 0 } } };
     for (const r of s.residents) r.happiness = 0;
-    expect(cycleSeconds(s, still, gen)).toBeCloseTo(1320 / 5, 5);
-    advance(s, still, 263);
+    const pool = content.rooms['generator']!.produces!.poolBase;
+    expect(cycleSeconds(s, still, gen)).toBeCloseTo(pool / 5, 5);
+    advance(s, still, pool / 5 - 1);
     expect(gen.ready).toBe(false);
     advance(s, still, 2);
     expect(gen.ready).toBe(true);
@@ -241,7 +242,7 @@ describe('time', () => {
     expect(s.stats['collections']).toBeGreaterThan(100);
   }, 30_000);
 
-  it('offline catch-up is safe: no damage, rooms stop at one batch, consumption stops', () => {
+  it('offline catch-up is safe: no damage, rooms stop once storage is full, consumption stops', () => {
     const s = fresh(5);
     staff(s, room(s, 'generator').id, 2);
     const hpBefore = s.residents.map((r) => r.hp);
