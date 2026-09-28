@@ -427,6 +427,27 @@ describe('mastery', () => {
     expect(s.stats['mostMasteries']).toBe(1);
   });
 
+  it('every batch collected adds job experience to each worker', () => {
+    const s = game();
+    const gen = room(s, 'generator');
+    const [a, b] = livingResidents(s) as [Resident, Resident];
+    a.traits = ['hard_case'];
+    b.traits = ['hard_case'];
+    staff(s, gen, [a, b]);
+    gen.ready = true;
+    gen.banked = 0;
+    a.mastery = {};
+    b.mastery = {};
+    applyCommand(s, content, { type: 'collect', roomId: gen.id });
+    expect(a.mastery.generator).toBeCloseTo(tuning.masteryPerCollect!, 5);
+    expect(b.mastery.generator).toBeCloseTo(tuning.masteryPerCollect!, 5);
+  });
+
+  it('reaches Journeyman within a few hours of steady work', () => {
+    expect(JOURNEYMAN).toBeLessThanOrEqual(4 * HOUR);
+    expect(MASTER).toBeLessThanOrEqual(12 * HOUR);
+  });
+
   it('accrues offline, and a 60 s step matches sixty 1 s steps', () => {
     const s = game();
     const gen = room(s, 'generator');
@@ -434,8 +455,10 @@ describe('mastery', () => {
     r.traits = ['hard_case'];
     staff(s, gen, [r]);
     drainEvents(s);
-    catchUp(s, content, T0 + 49 * HOUR * 1000);
-    expect(r.mastery.generator).toBeCloseTo(49 * HOUR, 0);
+    // Offline nobody collects, so it is time worked alone.
+    const away = JOURNEYMAN + HOUR;
+    catchUp(s, content, T0 + away * 1000);
+    expect(r.mastery.generator).toBeCloseTo(away, 0);
     expect(masteryTier(content, r, 'generator')).toBe(1);
     expect(drainEvents(s).some((e) => e.type === 'masteryUp' && e.residentId === r.id)).toBe(true);
 

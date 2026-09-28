@@ -177,12 +177,12 @@ export class TraitsUI {
           'div',
           { class: 'row small', style: 'margin:4px 0 2px' },
           h('span', {}, h('b', { class: `tier-${tier}` }, masteryTierName(content, tier)), ` · ${def.name}${bonus > 0 ? ` (+${Math.round(bonus * 100)}% output)` : ''}`),
-          h('span', { class: 'muted' }, tier >= top ? 'Mastered' : `${hours.toFixed(1)}h / ${nextAt.toFixed(0)}h to ${masteryTierName(content, tier + 1)}`),
+          h('span', { class: 'muted' }, tier >= top ? 'Mastered' : `${hours.toFixed(1)} / ${nextAt.toFixed(0)}h experience to ${masteryTierName(content, tier + 1)}`),
         ),
         h('div', { class: 'progress mastery-bar' }, h('div', { style: `width:${Math.round(p * 100)}%` })),
       );
     } else {
-      parts.push(h('div', { class: 'muted small' }, 'Work a job with a stat to build mastery.'));
+      parts.push(h('div', { class: 'muted small' }, 'Work a job with a stat to build mastery: time on the job and every batch collected count.'));
     }
     const others = Object.entries(r.mastery ?? {})
       .filter(([type, s]) => s > 0 && type !== room?.type && content.rooms[type])

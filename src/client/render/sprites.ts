@@ -228,6 +228,20 @@ export class CharacterArt {
     return undefined;
   }
 
+  /**
+   * Painted art for a merged room drawn as one wider room ("1w2", "2w3": level 1
+   * two segments wide, level 2 three wide), falling back to a lower level at the
+   * same width. Undefined: tile the single-width wall instead.
+   */
+  roomWallWide(type: string, level: number, segments: number): Texture | undefined {
+    if (segments < 2) return undefined;
+    for (let l = level; l >= 1; l--) {
+      const t = this.rooms.get(`${type}:${l}w${segments}`);
+      if (t) return t;
+    }
+    return undefined;
+  }
+
   /** The art for an enemy look, or undefined to draw it with Graphics. */
   forLook(look: string): Creature | undefined {
     return this.creatureFor(look);

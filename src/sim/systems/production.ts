@@ -10,7 +10,7 @@ import { bonus, productionMult } from '../bonuses';
 import { bump, effectiveStat, grantXp, workersInRoom } from '../residents';
 import { chance, nextFloat } from '../rng';
 import type { GameState, Room } from '../types';
-import { workerMult } from './traits';
+import { masteryForBatches, workerMult } from './traits';
 import { weatherMult } from './weather';
 
 export function vaultHappiness(state: GameState): number {
@@ -124,7 +124,9 @@ export function collectRoom(state: GameState, content: Content, room: Room): num
   }
 
   const xp = content.balance.resident.xpPerCollectPerSegment * room.segments * (1 + 0.25 * (room.level - 1)) * batches;
-  for (const r of workersInRoom(state, room.id)) grantXp(state, content, r, xp);
+  const workers = workersInRoom(state, room.id);
+  for (const r of workers) grantXp(state, content, r, xp);
+  masteryForBatches(state, content, room, workers, batches);
 
   bump(state, 'collections');
   bump(state, `produced.${key}`, amount);

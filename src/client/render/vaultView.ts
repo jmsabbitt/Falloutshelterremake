@@ -795,12 +795,14 @@ export class VaultView {
       g.position.set(r.x, r.y);
       this.statics.addChild(g);
       if (wall) {
-        // Painted back wall: one module per segment for rooms that merge, else one image.
+        // Painted back wall: a merged room uses its wide painting when there is one;
+        // otherwise one module per segment for rooms that merge, else one image.
         const def = roomDef(this.game.content, room);
-        const tiles = def.cells === 3 ? room.segments : 1;
+        const wide = def.cells === 3 ? this.art?.roomWallWide(room.type, room.level, room.segments) : undefined;
+        const tiles = wide ? 1 : def.cells === 3 ? room.segments : 1;
         const { x: bx, y: by, w: bw, h: bh } = backWall(r.w, r.h);
         for (let i = 0; i < tiles; i++) {
-          const s = new Sprite(wall);
+          const s = new Sprite(wide ?? wall);
           s.position.set(r.x + bx + (bw / tiles) * i, r.y + by);
           s.width = bw / tiles;
           s.height = bh;
@@ -842,11 +844,15 @@ export class VaultView {
       this.statics.addChild(g);
       // Buildings that merge (3-cell types) stand one painting per segment, side by side,
       // like underground rooms; the others stretch one picture across their plot.
-      const tiles = roomDef(content, room).cells === 3 ? Math.max(1, room.segments) : 1;
+      // A wide painting, when there is one, stands in for the row.
+      const merges = roomDef(content, room).cells === 3;
+      const wide = merges ? this.art?.roomWallWide(room.type, room.level, room.segments) : undefined;
+      const art = wide ?? wall;
+      const tiles = wide ? 1 : merges ? Math.max(1, room.segments) : 1;
       const tw = r.w / tiles;
-      const hgt = Math.min(gy + 60, (tw / Math.max(1, wall.width)) * wall.height);
+      const hgt = Math.min(gy + 60, (tw / Math.max(1, art.width)) * art.height);
       for (let i = 0; i < tiles; i++) {
-        const s = new Sprite(wall);
+        const s = new Sprite(art);
         s.position.set(r.x + tw * i, r.y + gy - hgt);
         s.width = tw;
         s.height = hgt;

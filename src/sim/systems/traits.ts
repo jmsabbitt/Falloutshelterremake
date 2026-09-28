@@ -95,7 +95,10 @@ interface TraitTuning {
   /** Relative odds of 1, 2, 3... traits (index 0 = the minimum). */
   countWeights: number[];
   inheritChance: number;
+  /** Job experience (seconds) to reach each tier: one per second worked, plus masteryPerCollect per batch. */
   masteryTierSeconds: number[];
+  /** Job experience each worker gets for every batch collected from their room. */
+  masteryPerCollect?: number;
   masteryTierNames: string[];
   masteryTierBonus: number[];
   /** Happiness for working in a room type one has mastered. */
@@ -512,10 +515,40 @@ function isWorking(state: GameState, r: Resident): boolean {
   );
 }
 
-/** Workers accrue mastery in their room type (online and offline). */
-export function tickMastery(state: GameState, content: Content, dt: number): void {
+/**
+ * Add job experience in a room type (scaled by the resident's mastery rate),
+ * announcing any promotion it earns.
+ */
+export function addMastery(state: GameState, content: Content, r: Resident, roomType: string, amount: number): void {
+  if (amount <= 0) return;
   const tiers = traitsContent(content).tuning.masteryTierSeconds;
   const top = tiers.length - 1;
+  if (!r.mastery) r.mastery = {};
+  const before = r.mastery[roomType] ?? 0;
+  const after = before + amount * masteryRate(content, r);
+  r.mastery[roomType] = after;
+  for (let tier = 1; tier <= top; tier++) {
+    const at = tiers[tier] ?? Infinity;
+    if (before >= at || after < at) continue;
+    bump(state, 'masteryUps');
+    if (tier === top) {
+      bump(state, 'masteryMasters');
+      const masteries = Object.keys(r.mastery).filter((type) => masteryTier(content, r, type) >= top).length;
+      bumpMax(state, 'mostMasteries', masteries);
+    }
+    state.events.push({ type: 'masteryUp', residentId: r.id, roomType, tier });
+  }
+}
+
+/** Every worker in a room with a stat earns job experience for each batch collected from it. */
+export function masteryForBatches(state: GameState, content: Content, room: Room, workers: Resident[], batches: number): void {
+  const per = traitsContent(content).tuning.masteryPerCollect ?? 0;
+  if (!per || batches <= 0 || !roomDef(content, room).stat) return;
+  for (const r of workers) addMastery(state, content, r, room.type, per * batches);
+}
+
+/** Workers accrue mastery in their room type (online and offline). */
+export function tickMastery(state: GameState, content: Content, dt: number): void {
   // Count the variety of traits about once a minute (same online and offline).
   const seen = dt <= 0 || Math.floor(state.time / 60) !== Math.floor((state.time - dt) / 60) ? new Set<string>() : null;
   for (const r of state.residents) {
@@ -526,20 +559,7 @@ export function tickMastery(state: GameState, content: Content, dt: number): voi
     if (dt <= 0 || !isWorking(state, r)) continue;
     const room = findRoom(state, r.roomId);
     if (!room || !roomDef(content, room).stat) continue;
-    const before = r.mastery[room.type] ?? 0;
-    const after = before + dt * masteryRate(content, r);
-    r.mastery[room.type] = after;
-    for (let tier = 1; tier <= top; tier++) {
-      const at = tiers[tier] ?? Infinity;
-      if (before >= at || after < at) continue;
-      bump(state, 'masteryUps');
-      if (tier === top) {
-        bump(state, 'masteryMasters');
-        const masteries = Object.keys(r.mastery).filter((type) => masteryTier(content, r, type) >= top).length;
-        bumpMax(state, 'mostMasteries', masteries);
-      }
-      state.events.push({ type: 'masteryUp', residentId: r.id, roomType: room.type, tier });
-    }
+    addMastery(state, content, r, room.type, dt);
   }
   if (seen) bumpMax(state, 'distinctTraits', seen.size);
 }
