@@ -1,0 +1,24 @@
+{
+  "id": "badges",
+  "kind": "portrait",
+  "background": "magenta",
+  "outDir": "icons",
+  "prefix": "badge_",
+  "fit": 64,
+  "targetHeight": 64,
+  "anims": {
+    "badges": {
+      "file": "badges.png",
+      "split": "figures",
+      "order": "x",
+      "take": 5,
+      "names": [
+        "heart",
+        "fallen",
+        "rare",
+        "legendary",
+        "legend"
+      ]
+    }
+  }
+}

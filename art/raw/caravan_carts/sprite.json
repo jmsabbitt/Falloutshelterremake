@@ -1,0 +1,24 @@
+{
+  "id": "caravan_carts",
+  "kind": "portrait",
+  "background": "magenta",
+  "outDir": "props",
+  "prefix": "cart_",
+  "fit": 192,
+  "targetHeight": 192,
+  "anims": {
+    "carts": {
+      "file": "carts.png",
+      "split": "figures",
+      "order": "x",
+      "take": 5,
+      "names": [
+        "caravaners",
+        "tinkers",
+        "lamplighters",
+        "rustmen",
+        "homestead9"
+      ]
+    }
+  }
+}

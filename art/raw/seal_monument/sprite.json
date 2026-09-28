@@ -1,0 +1,18 @@
+{
+  "id": "seal_monument",
+  "kind": "portrait",
+  "background": "magenta",
+  "outDir": "props",
+  "prefix": "",
+  "targetHeight": 512,
+  "anims": {
+    "monument": {
+      "file": "monument.png",
+      "whole": true,
+      "names": [
+        "monument"
+      ],
+      "trimBottom": true
+    }
+  }
+}

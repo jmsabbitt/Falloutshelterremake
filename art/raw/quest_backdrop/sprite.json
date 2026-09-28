@@ -1,0 +1,27 @@
+{
+  "id": "quest_backdrop",
+  "kind": "portrait",
+  "background": "none",
+  "outDir": "quest",
+  "prefix": "quest_",
+  "targetHeight": 512,
+  "anims": {
+    "sky": {
+      "file": "sky.png",
+      "whole": true,
+      "names": [
+        "sky"
+      ]
+    },
+    "skyline": {
+      "file": "skyline.png",
+      "whole": true,
+      "names": [
+        "skyline"
+      ],
+      "background": "magenta",
+      "trimBottom": true,
+      "targetHeight": 256
+    }
+  }
+}

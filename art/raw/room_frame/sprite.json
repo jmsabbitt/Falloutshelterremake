@@ -1,0 +1,31 @@
+{
+  "id": "room_frame",
+  "kind": "portrait",
+  "background": "magenta",
+  "outDir": "rooms",
+  "prefix": "room_frame_",
+  "targetHeight": 256,
+  "anims": {
+    "frame": {
+      "file": "frame.png",
+      "whole": true,
+      "names": [
+        "frame"
+      ]
+    },
+    "deep": {
+      "file": "deep.png",
+      "whole": true,
+      "names": [
+        "deep"
+      ]
+    },
+    "deep_braced": {
+      "file": "deep_braced.png",
+      "whole": true,
+      "names": [
+        "deep_braced"
+      ]
+    }
+  }
+}

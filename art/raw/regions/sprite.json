@@ -1,0 +1,31 @@
+{
+  "id": "regions",
+  "kind": "portrait",
+  "background": "none",
+  "outDir": "regions",
+  "prefix": "",
+  "targetHeight": 512,
+  "anims": {
+    "dustbowl": {
+      "file": "dustbowl.png",
+      "whole": true,
+      "names": [
+        "dustbowl"
+      ]
+    },
+    "glassflats": {
+      "file": "glassflats.png",
+      "whole": true,
+      "names": [
+        "glassflats"
+      ]
+    },
+    "stillwater": {
+      "file": "stillwater.png",
+      "whole": true,
+      "names": [
+        "stillwater"
+      ]
+    }
+  }
+}

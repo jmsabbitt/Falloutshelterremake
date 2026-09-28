@@ -326,6 +326,41 @@
         "map_unknown",
         "map_go"
       ]
+    },
+    "u6d": {
+      "file": "u6d.png",
+      "names": [
+        "deep_day_one",
+        "ruined",
+        "all_rooms",
+        "faction_caravaners"
+      ],
+      "boxes": [
+        [
+          0,
+          0,
+          1050,
+          1024
+        ],
+        [
+          1050,
+          0,
+          2100,
+          1024
+        ],
+        [
+          2100,
+          0,
+          3100,
+          1024
+        ],
+        [
+          3100,
+          0,
+          4128,
+          1024
+        ]
+      ]
     }
   }
 }

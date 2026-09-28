@@ -1,0 +1,31 @@
+{
+  "id": "ui_chrome",
+  "kind": "portrait",
+  "background": "none",
+  "outDir": "ui",
+  "prefix": "",
+  "targetHeight": 256,
+  "anims": {
+    "panel": {
+      "file": "panel.png",
+      "whole": true,
+      "names": [
+        "panel"
+      ]
+    },
+    "button": {
+      "file": "button.png",
+      "whole": true,
+      "names": [
+        "button"
+      ]
+    },
+    "hud_bar": {
+      "file": "hud_bar.png",
+      "whole": true,
+      "names": [
+        "hud_bar"
+      ]
+    }
+  }
+}

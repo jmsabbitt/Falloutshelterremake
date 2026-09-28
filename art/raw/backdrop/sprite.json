@@ -27,6 +27,59 @@
       "names": [
         "dirt"
       ]
+    },
+    "stratum1": {
+      "file": "stratum1.png",
+      "whole": true,
+      "names": [
+        "stratum1"
+      ]
+    },
+    "stratum2": {
+      "file": "stratum2.png",
+      "whole": true,
+      "names": [
+        "stratum2"
+      ]
+    },
+    "stratum3": {
+      "file": "stratum3.png",
+      "whole": true,
+      "names": [
+        "stratum3"
+      ]
+    },
+    "stratum4": {
+      "file": "stratum4.png",
+      "whole": true,
+      "names": [
+        "stratum4"
+      ]
+    },
+    "bulkhead": {
+      "file": "bulkhead.png",
+      "whole": true,
+      "names": [
+        "bulkhead"
+      ],
+      "targetHeight": 256
+    },
+    "seal_band": {
+      "file": "seal_band.png",
+      "whole": true,
+      "names": [
+        "seal_band"
+      ],
+      "targetHeight": 256
+    },
+    "seal_centre": {
+      "file": "seal_centre.png",
+      "whole": true,
+      "names": [
+        "seal_centre"
+      ],
+      "background": "magenta",
+      "trimBottom": true
     }
   }
 }

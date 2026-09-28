@@ -1,0 +1,17 @@
+{
+  "id": "arrival",
+  "kind": "portrait",
+  "background": "magenta",
+  "outDir": "portraits",
+  "prefix": "",
+  "targetHeight": 256,
+  "anims": {
+    "arrival": {
+      "file": "arrival.png",
+      "whole": true,
+      "names": [
+        "arrival"
+      ]
+    }
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "id": "fx_surge",
+  "kind": "creature",
+  "background": "magenta",
+  "targetHeight": 128,
+  "referenceAnim": "idle",
+  "anims": {
+    "idle": {
+      "file": "idle.png",
+      "fps": 10,
+      "split": "figures",
+      "order": "x"
+    }
+  }
+}

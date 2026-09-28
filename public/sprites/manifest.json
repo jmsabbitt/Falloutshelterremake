@@ -1049,6 +1049,24 @@
         }
       }
     },
+    "dig_drill": {
+      "refHeight": 128,
+      "anims": {
+        "idle": {
+          "frames": 4,
+          "fps": 12,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 109,
+          "frameH": 131,
+          "anchorX": 0.4529,
+          "anchorY": 1.0,
+          "files": {
+            "full": "dig_drill/idle_full.webp"
+          }
+        }
+      }
+    },
     "director_hale": {
       "refHeight": 160,
       "anims": {
@@ -1195,6 +1213,24 @@
           "anchorY": 1.0,
           "files": {
             "full": "fx_fire/idle_full.webp"
+          }
+        }
+      }
+    },
+    "fx_surge": {
+      "refHeight": 128,
+      "anims": {
+        "idle": {
+          "frames": 6,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 72,
+          "frameH": 156,
+          "anchorX": 0.477,
+          "anchorY": 1.0,
+          "files": {
+            "full": "fx_surge/idle_full.webp"
           }
         }
       }
@@ -4061,16 +4097,46 @@
     }
   },
   "portraits": {
+    "app": {
+      "icon": "app/icon.webp"
+    },
+    "arrival": {
+      "arrival": "portraits/arrival.webp"
+    },
     "backdrop": {
       "surface": "backdrop/surface.webp",
       "crust": "backdrop/crust.webp",
-      "dirt": "backdrop/dirt.webp"
+      "dirt": "backdrop/dirt.webp",
+      "stratum1": "backdrop/stratum1.webp",
+      "stratum2": "backdrop/stratum2.webp",
+      "stratum3": "backdrop/stratum3.webp",
+      "stratum4": "backdrop/stratum4.webp",
+      "bulkhead": "backdrop/bulkhead.webp",
+      "seal_band": "backdrop/seal_band.webp",
+      "seal_centre": "backdrop/seal_centre.webp"
+    },
+    "badges": {
+      "heart": "icons/badge_heart.webp",
+      "fallen": "icons/badge_fallen.webp",
+      "rare": "icons/badge_rare.webp",
+      "legendary": "icons/badge_legendary.webp",
+      "legend": "icons/badge_legend.webp"
+    },
+    "caravan_carts": {
+      "caravaners": "props/cart_caravaners.webp",
+      "tinkers": "props/cart_tinkers.webp",
+      "lamplighters": "props/cart_lamplighters.webp",
+      "rustmen": "props/cart_rustmen.webp",
+      "homestead9": "props/cart_homestead9.webp"
     },
     "crates": {
       "standard": "icons/crate_standard.webp",
       "rare": "icons/crate_rare.webp",
       "legendary": "icons/crate_legendary.webp",
       "card_back": "icons/crate_card_back.webp"
+    },
+    "dig_rig": {
+      "derrick": "props/dig_derrick.webp"
     },
     "endings": {
       "open_renewal": "endings/open_renewal.webp",
@@ -4090,6 +4156,22 @@
       "lamplighters": "portraits/faction_lamplighters.webp",
       "rustmen": "portraits/faction_rustmen.webp",
       "homestead9": "portraits/faction_homestead9.webp"
+    },
+    "fx_beacon": {
+      "off": "fx/beacon_off.webp",
+      "on": "fx/beacon_on.webp"
+    },
+    "fx_cavein": {
+      "rubble_1": "fx/rubble_1.webp",
+      "rubble_2": "fx/rubble_2.webp",
+      "rubble_3": "fx/rubble_3.webp",
+      "rock_a": "fx/rock_a.webp",
+      "rock_b": "fx/rock_b.webp",
+      "rock_c": "fx/rock_c.webp",
+      "rock_d": "fx/rock_d.webp"
+    },
+    "fx_flood": {
+      "pipe": "fx/pipe.webp"
     },
     "halcy": {
       "smile": "portraits/halcy_smile.webp",
@@ -4162,7 +4244,17 @@
       "granny_ash": "portraits/legend_granny_ash.webp",
       "brother_wick": "portraits/legend_brother_wick.webp",
       "june_halloran": "portraits/legend_june_halloran.webp",
-      "captain_orla": "portraits/legend_captain_orla.webp"
+      "captain_orla": "portraits/legend_captain_orla.webp",
+      "unknown": "portraits/legend_unknown.webp"
+    },
+    "quest_backdrop": {
+      "sky": "quest/quest_sky.webp",
+      "skyline": "quest/quest_skyline.webp"
+    },
+    "regions": {
+      "dustbowl": "regions/dustbowl.webp",
+      "glassflats": "regions/glassflats.webp",
+      "stillwater": "regions/stillwater.webp"
     },
     "room_aquifer": {
       "1": "rooms/room_aquifer_1.webp",
@@ -4196,6 +4288,11 @@
       "1": "rooms/room_farm_plots_1.webp",
       "2": "rooms/room_farm_plots_2.webp",
       "3": "rooms/room_farm_plots_3.webp"
+    },
+    "room_frame": {
+      "frame": "rooms/room_frame_frame.webp",
+      "deep": "rooms/room_frame_deep.webp",
+      "deep_braced": "rooms/room_frame_deep_braced.webp"
     },
     "room_fungalfarm": {
       "1": "rooms/room_fungalfarm_1.webp",
@@ -4310,6 +4407,31 @@
       "2": "rooms/room_wind_turbine_2.webp",
       "3": "rooms/room_wind_turbine_3.webp"
     },
+    "ruin_homestead": {
+      "wall1": "ruins/ruin_homestead_wall1.webp",
+      "wall2": "ruins/ruin_homestead_wall2.webp",
+      "boss": "ruins/ruin_homestead_boss.webp"
+    },
+    "ruin_props": {
+      "locker_shut": "ruins/prop_locker_shut.webp",
+      "locker_open": "ruins/prop_locker_open.webp",
+      "console": "ruins/prop_console.webp",
+      "trophies": "ruins/prop_trophies.webp",
+      "hatch": "ruins/prop_hatch.webp",
+      "corridor": "ruins/prop_corridor.webp",
+      "ladder": "ruins/prop_ladder.webp",
+      "stairs": "ruins/prop_stairs.webp"
+    },
+    "ruin_relay": {
+      "wall1": "ruins/ruin_relay_wall1.webp",
+      "wall2": "ruins/ruin_relay_wall2.webp",
+      "boss": "ruins/ruin_relay_boss.webp"
+    },
+    "ruin_scrapyard": {
+      "wall1": "ruins/ruin_scrapyard_wall1.webp",
+      "wall2": "ruins/ruin_scrapyard_wall2.webp",
+      "boss": "ruins/ruin_scrapyard_boss.webp"
+    },
     "salvage": {
       "vacuum_tube": "items/vacuum_tube.webp",
       "relay_board": "items/relay_board.webp",
@@ -4332,6 +4454,21 @@
       "costume_jewelry": "items/costume_jewelry.webp",
       "silver_locket": "items/silver_locket.webp",
       "gold_pocket_watch": "items/gold_pocket_watch.webp"
+    },
+    "seal_monument": {
+      "monument": "props/monument.webp"
+    },
+    "sites": {
+      "plot7": "sites/plot7.webp",
+      "the_scorch": "sites/the_scorch.webp",
+      "rust_country": "sites/rust_country.webp",
+      "log_paper": "sites/log_paper.webp",
+      "relic_case": "sites/relic_case.webp"
+    },
+    "ui_chrome": {
+      "panel": "ui/panel.webp",
+      "button": "ui/button.webp",
+      "hud_bar": "ui/hud_bar.webp"
     },
     "ui_icons": {
       "power": "icons/power.webp",
@@ -4409,7 +4546,11 @@
       "relic": "icons/relic.webp",
       "map_objective": "icons/map_objective.webp",
       "map_unknown": "icons/map_unknown.webp",
-      "map_go": "icons/map_go.webp"
+      "map_go": "icons/map_go.webp",
+      "deep_day_one": "icons/deep_day_one.webp",
+      "ruined": "icons/ruined.webp",
+      "all_rooms": "icons/all_rooms.webp",
+      "faction_caravaners": "icons/faction_caravaners.webp"
     }
   },
   "legends": {
