@@ -109,6 +109,7 @@ import { EndingsUI } from './endings';
 import { endingConsole } from '../endingDev';
 import { roomName as levelName } from './qolText';
 import { TutorialCoach } from './tutorial';
+import { StatFlash, statTrainedToast, trainingBlurb, trainingGain, trainingLine, trainingSection } from './training';
 
 declare const __APP_VERSION__: string;
 
@@ -209,6 +210,8 @@ export class UI {
   private storageKind: GearSlot | 'all' = 'all';
   private storageOpen: string | null = null;
   private lastPanelRender = 0;
+  /** Stats raised in the last few seconds, flashed on resident cards. */
+  private statFlash = new StatFlash();
   private lastToolbarKey = '';
   /** What the open panel is showing; a change means a fresh render rather than a patch. */
   private panelKey = '';
@@ -1254,6 +1257,7 @@ export class UI {
         const surface = def.topside && def.produces ? `Surface · makes ${def.produces.resource} · uses ${def.stat ? STAT_NAME[def.stat] : '—'} · output follows the weather` : undefined;
         const what =
           ROOM_BLURB[def.id] ??
+          trainingBlurb(def) ??
           surface ??
           info.what ??
           (def.produces
@@ -1384,6 +1388,7 @@ export class UI {
 
     if (def.category === 'workshop') parts.push(...this.workshopSection(room));
     if (def.category === 'office') parts.push(...this.quests.officeSection());
+    if (def.category === 'training') parts.push(...trainingSection(state, content, room));
     parts.push(...this.research.roomSection(room), ...this.deep.roomSection(room), ...this.topside.roomSection(room));
 
     if (cap > 0) parts.push(...this.crewGrid(room, crew, cap));
@@ -1490,6 +1495,8 @@ export class UI {
       gains.push([what, amount(tableValue(def.storage.amount, room.level, room.segments)), amount(tableValue(def.storage.amount, next.level, room.segments))]);
     }
     if (def.category === 'door') gains.push(['Door strength', `${def.doorHp?.[room.level - 1] ?? 0}`, `${def.doorHp?.[room.level] ?? def.doorHp?.[room.level - 1] ?? 0}`]);
+    const trainGain = trainingGain(state, content, room);
+    if (trainGain) gains.push(trainGain);
     if (def.category === 'radio') gains.push(['Arrival chance', `${Math.round(radioChance(content, room) * 100)}%`, `${Math.round(radioChance(content, next) * 100)}%`]);
     const capNow = roomCapacity(content, room);
     const capNext = roomCapacity(content, next);
@@ -1538,6 +1545,8 @@ export class UI {
     if (r.dead) return '☠ Fallen';
     if (isChild(state, r)) return `Child · grows up in ${duration((r.adultAt ?? 0) - state.time)}`;
     const bits: string[] = [];
+    const training = trainingLine(state, content, r);
+    if (training) bits.push(training);
     if (r.pregnancy) bits.push(`Expecting · due in ${duration(r.pregnancy.dueAt - state.time)}`);
     if (r.courtship) {
       const partner = state.residents.find((x) => x.id === r.courtship?.partnerId);
@@ -1561,7 +1570,7 @@ export class UI {
       'div',
       { class: 'stats' },
       ...STAT_KEYS.map((k) =>
-        h('span', { class: `${top.includes(k) ? 'hi' : ''}${eff[k] > r.stats[k] ? ' boosted' : ''}`, title: `${STAT_NAME[k]} ${r.stats[k]}${eff[k] > r.stats[k] ? ` +${eff[k] - r.stats[k]} from outfit` : ''}` }, `${STAT_LABEL[k]} ${eff[k]}`),
+        h('span', { class: `${top.includes(k) ? 'hi' : ''}${eff[k] > r.stats[k] ? ' boosted' : ''}${this.statFlash.cls(r.id, k)}`, title: `${STAT_NAME[k]} ${r.stats[k]}${eff[k] > r.stats[k] ? ` +${eff[k] - r.stats[k]} from outfit` : ''}` }, `${STAT_LABEL[k]} ${eff[k]}`),
       ),
     );
     const legend = r.legendary ? legendDef(content, r.legendary) : undefined;
@@ -2869,6 +2878,7 @@ export class UI {
     this.legends.onEvents(events);
     this.endings.onEvents(events);
     this.coach.onEvents(events);
+    this.statFlash.note(events);
     this.escaped.clear();
     for (const ev of events) if (ev.type === 'incidentEscaped') this.escaped.add(ev.incidentId);
     const incName = (type: string) => (content.balance.incidents.types as Record<string, { name: string }>)[type]?.name ?? 'Incident';
@@ -2961,6 +2971,10 @@ export class UI {
           break;
         case 'birth':
           this.toast(`👶 ${this.name(ev.motherId)} had a baby: welcome, ${this.name(ev.childId)}!`, 'gold');
+          break;
+        case 'statTrained':
+          // Offline gains are listed in the away report instead of a burst of toasts.
+          if (!this.game.flushingAway) statTrainedToast(this.game.state, content, ev, (text, kind, opts) => this.toast(text, kind, opts));
           break;
         case 'grewUp':
           this.toast(`${this.name(ev.residentId)} is all grown up and ready to work.`, 'good', { fold: true, low: true });

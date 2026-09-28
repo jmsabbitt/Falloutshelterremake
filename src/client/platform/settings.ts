@@ -13,7 +13,7 @@ export type NotifyGroup = 'expeditions' | 'production' | 'family' | 'offers';
 
 export const NOTIFY_GROUPS: { id: NotifyGroup; label: string; note: string }[] = [
   { id: 'expeditions', label: 'Expeditions and caravans', note: 'Explorers, caravans and quest parties home' },
-  { id: 'production', label: 'Production and storage', note: 'Research, workshops, the Deep, outposts, full storage' },
+  { id: 'production', label: 'Production and storage', note: 'Research, workshops, training, the Deep, outposts, full storage' },
   { id: 'family', label: 'Family', note: 'Births and children growing up' },
   { id: 'offers', label: 'Offers', note: 'Fresh contracts, trade and supply crates' },
 ];
@@ -28,6 +28,7 @@ export const KIND_GROUP: Record<ReminderKind, NotifyGroup> = {
   storage: 'production',
   deep: 'production',
   outpost: 'production',
+  training: 'production',
   birth: 'family',
   grownUp: 'family',
   contracts: 'offers',

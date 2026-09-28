@@ -295,5 +295,38 @@
     "tier": "silver",
     "stat": "bestDailyStreak",
     "target": 7
+  },
+  {
+    "id": "train_first",
+    "name": "Personal Best",
+    "description": "Raise a resident's stat in a training room.",
+    "tier": "bronze",
+    "stat": "statsTrained",
+    "target": 1
+  },
+  {
+    "id": "train_25",
+    "name": "Self-Improvement Society",
+    "description": "Raise 25 stat points in training rooms.",
+    "tier": "silver",
+    "stat": "statsTrained",
+    "target": 25
+  },
+  {
+    "id": "stat_maxed",
+    "name": "Top of the Class",
+    "description": "Get a resident to 10 in any stat.",
+    "tier": "silver",
+    "stat": "statsMaxed",
+    "target": 1
+  },
+  {
+    "id": "all_tens",
+    "name": "Renaissance Resident",
+    "description": "Get one resident to 10 in every stat.",
+    "tier": "gold",
+    "stat": "allTens",
+    "target": 1,
+    "optional": true
   }
 ]

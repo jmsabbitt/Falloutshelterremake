@@ -15,6 +15,8 @@ import {
   tableValue,
   labRate,
   refineryPerHour,
+  trainees,
+  trainingStatus,
   type Room,
 } from '../../sim';
 import type { Game } from '../game';
@@ -193,6 +195,14 @@ export class StatsOverlay {
     } else if (def.category === 'research') {
       // M6: Labs make research points continuously.
       out.push({ text: `+${rate(labRate(state, content, room))}${compact ? '' : ' RP'}/h`, color: 0x7fe0c0 });
+    } else if (def.category === 'training') {
+      // Playtest 1 #14: the soonest trainee to gain a point.
+      const open = trainees(state, room)
+        .map((r) => trainingStatus(state, content, r))
+        .filter((t) => t !== null && !t.maxed);
+      const next = Math.min(...open.map((t) => t?.secondsLeft ?? Infinity));
+      const text = isFinite(next) ? `${compact ? '+1' : 'Next +1'} ${short(next)}` : open.length ? 'Paused' : crew ? (compact ? 'Maxed' : 'All maxed') : compact ? 'Idle' : 'No trainees';
+      out.push({ text, color: isFinite(next) ? GOLD : DIM });
     } else if (room.type === 'refinery') {
       out.push({ text: `+${rate(refineryPerHour(state, content, room))}${compact ? '' : ' salvage'}/h`, color: 0xc9d1d3 });
     } else if (def.storage) {

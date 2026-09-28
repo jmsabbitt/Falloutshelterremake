@@ -74,6 +74,8 @@ export interface Resident {
   caravan?: number | null;
   /** M9: the legendary character this resident is (legends.json id). */
   legendary?: string;
+  /** Playtest 1 #14: progress toward the next point in the stat they last trained (systems/training.ts). */
+  training?: { stat: StatKey; progress: number };
 }
 
 // ------------------------------------------------------------------ M9: content
@@ -552,6 +554,8 @@ export type GameEvent =
   | { type: 'legendAwakened'; residentId: number; legendId: string }
   | { type: 'collectionLogged'; category: string; id: string }
   | { type: 'residentLeveled'; residentId: number; level: number }
+  /** A base stat went up by 1: from a training room, or a level milestone. `value` is the new base stat. */
+  | { type: 'statTrained'; residentId: number; stat: StatKey; value: number; source: 'training' | 'level' }
   | { type: 'residentDied'; residentId: number }
   | { type: 'residentRevived'; residentId: number }
   | { type: 'residentAdmitted'; residentId: number }

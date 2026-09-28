@@ -558,7 +558,9 @@ export function tickMastery(state: GameState, content: Content, dt: number): voi
     if (seen && !r.dead) for (const id of r.traits) seen.add(id);
     if (dt <= 0 || !isWorking(state, r)) continue;
     const room = findRoom(state, r.roomId);
-    if (!room || !roomDef(content, room).stat) continue;
+    // Training rooms have a stat (for drag-highlight and fit) but are not a job: no mastery.
+    const def = room ? roomDef(content, room) : undefined;
+    if (!room || !def?.stat || def.category === 'training') continue;
     addMastery(state, content, r, room.type, dt);
   }
   if (seen) bumpMax(state, 'distinctTraits', seen.size);

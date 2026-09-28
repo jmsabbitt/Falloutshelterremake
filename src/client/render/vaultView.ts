@@ -54,6 +54,7 @@ import {
   roomLook,
   shade,
 } from './palette';
+import { drawTrainingRoom } from './trainingArt';
 import { drawOffice } from './officeArt';
 import { CREATURE_COLORS, drawDoorDamage, drawGlassbackLeap, drawGlassbacks, drawHollowed, drawMauler, drawSealMonument, drawSurge } from './creatureArt';
 import { buildDeepBackground, DEEP_INCIDENT_COLORS, DeepLayer, deepViewKey, drawDeepFrame, drawDeepIncident, drawDepthRoom, labelInk, lampFor, SEAL_H, type DeepGeometry } from './deepArt';
@@ -129,7 +130,7 @@ interface IncidentTrack {
 }
 
 /** Room categories where a resident standing still is shown at work. */
-const WORK_ROOMS = new Set(['production', 'workshop', 'research', 'radio', 'office']);
+const WORK_ROOMS = new Set(['production', 'workshop', 'research', 'radio', 'office', 'training']);
 
 /** Where a resident may stand: a stretch of floor at height y, on a floor (null: the surface or topside). */
 interface Bounds {
@@ -3116,6 +3117,15 @@ function drawRoomBox(g: Graphics, type: string, w: number, h: number, level: num
     case 'refinery':
     case 'aquifer':
       drawDepthRoom(g, type, look, bx, by, bw, bh, segments);
+      break;
+    case 'weight_room':
+    case 'reading_room':
+    case 'lounge':
+    case 'shooting_gallery':
+    case 'tinker_bench':
+    case 'endurance_track':
+    case 'card_parlour':
+      drawTrainingRoom(g, type, look, bx, by, bw, bh, segments);
       break;
     default: {
       for (let s = 0; s < segments * 2; s++) {

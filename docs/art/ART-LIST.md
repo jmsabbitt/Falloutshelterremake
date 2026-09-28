@@ -196,6 +196,25 @@ Legends paint their real colours, so the weapon-colour rule above doesn't apply 
 - **Now:** `creatureArt.ts:drawSealMonument`: a stepped plinth, an obelisk with a brass seal, an inscription band and a small pennant, on the ground left of the door once the Warden's Seal is earned.
 - **Deliver:** `art/raw/seal_monument/monument.png`, magenta, **1:2** (for example 1024 × 2048), ground line at the bottom, `kind: portrait`, `outDir: props`, `trimBottom: true`. A brass star-in-a-ring seal on a concrete obelisk; the pennant is a plain Halcyon teal swallowtail with no lettering.
 
+### V7. Training room walls (P2, 21 images, wired)
+- **Why:** playtest 1, item 14 adds seven training rooms, one per stat, where residents raise that stat 1 point at a time. They have no painting yet.
+- **Now:** `trainingArt.ts:drawTrainingRoom`: flat drawn props per segment (a barbell rack, a bookcase, a sofa and so on) with a pennant strip, over the plain `drawRoomBox` wall in each type's `palette.ts` colours.
+- **Deliver:** `art/raw/room_<type>/level1.png`, `level2.png` and `level3.png` for each type below, at **2048 × 2048 (1:1)**, full bleed (`background: none`), exactly like the existing single-width walls (for example `art/raw/room_radio/`). Copy `room_radio/sprite.json` and change `id` to `room_<type>` and `prefix` to `room_<type>_`; keep `kind: portrait`, `outDir: rooms`, `targetHeight: 256` and the `"1"`, `"2"`, `"3"` entries. `roomWall()` picks them up with no code change, and the drawn props stop showing.
+- **Shape and composition:** the same as the other 3-cell rooms: the floor band along the bottom, a wainscot line, the lower third fairly clear for residents to walk and work in, and a quiet top-left corner for the name tab. Image-to-image from `room_radio/level1.png` (or the matching level) so the frame, light and wear match. Level 1 is a make-do corner, level 2 a proper club room, level 3 the Halcyon showpiece. No words on signs or book spines; trophies, pennants and posters carry shapes only.
+- **Priority:** by the population that unlocks them, the order the player meets them.
+
+| Type (unlock pop) | Stat | Level 1 | Level 2 | Level 3 |
+|---|---|---|---|---|
+| weight_room (15) Weight Room / Strongman Gym / Muscle Beach Hall | Brawn | A barbell on a homemade rack, a sandbag, plates stacked on the floor | A proper bench press, a chrome dumbbell rack, a leather punching bag | A mirrored gym with a chalk bin, rope climb and a wall of trophies |
+| reading_room (18) Reading Room / Lending Library / Halcyon Athenaeum | Wits | Crates of paperbacks, one armchair and a floor lamp | Oak bookcases, a card catalogue and a green-shaded reading desk | Two-storey shelves with a rolling ladder, a globe and a teal Halcyon bust |
+| lounge (21) Lounge / Cocktail Lounge / Starlight Supper Club | Charm | A thrift-store sofa, a record player and a starburst clock | A curved booth, a small bar with stools and a jukebox | A stage with a velvet curtain and a standing microphone, chrome bar, booth lamps |
+| shooting_gallery (24) Shooting Gallery / Rifle Range / Marksman Academy | Sight | A fairground-style counter with tin targets on a rail | Two range lanes with paper targets on pulleys and ear-muffs on hooks | A polished range with target carriers, a scope bench and a scoreboard of lamps |
+| tinker_bench (28) Tinker Bench / Hobby Shop / Gadgeteers' Guild | Knack | A workbench with a vice, a pegboard of tools and a gutted radio | Two benches, drawer cabinets of parts, a lathe and a soldering station | A gleaming workshop with a half-built robot, gear-train wall display and brass lamps |
+| endurance_track (32) Endurance Track / Cinder Track / Iron Mile Stadium | Grit | A painted running lane on the floor, one hurdle and a stopwatch board | A cinder lane with hurdles, a medicine ball and a treadmill belt | A banked indoor track with lap-counter lamps, rowing machines and a finish-line arch |
+| card_parlour (36) Card Parlour / Bingo Hall / Lucky Seven Casino | Fortune | A felt card table under a hanging lamp, mismatched chairs | Bingo tables, a ball cage on a stand and a prize shelf | A small casino floor: a roulette wheel, a card table and a wall of lucky-seven slot machines (no real brands) |
+
+**Count:** 7 types × 3 levels = **21 images**. Wide versions (`w2`, `w3`, as in §1) can follow later at P3; until then merged training rooms tile the single painting.
+
 ---
 
 ## 4. Surface
@@ -428,7 +447,7 @@ So nobody paints these twice:
 |---|---|---|---|---|
 | §1 Wide room walls | 102 | 24 | 54 | 24 |
 | §2 Weapon grip fight sheets | 65 | 10 | 0 | 55 |
-| 3. Vault rooms and structures | 9 | 2 | 4 | 3 |
+| 3. Vault rooms and structures | 30 | 2 | 25 | 3 |
 | 4. Surface | 5 | 3 | 1 | 1 |
 | 5. The Deep | 9 | 0 | 7 | 2 |
 | 6. Residents and overlays | 1 | 0 | 1 | 0 |
@@ -437,9 +456,9 @@ So nobody paints these twice:
 | 9. Items, resources and crates | 5 | 4 | 1 | 0 |
 | 10. HUD, toolbar and UI icons (73 icons) | 22 | 4 | 8 | 10 |
 | 11. Screens and modals | 16 | 0 | 5 | 11 |
-| **Total** | **258** | **48** | **97** | **113** |
+| **Total** | **279** | **48** | **118** | **113** |
 
-Images count generations: an icon sheet of four is one image. At 130 credits an image the whole list is about 33,500 credits, against about 120,330 left after round 2 (renews 2026-10-07). P1 alone is 48 images (about 6,200 credits).
+Images count generations: an icon sheet of four is one image. At 130 credits an image the whole list is about 36,300 credits, against about 120,330 left after round 2 (renews 2026-10-07). P1 alone is 48 images (about 6,200 credits).
 
 **Suggested order:** §1 starter rooms (24) and §2 resident sheets (10), then S1 backdrops, V1 elevator, I1 fire, M1 resources, M3 crates and U1 toolbar. Then P2 by area, then P3.
 

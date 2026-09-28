@@ -9,6 +9,9 @@ import { readJson, writeJson } from '../storage';
 import { ask } from './confirm';
 import { duration, fmt, h } from './dom';
 import { nameList, plural } from './qolText';
+import { STAT_WORD } from './training';
+
+const STAT_ORDER = Object.keys(STAT_WORD);
 
 export type NoticeGroup = 'people' | 'incidents' | 'glare' | 'quests' | 'crafting' | 'rewards' | 'homestead';
 type Tone = 'good' | 'bad' | 'gold';
@@ -267,6 +270,15 @@ export class NoticeCentre {
         return people('revived', '✚', `${this.name(ev.residentId)} was revived.`, this.name(ev.residentId), (p, n) => `${n} residents revived: ${nameList(p)}.`, 'good');
       case 'autoAssigned':
         return { key: 'autoAssigned', group: 'people', icon: '⚙', one: `Auto-assign put ${plural(ev.count, 'resident')} to work.`, part: `${ev.count}`, many: (p) => `Auto-assign put ${p.reduce((a, b) => a + Number(b), 0)} residents to work.` };
+      case 'statTrained': {
+        const stat = STAT_WORD[ev.stat];
+        const who = this.name(ev.residentId);
+        const how = ev.source === 'level' ? ' (level milestone)' : '';
+        return {
+          ...people('statTrained', ev.value >= 10 ? '🏅' : '💪', `${who}'s ${stat} rose to ${ev.value}${how}.`, `${who} (${stat} ${ev.value})`, (p, n) => `${plural(n, 'stat point')} gained: ${nameList(p, 4)}.`, ev.value >= 10 ? 'gold' : 'good'),
+          partId: ev.residentId * 10 + STAT_ORDER.indexOf(ev.stat),
+        };
+      }
       case 'masteryUp': {
         const tier = (content.traits as { tuning?: { masteryTierNames?: string[] } }).tuning?.masteryTierNames?.[ev.tier] ?? `tier ${ev.tier + 1}`;
         const job = content.rooms[ev.roomType]?.name ?? ev.roomType;

@@ -40,6 +40,7 @@ import { happinessBonus, poolSize, roomStatTotal, tickProduction } from './produ
 import { researchContent, researchRate, tickResearch, type ResearchNodeDef } from './research';
 import { traitExplorerTaintMult, tickMastery } from './traits';
 import { tickWeather, weatherMult } from './weather';
+import { isTrainingRoom, trainees, trainingStatus } from './training';
 
 export type ReminderKind =
   | 'explorer'
@@ -54,7 +55,8 @@ export type ReminderKind =
   | 'crate'
   | 'deep'
   | 'quest'
-  | 'outpost';
+  | 'outpost'
+  | 'training';
 
 export interface Reminder {
   /** Stable for the same underlying event (e.g. `caravan.12`), so a re-schedule replaces rather than duplicates. */
@@ -234,6 +236,32 @@ function deep(state: GameState, content: Content, out: Draft[]): void {
     title: 'Dig complete',
     body: fit(`The crew has broken through to ${name}. HALCY reminds you it was always there.`, 'The dig has broken through. HALCY reminds you it was always there.'),
   });
+}
+
+/**
+ * Training rooms: when the next trainee in each room gains a point, at today's
+ * speed (training has no dice; a brownout while away would only delay it).
+ */
+function training(state: GameState, content: Content, out: Draft[]): void {
+  for (const room of state.rooms) {
+    if (!isTrainingRoom(content, room)) continue;
+    let best: { name: string; stat: string; value: number; at: number; id: number } | null = null;
+    for (const r of trainees(state, room)) {
+      const t = trainingStatus(state, content, r);
+      if (!t || t.maxed || !Number.isFinite(t.secondsLeft)) continue;
+      if (!best || t.secondsLeft < best.at) best = { name: r.firstName, stat: t.stat, value: t.value + 1, at: t.secondsLeft, id: r.id };
+    }
+    if (!best) continue;
+    const stat = best.stat.charAt(0).toUpperCase() + best.stat.slice(1);
+    const where = roomDef(content, room).name;
+    out.push({
+      key: `training.${best.id}.${best.stat}.${best.value}`,
+      kind: 'training',
+      inSeconds: best.at,
+      title: 'Training done',
+      body: fit(`${best.name}'s ${stat} is up to ${best.value} in the ${where}. HALCY has framed the certificate.`, `${best.name}'s ${stat} is up to ${best.value}. HALCY has framed the certificate.`),
+    });
+  }
 }
 
 function family(state: GameState, content: Content, out: Draft[]): void {
@@ -551,6 +579,7 @@ export function upcomingReminders(state: GameState, content: Content, opts: Remi
   quests(state, out);
   deep(state, content, out);
   family(state, content, out);
+  training(state, content, out);
   boards(state, content, out);
   outposts(state, content, out);
   crates(state, opts.utcOffsetMinutes ?? 0, out);

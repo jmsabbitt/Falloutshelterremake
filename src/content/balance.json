@@ -539,5 +539,14 @@
         "rarity": "legendary"
       }
     ]
+  },
+  "training": {
+    "_comment": "Training rooms (systems/training.ts). A trainee needs secondsPerPoint x their current base stat of training to gain +1 (20 min for 1 to 2, 3 h for 9 to 10). Each room level above 1 adds levelBonus to the speed, and each other trainee in the same room adds crowdBonus (at most crowdBonusMax). Every levelMilestone levels a resident also gains +1 in the stat of the room they work in (or their best stat when idle); 0 turns it off.",
+    "secondsPerPoint": 1200,
+    "levelBonus": 0.15,
+    "crowdBonus": 0.05,
+    "crowdBonusMax": 0.25,
+    "maxStat": 10,
+    "levelMilestone": 10
   }
 }

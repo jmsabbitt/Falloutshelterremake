@@ -1545,3 +1545,20 @@ h3.group.menu-head { font-family: var(--display); font-weight: 400; font-size: 1
   #ui:has(> .panel-host > .panel:not(.panel-wide)) > .coach { left: calc((100vw - 384px) / 2); width: min(460px, calc(100vw - 416px)); }
 }
 @media (pointer: coarse) { .crate-card:has(.card-equip) { height: 176px; } }
+
+/* Training rooms (playtest 1, item 14): trainee progress and a flash on a freshly raised stat. */
+.train-list { display: grid; gap: 6px; margin: 4px 0 6px; }
+.train-row { padding: 6px 8px; border-radius: 6px; background: #0f191b; border: 1px solid #2a3c3e; }
+.train-row.maxed { border-color: #6a5a2a; }
+.train-bar { height: 6px; margin-top: 4px; background: #0b1113; border-radius: 3px; overflow: hidden; }
+.train-bar .fill { height: 100%; background: var(--accent); border-radius: 3px; transition: width 0.4s linear; }
+.train-row.maxed .train-bar .fill { background: #f2c14e; }
+.stats span.flash { animation: stat-flash 0.9s ease-out 3; box-shadow: inset 0 0 0 2px #f2c14e; }
+@keyframes stat-flash {
+  0% { background: #f2c14e; color: #1b1406; transform: scale(1.18); }
+  100% { transform: scale(1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .stats span.flash { animation: none; background: #f2c14e; color: #1b1406; }
+}
+.train-row .row > b { white-space: nowrap; margin-left: 8px; }

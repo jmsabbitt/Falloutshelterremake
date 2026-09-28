@@ -275,8 +275,12 @@ function dispatch(state: GameState, content: Content, cmd: Command): CommandResu
       let detail: string | undefined;
       if (crew.length >= cap) {
         // Full room: swap out whoever is worst at this job (like the original).
-        const stat = roomDef(content, room).stat;
-        const worst = [...crew].sort((a, b) => (stat ? effectiveStat(content, a, stat) - effectiveStat(content, b, stat) : 0) || a.id - b.id)[0];
+        const def = roomDef(content, room);
+        const stat = def.stat;
+        // Training rooms swap out whoever needs the training least (the highest base stat).
+        const dir = def.category === 'training' ? -1 : 1;
+        const score = (r: Resident) => (stat ? (def.category === 'training' ? r.stats[stat] : effectiveStat(content, r, stat)) : 0);
+        const worst = [...crew].sort((a, b) => dir * (score(a) - score(b)) || a.id - b.id)[0];
         if (!worst) return fail('room is full');
         worst.roomId = res.roomId;
         worst.courtship = null;

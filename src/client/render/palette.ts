@@ -46,6 +46,14 @@ const LOOKS: Record<string, RoomLook> = {
   fungalfarm: { wall: 0x5e6b58, trim: 0x2e3a2c, accent: 0x9cf0c0, floor: 0x3a3328 },
   refinery: { wall: 0x8a7e70, trim: 0x3a3632, accent: 0xe4572e, floor: 0x3e3834 },
   aquifer: { wall: 0x6d878c, trim: 0x2d4a55, accent: 0x4fb3e9, floor: 0x33434a },
+  // Playtest 1 #14: training rooms (props in trainingArt.ts until their walls are painted)
+  weight_room: { wall: 0xd6c7a4, trim: 0x6b4a36, accent: 0xd9645b, floor: 0x6a5238 },
+  reading_room: { wall: 0xe4d6b8, trim: 0x5e452c, accent: 0x7a9a5a, floor: 0x6d5236 },
+  lounge: { wall: 0xe8cfc0, trim: 0x7a3e4e, accent: 0xe08fb0, floor: 0x6a4a44 },
+  shooting_gallery: { wall: 0xd9cba0, trim: 0x4f5a3a, accent: 0xe4572e, floor: 0x5c4c36 },
+  tinker_bench: { wall: 0xd0c8ae, trim: 0x4f6a6e, accent: 0xf2a541, floor: 0x585248 },
+  endurance_track: { wall: 0xcfd8c4, trim: 0x46604a, accent: 0xf2c14e, floor: 0x8a5a3c },
+  card_parlour: { wall: 0xd8c9a8, trim: 0x3e5a3e, accent: 0xc0392b, floor: 0x5a4632 },
 };
 
 export function roomLook(type: string): RoomLook {

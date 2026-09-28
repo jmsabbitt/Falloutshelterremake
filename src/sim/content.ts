@@ -22,7 +22,7 @@ import lootJson from '../content/loot.json';
 import endingsJson from '../content/endings.json';
 import type { Rarity, ResourceKey, StatKey, Stats } from './types';
 
-export type RoomCategory = 'door' | 'elevator' | 'living' | 'production' | 'storage' | 'radio' | 'workshop' | 'office' | 'research';
+export type RoomCategory = 'door' | 'elevator' | 'living' | 'production' | 'storage' | 'radio' | 'workshop' | 'office' | 'research' | 'training';
 export type StorageKind = ResourceKey | 'population' | 'items';
 
 /** Tables indexed [level - 1][segments - 1]. */

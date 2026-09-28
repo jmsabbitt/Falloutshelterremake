@@ -200,7 +200,20 @@ export {
   isChild,
   isAway,
   fleesIncidents,
+  maxStat,
 } from './residents';
+export {
+  isTrainingDef,
+  isTrainingRoom,
+  trainees,
+  trainingPaused,
+  trainingRequirement,
+  trainingSpeed,
+  trainingStatus,
+  trainingTuning,
+  type TrainingStatus,
+  type TrainingTuning,
+} from './systems/training';
 export {
   upcomingReminders,
   DEFAULT_HORIZON_SECONDS,

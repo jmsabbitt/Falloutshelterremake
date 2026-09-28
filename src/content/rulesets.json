@@ -435,6 +435,34 @@
             "floor": 5
           },
           {
+            "type": "weight_room",
+            "floor": 6
+          },
+          {
+            "type": "reading_room",
+            "floor": 6
+          },
+          {
+            "type": "lounge",
+            "floor": 6
+          },
+          {
+            "type": "shooting_gallery",
+            "floor": 7
+          },
+          {
+            "type": "tinker_bench",
+            "floor": 7
+          },
+          {
+            "type": "endurance_track",
+            "floor": 8
+          },
+          {
+            "type": "card_parlour",
+            "floor": 8
+          },
+          {
             "type": "geothermal",
             "floor": 25
           },

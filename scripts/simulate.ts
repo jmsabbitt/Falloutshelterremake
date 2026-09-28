@@ -32,6 +32,7 @@ import {
   isAway,
   isChild,
   loadContent,
+  maxStat,
   newGame,
   population,
   powerDemandPerMin,
@@ -281,6 +282,27 @@ function botTurn(): void {
       })[0];
     if (best) applyCommand(s, content, { type: 'assign', residentId: r.id, roomId: best.id });
   }
+  runTraining();
+}
+
+/**
+ * Playtest 1 #14: a Weight Room and a Reading Room once unlocked; anyone left
+ * idle trains there (weakest in that stat first), and maxed trainees go back to the pool.
+ */
+function runTraining(): void {
+  const pop = population(s);
+  for (const [type, minPop] of [['weight_room', 15], ['reading_room', 20]] as const) {
+    if (pop >= minPop && !s.rooms.some((r) => r.type === type) && s.scrip > buildCost(s, content, type) + 1500) tryBuild(type);
+  }
+  const gyms = s.rooms.filter((r) => roomDef(content, r).category === 'training');
+  for (const room of gyms) {
+    const stat = roomDef(content, room).stat;
+    if (!stat) continue;
+    for (const r of s.residents.filter((x) => x.roomId === room.id && !x.dead && x.stats[stat] >= maxStat(content))) applyCommand(s, content, { type: 'assign', residentId: r.id, roomId: null });
+    const idle = s.residents.filter((r) => !r.dead && !r.waiting && !isChild(s, r) && r.roomId === null && !isAway(r) && r.stats[stat] < maxStat(content));
+    idle.sort((a, b) => a.stats[stat] - b.stats[stat]);
+    while (freeSlots(room) > 0 && idle.length) applyCommand(s, content, { type: 'assign', residentId: (idle.shift() as Resident).id, roomId: room.id });
+  }
 }
 
 /**
@@ -490,6 +512,9 @@ if (process.env.DUMP) {
 console.log(
   `topside: rooms ${s.rooms.filter((r) => r.floor < 0).length} · influence ${Math.round(s.influence)} · factions ${JSON.stringify(Object.fromEntries(Object.entries(s.factions).map(([k, v]) => [k, v.rep])))} · weather changes ${s.stats['weatherChanges'] ?? 0} · ` +
   `depth: research ${s.research.done.length}/${researchContent(content).nodes.length} (${Math.round(s.research.points)} pts banked, ${Math.round(s.stats['researchPoints'] ?? 0)} earned) · strata ${s.deep.strata} · discoveries ${s.deep.discoveries.length} · deep rooms ${s.rooms.filter((r) => r.floor >= content.balance.grid.floors).length} · refined ${s.stats['refinedSalvage'] ?? 0} · mastery ups ${s.stats['masteryUps'] ?? 0} · labs ${s.rooms.filter((r) => r.type === 'lab').length}`,
+);
+console.log(
+  `training: rooms ${s.rooms.filter((r) => roomDef(content, r).category === 'training').length} · stats trained ${s.stats['statsTrained'] ?? 0} · points from level milestones ${(s.stats['statPointsGained'] ?? 0) - (s.stats['statsTrained'] ?? 0)} · stats maxed ${s.stats['statsMaxed'] ?? 0} · training now ${s.residents.filter((r) => !r.dead && r.roomId !== null && roomDef(content, s.rooms.find((x) => x.id === r.roomId) as Room).category === 'training').length}`,
 );
 const unused: Resident[] = s.residents.filter((r) => !r.dead && !r.waiting && !isChild(s, r) && r.roomId === null);
 console.log('idle adults at end:', unused.length);

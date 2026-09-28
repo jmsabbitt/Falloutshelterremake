@@ -232,7 +232,7 @@ function deepWorkers(state: GameState, content: Content): number[] {
   for (const room of state.rooms) {
     if (!isDeepFloor(content, room.floor)) continue;
     const def = roomDef(content, room);
-    if (!def.stat || def.category === 'living') continue;
+    if (!def.stat || def.category === 'living' || def.category === 'training') continue;
     const s = stratumOf(content, room.floor);
     for (let i = workersInRoom(state, room.id).length; i > 0; i--) out.push(s);
   }

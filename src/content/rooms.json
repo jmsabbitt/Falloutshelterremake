@@ -600,6 +600,181 @@
     "usesPower": true
   },
   {
+    "id": "weight_room",
+    "name": "Weight Room",
+    "levelNames": [
+      "Weight Room",
+      "Strongman Gym",
+      "Muscle Beach Hall"
+    ],
+    "category": "training",
+    "stat": "brawn",
+    "unlockPop": 15,
+    "buildable": true,
+    "cost": {
+      "base": 600,
+      "perBuilt": 150
+    },
+    "upgrade": [
+      1500,
+      4500
+    ],
+    "cells": 3,
+    "maxSegments": 3,
+    "capacityPerSegment": 2,
+    "usesPower": true
+  },
+  {
+    "id": "reading_room",
+    "name": "Reading Room",
+    "levelNames": [
+      "Reading Room",
+      "Lending Library",
+      "Halcyon Athenaeum"
+    ],
+    "category": "training",
+    "stat": "wits",
+    "unlockPop": 18,
+    "buildable": true,
+    "cost": {
+      "base": 600,
+      "perBuilt": 150
+    },
+    "upgrade": [
+      1500,
+      4500
+    ],
+    "cells": 3,
+    "maxSegments": 3,
+    "capacityPerSegment": 2,
+    "usesPower": true
+  },
+  {
+    "id": "lounge",
+    "name": "Lounge",
+    "levelNames": [
+      "Lounge",
+      "Cocktail Lounge",
+      "Starlight Supper Club"
+    ],
+    "category": "training",
+    "stat": "charm",
+    "unlockPop": 21,
+    "buildable": true,
+    "cost": {
+      "base": 600,
+      "perBuilt": 150
+    },
+    "upgrade": [
+      1500,
+      4500
+    ],
+    "cells": 3,
+    "maxSegments": 3,
+    "capacityPerSegment": 2,
+    "usesPower": true
+  },
+  {
+    "id": "shooting_gallery",
+    "name": "Shooting Gallery",
+    "levelNames": [
+      "Shooting Gallery",
+      "Rifle Range",
+      "Marksman Academy"
+    ],
+    "category": "training",
+    "stat": "sight",
+    "unlockPop": 24,
+    "buildable": true,
+    "cost": {
+      "base": 900,
+      "perBuilt": 225
+    },
+    "upgrade": [
+      2250,
+      6750
+    ],
+    "cells": 3,
+    "maxSegments": 3,
+    "capacityPerSegment": 2,
+    "usesPower": true
+  },
+  {
+    "id": "tinker_bench",
+    "name": "Tinker Bench",
+    "levelNames": [
+      "Tinker Bench",
+      "Hobby Shop",
+      "Gadgeteers' Guild"
+    ],
+    "category": "training",
+    "stat": "knack",
+    "unlockPop": 28,
+    "buildable": true,
+    "cost": {
+      "base": 900,
+      "perBuilt": 225
+    },
+    "upgrade": [
+      2250,
+      6750
+    ],
+    "cells": 3,
+    "maxSegments": 3,
+    "capacityPerSegment": 2,
+    "usesPower": true
+  },
+  {
+    "id": "endurance_track",
+    "name": "Endurance Track",
+    "levelNames": [
+      "Endurance Track",
+      "Cinder Track",
+      "Iron Mile Stadium"
+    ],
+    "category": "training",
+    "stat": "grit",
+    "unlockPop": 32,
+    "buildable": true,
+    "cost": {
+      "base": 900,
+      "perBuilt": 225
+    },
+    "upgrade": [
+      2250,
+      6750
+    ],
+    "cells": 3,
+    "maxSegments": 3,
+    "capacityPerSegment": 2,
+    "usesPower": true
+  },
+  {
+    "id": "card_parlour",
+    "name": "Card Parlour",
+    "levelNames": [
+      "Card Parlour",
+      "Bingo Hall",
+      "Lucky Seven Casino"
+    ],
+    "category": "training",
+    "stat": "fortune",
+    "unlockPop": 36,
+    "buildable": true,
+    "cost": {
+      "base": 900,
+      "perBuilt": 225
+    },
+    "upgrade": [
+      2250,
+      6750
+    ],
+    "cells": 3,
+    "maxSegments": 3,
+    "capacityPerSegment": 2,
+    "usesPower": true
+  },
+  {
     "id": "geothermal",
     "name": "Geothermal Tap",
     "levelNames": [

@@ -6,7 +6,7 @@ import { STAT_KEYS, type GameState, type Rarity, type Resident, type Sex, type S
 
 export const SKIN_TONES = 6;
 export const HAIR_COLORS = 7;
-const MAX_STAT = 10;
+export const MAX_STAT = 10;
 
 export function emptyStats(value = 1): Stats {
   return { brawn: value, sight: value, grit: value, charm: value, wits: value, knack: value, fortune: value };
@@ -221,9 +221,54 @@ export function grantXp(state: GameState, content: Content, resident: Resident, 
     state.events.push({ type: 'residentLeveled', residentId: resident.id, level: resident.level });
     bumpMax(state, 'highestLevel', resident.level);
     bump(state, 'levelUps');
+    levelMilestone(state, content, resident);
   }
   if (resident.level >= maxLvl) resident.xp = 0;
   return gained;
+}
+
+/** The stat cap for base stats (balance.training.maxStat, 10 by default). */
+export function maxStat(content: Content): number {
+  return content.balance.training?.maxStat ?? MAX_STAT;
+}
+
+/**
+ * Raise a base stat by 1 (capped), with its event and counters. Returns false
+ * when the stat is already at the cap. Used by training rooms and level milestones.
+ */
+export function raiseStat(state: GameState, content: Content, r: Resident, stat: StatKey, source: 'training' | 'level'): boolean {
+  const cap = maxStat(content);
+  if (r.stats[stat] >= cap) return false;
+  r.stats[stat]++;
+  state.events.push({ type: 'statTrained', residentId: r.id, stat, value: r.stats[stat], source });
+  bump(state, 'statPointsGained');
+  if (source === 'training') bump(state, 'statsTrained');
+  if (r.stats[stat] >= cap) {
+    bump(state, 'statsMaxed');
+    if (STAT_KEYS.every((k) => r.stats[k] >= cap)) {
+      bumpMax(state, 'allTens', state.residents.filter((x) => !x.dead && STAT_KEYS.every((k) => x.stats[k] >= cap)).length);
+    }
+  }
+  return true;
+}
+
+/**
+ * Every `levelMilestone` levels (10, 20, ...) a resident gains +1 in the stat of the
+ * room they work in, or their best stat when the room has none (or it is maxed).
+ */
+function levelMilestone(state: GameState, content: Content, r: Resident): void {
+  const every = content.balance.training?.levelMilestone ?? 0;
+  if (!every || r.level % every !== 0) return;
+  const cap = maxStat(content);
+  const room = r.roomId !== null ? state.rooms.find((x) => x.id === r.roomId) : undefined;
+  const roomStat = room ? content.rooms[room.type]?.stat ?? null : null;
+  let stat: StatKey | undefined = roomStat !== null && r.stats[roomStat] < cap ? roomStat : undefined;
+  if (!stat) {
+    // Best base stat that still has room to grow (ties go in STAT_KEYS order).
+    let best = -1;
+    for (const k of STAT_KEYS) if (r.stats[k] < cap && r.stats[k] > best) (best = r.stats[k]), (stat = k);
+  }
+  if (stat) raiseStat(state, content, r, stat, 'level');
 }
 
 export function bump(state: GameState, key: string, by = 1): void {

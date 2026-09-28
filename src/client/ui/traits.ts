@@ -164,7 +164,8 @@ export class TraitsUI {
     const room = r.roomId !== null ? state.rooms.find((x) => x.id === r.roomId) : undefined;
     const def = room ? roomDef(content, room) : undefined;
     const parts: (HTMLElement | null)[] = [];
-    if (room && def?.stat) {
+    // Training rooms are not a trade: no mastery to show (their progress is in the status line).
+    if (room && def?.stat && def.category !== 'training') {
       const tuning = traitsContent(content).tuning;
       const tier = masteryTier(content, r, room.type);
       const top = tuning.masteryTierSeconds.length - 1;
@@ -181,7 +182,7 @@ export class TraitsUI {
         ),
         h('div', { class: 'progress mastery-bar' }, h('div', { style: `width:${Math.round(p * 100)}%` })),
       );
-    } else {
+    } else if (def?.category !== 'training') {
       parts.push(h('div', { class: 'muted small' }, 'Work a job with a stat to build mastery: time on the job and every batch collected count.'));
     }
     const others = Object.entries(r.mastery ?? {})
@@ -191,6 +192,7 @@ export class TraitsUI {
       .sort((a, b) => b.tier - a.tier || b.s - a.s)
       .slice(0, 3);
     if (others.length) parts.push(h('div', { class: 'muted small' }, `Also: ${others.map((m) => `${masteryTierName(content, m.tier)} in ${content.rooms[m.type]?.name ?? m.type}`).join(', ')}`));
+    if (!title && !parts.length) return null;
     return h('div', { class: 'mastery-block' }, title ? h('div', { class: 'profession' }, `⚒ ${title}`) : null, ...parts);
   }
 
@@ -260,7 +262,7 @@ export function traitFit(state: GameState, content: Content, r: Resident, room: 
   const def = roomDef(content, room);
   const tuning = traitsContent(content).tuning;
   // Output only matters in jobs: stat rooms other than quarters, and workshops.
-  const works = (!!def.stat && def.category !== 'living') || def.category === 'workshop';
+  const works = (!!def.stat && def.category !== 'living' && def.category !== 'training') || def.category === 'workshop';
   // Try them in the room: a copy placed there (the real one if already in it).
   const probe = r.roomId === room.id ? r : { ...r, roomId: room.id };
   const tier = masteryTier(content, r, room.type);
