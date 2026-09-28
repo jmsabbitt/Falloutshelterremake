@@ -1,9 +1,11 @@
 // The simulation clock. `advance` is used while the game is open; `catchUp`
 // fast-forwards over time spent away, under the "safe offline" rules:
-//   - timers continue: production (each room still stops at one batch),
-//     pregnancies, children growing up, radio and wanderer arrivals,
+//   - timers continue: production, pregnancies, children growing up, radio and wanderer arrivals,
 //     expeditions (explorers keep exploring), crafting jobs and quest travel
 //   - nothing happens on a quest site: parties never fight offline
+//   - finished batches collect themselves into storage while it has space
+//     (scrip, XP and mastery at balance.offline.autoCollectEfficiency), so
+//     rooms keep working; once storage is full the rest wait, ready or banked
 //   - consumption only runs for the first few minutes of an absence
 //   - no incidents start or progress, no courtship, no shortage damage
 
@@ -30,7 +32,7 @@ import { tickFactions } from './systems/factions';
 import { tickLegends } from './systems/legends';
 import { tickRushStrain } from './systems/rush';
 import { tickTutorial } from './systems/tutorial';
-import type { GameState } from './types';
+import type { GameState, ResourceKey } from './types';
 
 const MAX_ONLINE_STEP = 1;
 
@@ -44,7 +46,7 @@ interface StepOptions {
 function step(state: GameState, content: Content, dt: number, opts: StepOptions): void {
   const from = state.events.length;
   updatePower(state, content);
-  tickProduction(state, content, dt);
+  tickProduction(state, content, dt, { offlineCollect: opts.offline });
   tickNeeds(state, content, dt, { consume: opts.consume, harm: !opts.offline });
   if (opts.offline) settleIncidentsOffline(state, content, dt);
   if (!opts.offline) {
@@ -101,7 +103,11 @@ export interface CatchUpSummary {
   research: number;
   refined: number;
   batches: number;
+  /** Playtest 1: what offline auto-collection put into storage, per resource. */
+  collected: Partial<Record<ResourceKey, number>>;
 }
+
+const COLLECTED: readonly ResourceKey[] = ['power', 'food', 'water', 'medpatch', 'purge'];
 
 /** Fast-forward from state.lastRealTime to `nowMs`. */
 export function catchUp(state: GameState, content: Content, nowMs: number): CatchUpSummary {
@@ -115,11 +121,12 @@ export function catchUp(state: GameState, content: Content, nowMs: number): Catc
   const arrivals0 = (state.stats['arrivals.radio'] ?? 0) + (state.stats['arrivals.wanderer'] ?? 0);
   const research0 = state.stats['researchPoints'] ?? 0;
   const refined0 = state.stats['refinedSalvage'] ?? 0;
+  const collected0 = COLLECTED.map((k) => state.stats[`offlineCollected.${k}`] ?? 0);
 
   let elapsed = 0;
   while (elapsed < seconds - 1e-9) {
     // Fine steps while consumption is running, coarse afterwards (production is
-    // linear, and each room halts once a batch is ready).
+    // linear; a coarse step that finishes several batches collects each in turn).
     const consuming = state.offlineConsumed < consumeWindow;
     const size = consuming ? off.stepSeconds : 60;
     const dt = Math.min(size, seconds - elapsed, consuming ? consumeWindow - state.offlineConsumed : Infinity);
@@ -139,6 +146,9 @@ export function catchUp(state: GameState, content: Content, nowMs: number): Catc
     research: Math.floor((state.stats['researchPoints'] ?? 0) - research0),
     refined: (state.stats['refinedSalvage'] ?? 0) - refined0,
     batches: state.rooms.reduce((n, r) => n + (r.ready ? 1 + (r.banked ?? 0) : 0), 0),
+    collected: Object.fromEntries(
+      COLLECTED.map((k, i) => [k, Math.round((state.stats[`offlineCollected.${k}`] ?? 0) - (collected0[i] ?? 0))] as const).filter(([, v]) => v > 0),
+    ),
   };
 }
 

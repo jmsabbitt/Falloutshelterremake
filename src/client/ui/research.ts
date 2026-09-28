@@ -328,8 +328,15 @@ export class ResearchUI {
     const why = !room.powered ? 'No power' : state.incidents.some((i) => i.roomId === room.id) ? 'Stopped by the incident' : crew === 0 ? 'Needs a crew' : '';
     const tuning = researchContent(content).tuning;
     const mult = tuning.levelMult[room.level - 1] ?? 1;
+    // The time left until the cheapest open project is affordable, as other stations show time remaining.
+    const next = researchContent(content)
+      .nodes.filter((n) => nodeStatus(state, content, n.id) === 'open' && n.cost > state.research.points)
+      .sort((a, b) => a.cost - b.cost)[0];
     return [
       h('div', { class: 'row' }, h('span', {}, '🔬 Research'), h('b', {}, rate > 0 ? `${rate.toFixed(1)} RP/h` : why)),
+      ...(next && all > 0
+        ? [h('div', { class: 'row small' }, h('span', {}, `Enough for ${next.name} in`), h('b', { class: 'countdown' }, duration(((next.cost - state.research.points) / all) * 3600)))]
+        : []),
       h('div', { class: 'row muted small' }, h('span', {}, `All Labs ${all.toFixed(1)} RP/h`), h('span', {}, `${fmt(state.research.points)} RP banked`)),
       h('div', { class: 'muted small' }, `Each point of crew Wits makes ${tuning.pointsPerWitsHour} RP an hour${mult !== 1 ? `, ×${mult} at this level` : ''}. Lab work also earns XP.`),
       h('div', { class: 'row', style: 'justify-content:flex-start' }, h('button', { class: 'close', onclick: () => this.host.openResearch() }, 'Open Research')),

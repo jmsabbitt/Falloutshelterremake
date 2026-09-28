@@ -9,7 +9,7 @@ import { roomDef } from '../grid';
 import { bonus, productionMult } from '../bonuses';
 import { bump, effectiveStat, grantXp, workersInRoom } from '../residents';
 import { chance, nextFloat } from '../rng';
-import type { GameState, Room } from '../types';
+import type { GameState, ResourceKey, Room } from '../types';
 import { masteryForBatches, workerMult } from './traits';
 import { weatherMult } from './weather';
 
@@ -41,21 +41,65 @@ export function cycleSeconds(state: GameState, content: Content, room: Room): nu
   return rate > 0 ? poolSize(content, room) / rate : Infinity;
 }
 
+/**
+ * Pool points per second the room is filling at right now, exactly as
+ * tickProduction fills it: 0 while unpowered, burning or without a crew.
+ */
+export function productionRate(state: GameState, content: Content, room: Room): number {
+  const def = roomDef(content, room);
+  if (!def.produces || !room.powered || state.incidents.some((i) => i.roomId === room.id)) return 0;
+  return roomStatTotal(state, content, room) * (1 + happinessBonus(state, content)) * productionMult(state, content, def.produces.resource) * weatherMult(state, content, room);
+}
+
+/**
+ * Seconds until the room's next batch is ready to collect: 0 when one is
+ * ready, Infinity while it isn't filling (no crew, no power, an incident).
+ */
+export function secondsToReady(state: GameState, content: Content, room: Room): number {
+  if (!roomDef(content, room).produces) return Infinity;
+  if (room.ready) return 0;
+  const rate = productionRate(state, content, room);
+  return rate > 0 ? Math.max(0, poolSize(content, room) - room.pool) / rate : Infinity;
+}
+
 export function batchOutput(content: Content, room: Room): number {
   const p = roomDef(content, room).produces;
   return p ? tableValue(p.output, room.level, room.segments) : 0;
 }
 
-export function tickProduction(state: GameState, content: Content, dt: number): void {
+export interface ProductionOptions {
+  /**
+   * Offline catch-up: finished batches collect themselves into storage while
+   * it has space (collectRoom, paying balance.offline.autoCollectEfficiency of
+   * the scrip, XP and mastery), so rooms keep working instead of all stalling
+   * on their first batch. Once storage is full the rest wait, ready or banked.
+   */
+  offlineCollect?: boolean;
+}
+
+export function tickProduction(state: GameState, content: Content, dt: number, opts: ProductionOptions = {}): void {
   const happy = 1 + happinessBonus(state, content);
   const burning = new Set(state.incidents.map((i) => i.roomId));
   // Holding Tanks (research) let a room keep working past its first finished batch.
   const bank = Math.floor(bonus(state, content, 'batchBank'));
+  const eff = content.balance.offline.autoCollectEfficiency ?? 1;
+  // Storage doesn't change size during the step; look each cap up once.
+  const caps = new Map<ResourceKey, number>();
+  const collect = (room: Room) => {
+    if (!opts.offlineCollect || !room.ready) return;
+    const res = roomDef(content, room).produces?.resource;
+    if (!res) return;
+    if (!caps.has(res)) caps.set(res, resourceCapacity(state, content, res));
+    if (state.resources[res] < (caps.get(res) as number)) collectRoom(state, content, room, { efficiency: eff, offline: true });
+  };
   // Bonuses are the same for every room of a resource this step; look them up once.
   const mults = new Map<string, number>();
   for (const room of state.rooms) {
     const def = roomDef(content, room);
-    if (!def.produces || !room.powered || burning.has(room.id)) continue;
+    if (!def.produces) continue;
+    // Batches finished earlier (or waiting on storage) go in first.
+    collect(room);
+    if (!room.powered || burning.has(room.id)) continue;
     if (room.ready && (room.banked ?? 0) >= bank) continue;
     const res = def.produces.resource;
     if (!mults.has(res)) mults.set(res, productionMult(state, content, res));
@@ -68,6 +112,7 @@ export function tickProduction(state: GameState, content: Content, dt: number): 
       room.pool -= size;
       if (!room.ready) room.ready = true;
       else if ((room.banked ?? 0) < bank) room.banked = (room.banked ?? 0) + 1;
+      collect(room);
       if (room.ready && (room.banked ?? 0) >= bank) {
         room.pool = 0; // full: the room waits
         break;
@@ -92,13 +137,21 @@ export function rollBonusScrip(state: GameState, content: Content, room: Room): 
   return 0;
 }
 
+export interface CollectOptions {
+  /** Share of the per-batch scrip, bonus scrip, XP and mastery paid (offline auto-collect pays less). Default 1. */
+  efficiency?: number;
+  /** Collected by offline catch-up rather than by the player. */
+  offline?: boolean;
+}
+
 /**
  * Collect ready batches: the first always, then banked ones while storage has
  * room (the rest stay banked). Returns the amount actually added.
  */
-export function collectRoom(state: GameState, content: Content, room: Room): number {
+export function collectRoom(state: GameState, content: Content, room: Room, opts: CollectOptions = {}): number {
   const def = roomDef(content, room);
   if (!def.produces || !room.ready) return 0;
+  const eff = Math.max(0, opts.efficiency ?? 1);
   const key = def.produces.resource;
   const cap = resourceCapacity(state, content, key);
   const out = batchOutput(content, room);
@@ -113,23 +166,25 @@ export function collectRoom(state: GameState, content: Content, room: Room): num
   room.banked = Math.max(0, left - 1);
 
   // A little scrip for every batch, so income isn't only lucky rolls; bonus rolls come on top.
-  const base = workersInRoom(state, room.id).length ? content.balance.bonusScrip.basePerSegment * room.segments * batches : 0;
+  const base = workersInRoom(state, room.id).length ? Math.round(content.balance.bonusScrip.basePerSegment * room.segments * batches * eff) : 0;
   if (base) addScrip(state, content, base);
   let bonusScrip = 0;
   for (let i = 0; i < batches; i++) bonusScrip += rollBonusScrip(state, content, room);
+  bonusScrip = Math.round(bonusScrip * eff);
   if (bonusScrip > 0) {
     addScrip(state, content, bonusScrip);
     bump(state, 'bonusScripEvents');
     bump(state, 'bonusScripTotal', bonusScrip);
   }
 
-  const xp = content.balance.resident.xpPerCollectPerSegment * room.segments * (1 + 0.25 * (room.level - 1)) * batches;
+  const xp = content.balance.resident.xpPerCollectPerSegment * room.segments * (1 + 0.25 * (room.level - 1)) * batches * eff;
   const workers = workersInRoom(state, room.id);
-  for (const r of workers) grantXp(state, content, r, xp);
-  masteryForBatches(state, content, room, workers, batches);
+  if (xp > 0) for (const r of workers) grantXp(state, content, r, xp);
+  masteryForBatches(state, content, room, workers, batches * eff);
 
   bump(state, 'collections');
   bump(state, `produced.${key}`, amount);
-  state.events.push({ type: 'collected', roomId: room.id, resource: key, amount, bonusScrip, baseScrip: base });
+  if (opts.offline) bump(state, `offlineCollected.${key}`, amount);
+  state.events.push({ type: 'collected', roomId: room.id, resource: key, amount, bonusScrip, baseScrip: base, ...(opts.offline ? { offline: true } : {}) });
   return amount;
 }

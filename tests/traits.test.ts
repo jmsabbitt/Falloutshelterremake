@@ -455,10 +455,12 @@ describe('mastery', () => {
     r.traits = ['hard_case'];
     staff(s, gen, [r]);
     drainEvents(s);
-    // Offline nobody collects, so it is time worked alone.
+    // Time worked, plus the batches that collected themselves offline (at the offline rate).
     const away = JOURNEYMAN + HOUR;
+    const collections = s.stats['collections'] ?? 0;
     catchUp(s, content, T0 + away * 1000);
-    expect(r.mastery.generator).toBeCloseTo(away, 0);
+    const batches = (s.stats['collections'] ?? 0) - collections;
+    expect(r.mastery.generator).toBeCloseTo(away + batches * tuning.masteryPerCollect! * content.balance.offline.autoCollectEfficiency, 0);
     expect(masteryTier(content, r, 'generator')).toBe(1);
     expect(drainEvents(s).some((e) => e.type === 'masteryUp' && e.residentId === r.id)).toBe(true);
 

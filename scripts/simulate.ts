@@ -36,6 +36,7 @@ import {
   population,
   powerDemandPerMin,
   resourceCapacity,
+  shortageLine,
   roomCapacity,
   roomCells,
   roomDef,
@@ -48,6 +49,7 @@ import {
   type Room,
 } from '../src/sim';
 import { playQuest } from '../src/sim/systems/questBot';
+import { cycleSeconds, batchOutput } from '../src/sim/systems/production';
 import { closelyRelated } from '../src/sim/residents';
 
 const content = loadContent();
@@ -292,7 +294,7 @@ function runTopside(): void {
   const pop = population(s);
   for (const [type, want, minPop] of [['trading_post', 1, 30], ['signal_mast', 1, 35], ['farm_plots', 2, 40], ['solar_array', 1, 45], ['watchtower', 1, 50]] as const) {
     if (pop >= minPop && s.rooms.filter((r) => r.type === type).length < want && s.scrip > 4000) {
-      const x = [...Array(20).keys()].find((i) => canPlace(s, content, type, -1, i).ok);
+      const x = [...Array(content.balance.grid.cellsPerFloor).keys()].find((i) => canPlace(s, content, type, -1, i).ok);
       if (x !== undefined) applyCommand(s, content, { type: 'build', roomType: type, floor: -1, x });
     }
   }
@@ -455,6 +457,80 @@ function logDeaths(hour: number): void {
     console.log(`DEATH h${hour.toFixed(1)} ${r?.firstName} L${r?.level} hp${Math.round(r?.maxHp ?? 0)} taint${Math.round(r?.taint ?? 0)} wpn ${r?.weapon ?? '-'} room ${room?.type ?? '-'}/${room?.segments}x L${room?.level} crew ${crew} inc ${inc?.type ?? '-'} ${Math.round(inc?.hp ?? 0)}/${Math.round(inc?.maxHp ?? 0)} dps ${inc?.dps.toFixed(1)} pop ${population(s)}`);
   }
 }
+
+// BALANCE_OUT=path: sample supplies every minute for scripts/resourceBalance.ts.
+const BAL_RES = ['power', 'food', 'water', 'medpatch', 'purge'] as const;
+type BalRes = (typeof BAL_RES)[number];
+const bal = {
+  minutes: 0,
+  byRes: Object.fromEntries(BAL_RES.map((k) => [k, { low: 0, empty: 0, full: 0, short: 0, producedPerMin: 0, demandPerMin: 0, workerMin: 0, statMin: 0 }])) as Record<BalRes, { low: number; empty: number; full: number; short: number; producedPerMin: number; demandPerMin: number; workerMin: number; statMin: number }>,
+  byRoom: {} as Record<string, { workerMin: number; output: number; roomMin: number }>,
+  lastProduced: {} as Record<string, number>,
+  popMin: 0,
+  hourly: [] as { h: number; pop: number; rooms: number; res: Record<string, number>; cap: Record<string, number>; workers: Record<string, number>; made: Record<string, number>; demand: Record<string, number>; stat: Record<string, number>; potential: Record<string, number> }[],
+  /** This hour so far: made, used (by residents and rooms) and crew stat, per supply, summed per minute. */
+  hr: { made: {} as Record<string, number>, demand: {} as Record<string, number>, stat: {} as Record<string, number>, potential: {} as Record<string, number> },
+};
+function sampleBalance(): void {
+  bal.minutes++;
+  bal.popMin += population(s);
+  const demand: Record<string, number> = { power: powerDemandPerMin(s, content), food: foodDemandPerMin(s, content), water: waterDemandPerMin(s, content), medpatch: 0, purge: 0 };
+  const workers: Record<string, number> = {};
+  for (const k of BAL_RES) {
+    const b = bal.byRes[k];
+    const cap = resourceCapacity(s, content, k);
+    const v = s.resources[k];
+    if (v < cap * 0.25) b.low++;
+    if (v < 1) b.empty++;
+    // Sampled a minute after the bot collected: "full" is within a minute's use of the cap.
+    if (v >= cap - (demand[k] ?? 0) - 0.5) b.full++;
+    if (k === 'power' || k === 'food' || k === 'water') {
+      if (v < shortageLine(s, content, k)) b.short++;
+    }
+    const prod = s.stats[`produced.${k}`] ?? 0;
+    const last = bal.lastProduced[k] ?? 0;
+    const made = prod >= last ? prod - last : prod; // a new homestead restarts the stats
+    b.producedPerMin += made;
+    bal.lastProduced[k] = prod;
+    b.demandPerMin += demand[k] ?? 0;
+    bal.hr.made[k] = (bal.hr.made[k] ?? 0) + made;
+    bal.hr.demand[k] = (bal.hr.demand[k] ?? 0) + (demand[k] ?? 0);
+  }
+  for (const room of s.rooms) {
+    const def = roomDef(content, room);
+    if (!def.produces) continue;
+    const crew = s.residents.filter((r) => r.roomId === room.id && !r.dead && !isAway(r));
+    const res = def.produces.resource as BalRes;
+    const b = bal.byRes[res];
+    b.workerMin += crew.length;
+    const stat = crew.reduce((a, r) => a + (def.stat ? effectiveStat(content, r, def.stat) : 0), 0);
+    b.statMin += stat;
+    bal.hr.stat[res] = (bal.hr.stat[res] ?? 0) + stat;
+    workers[res] = (workers[res] ?? 0) + crew.length;
+    const secs = cycleSeconds(s, content, room);
+    const key = `${room.type} L${room.level}x${room.segments}`;
+    const e = (bal.byRoom[key] ??= { workerMin: 0, output: 0, roomMin: 0 });
+    e.roomMin++;
+    e.workerMin += crew.length;
+    if (isFinite(secs) && room.powered) {
+      const perMin = (batchOutput(content, room) * 60) / secs;
+      e.output += perMin;
+      bal.hr.potential[res] = (bal.hr.potential[res] ?? 0) + perMin;
+    }
+  }
+  if (bal.minutes % 60 === 0) {
+    bal.hourly.push({
+      h: bal.minutes / 60,
+      pop: population(s),
+      rooms: s.rooms.length,
+      res: Object.fromEntries(BAL_RES.map((k) => [k, Math.round(s.resources[k])])),
+      cap: Object.fromEntries(BAL_RES.map((k) => [k, resourceCapacity(s, content, k)])),
+      workers,
+      ...bal.hr,
+    });
+    bal.hr = { made: {}, demand: {}, stat: {}, potential: {} };
+  }
+}
 const milestones: Record<number, number> = {};
 for (let minute = 0; minute <= hours * 60; minute++) {
   if (minute % 60 === 0 && (minute / 60) % Math.max(1, Math.floor(hours / 24)) === 0) row(minute / 60);
@@ -465,6 +541,7 @@ for (let minute = 0; minute <= hours * 60; minute++) {
   }
   for (const m of [10, 20, 30, 40, 50, 75, 100]) if (population(s) >= m && milestones[m] === undefined) milestones[m] = minute / 60;
   advance(s, content, 60);
+  if (process.env.BALANCE_OUT) sampleBalance();
 }
 console.log(`\nhomesteads founded at hours: ${foundedAt.map((h) => h.toFixed(1)).join(', ') || 'none'} · cycle ${s.legacy.cycle} · outposts ${s.legacy.outposts.length} · charter: ${charterStatus(s, content).requirements.map((r) => `${r.label} ${r.have}/${r.need}`).join(', ')}`);
 console.log('\nhours to reach population (this homestead):', Object.entries(milestones).map(([p, h]) => `${p}: ${h.toFixed(1)}h`).join('  '));
@@ -493,3 +570,7 @@ console.log(
 );
 const unused: Resident[] = s.residents.filter((r) => !r.dead && !r.waiting && !isChild(s, r) && r.roomId === null);
 console.log('idle adults at end:', unused.length);
+if (process.env.BALANCE_OUT) {
+  const { writeFileSync } = await import('node:fs');
+  writeFileSync(process.env.BALANCE_OUT, JSON.stringify({ seed, hours, deaths: s.stats['deaths'] ?? 0, pop: population(s), rooms: s.rooms.length, milestones, ...bal }));
+}

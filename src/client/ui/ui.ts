@@ -33,6 +33,7 @@ import {
   SALVAGE_CAP,
   courtshipSeconds,
   cycleSeconds,
+  secondsToReady,
   effectiveMaxHp,
   effectiveStats,
   isChild,
@@ -1320,9 +1321,17 @@ export class UI {
 
     if (def.produces) {
       const secs = cycleSeconds(state, content, room);
+      const left = secondsToReady(state, content, room);
       const out = tableValue(def.produces.output, room.level, room.segments);
+      // Time left on this batch (the panel re-renders every half second, so it counts down).
       // Without a crew the timer never runs: say so rather than showing a dash.
-      const timer = room.ready ? h('b', {}, 'READY') : crew.length ? h('b', {}, duration(secs)) : h('b', { class: 'short' }, 'Needs crew');
+      const timer = room.ready
+        ? h('b', {}, 'READY')
+        : !crew.length
+          ? h('b', { class: 'short' }, 'Needs crew')
+          : isFinite(left)
+            ? h('b', { class: 'countdown', title: `A batch takes ${duration(secs)} with this crew` }, `Ready in ${duration(left)}`)
+            : h('b', { class: 'short' }, room.powered ? 'Stopped' : 'No power');
       parts.push(h('div', { class: 'row' }, `Makes ${amount(out)} ${def.produces.resource} per batch`, timer));
     }
     if (def.storage) {
@@ -2737,7 +2746,7 @@ export class UI {
             'div',
             { class: 'row', style: 'margin:0' },
             h('span', {}, def ? h('span', { class: `rarity ${def.rarity}` }, RARITY_MARK[def.rarity]) : null, h('b', {}, ` ${def?.name ?? job.defId}`)),
-            h('b', {}, done ? 'READY' : isFinite(left) ? `${duration(left)} left` : 'Stalled'),
+            h('b', { class: 'countdown' }, done ? 'READY' : isFinite(left) ? `Ready in ${duration(left)}` : 'Stalled'),
           ),
           h('div', { class: 'progress' }, h('div', { style: `width:${p * 100}%;background:var(--accent)` })),
           !done && (stall || !isFinite(left)) ? h('div', { class: 'muted small short' }, `Paused: ${stall ?? 'waiting for a crew'}`) : null,
@@ -3145,15 +3154,28 @@ export class UI {
       fallen ? `☠ ${names(s.explorersFallen)} fell out in the Glarelands.` : '',
       out && !home && !fallen ? `🧭 ${out} explorer${out === 1 ? ' is' : 's are'} still out in the Glarelands.` : '',
     ].filter(Boolean);
+    const came = awayCollected(s.collected);
+    const ready = s.readyRooms ? `${s.readyRooms} room${s.readyRooms === 1 ? ' is' : 's are'} ready to collect${came ? ' now that storage is full' : ''}.` : 'No rooms are waiting on you.';
     this.modal(
       'While you were away',
-      h('p', {}, `${duration(s.seconds)} passed. ${s.readyRooms} room${s.readyRooms === 1 ? ' is' : 's are'} ready to collect. ${extras}`),
+      h('p', {}, `${duration(s.seconds)} passed. ${ready} ${extras}`),
+      came ? h('p', { class: 'away-collected' }, `📦 ${came} collected while you were away.`) : '',
       ...glare.map((t) => h('p', {}, t)),
       s.cappedAt ? h('p', { class: 'muted' }, `Offline progress is capped at ${duration(s.cappedAt)}.`) : '',
       h('p', { class: 'muted' }, 'Your homestead is safe while you are gone: no incidents, no shortage damage.'),
       home || fallen ? h('div', { class: 'row', style: 'justify-content:flex-start' }, h('button', { onclick: () => (this.modalHost.replaceChildren(), this.openPanel('explore')) }, 'Open the Glarelands')) : '',
     );
   }
+}
+
+const AWAY_RESOURCE: Record<string, string> = { power: 'power', food: 'food', water: 'water', medpatch: 'Med-Patches', purge: 'Purge' };
+
+/** "+340 power, +210 food and +180 water", or '' when nothing came in. */
+function awayCollected(collected: Partial<Record<string, number>> | undefined): string {
+  const bits = Object.entries(collected ?? {})
+    .filter(([, v]) => (v ?? 0) >= 1)
+    .map(([k, v]) => `+${fmt(Math.round(v ?? 0))} ${AWAY_RESOURCE[k] ?? k}`);
+  return bits.length > 1 ? `${bits.slice(0, -1).join(', ')} and ${bits[bits.length - 1]}` : (bits[0] ?? '');
 }
 
 /** "Wits, Knack or Fortune". */

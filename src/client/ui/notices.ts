@@ -383,7 +383,7 @@ export class NoticeCentre {
         return { key: `disc-${ev.discoveryId}`, group: 'homestead', icon: '📜', one: `Discovery in the Deep: ${d?.title ?? 'something old'}.`, tone: 'gold' };
       }
       case 'collected':
-        // The player's own taps are noise; batches gathered while away (conveyors) are news.
+        // The player's own taps are noise; batches gathered while away (offline, or by conveyors) are news.
         return away ? { key: 'collected', group: 'homestead', icon: '⤓', one: '', sum: { [ev.resource]: ev.amount } } : null;
       default:
         return null;

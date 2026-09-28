@@ -886,6 +886,7 @@ button.pulse { animation: ready 0.6s infinite alternate; }
 .dig-card { cursor: default; border-color: #3f4a4a; margin-top: 8px; }
 .dig-card.digging { border-color: var(--s1); background: linear-gradient(160deg, #2a2016, #1a2729 70%); }
 .dig-card .countdown { font-family: var(--display); font-weight: 400; color: var(--s1); font-variant-numeric: tabular-nums; }
+.room-sheet .countdown { font-variant-numeric: tabular-nums; }
 .dig-progress { margin: 8px 0 4px; }
 .dig-progress > div { background: repeating-linear-gradient(45deg, #f2a541 0 8px, #c98522 8px 16px); }
 .stratum-desc { margin: 4px 0; line-height: 1.4; font-style: italic; }

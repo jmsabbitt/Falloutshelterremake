@@ -26,7 +26,7 @@
 
 import type { Content } from '../content';
 import { bonus, productionMult } from '../bonuses';
-import { population, storageCapacity } from '../economy';
+import { population, resourceCapacity, storageCapacity } from '../economy';
 import { roomDef } from '../grid';
 import { effectiveStat, isChild } from '../residents';
 import type { GameState, Room } from '../types';
@@ -36,7 +36,7 @@ import { regionDef } from './exploration';
 import { factionDef, tradingPostStaffed } from './factions';
 import { settleIncidentsOffline } from './incidents';
 import { tickNeeds, updatePower } from './needs';
-import { happinessBonus, poolSize, roomStatTotal, tickProduction } from './production';
+import { batchOutput, happinessBonus, poolSize, roomStatTotal, tickProduction } from './production';
 import { researchContent, researchRate, tickResearch, type ResearchNodeDef } from './research';
 import { traitExplorerTaintMult, tickMastery } from './traits';
 import { tickWeather, weatherMult } from './weather';
@@ -448,7 +448,7 @@ function replay(state: GameState, content: Content, limit: number, out: Draft[])
     const dt = Math.min(consuming ? off.stepSeconds : 60, limit - elapsed, consuming ? window - consumed : Infinity);
     // Same order as tick.ts step() for the systems that matter here.
     updatePower(s, content);
-    tickProduction(s, content, dt);
+    tickProduction(s, content, dt, { offlineCollect: true });
     tickNeeds(s, content, dt, { consume: consuming, harm: false });
     settleIncidentsOffline(s, content, dt);
     s.time += dt;
@@ -464,10 +464,28 @@ function replay(state: GameState, content: Content, limit: number, out: Draft[])
     if (wantResearch && researchAt === null && node && s.research.points >= node.cost) researchAt = elapsed;
   }
 
-  // Past the replay: carry on at the rates it ended with.
+  // Past the replay: carry on at the rates it ended with. Offline, finished
+  // batches collect themselves, so a room only starts holding batches once
+  // storage for its resource is full (at the combined rate of its rooms).
+  const fillAt = new Map<string, number>();
+  for (const r of producers) {
+    const room = rooms.get(r.id) as Room;
+    const res = roomDef(content, room).produces?.resource;
+    if (!res || fullAt.has(r.id) || fillAt.has(res)) continue;
+    const space = resourceCapacity(s, content, res) - s.resources[res];
+    let perSec = 0;
+    for (const o of producers) {
+      const other = rooms.get(o.id) as Room;
+      if (fullAt.has(o.id) || roomDef(content, other).produces?.resource !== res) continue;
+      perSec += (roomRate(s, content, other) * batchOutput(content, other)) / Math.max(1, poolSize(content, other));
+    }
+    fillAt.set(res, space <= 0 ? 0 : perSec > 0 ? space / perSec : Infinity);
+  }
   for (const r of producers) {
     if (fullAt.has(r.id)) continue;
-    const left = secondsToFull(s, content, rooms.get(r.id) as Room, bank);
+    const room = rooms.get(r.id) as Room;
+    const fill = fillAt.get(roomDef(content, room).produces?.resource ?? '') ?? 0;
+    const left = fill + secondsToFull(s, content, room, bank);
     if (Number.isFinite(left)) fullAt.set(r.id, elapsed + left);
   }
   for (const r of crafting) {
