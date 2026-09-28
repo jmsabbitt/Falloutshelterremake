@@ -33,3 +33,15 @@ The complaint is about how slowly *improvement* comes, and that is almost all ma
 2. Resident handling in the vault view: drag only, weapons and movement. These are one piece of work, because all three live in the same resident code.
 3. The tutorial and the empty start.
 4. The art list. It goes to the art session, which delivers the wide walls and grip sheets, and the code then picks them up without changes.
+
+# Round 2 notes
+
+| # | Feedback | Cause | Fix | Art needed? |
+|---|---|---|---|---|
+| 8 | Pay scrip to move a room instead of demolishing and rebuilding | There is no move command | A `moveRoom` command: the room, its level, crew and any job go to a new valid slot for scrip. It is refused if the move would cut other rooms off. In the vault, it works like build mode, using the room panel's "Move" button. | No |
+| 9 | Fire extinguishers, not weapons, for fires | Fires use the fight animation | Residents fighting a fire use a `fight_extinguish` sheet (holding an extinguisher). Until that exists they use the unarmed or idle pose, never a gun. | Yes (ART-LIST §2b) |
+| 10 | Can only build 2 slots left of the shaft, though there's dirt beyond | The grid is 26 cells, and the starter shaft sits at x = 6 | A wider grid, with the starting shaft moved right, so both sides have room. Existing saves shift every room by the same offset in a save migration. | No |
+| 11 | Supplies and room production feel unbalanced | To be measured | A bot and scripted analysis of each resource's shortage time and surplus, then tuning of rooms.json and consumption. | No |
+| 12 | Show seconds until ready, not the batch length | The room panel shows `cycleSeconds` | A live countdown of what's left. | No |
+| 13 | Nothing collects offline, so you come back to a dead homestead | Offline, rooms finish one batch (or bank it) and then wait. Consumption runs for only 5 minutes. | While you're away, finished batches collect themselves into storage while there's space, and the rest stay banked for you to collect. The away summary says what came in. | No |
+| 14 | Ways for residents to raise their stats | Stats only change when a resident is created | Training rooms, one for each stat, where a resident trains that stat up by 1 at a time, taking longer the higher it gets. Each training room needs only a crew. | Yes (training room walls) |
