@@ -106,6 +106,91 @@
             "hair": "resident_f/carry_hair.webp",
             "trim": "resident_f/carry_trim.webp"
           }
+        },
+        "fight_pistol": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 100,
+          "frameH": 132,
+          "anchorX": 0.3736,
+          "anchorY": 1.0,
+          "files": {
+            "base": "resident_f/fight_pistol_base.webp",
+            "suit": "resident_f/fight_pistol_suit.webp",
+            "skin": "resident_f/fight_pistol_skin.webp",
+            "hair": "resident_f/fight_pistol_hair.webp",
+            "trim": "resident_f/fight_pistol_trim.webp"
+          }
+        },
+        "fight_longgun": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 116,
+          "frameH": 132,
+          "anchorX": 0.2971,
+          "anchorY": 1.0,
+          "files": {
+            "base": "resident_f/fight_longgun_base.webp",
+            "suit": "resident_f/fight_longgun_suit.webp",
+            "skin": "resident_f/fight_longgun_skin.webp",
+            "hair": "resident_f/fight_longgun_hair.webp",
+            "trim": "resident_f/fight_longgun_trim.webp"
+          }
+        },
+        "fight_melee": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 149,
+          "frameH": 156,
+          "anchorX": 0.334,
+          "anchorY": 1.0,
+          "files": {
+            "base": "resident_f/fight_melee_base.webp",
+            "suit": "resident_f/fight_melee_suit.webp",
+            "skin": "resident_f/fight_melee_skin.webp",
+            "hair": "resident_f/fight_melee_hair.webp",
+            "trim": "resident_f/fight_melee_trim.webp"
+          }
+        },
+        "fight_unarmed": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 93,
+          "frameH": 134,
+          "anchorX": 0.4041,
+          "anchorY": 1.0,
+          "files": {
+            "base": "resident_f/fight_unarmed_base.webp",
+            "suit": "resident_f/fight_unarmed_suit.webp",
+            "skin": "resident_f/fight_unarmed_skin.webp",
+            "hair": "resident_f/fight_unarmed_hair.webp",
+            "trim": "resident_f/fight_unarmed_trim.webp"
+          }
+        },
+        "fight_heavy": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 118,
+          "frameH": 133,
+          "anchorX": 0.2712,
+          "anchorY": 1.0,
+          "files": {
+            "base": "resident_f/fight_heavy_base.webp",
+            "suit": "resident_f/fight_heavy_suit.webp",
+            "skin": "resident_f/fight_heavy_skin.webp",
+            "hair": "resident_f/fight_heavy_hair.webp",
+            "trim": "resident_f/fight_heavy_trim.webp"
+          }
         }
       }
     },
@@ -213,6 +298,91 @@
             "skin": "resident_m/carry_skin.webp",
             "hair": "resident_m/carry_hair.webp",
             "trim": "resident_m/carry_trim.webp"
+          }
+        },
+        "fight_pistol": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 106,
+          "frameH": 131,
+          "anchorX": 0.3835,
+          "anchorY": 1.0,
+          "files": {
+            "base": "resident_m/fight_pistol_base.webp",
+            "suit": "resident_m/fight_pistol_suit.webp",
+            "skin": "resident_m/fight_pistol_skin.webp",
+            "hair": "resident_m/fight_pistol_hair.webp",
+            "trim": "resident_m/fight_pistol_trim.webp"
+          }
+        },
+        "fight_longgun": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 120,
+          "frameH": 134,
+          "anchorX": 0.295,
+          "anchorY": 1.0,
+          "files": {
+            "base": "resident_m/fight_longgun_base.webp",
+            "suit": "resident_m/fight_longgun_suit.webp",
+            "skin": "resident_m/fight_longgun_skin.webp",
+            "hair": "resident_m/fight_longgun_hair.webp",
+            "trim": "resident_m/fight_longgun_trim.webp"
+          }
+        },
+        "fight_melee": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 107,
+          "frameH": 132,
+          "anchorX": 0.4817,
+          "anchorY": 1.0,
+          "files": {
+            "base": "resident_m/fight_melee_base.webp",
+            "suit": "resident_m/fight_melee_suit.webp",
+            "skin": "resident_m/fight_melee_skin.webp",
+            "hair": "resident_m/fight_melee_hair.webp",
+            "trim": "resident_m/fight_melee_trim.webp"
+          }
+        },
+        "fight_unarmed": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 96,
+          "frameH": 131,
+          "anchorX": 0.3965,
+          "anchorY": 1.0,
+          "files": {
+            "base": "resident_m/fight_unarmed_base.webp",
+            "suit": "resident_m/fight_unarmed_suit.webp",
+            "skin": "resident_m/fight_unarmed_skin.webp",
+            "hair": "resident_m/fight_unarmed_hair.webp",
+            "trim": "resident_m/fight_unarmed_trim.webp"
+          }
+        },
+        "fight_heavy": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 125,
+          "frameH": 132,
+          "anchorX": 0.2669,
+          "anchorY": 1.0,
+          "files": {
+            "base": "resident_m/fight_heavy_base.webp",
+            "suit": "resident_m/fight_heavy_suit.webp",
+            "skin": "resident_m/fight_heavy_skin.webp",
+            "hair": "resident_m/fight_heavy_hair.webp",
+            "trim": "resident_m/fight_heavy_trim.webp"
           }
         }
       }

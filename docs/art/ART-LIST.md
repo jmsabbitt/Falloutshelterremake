@@ -450,5 +450,6 @@ Updated by the art session as batches land. "Shows up on its own" means the code
 | Date | Items | Folders | Code |
 |---|---|---|---|
 | 2026-09-28 | §1 P1 wide walls: generator, waterworks, canteen, quarters, levels 1 to 3, `w2` and `w3` (24) | `room_generator`, `room_waterworks`, `room_canteen`, `room_quarters` | shows up on its own |
+| 2026-09-28 | §2 P1 grip fight sheets: pistol, long gun, melee, unarmed, heavy for `resident_m` and `resident_f` (10) | `resident_m`, `resident_f` | shows up on its own (melee entries use `fitHeight: false`) |
 
 Notes on the wide walls: `w2` is generated at 21:9 from the level's single painting, then cropped to 2:1. `w3` is generated at 4:1 from that level's `w2`, then cropped to 3:1. The image tool sometimes leaves a soft, ghosted patch at 4:1; those were repaired with an edit pass or by copying a sharp neighbour, and a few small soft spots remain at the edges of `quarters` level 1 and 2 `w3` and `canteen` level 2 `w3`.

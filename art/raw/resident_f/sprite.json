@@ -63,6 +63,57 @@
           "maxSat": 0.56
         }
       }
+    },
+    "fight_pistol": {
+      "file": "fight_pistol.png",
+      "fps": 10,
+      "split": "figures",
+      "regions": {
+        "hair": {
+          "aboveFraction": 0.36
+        }
+      }
+    },
+    "fight_longgun": {
+      "file": "fight_longgun.png",
+      "fps": 10,
+      "split": "figures",
+      "regions": {
+        "hair": {
+          "aboveFraction": 0.36
+        }
+      }
+    },
+    "fight_melee": {
+      "file": "fight_melee.png",
+      "fps": 10,
+      "split": "figures",
+      "regions": {
+        "hair": {
+          "aboveFraction": 0.36
+        }
+      },
+      "fitHeight": false
+    },
+    "fight_unarmed": {
+      "file": "fight_unarmed.png",
+      "fps": 10,
+      "split": "figures",
+      "regions": {
+        "hair": {
+          "aboveFraction": 0.36
+        }
+      }
+    },
+    "fight_heavy": {
+      "file": "fight_heavy.png",
+      "fps": 10,
+      "split": "figures",
+      "regions": {
+        "hair": {
+          "aboveFraction": 0.36
+        }
+      }
     }
   }
 }
