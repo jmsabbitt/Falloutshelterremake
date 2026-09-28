@@ -74,7 +74,8 @@ export function legendPortrait(def: LegendDef, size: 'small' | 'large' = 'small'
 
 export class LegendsUI {
   /** The residents panel's Legends strip, opened or folded by the player (null: open once someone is met). */
-  private sectionOpen: boolean | null = null;
+  /** Whether the Legends section in Residents is expanded; the player's choice is remembered (collapsed by default). */
+  private sectionOpen: boolean = readOpen();
 
   constructor(private host: LegendsHost) {}
 
@@ -150,8 +151,17 @@ export class LegendsUI {
       'details',
       {
         class: 'legends-section',
-        open: this.sectionOpen ?? met.length > 0,
-        ontoggle: (e: Event) => (this.sectionOpen = (e.currentTarget as HTMLDetailsElement).open),
+        open: this.sectionOpen,
+        ontoggle: (e: Event) => {
+          const open = (e.currentTarget as HTMLDetailsElement).open;
+          if (open === this.sectionOpen) return;
+          this.sectionOpen = open;
+          try {
+            localStorage.setItem(OPEN_KEY, open ? '1' : '0');
+          } catch {
+            // Storage blocked: the choice lasts for this session only.
+          }
+        },
       },
       h('summary', {}, h('span', { class: 'legend-mark' }, '★'), ` Legends `, h('span', { class: 'muted small' }, `${met.length}/${all.length} met`)),
       h('div', { class: 'legend-grid' }, ...rows),
@@ -348,5 +358,15 @@ export class LegendsUI {
         this.announce(legendName(def), def, `HALCY: "${def.firstName} has finished their personal business. Their signature trait has awakened, and every stat went up. I would like it noted that I helped."`, ev.residentId, true);
       }
     }
+  }
+}
+
+const OPEN_KEY = 'homestead.ui.legendsOpen';
+
+function readOpen(): boolean {
+  try {
+    return localStorage.getItem(OPEN_KEY) === '1';
+  } catch {
+    return false;
   }
 }

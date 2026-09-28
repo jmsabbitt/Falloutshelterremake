@@ -5,6 +5,7 @@
 // estimate, the active list with countdowns, recall and collect). Hooked into
 // ui.ts with a few small calls; the sim side is src/sim/systems/factions.ts.
 
+import { clamped } from './clamp';
 import {
   caravanCarryLimit,
   caravanEstimate,
@@ -223,7 +224,7 @@ export class FactionsUI {
         met ? h('span', { class: `tier-pill tier-${TIER_CLASS[tier.index] ?? 'neutral'}` }, tier.name) : h('span', { class: 'tier-pill locked' }, '🔒 No contact'),
       ),
       def.motto ? h('div', { class: 'motto' }, `“${def.motto}”`) : null,
-      h('div', { class: 'muted small' }, met ? (def.personality ?? def.description) : def.description),
+      clamped(`faction:${def.id}`, (met ? (def.personality ?? def.description) : def.description).length, () => this.host.refreshPanel(), 'muted small', met ? (def.personality ?? def.description) : def.description),
       met
         ? h(
             'div',
