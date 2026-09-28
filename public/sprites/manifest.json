@@ -4297,6 +4297,11 @@
       "3w2": "rooms/room_canteen_3w2.webp",
       "3w3": "rooms/room_canteen_3w3.webp"
     },
+    "room_card_parlour": {
+      "1": "rooms/room_card_parlour_1.webp",
+      "2": "rooms/room_card_parlour_2.webp",
+      "3": "rooms/room_card_parlour_3.webp"
+    },
     "room_clinic": {
       "1": "rooms/room_clinic_1.webp",
       "1w2": "rooms/room_clinic_1w2.webp",
@@ -4316,6 +4321,11 @@
     "room_elevator": {
       "shaft": "rooms/room_elevator_shaft.webp",
       "car": "rooms/room_elevator_car.webp"
+    },
+    "room_endurance_track": {
+      "1": "rooms/room_endurance_track_1.webp",
+      "2": "rooms/room_endurance_track_2.webp",
+      "3": "rooms/room_endurance_track_3.webp"
     },
     "room_farm_plots": {
       "1": "rooms/room_farm_plots_1.webp",
@@ -4377,6 +4387,11 @@
       "3w2": "rooms/room_lab_3w2.webp",
       "3w3": "rooms/room_lab_3w3.webp"
     },
+    "room_lounge": {
+      "1": "rooms/room_lounge_1.webp",
+      "2": "rooms/room_lounge_2.webp",
+      "3": "rooms/room_lounge_3.webp"
+    },
     "room_office": {
       "1": "rooms/room_office_1.webp",
       "2": "rooms/room_office_2.webp",
@@ -4431,6 +4446,11 @@
       "3w2": "rooms/room_rain_catcher_3w2.webp",
       "3w3": "rooms/room_rain_catcher_3w3.webp"
     },
+    "room_reading_room": {
+      "1": "rooms/room_reading_room_1.webp",
+      "2": "rooms/room_reading_room_2.webp",
+      "3": "rooms/room_reading_room_3.webp"
+    },
     "room_refinery": {
       "1": "rooms/room_refinery_1.webp",
       "1w2": "rooms/room_refinery_1w2.webp",
@@ -4441,6 +4461,11 @@
       "3": "rooms/room_refinery_3.webp",
       "3w2": "rooms/room_refinery_3w2.webp",
       "3w3": "rooms/room_refinery_3w3.webp"
+    },
+    "room_shooting_gallery": {
+      "1": "rooms/room_shooting_gallery_1.webp",
+      "2": "rooms/room_shooting_gallery_2.webp",
+      "3": "rooms/room_shooting_gallery_3.webp"
     },
     "room_signal_mast": {
       "1": "rooms/room_signal_mast_1.webp",
@@ -4469,6 +4494,11 @@
       "3w2": "rooms/room_storeroom_3w2.webp",
       "3w3": "rooms/room_storeroom_3w3.webp"
     },
+    "room_tinker_bench": {
+      "1": "rooms/room_tinker_bench_1.webp",
+      "2": "rooms/room_tinker_bench_2.webp",
+      "3": "rooms/room_tinker_bench_3.webp"
+    },
     "room_trading_post": {
       "1": "rooms/room_trading_post_1.webp",
       "2": "rooms/room_trading_post_2.webp",
@@ -4494,6 +4524,11 @@
       "1": "rooms/room_weaponshop_1.webp",
       "2": "rooms/room_weaponshop_2.webp",
       "3": "rooms/room_weaponshop_3.webp"
+    },
+    "room_weight_room": {
+      "1": "rooms/room_weight_room_1.webp",
+      "2": "rooms/room_weight_room_2.webp",
+      "3": "rooms/room_weight_room_3.webp"
     },
     "room_wind_turbine": {
       "1": "rooms/room_wind_turbine_1.webp",

@@ -1,0 +1,31 @@
+{
+  "id": "room_card_parlour",
+  "kind": "portrait",
+  "background": "none",
+  "outDir": "rooms",
+  "prefix": "room_card_parlour_",
+  "targetHeight": 256,
+  "anims": {
+    "1": {
+      "file": "level1.png",
+      "whole": true,
+      "names": [
+        "1"
+      ]
+    },
+    "2": {
+      "file": "level2.png",
+      "whole": true,
+      "names": [
+        "2"
+      ]
+    },
+    "3": {
+      "file": "level3.png",
+      "whole": true,
+      "names": [
+        "3"
+      ]
+    }
+  }
+}
