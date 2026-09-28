@@ -79,7 +79,7 @@ function act4Game(seed = 7, cycle = 4): { s: GameState; party: number[] } {
   s.resources.medpatch = 10;
   s.peakPopulation = 200;
   s.legacy.cycle = cycle;
-  s.rooms.push({ id: s.nextId++, type: 'office', floor: 0, x: 13, segments: 1, level: 3, pool: 0, ready: false, powered: true, timer: 0, job: null, banked: 0 });
+  s.rooms.push({ id: s.nextId++, type: 'office', floor: 0, x: content.balance.grid.starterShaftX + 7, segments: 1, level: 3, pool: 0, ready: false, powered: true, timer: 0, job: null, banked: 0 });
   for (const line of ['act1', 'act2', 'act3']) s.questsDone.push(...qc.questlines.find((l) => l.id === line)!.quests);
   const party = s.residents.slice(0, 3);
   for (const r of party) {
@@ -429,7 +429,7 @@ describe('the story across homesteads', () => {
     expect(next.scrip).toBeGreaterThanOrEqual(content.balance.start.scrip + 3000);
     // The Act 4 quests stay done; the Rent Review opens here and reopens the choice.
     expect(next.questsDone).toContain('act4_finale');
-    next.rooms.push({ id: next.nextId++, type: 'office', floor: 0, x: 13, segments: 1, level: 3, pool: 0, ready: false, powered: true, timer: 0, job: null, banked: 0 });
+    next.rooms.push({ id: next.nextId++, type: 'office', floor: 0, x: content.balance.grid.starterShaftX + 7, segments: 1, level: 3, pool: 0, ready: false, powered: true, timer: 0, job: null, banked: 0 });
     applyCommand(next, content, { type: 'admitAll' });
     next.peakPopulation = 200;
     next.nextIncidentAt = 1e12;

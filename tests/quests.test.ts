@@ -31,7 +31,7 @@ function withOffice(seed = 5): GameState {
   s.nextWandererAt = 1e12;
   s.scrip = 50_000;
   s.resources.medpatch = 20;
-  s.rooms.push({ id: s.nextId++, type: 'office', floor: 0, x: 13, segments: 1, level: 1, pool: 0, ready: false, powered: true, timer: 0, job: null, banked: 0 });
+  s.rooms.push({ id: s.nextId++, type: 'office', floor: 0, x: content.balance.grid.starterShaftX + 7, segments: 1, level: 1, pool: 0, ready: false, powered: true, timer: 0, job: null, banked: 0 });
   for (const r of s.residents) {
     r.level = 6;
     r.maxHp = 140;

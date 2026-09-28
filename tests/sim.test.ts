@@ -20,6 +20,8 @@ import {
 import { createResident, grantXp } from '../src/sim/residents';
 
 const content = loadContent();
+/** The starter elevator shaft (the door is the six cells left of it). */
+const S = content.balance.grid.starterShaftX;
 const T0 = 1_700_000_000_000;
 
 function fresh(seed = 42): GameState {
@@ -62,26 +64,26 @@ describe('new game', () => {
 describe('building and merging', () => {
   it('requires attaching to the network', () => {
     const s = fresh();
-    expect(applyCommand(s, content, { type: 'build', roomType: 'generator', floor: 5, x: 10 }).ok).toBe(false);
-    expect(applyCommand(s, content, { type: 'build', roomType: 'generator', floor: 1, x: 13 }).ok).toBe(true);
+    expect(applyCommand(s, content, { type: 'build', roomType: 'generator', floor: 5, x: S + 4 }).ok).toBe(false);
+    expect(applyCommand(s, content, { type: 'build', roomType: 'generator', floor: 1, x: S + 7 }).ok).toBe(true);
   });
 
   it('rejects overlapping and out-of-bounds placement', () => {
     const s = fresh();
-    expect(applyCommand(s, content, { type: 'build', roomType: 'canteen', floor: 1, x: 8 }).ok).toBe(false);
-    expect(applyCommand(s, content, { type: 'build', roomType: 'canteen', floor: 1, x: 25 }).ok).toBe(false);
+    expect(applyCommand(s, content, { type: 'build', roomType: 'canteen', floor: 1, x: S + 2 }).ok).toBe(false);
+    expect(applyCommand(s, content, { type: 'build', roomType: 'canteen', floor: 1, x: S + 19 }).ok).toBe(false);
   });
 
   it('merges same-type same-level neighbours up to 3 wide', () => {
     const s = fresh();
     s.scrip = 10_000;
-    applyCommand(s, content, { type: 'build', roomType: 'waterworks', floor: 2, x: 10 });
-    applyCommand(s, content, { type: 'build', roomType: 'waterworks', floor: 2, x: 13 });
+    applyCommand(s, content, { type: 'build', roomType: 'waterworks', floor: 2, x: S + 4 });
+    applyCommand(s, content, { type: 'build', roomType: 'waterworks', floor: 2, x: S + 7 });
     const water = s.rooms.filter((r) => r.type === 'waterworks');
     expect(water).toHaveLength(1);
     expect(water[0]?.segments).toBe(3);
     // A 4th segment stays separate.
-    applyCommand(s, content, { type: 'build', roomType: 'waterworks', floor: 2, x: 16 });
+    applyCommand(s, content, { type: 'build', roomType: 'waterworks', floor: 2, x: S + 10 });
     expect(s.rooms.filter((r) => r.type === 'waterworks').map((r) => r.segments).sort()).toEqual([1, 3]);
     expect(s.achievements['triple_room']).toBeDefined();
   });
@@ -90,7 +92,7 @@ describe('building and merging', () => {
     const s = fresh();
     const before = buildCost(s, content, 'canteen');
     s.scrip = 10_000;
-    applyCommand(s, content, { type: 'build', roomType: 'canteen', floor: 1, x: 13 });
+    applyCommand(s, content, { type: 'build', roomType: 'canteen', floor: 1, x: S + 7 });
     expect(buildCost(s, content, 'canteen')).toBe(before + 25);
   });
 
@@ -105,7 +107,7 @@ describe('building and merging', () => {
   it('blocks locked rooms until the population threshold', () => {
     const s = fresh();
     s.scrip = 10_000;
-    const r = applyCommand(s, content, { type: 'build', roomType: 'clinic', floor: 2, x: 10 });
+    const r = applyCommand(s, content, { type: 'build', roomType: 'clinic', floor: 2, x: S + 4 });
     expect(r.ok).toBe(false);
   });
 

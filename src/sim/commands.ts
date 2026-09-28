@@ -3,8 +3,8 @@
 
 import type { Content } from './content';
 import { bonus } from './bonuses';
-import { addScrip, buildCost, population, refreshUnlocks, resourceCapacity, storageCapacity, upgradeCost } from './economy';
-import { canPlace, connectedRoomIds, mergeFloor, roomDef } from './grid';
+import { addScrip, buildCost, moveCost, population, refreshUnlocks, resourceCapacity, storageCapacity, upgradeCost } from './economy';
+import { canMove, canPlace, connectedRoomIds, mergeFloor, roomDef } from './grid';
 import { bump, effectiveMaxHp, effectiveStat, isAway, isChild, residentsInRoom, reviveCost } from './residents';
 import { claimDaily, openCrate, settle } from './systems/crates';
 import { equip, grantItem, sell, unequip } from './systems/items';
@@ -29,6 +29,8 @@ export type Command =
   | { type: 'build'; roomType: string; floor: number; x: number }
   | { type: 'upgrade'; roomId: number }
   | { type: 'demolish'; roomId: number }
+  /** Move a room whole to a new slot for scrip (economy.moveCost). */
+  | { type: 'moveRoom'; roomId: number; floor: number; x: number }
   | { type: 'assign'; residentId: number; roomId: number | null }
   | { type: 'admit'; residentId: number }
   | { type: 'admitAll' }
@@ -220,6 +222,36 @@ function dispatch(state: GameState, content: Content, cmd: Command): CommandResu
       }
       for (const r of state.residents) if (r.roomId === room.id) r.roomId = null;
       state.rooms = without.rooms;
+      return { ok: true };
+    }
+
+    case 'moveRoom': {
+      // The room moves whole (every segment) and keeps its id, level, crew,
+      // crafting job, pool, finished batches and power. If it lands beside a
+      // room of the same type and level it merges under the usual build rules
+      // (the left-hand room's id survives, as with any merge).
+      const room = findRoom(state, cmd.roomId);
+      if (!room) return fail('no such room');
+      const place = canMove(state, content, room, cmd.floor, cmd.x);
+      if (!place.ok) return place;
+      const cost = moveCost(state, content, room);
+      if (state.scrip < cost) return fail('not enough scrip');
+      addScrip(state, content, -cost);
+      const fromFloor = room.floor;
+      const fromX = room.x;
+      room.floor = cmd.floor;
+      room.x = cmd.x;
+      bump(state, 'roomsMoved');
+      const into = mergeFloor(state, content, cmd.floor);
+      for (const id of into) {
+        const grown = findRoom(state, id);
+        if (!grown) continue;
+        bump(state, 'merges');
+        if (grown.segments >= 3) bump(state, 'tripleRooms');
+        state.events.push({ type: 'roomsMerged', roomId: id, segments: grown.segments });
+      }
+      const now = findRoom(state, room.id) ? room.id : (into[0] ?? room.id);
+      state.events.push({ type: 'roomMoved', roomId: now, roomType: room.type, fromFloor, fromX, floor: cmd.floor, x: cmd.x, cost });
       return { ok: true };
     }
 

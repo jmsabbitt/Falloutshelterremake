@@ -19,6 +19,8 @@ import { createResident } from '../src/sim/residents';
 import { startIncident, startRaid } from '../src/sim/systems/incidents';
 
 const content = loadContent();
+/** The starter elevator shaft (the door is the six cells left of it). */
+const S = content.balance.grid.starterShaftX;
 const T0 = 1_700_000_000_000;
 
 /** A game with incidents and wanderers pushed far away so tests are controlled. */
@@ -144,7 +146,7 @@ describe('arrivals', () => {
   it('a staffed radio room recruits', () => {
     const s = calm(5);
     unlockAll(s);
-    expect(applyCommand(s, content, { type: 'build', roomType: 'radio', floor: 2, x: 10 }).ok).toBe(true);
+    expect(applyCommand(s, content, { type: 'build', roomType: 'radio', floor: 2, x: S + 4 }).ok).toBe(true);
     const radio = room(s, 'radio');
     const crew = s.residents.slice(0, 2);
     for (const r of crew) {
@@ -324,7 +326,7 @@ describe('supply crates', () => {
     while (s.residents.length < 10) adult(s, 'm');
     unlockAll(s);
     s.peakPopulation = 0;
-    applyCommand(s, content, { type: 'build', roomType: 'quarters', floor: 0, x: 10 });
+    applyCommand(s, content, { type: 'build', roomType: 'quarters', floor: 0, x: S + 4 });
     expect(s.milestones).toContain(10);
     const crates = s.crates.standard;
     applyCommand(s, content, { type: 'collectAll' });

@@ -6,7 +6,7 @@
 
 import type { Content } from '../content';
 import { addScrip, refreshUnlocks } from '../economy';
-import { canPlace } from '../grid';
+import { canPlace, starterShaftX } from '../grid';
 import { bonus } from '../bonuses';
 import { legacyContent, perkDef, perkRank, siteDef, type CharterDef } from '../legacy';
 import { bump, bumpMax, isAway, isChild } from '../residents';
@@ -209,9 +209,10 @@ function carryResident(r: Resident, id: number, ids: Map<number, number>): Resid
   };
 }
 
-const PREFAB: { type: string; floor: number; x: number }[] = [
-  { type: 'storeroom', floor: 0, x: 10 },
-  { type: 'clinic', floor: 2, x: 10 },
+/** Prefab rooms (a Legacy perk), as cells right of the starter shaft. */
+const PREFAB: { type: string; floor: number; dx: number }[] = [
+  { type: 'storeroom', floor: 0, dx: 4 },
+  { type: 'clinic', floor: 2, dx: 4 },
 ];
 
 /**
@@ -332,8 +333,9 @@ export function foundHomestead(old: GameState, content: Content, opts: FoundOpti
   state.scrip = Math.max(0, Math.min(content.balance.maxScrip, content.balance.start.scrip + bonus(state, content, 'startScrip') + (site.modifiers.startScrip ?? 0)));
   if (bonus(state, content, 'prefabRooms') > 0) {
     for (const p of PREFAB) {
-      if (!canPlace(state, content, p.type, p.floor, p.x).ok) continue;
-      const room: Room = { id: state.nextId++, type: p.type, floor: p.floor, x: p.x, segments: 1, level: 1, pool: 0, ready: false, powered: true, timer: 0, job: null, banked: 0 };
+      const x = starterShaftX(content) + p.dx;
+      if (!canPlace(state, content, p.type, p.floor, x).ok) continue;
+      const room: Room = { id: state.nextId++, type: p.type, floor: p.floor, x, segments: 1, level: 1, pool: 0, ready: false, powered: true, timer: 0, job: null, banked: 0 };
       state.rooms.push(room);
     }
   }

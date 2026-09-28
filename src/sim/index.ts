@@ -20,8 +20,8 @@ export { TUTORIAL_ROOMS, TUTORIAL_STEPS, tutorialActive, tutorialFreeBuild, tuto
 export { applyCommand, roomCapacity, type Command, type CommandResult } from './commands';
 export { advance, catchUp, drainEvents, type CatchUpSummary } from './tick';
 export { serialize, deserialize, SAVE_VERSION } from './save';
-export { canPlace, connectedRoomIds, floorOccupancy, roomCells, roomDef } from './grid';
-export { buildCost, upgradeCost, storageCapacity, resourceCapacity, population } from './economy';
+export { canMove, canPlace, connectedRoomIds, floorOccupancy, moveBlocked, roomCells, roomDef, starterDoorX, starterShaftX } from './grid';
+export { buildCost, moveCost, upgradeCost, storageCapacity, resourceCapacity, population } from './economy';
 export { cycleSeconds, poolSize, batchOutput, vaultHappiness, roomStatTotal } from './systems/production';
 export { rushFailChance } from './systems/rush';
 export { powerDemandPerMin, foodDemandPerMin, waterDemandPerMin, shortageThreshold, shortageLine, isRightRoom } from './systems/needs';

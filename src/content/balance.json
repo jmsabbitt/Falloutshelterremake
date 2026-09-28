@@ -1,8 +1,13 @@
 {
   "grid": {
     "floors": 25,
-    "cellsPerFloor": 26,
-    "cellsPerSegment": 3
+    "cellsPerFloor": 44,
+    "cellsPerSegment": 3,
+    "_starterShaftX": "Where a new homestead's elevator shaft goes; the door sits just left of it. Rooms left of the shaft pack from x = starterShaftX - 3 down to 0 (8 segments), right of it from starterShaftX + 1 (6 segments).",
+    "starterShaftX": 24,
+    "_moveCost": "Moving a room costs this fraction of the type's current build cost per segment, at least moveCostMin scrip.",
+    "moveCostFraction": 0.25,
+    "moveCostMin": 50
   },
   "upgradeWidthMultiplier": [
     1,

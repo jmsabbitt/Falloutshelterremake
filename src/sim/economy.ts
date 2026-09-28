@@ -48,8 +48,24 @@ export function buildCost(state: GameState, content: Content, type: string): num
   if (!def) return Infinity;
   // The tutorial's power, water and food rooms are on the house.
   if (tutorialFreeBuild(state, type)) return 0;
+  return listBuildCost(state, content, type);
+}
+
+/** The price of another room of `type`, before the tutorial's free builds. */
+function listBuildCost(state: GameState, content: Content, type: string): number {
+  const def = content.rooms[type];
+  if (!def) return Infinity;
   const already = type === 'elevator' ? Math.max(0, builtCount(state, type) - 3) : builtCount(state, type);
   return Math.round((def.cost.base + def.cost.perBuilt * already) * costMult(state, content));
+}
+
+/**
+ * Scrip to move a room: `moveCostFraction` of the type's current build price
+ * for each of its segments, and never less than `moveCostMin`.
+ */
+export function moveCost(state: GameState, content: Content, room: Room): number {
+  const { moveCostFraction, moveCostMin } = content.balance.grid;
+  return Math.max(moveCostMin, Math.round(listBuildCost(state, content, room.type) * moveCostFraction * room.segments));
 }
 
 /** Upgrade price; pass the state to apply Legacy discounts. */

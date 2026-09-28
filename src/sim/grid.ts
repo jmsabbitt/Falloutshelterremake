@@ -91,15 +91,32 @@ export function connectedRoomIds(state: GameState, content: Content): Set<number
 
 export type PlacementCheck = { ok: true } | { ok: false; reason: string };
 
+/** Where a new homestead's elevator shaft stands (the door sits just left of it). */
+export function starterShaftX(content: Content): number {
+  return content.balance.grid.starterShaftX;
+}
+
+/** Left-most cell of a new homestead's door. */
+export function starterDoorX(content: Content): number {
+  return starterShaftX(content) - (content.rooms['door']?.cells ?? 6);
+}
+
+/** Floor rules and bounds for a `cells`-wide structure of `def` at (floor, x). */
+function slotRules(state: GameState, content: Content, def: RoomDef, floor: number, x: number, cells: number): PlacementCheck {
+  const { cellsPerFloor } = content.balance.grid;
+  if (def.topside ? floor !== TOPSIDE_FLOOR : floor < 0) return { ok: false, reason: def.topside ? 'surface buildings go topside' : 'out of bounds' };
+  if (floor >= totalFloors(state, content)) return { ok: false, reason: floor >= content.balance.grid.floors ? 'excavate deeper first' : 'out of bounds' };
+  if (x < 0 || x + cells > cellsPerFloor) return { ok: false, reason: 'out of bounds' };
+  if (def.minFloor !== undefined && floor < def.minFloor) return { ok: false, reason: 'only in the Deep' };
+  return { ok: true };
+}
+
 /** Can a new structure of `type` (1 segment) go at (floor, x)? */
 export function canPlace(state: GameState, content: Content, type: string, floor: number, x: number): PlacementCheck {
   const def = content.rooms[type];
   if (!def) return { ok: false, reason: 'unknown room type' };
-  const { cellsPerFloor } = content.balance.grid;
-  if (def.topside ? floor !== TOPSIDE_FLOOR : floor < 0) return { ok: false, reason: def.topside ? 'surface buildings go topside' : 'out of bounds' };
-  if (floor >= totalFloors(state, content)) return { ok: false, reason: floor >= content.balance.grid.floors ? 'excavate deeper first' : 'out of bounds' };
-  if (x < 0 || x + def.cells > cellsPerFloor) return { ok: false, reason: 'out of bounds' };
-  if (def.minFloor !== undefined && floor < def.minFloor) return { ok: false, reason: 'only in the Deep' };
+  const rules = slotRules(state, content, def, floor, x, def.cells);
+  if (!rules.ok) return rules;
 
   const occ = floorOccupancy(state, content, floor);
   for (let i = 0; i < def.cells; i++) {
@@ -115,6 +132,42 @@ export function canPlace(state: GameState, content: Content, type: string, floor
       ok: false,
       reason: type === 'elevator' ? 'must connect to an elevator or room' : 'must be next to an elevator or connected room',
     };
+  }
+  return { ok: true };
+}
+
+/** Why a room can't be moved at all (wherever to), or null. */
+export function moveBlocked(state: GameState, content: Content, room: Room): string | null {
+  const def = roomDef(content, room);
+  if (def.category === 'door') return 'the door stays';
+  if (def.category === 'elevator') return 'elevators stay put: build a new shaft instead';
+  if (state.incidents.some((i) => i.roomId === room.id)) return 'deal with the incident first';
+  return null;
+}
+
+/**
+ * Can `room` move, whole (every segment), to (floor, x)? Mirrors canPlace:
+ * the same floor rules, its own old cells don't block it, it must attach to
+ * the network there, and nothing reachable now may be cut off by it leaving.
+ */
+export function canMove(state: GameState, content: Content, room: Room, floor: number, x: number): PlacementCheck {
+  const blocked = moveBlocked(state, content, room);
+  if (blocked) return { ok: false, reason: blocked };
+  if (room.floor === floor && room.x === x) return { ok: false, reason: 'it is already there' };
+  const def = roomDef(content, room);
+  const cells = roomCells(content, room);
+  const rules = slotRules(state, content, def, floor, x, cells);
+  if (!rules.ok) return rules;
+  const others = state.rooms.filter((r) => r.id !== room.id);
+  const occ = floorOccupancy({ ...state, rooms: others }, content, floor);
+  for (let i = 0; i < cells; i++) {
+    if (occ[x + i] !== null) return { ok: false, reason: 'space occupied' };
+  }
+  const moved = { ...state, rooms: [...others, { ...room, floor, x }] };
+  const after = connectedRoomIds(moved, content);
+  if (!after.has(room.id)) return { ok: false, reason: 'must be next to an elevator or connected room' };
+  for (const id of connectedRoomIds(state, content)) {
+    if (!after.has(id)) return { ok: false, reason: 'would cut off other rooms' };
   }
   return { ok: true };
 }

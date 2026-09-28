@@ -256,7 +256,7 @@ export class Game {
 
   run(cmd: Command): CommandResult {
     const result = applyCommand(this.state, this.content, cmd);
-    if (result.ok && ['build', 'upgrade', 'demolish', 'extendShaft'].includes(cmd.type)) this.layoutVersion++;
+    if (result.ok && ['build', 'upgrade', 'demolish', 'moveRoom', 'extendShaft'].includes(cmd.type)) this.layoutVersion++;
     this.running = cmd.type;
     try {
       this.flush();
