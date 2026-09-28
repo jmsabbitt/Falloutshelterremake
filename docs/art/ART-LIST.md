@@ -153,6 +153,21 @@ Legends paint their real colours, so the weapon-colour rule above doesn't apply 
 
 ---
 
+## §2b. Tool sheets: fire extinguisher and repairs (P1, 4 images, wired)
+
+**Why:** residents used to fight fires with their weapons (round 2 feedback). Now an incident that isn't a creature uses a tool sheet instead: `fight_extinguish` for fires, and `fight_repair` for cave-ins, floods and power surges. Until a sheet exists they use the `work` pose. They never hold a gun for these.
+
+| Anim key | Pose | Used for |
+|---|---|---|
+| `fight_extinguish` | Holding a red-bodied, 1950s-style fire extinguisher at the hip, nozzle forward, spraying (spray shown as a pale cone *inside* the frame, not crossing into the next frame). Braced stance, then a small sweep side to side. | fire |
+| `fight_repair` | A big wrench, working a valve or hammering a patch at waist height; bend, strike, straighten. | cave-in, flood, surge |
+
+**Files:** `art/raw/resident_m/fight_extinguish.png`, `fight_repair.png`, and the same for `resident_f` (4 sheets). Same template as §2: 2752 × 1536, green, 12 frames in two rows of six, facing right. The entries look like `"fight_extinguish": { "file": "fight_extinguish.png", "fps": 10, "split": "figures", "regions": { "hair": { "aboveFraction": 0.36 } } }`.
+
+**Colour note:** the extinguisher body can't be bright red or orange, because the recolouring treats those as the rarity trim. Use a **dark oxblood red** with black hose and steel fittings, and a pale grey-white spray. Test with one frame through `npm run sprites -- resident_m` before doing the rest. Legends (P3) can have the same two sheets later, in their real colours.
+
+---
+
 ## 3. Vault rooms and structures
 
 ### V1. Elevator shaft and car (P1, 2 images, needs hookup)

@@ -2032,7 +2032,11 @@ export class VaultView {
     // What each room has its residents doing when they stand still.
     const roomAction = new Map<number, Action>();
     for (const room of state.rooms) if (WORK_ROOMS.has(content.rooms[room.type]?.category ?? '')) roomAction.set(room.id, 'work');
-    for (const inc of state.incidents) roomAction.set(inc.roomId, 'fight');
+    const roomIncident = new Map<number, string>();
+    for (const inc of state.incidents) {
+      roomAction.set(inc.roomId, 'fight');
+      roomIncident.set(inc.roomId, inc.type);
+    }
     const dragId = this.gesture.kind === 'drag' && this.gesture.lifted ? this.gesture.residentId : undefined;
     const reduced = reducedMotion();
     for (const res of state.residents) {
@@ -2126,7 +2130,7 @@ export class VaultView {
         sp.pose.rotation = flat ? -Math.PI / 2 : sp.figure ? 0 : sp.moving ? Math.sin((sp.walk / WALK_STRIDE) * 9) * 0.04 : 0;
       }
       // A weapon shows only while fighting, in the fight sheet for its grip (fightAnim).
-      const anim = sp.action === 'fight' && sp.figure ? fightAnim(sp.figure, weaponGrip(content, res)) : sp.action;
+      const anim = sp.action === 'fight' && sp.figure ? fightAnim(sp.figure, weaponGrip(content, res), res.roomId !== null ? roomIncident.get(res.roomId) : undefined) : sp.action;
       sp.figure?.play(anim, sp.action === 'walk' ? sp.walk / WALK_STRIDE : this.time + (hash(res.id) % 1000) / 250);
       let alpha = res.dead ? 0.8 : 1;
       if (sp.fade) alpha *= Math.min(1, Math.abs(1 - (2 * sp.fade.t) / FADE_SECONDS));

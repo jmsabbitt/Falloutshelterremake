@@ -356,7 +356,16 @@ export function weaponGrip(content: Content, res: Resident): WeaponGrip | null {
   return content.weapons[res.weapon]?.grip ?? 'pistol';
 }
 
-export function fightAnim(fig: { has(anim: string): boolean }, grip: WeaponGrip | null): string {
+/**
+ * Incidents fought with tools rather than weapons: fire takes an extinguisher
+ * (its own sheet), cave-ins, floods and surges are hands-on repair work.
+ */
+const TOOL_INCIDENTS: Record<string, string> = { fire: 'fight_extinguish', cavein: 'fight_repair', flood: 'fight_repair', surge: 'fight_repair' };
+
+export function fightAnim(fig: { has(anim: string): boolean }, grip: WeaponGrip | null, incident?: string): string {
+  const tool = incident ? TOOL_INCIDENTS[incident] : undefined;
+  // Never a gun against a fire: the tool's sheet, else the work pose.
+  if (tool) return fig.has(tool) ? tool : fig.has('work') ? 'work' : 'idle';
   if (!grip) return fig.has('fight_unarmed') ? 'fight_unarmed' : 'idle';
   const own = `fight_${grip}`;
   return fig.has(own) ? own : 'fight';

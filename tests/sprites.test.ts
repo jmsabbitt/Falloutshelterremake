@@ -157,6 +157,15 @@ describe('fight animations', () => {
     expect(f.showing).toBe('idle');
   });
 
+  it('fight fires with an extinguisher and repair incidents by hand, never with a gun', () => {
+    const f = figure('work');
+    expect(fightAnim(f, 'longgun', 'fire')).toBe('work');
+    expect(fightAnim(f, null, 'flood')).toBe('work');
+    expect(fightAnim(figure('fight_extinguish'), 'pistol', 'fire')).toBe('fight_extinguish');
+    expect(fightAnim(figure(), 'pistol', 'cavein')).toBe('idle');
+    expect(fightAnim(f, 'pistol', 'skitters')).toBe('fight');
+  });
+
   it('play idle for a named animation the art lacks', () => {
     const f = figure();
     f.play('fight_heavy', 0);
