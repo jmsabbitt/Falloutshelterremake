@@ -149,13 +149,21 @@ function checkMilestones(state: GameState, content: Content): void {
   }
 }
 
+/** Producing rooms up to which each collection has the full token chance. */
+const COLLECT_TOKEN_ROOMS = 12;
+
 /** Award tokens and crates for the events in [from, to). */
 function processRewards(state: GameState, content: Content, events: GameEvent[]): void {
   const c = content.balance.crates;
+  // A big homestead collects far more often than a small one, so the token chance per
+  // collection shrinks past a dozen producing rooms: collecting pays tokens at about
+  // a 12-room homestead's pace however large the homestead grows.
+  const producing = state.rooms.filter((r) => content.rooms[r.type]?.produces).length;
+  const collectChance = c.tokenChance.collect * Math.min(1, COLLECT_TOKEN_ROOMS / Math.max(1, producing)) * (1 + bonus(state, content, 'crateLuck'));
   for (const ev of events) {
     switch (ev.type) {
       case 'collected':
-        if (chance(state.rng, c.tokenChance.collect * (1 + bonus(state, content, 'crateLuck')))) addTokens(state, content, 1);
+        if (chance(state.rng, collectChance)) addTokens(state, content, 1);
         break;
       case 'rushSucceeded':
         addTokens(state, content, c.tokens.rushSuccess);
