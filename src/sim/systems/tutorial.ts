@@ -137,6 +137,10 @@ export function tickTutorial(state: GameState): void {
 function freeSlot(state: GameState, content: Content, type: string): { floor: number; x: number } | null {
   const classic = CLASSIC_SPOT[type];
   if (classic && canPlace(state, content, type, classic.floor, classic.x).ok) return classic;
+  // Then right beside the shaft, below the door, then anywhere that connects.
+  for (const at of [{ floor: 1, x: 7 }, { floor: 1, x: 3 }, { floor: 2, x: 7 }, { floor: 2, x: 3 }, { floor: 0, x: 7 }]) {
+    if (canPlace(state, content, type, at.floor, at.x).ok) return at;
+  }
   const cells = content.balance.grid.cellsPerFloor;
   const floors = Math.max(1, ...state.rooms.filter((r) => r.type === 'elevator').map((r) => r.floor + 1));
   for (let floor = 0; floor < floors; floor++) {

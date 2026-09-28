@@ -100,7 +100,7 @@ export class Game {
       this.state = loaded;
       this.catchUpNow();
     } else {
-      this.state = newGame(this.content);
+      this.state = newGame(this.content, { tutorial: true });
     }
     this.claimDaily();
 
@@ -340,7 +340,7 @@ export class Game {
         return { ok: false, reason: `that save could not be read (${(err as Error).message})` };
       }
     } else if (mode === 'normal') {
-      next = newGame(this.content);
+      next = newGame(this.content, { tutorial: true });
     } else {
       return { ok: false, reason: 'there is no Custom Game to go back to' };
     }
@@ -412,7 +412,7 @@ export class Game {
     }
     this.keepUndo();
     clearSave();
-    this.replaceState(newGame(this.content));
+    this.replaceState(newGame(this.content, { tutorial: true }));
     this.claimDaily();
     this.save();
   }

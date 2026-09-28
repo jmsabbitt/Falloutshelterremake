@@ -274,6 +274,9 @@ export class VaultView {
   selectedResidentId: number | null = null;
   /** Resident picked for tap-a-room assignment: rooms using their best stats light up green. */
   fitResidentId: number | null = null;
+  /** Rooms HALCY's tutorial coach points at (the door, the room to staff): a pulsing outline. */
+  coachRoomIds: number[] = [];
+  private coachLayer = new Graphics();
   /** Screen space the DOM covers (HUD, toolbar, open panel), so the camera can pan rooms out from under it. */
   insets = { top: 0, right: 0, bottom: 0 };
   /** Where the room picked in build mode can go right now. */
@@ -328,6 +331,8 @@ export class VaultView {
     this.crowdTags.addChild(this.crowdMarks);
     this.popLayer.eventMode = 'none';
     this.fitLayer.eventMode = 'none';
+    this.coachLayer.eventMode = 'none';
+    this.world.addChild(this.coachLayer);
     app.stage.addChild(this.world);
     this.drawBackground();
     this.installInput();
@@ -1186,6 +1191,7 @@ export class VaultView {
     this.cull(vb);
     this.drawOverlay(vb);
     this.drawFit();
+    this.drawCoach();
     this.deep.update(state, content, this.time, (room) => this.roomRect(room), vb);
     this.updateTopside(dt, vb);
     this.updateResidents(dt);
@@ -1329,6 +1335,21 @@ export class VaultView {
       const hx = (a.x + b.x) / 2;
       const hy = a.root.y - RESIDENT_H - 16 + Math.sin(this.time * 3) * 3;
       drawHeart(g, hx, hy, 7 + Math.sin(this.time * 6) * 1);
+    }
+  }
+
+  /** The tutorial coach's pointer: a teal outline that breathes around each room it means. */
+  private drawCoach(): void {
+    const g = this.coachLayer;
+    g.clear();
+    if (!this.coachRoomIds.length) return;
+    const pulse = reducedMotion() ? 0.85 : 0.55 + 0.45 * Math.sin(this.time * 4);
+    for (const id of this.coachRoomIds) {
+      const room = this.game.state.rooms.find((r) => r.id === id);
+      if (!room) continue;
+      const r = this.roomRect(room);
+      const grow = reducedMotion() ? 3 : 3 + 3 * (0.5 + 0.5 * Math.sin(this.time * 4));
+      g.roundRect(r.x - grow, r.y - grow, r.w + grow * 2, r.h + grow * 2, 6).stroke({ width: 4, color: 0x4fb3a9, alpha: pulse });
     }
   }
 

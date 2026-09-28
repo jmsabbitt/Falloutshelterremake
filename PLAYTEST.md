@@ -15,18 +15,28 @@ A short guide to playing the current build and reporting what you find. The ques
 
 ## Session 1: the first hour (about 30–60 minutes of real play)
 
-Play normally from a new game and note anything confusing:
+Start a new game (☰ → Start over → New homestead, or a fresh install) and note anything confusing. Your first homestead starts with only the door and the elevator shaft, and HALCY's tutorial bubble under the top bar walks you through the basics. Follow it:
 
-1. **Starting out:** read the welcome, let the founders in (tap the door), and drag residents into rooms that suit their best stat.
-2. **Building:** tap Build, pick a room, tap a green slot to place it, build a second one of the same kind next to it to merge them, then upgrade a room from its panel.
-3. **Collecting:** collect power, food and water when they're ready, and try a rush.
-4. **Supply crates:** open some, and equip what you get from Storage (Items on a phone).
-5. **Incidents:** when fires, Skitters or raiders arrive, drag people to fight them.
-6. **Exploring:** send an explorer (pack Med-Patches and Purge), and later bring them home.
-7. **Close the game** for a while, then come back and read the "while you were away" summary. On Android, check that the notifications made sense.
+1. **Let the founders in:** tap the door (it's outlined in teal).
+2. **Build power, water and food:** for each one, tap Build (it pulses). The right room is already picked, and green slots show on both sides of the elevator. Put **at least one room on the left of the shaft**, to check both sides work. These three are free.
+3. **Staff them:** after each build, drag the founder HALCY names into the new room (drag only: tapping a resident opens their card). Rooms that suit the person you're dragging light up.
+4. **Collect:** the tutorial rooms start nearly full, so a bubble pops up within a minute. Tap it.
+5. **Supply crate:** open one (Crates, or 📦 at the top on a phone), then tap **Equip** on the item card and pick who gets it.
+6. **Closing line:** HALCY points you to Quarters (new arrivals need beds, and families start there). Build one, then carry on.
+
+Also try **Skip tutorial** in a second new game, at any step: it should build whichever of the three rooms are missing, so the homestead is never left without the basics.
+
+Then keep playing normally:
+
+1. **Building:** build a second room of the same kind next to one to merge them, then upgrade a room from its panel.
+2. **Collecting:** keep collecting power, food and water, and try a rush.
+3. **Incidents:** when fires, Skitters or raiders arrive, drag people to fight them.
+4. **Exploring:** send an explorer (pack Med-Patches and Purge), and later bring them home.
+5. **Close the game** for a while, then come back and read the "while you were away" summary. On Android, check that the notifications made sense.
 
 **Things to judge:**
 - Did you always know what to do next? Where did you get stuck?
+- Did the tutorial bubble ever cover something you needed to tap?
 - Was anything too slow or too fast?
 - Did anything look broken on your screen?
 
