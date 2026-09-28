@@ -4299,8 +4299,14 @@
     },
     "room_card_parlour": {
       "1": "rooms/room_card_parlour_1.webp",
+      "1w2": "rooms/room_card_parlour_1w2.webp",
+      "1w3": "rooms/room_card_parlour_1w3.webp",
       "2": "rooms/room_card_parlour_2.webp",
-      "3": "rooms/room_card_parlour_3.webp"
+      "2w2": "rooms/room_card_parlour_2w2.webp",
+      "2w3": "rooms/room_card_parlour_2w3.webp",
+      "3": "rooms/room_card_parlour_3.webp",
+      "3w2": "rooms/room_card_parlour_3w2.webp",
+      "3w3": "rooms/room_card_parlour_3w3.webp"
     },
     "room_clinic": {
       "1": "rooms/room_clinic_1.webp",
@@ -4324,8 +4330,14 @@
     },
     "room_endurance_track": {
       "1": "rooms/room_endurance_track_1.webp",
+      "1w2": "rooms/room_endurance_track_1w2.webp",
+      "1w3": "rooms/room_endurance_track_1w3.webp",
       "2": "rooms/room_endurance_track_2.webp",
-      "3": "rooms/room_endurance_track_3.webp"
+      "2w2": "rooms/room_endurance_track_2w2.webp",
+      "2w3": "rooms/room_endurance_track_2w3.webp",
+      "3": "rooms/room_endurance_track_3.webp",
+      "3w2": "rooms/room_endurance_track_3w2.webp",
+      "3w3": "rooms/room_endurance_track_3w3.webp"
     },
     "room_farm_plots": {
       "1": "rooms/room_farm_plots_1.webp",
@@ -4389,8 +4401,14 @@
     },
     "room_lounge": {
       "1": "rooms/room_lounge_1.webp",
+      "1w2": "rooms/room_lounge_1w2.webp",
+      "1w3": "rooms/room_lounge_1w3.webp",
       "2": "rooms/room_lounge_2.webp",
-      "3": "rooms/room_lounge_3.webp"
+      "2w2": "rooms/room_lounge_2w2.webp",
+      "2w3": "rooms/room_lounge_2w3.webp",
+      "3": "rooms/room_lounge_3.webp",
+      "3w2": "rooms/room_lounge_3w2.webp",
+      "3w3": "rooms/room_lounge_3w3.webp"
     },
     "room_office": {
       "1": "rooms/room_office_1.webp",
@@ -4448,8 +4466,14 @@
     },
     "room_reading_room": {
       "1": "rooms/room_reading_room_1.webp",
+      "1w2": "rooms/room_reading_room_1w2.webp",
+      "1w3": "rooms/room_reading_room_1w3.webp",
       "2": "rooms/room_reading_room_2.webp",
-      "3": "rooms/room_reading_room_3.webp"
+      "2w2": "rooms/room_reading_room_2w2.webp",
+      "2w3": "rooms/room_reading_room_2w3.webp",
+      "3": "rooms/room_reading_room_3.webp",
+      "3w2": "rooms/room_reading_room_3w2.webp",
+      "3w3": "rooms/room_reading_room_3w3.webp"
     },
     "room_refinery": {
       "1": "rooms/room_refinery_1.webp",
@@ -4464,8 +4488,14 @@
     },
     "room_shooting_gallery": {
       "1": "rooms/room_shooting_gallery_1.webp",
+      "1w2": "rooms/room_shooting_gallery_1w2.webp",
+      "1w3": "rooms/room_shooting_gallery_1w3.webp",
       "2": "rooms/room_shooting_gallery_2.webp",
-      "3": "rooms/room_shooting_gallery_3.webp"
+      "2w2": "rooms/room_shooting_gallery_2w2.webp",
+      "2w3": "rooms/room_shooting_gallery_2w3.webp",
+      "3": "rooms/room_shooting_gallery_3.webp",
+      "3w2": "rooms/room_shooting_gallery_3w2.webp",
+      "3w3": "rooms/room_shooting_gallery_3w3.webp"
     },
     "room_signal_mast": {
       "1": "rooms/room_signal_mast_1.webp",
@@ -4496,8 +4526,14 @@
     },
     "room_tinker_bench": {
       "1": "rooms/room_tinker_bench_1.webp",
+      "1w2": "rooms/room_tinker_bench_1w2.webp",
+      "1w3": "rooms/room_tinker_bench_1w3.webp",
       "2": "rooms/room_tinker_bench_2.webp",
-      "3": "rooms/room_tinker_bench_3.webp"
+      "2w2": "rooms/room_tinker_bench_2w2.webp",
+      "2w3": "rooms/room_tinker_bench_2w3.webp",
+      "3": "rooms/room_tinker_bench_3.webp",
+      "3w2": "rooms/room_tinker_bench_3w2.webp",
+      "3w3": "rooms/room_tinker_bench_3w3.webp"
     },
     "room_trading_post": {
       "1": "rooms/room_trading_post_1.webp",
@@ -4527,8 +4563,14 @@
     },
     "room_weight_room": {
       "1": "rooms/room_weight_room_1.webp",
+      "1w2": "rooms/room_weight_room_1w2.webp",
+      "1w3": "rooms/room_weight_room_1w3.webp",
       "2": "rooms/room_weight_room_2.webp",
-      "3": "rooms/room_weight_room_3.webp"
+      "2w2": "rooms/room_weight_room_2w2.webp",
+      "2w3": "rooms/room_weight_room_2w3.webp",
+      "3": "rooms/room_weight_room_3.webp",
+      "3w2": "rooms/room_weight_room_3w2.webp",
+      "3w3": "rooms/room_weight_room_3w3.webp"
     },
     "room_wind_turbine": {
       "1": "rooms/room_wind_turbine_1.webp",
