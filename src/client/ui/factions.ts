@@ -41,6 +41,7 @@ import {
 import type { Game } from '../game';
 import { duration, fmt, h, morph } from './dom';
 import { itemIcon, salvageIcon } from './icons';
+import { fizzButton } from './fizz';
 import type { ToastFn } from './toasts';
 
 export type FactionsTab = 'factions' | 'trade' | 'caravans';
@@ -443,6 +444,15 @@ export class FactionsUI {
               },
               'Recall',
             )
+          : null,
+        c.status !== 'returned'
+          ? fizzButton(this.game, 'caravan', c.id, {
+              done: c.status === 'travelling' ? `🛒 The caravan made its trade and is home: ready to unpack.` : '🛒 The caravan is home: ready to unpack.',
+              after: (ok, text) => {
+                this.host.toast(text, ok ? 'good' : 'bad');
+                this.host.refreshPanel();
+              },
+            })
           : null,
         c.status === 'returned' ? h('button', { class: 'close primary', onclick: () => this.collect(c) }, 'Collect') : null,
       ),

@@ -11,7 +11,7 @@ import type { CrateCard, CrateTier, GameEvent, GameState, Rarity, ResourceKey } 
 import { checkAchievements } from './achievements';
 import { grantItem, randomItemOf } from './items';
 import { crateLegends, legendsContent, recruitLegend } from './legends';
-import { addFizz } from './exploration';
+import { addFizz } from './fizz';
 
 interface Weighted {
   w: number;

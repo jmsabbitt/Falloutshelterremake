@@ -34,8 +34,6 @@ export {
   canExplore,
   carriedCount,
   secondsUntilHome,
-  fizzHeld,
-  fizzScripCost,
   MAX_SUPPLIES,
   MAX_EXPLORERS,
   CARRY_LIMIT,
@@ -268,3 +266,4 @@ export {
   type SlideDef,
 } from './systems/endings';
 export { networkPreview, networkAllies, networkTuning, ALLY_ORDER } from './systems/network';
+export { fizzHeld, fizzScripCost, fizzSecondsLeft, type FizzTarget } from './systems/fizz';

@@ -330,3 +330,24 @@ describe('saves', () => {
     expect(back.residents.every((r) => r.quest === null)).toBe(true);
   });
 });
+
+describe('Halcyon Fizz on quests', () => {
+  it('gets a party to the site now, and home now', () => {
+    const s = withOffice();
+    s.fizz = 2;
+    applyCommand(s, content, { type: 'startQuest', questId: 'act1_1', residentIds: party(s), medpatch: 2 });
+    const q = quest(s);
+    expect(q.status).toBe('travelling');
+    expect(applyCommand(s, content, { type: 'fizz', target: 'quest', id: q.id, pay: 'fizz' }).ok).toBe(true);
+    expect(q.status).toBe('onsite');
+    expect(q.enemies.length + q.rooms.length).toBeGreaterThan(0);
+    applyCommand(s, content, { type: 'abandonQuest', questId: q.id });
+    expect(q.status).toBe('returning');
+    const scrip = s.scrip;
+    s.fizz = 0;
+    expect(applyCommand(s, content, { type: 'fizz', target: 'quest', id: q.id, pay: 'scrip' }).ok).toBe(true);
+    expect(q.status).toBe('returned');
+    expect(s.scrip).toBeLessThan(scrip);
+    expect(applyCommand(s, content, { type: 'fizz', target: 'quest', id: q.id, pay: 'scrip' }).ok).toBe(false);
+  });
+});

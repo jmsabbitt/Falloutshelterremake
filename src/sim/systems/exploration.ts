@@ -867,57 +867,27 @@ export function carriedCount(e: Expedition): number {
   return e.loot.items.length + Object.values(e.loot.salvage).reduce((a, b) => a + b, 0);
 }
 
-// ------------------------------------------------------------------ Halcyon Fizz
+// ------------------------------------------------------------------ rushed home
 
-/** Bottles of Halcyon Fizz held. */
-export function fizzHeld(state: GameState): number {
-  return state.fizz ?? 0;
-}
-
-/** Add bottles, up to the carry limit; returns how many didn't fit. */
-export function addFizz(state: GameState, content: Content, n: number): number {
-  const max = content.balance.fizz.maxHeld;
-  const kept = Math.max(0, Math.min(n, max - fizzHeld(state)));
-  state.fizz = fizzHeld(state) + kept;
-  if (kept > 0) bump(state, 'fizzEarned', kept);
-  return n - kept;
-}
-
-/** Scrip to rush an explorer home instead of a bottle: per minute of the trip left. */
-export function fizzScripCost(state: GameState, content: Content, e: Expedition): number {
-  const f = content.balance.fizz;
-  const left = e.status === 'returning' ? e.returnRemaining : e.status === 'exploring' ? Math.max(data(content).tuning.minReturnSeconds, e.elapsed / 2) : 0;
-  return Math.max(f.minScrip, Math.ceil((left / 60) * f.scripPerMinute));
-}
-
-/**
- * Halcyon Fizz: an explorer on the way home (or still exploring: they turn
- * round at once) arrives now. Paid with a bottle, or with scrip.
- */
-export function fizzHome(state: GameState, content: Content, expeditionId: number, pay: 'fizz' | 'scrip'): string | null {
-  const e = state.expeditions.find((x) => x.id === expeditionId);
-  if (!e) return 'no such expedition';
+/** An explorer on the way home (or still out: they turn round) arrives now (Halcyon Fizz). */
+export function rushExpeditionHome(state: GameState, content: Content, e: Expedition): string | null {
   if (e.status !== 'returning' && e.status !== 'exploring') return 'only an explorer who is out or on the way home';
-  const cost = fizzScripCost(state, content, e);
-  if (pay === 'fizz' && fizzHeld(state) < 1) return 'no Halcyon Fizz left';
-  if (pay === 'scrip' && state.scrip < cost) return 'not enough scrip';
   if (e.status === 'exploring') {
     const err = recallExpedition(state, content, e.id);
     if (err) return err;
   }
-  if (pay === 'fizz') state.fizz = fizzHeld(state) - 1;
-  else addScrip(state, content, -cost);
-  e.returnRemaining = 0;
-  bump(state, pay === 'fizz' ? 'fizzDrunk' : 'fizzBought');
-  // The next exploration tick lands them (and writes the journal), even at dt 0.
-  arriveNow(state, content, e);
-  return null;
-}
-
-function arriveNow(state: GameState, content: Content, e: Expedition): void {
   const r = state.residents.find((x) => x.id === e.residentId);
+  e.returnRemaining = 0;
   e.status = 'returned';
   const total = e.timers['returnTotal'] ?? 0;
   if (r && !r.dead) writeJournal(state, content, e, 'status', line(state, data(content).journal.arrived), true, e.elapsed + total);
   state.events.push({ type: 'expeditionReturned', expeditionId: e.id });
+  return null;
+}
+
+/** Seconds of travel left before an explorer is home (a recall's trip, if still out). */
+export function expeditionSecondsLeft(content: Content, e: Expedition): number {
+  if (e.status === 'returning') return e.returnRemaining;
+  if (e.status === 'exploring') return Math.max(data(content).tuning.minReturnSeconds, e.elapsed / 2);
+  return 0;
 }

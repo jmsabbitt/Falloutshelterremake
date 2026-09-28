@@ -870,6 +870,24 @@ function tickCaravans(state: GameState, content: Content, dt: number): void {
   }
 }
 
+/** A caravan on the road arrives home now (Halcyon Fizz): an outbound one trades first. */
+export function rushCaravanHome(state: GameState, content: Content, c: Caravan): string | null {
+  if (c.status === 'returned') return 'the caravan is already home';
+  if (c.status === 'travelling') {
+    resolveCaravan(state, content, c);
+    c.status = 'returning';
+  }
+  c.remaining = 0;
+  c.status = 'returned';
+  state.events.push({ type: 'caravanReturned', caravanId: c.id });
+  return null;
+}
+
+/** Seconds until a caravan is home: both legs if it is still heading out. */
+export function caravanSecondsLeft(c: Caravan): number {
+  return c.status === 'travelling' ? c.remaining + c.total : c.status === 'returning' ? c.remaining : 0;
+}
+
 /** A caravan back home: pay out (or unpack the goods of a recalled one) and bring everyone inside. */
 export function collectCaravan(state: GameState, content: Content, caravanId: number): string | null {
   const c = state.caravans.find((x) => x.id === caravanId);

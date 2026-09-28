@@ -1206,6 +1206,25 @@ function tickContracts(state: GameState, content: Content): void {
 
 // ------------------------------------------------------------------ tick
 
+/**
+ * Halcyon Fizz: a party on the road gets there now. On the way out they
+ * reach the site; on the way home they are home.
+ */
+export function rushQuestTravel(state: GameState, content: Content, q: Quest): string | null {
+  if (q.status !== 'travelling' && q.status !== 'returning') return 'the party is not on the road';
+  q.travelRemaining = 0;
+  if (q.status === 'returning') {
+    q.status = 'returned';
+    state.events.push({ type: 'questReturned', questId: q.id });
+    return null;
+  }
+  q.status = 'onsite';
+  state.events.push({ type: 'questArrived', questId: q.id });
+  const start = currentRoom(q);
+  if (start) enterRoom(state, content, q, start);
+  return null;
+}
+
 /** Advance every quest by dt seconds. Travel runs offline; nothing on site does. */
 export function tickQuests(state: GameState, content: Content, dt: number, offline: boolean): void {
   tickContracts(state, content);

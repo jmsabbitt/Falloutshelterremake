@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { advance, applyCommand, deserialize, fizzHeld, fizzScripCost, loadContent, newGame, serialize, type GameState } from '../src/sim';
 import { claimDaily } from '../src/sim/systems/crates';
-import { addFizz } from '../src/sim/systems/exploration';
+import { addFizz } from '../src/sim/systems/fizz';
 
 const content = loadContent();
 const T0 = 1_700_000_000_000;
@@ -58,7 +58,7 @@ describe('Halcyon Fizz', () => {
     const id = out(s, 4);
     applyCommand(s, content, { type: 'recall', expeditionId: id });
     const e = s.expeditions[0]!;
-    const cost = fizzScripCost(s, content, e);
+    const cost = fizzScripCost(s, content, 'explorer', e.id);
     expect(cost).toBe(Math.max(content.balance.fizz.minScrip, Math.ceil((e.returnRemaining / 60) * content.balance.fizz.scripPerMinute)));
     expect(applyCommand(s, content, { type: 'fizzHome', expeditionId: id, pay: 'fizz' }).ok).toBe(false);
     const scrip = s.scrip;

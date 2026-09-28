@@ -26,7 +26,6 @@ import {
   scrapPreview,
   secondsUntilHome,
   fizzHeld,
-  fizzScripCost,
   workersInRoom,
   workshopRecipes,
   CARRY_LIMIT,
@@ -89,6 +88,7 @@ import type { QuestView } from '../render/questView';
 import type { VaultView } from '../render/vaultView';
 import { ask } from './confirm';
 import { duration, fmt, h, morph } from './dom';
+import { fizzButton } from './fizz';
 import { LegacyUI } from './prestige';
 import { QolUI } from './qol';
 import { QuestUI } from './quests';
@@ -2467,12 +2467,8 @@ export class UI {
       // Halcyon Fizz: home right now, for a bottle or for scrip.
       const who = r?.firstName ?? 'They';
       const done = body ? `${who}'s body is home.` : `${who} is home. Collect when you're ready.`;
-      if (fizzHeld(state) > 0) {
-        actions.push(h('button', { class: 'primary', title: `Drink a Halcyon Fizz (${fizzHeld(state)} left)`, onclick: () => this.expCmd({ type: 'fizzHome', expeditionId: e.id, pay: 'fizz' }, done) }, `🥤 Home now`));
-      } else {
-        const cost = fizzScripCost(state, content, e);
-        actions.push(h('button', { disabled: state.scrip < cost, title: 'No Halcyon Fizz left: pay scrip instead', onclick: () => this.expCmd({ type: 'fizzHome', expeditionId: e.id, pay: 'scrip' }, done) }, `Home now · ${fmt(cost)} scrip`));
-      }
+      const fizz = fizzButton(this.game, 'explorer', e.id, { done, after: (ok, text) => (this.toast(text, ok ? 'good' : 'bad'), this.renderPanel(true)) });
+      if (fizz) actions.push(fizz);
     } else if (e.status === 'returned') {
       actions.push(h('button', { class: 'primary', onclick: () => this.expCmd({ type: 'collectExpedition', expeditionId: e.id }) }, 'Collect'));
     } else if (e.status === 'dead' && r) {

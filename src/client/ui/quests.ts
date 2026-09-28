@@ -29,6 +29,7 @@ import type { QuestView } from '../render/questView';
 import type { VaultView } from '../render/vaultView';
 import { ask } from './confirm';
 import { duration, fmt, h, morph } from './dom';
+import { fizzButton } from './fizz';
 import type { Loadout, Loadouts } from './loadouts';
 import { type QuestHost, QuestScreen } from './questScreen';
 import { bountyView, rewardChips } from './questText';
@@ -192,7 +193,18 @@ export class QuestUI {
     const actions: HTMLElement[] = [];
     if (q.status === 'returned') actions.push(h('button', { class: 'primary', onclick: () => this.cmd({ type: 'collectQuest', questId: q.id }) }, 'Collect'));
     if (q.status === 'onsite') actions.push(h('button', { class: `primary${fight ? ' pulse' : ''}`, onclick: () => this.open(q.id) }, fight ? '⚔ Open: fight!' : 'Open'));
-    if (q.status === 'travelling' || q.status === 'returning') actions.push(h('button', { onclick: () => this.open(q.id) }, 'View'));
+    if (q.status === 'travelling' || q.status === 'returning') {
+      actions.push(h('button', { onclick: () => this.open(q.id) }, 'View'));
+      const fizz = fizzButton(this.game, 'quest', q.id, {
+        label: q.status === 'travelling' ? 'Arrive now' : 'Home now',
+        done: q.status === 'travelling' ? `The party is at ${q.title}.` : 'The party is home: ready to collect.',
+        after: (ok, text) => {
+          this.host.toast(text, ok ? 'good' : 'bad');
+          this.host.refreshPanel();
+        },
+      });
+      if (fizz) actions.push(fizz);
+    }
     // Abandon sits apart from View and Open, at the far end, so a tap meant for one never hits the other.
     if (q.status === 'onsite' || q.status === 'travelling') {
       actions.push(

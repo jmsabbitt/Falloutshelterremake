@@ -8,7 +8,8 @@ import { canMove, canPlace, connectedRoomIds, mergeFloor, roomDef } from './grid
 import { bump, effectiveMaxHp, effectiveStat, isAway, isChild, residentsInRoom, reviveCost } from './residents';
 import { claimDaily, openCrate, settle } from './systems/crates';
 import { equip, grantItem, sell, unequip } from './systems/items';
-import { collectExpedition, fizzHome, onResidentRevived, recallExpedition, startExpedition } from './systems/exploration';
+import { collectExpedition, onResidentRevived, recallExpedition, startExpedition } from './systems/exploration';
+import { useFizz } from './systems/fizz';
 import { cancelCraft, collectCraft, reforge, scrapItem, startCraft } from './systems/crafting';
 import { batchOutput, collectRoom } from './systems/production';
 import { buyPerk, collectOutposts } from './systems/prestige';
@@ -52,6 +53,8 @@ export type Command =
   | { type: 'recall'; expeditionId: number }
   /** Halcyon Fizz: bring an explorer home at once, for a bottle or for scrip. */
   | { type: 'fizzHome'; expeditionId: number; pay: 'fizz' | 'scrip' }
+  /** Halcyon Fizz for any trip: an explorer, a caravan or a quest party reaches the end of the road now. */
+  | { type: 'fizz'; target: 'explorer' | 'caravan' | 'quest'; id: number; pay: 'fizz' | 'scrip' }
   | { type: 'collectExpedition'; expeditionId: number }
   | { type: 'craft'; roomId: number; defId: string }
   | { type: 'collectCraft'; roomId: number }
@@ -445,7 +448,11 @@ function dispatch(state: GameState, content: Content, cmd: Command): CommandResu
       return result(recallExpedition(state, content, cmd.expeditionId));
     case 'fizzHome':
       if (cmd.pay !== 'fizz' && cmd.pay !== 'scrip') return fail('bad payment');
-      return result(fizzHome(state, content, cmd.expeditionId, cmd.pay));
+      return result(useFizz(state, content, 'explorer', cmd.expeditionId, cmd.pay));
+    case 'fizz':
+      if (cmd.pay !== 'fizz' && cmd.pay !== 'scrip') return fail('bad payment');
+      if (cmd.target !== 'explorer' && cmd.target !== 'caravan' && cmd.target !== 'quest') return fail('bad target');
+      return result(useFizz(state, content, cmd.target, cmd.id, cmd.pay));
     case 'collectExpedition':
       return result(collectExpedition(state, content, cmd.expeditionId));
     case 'craft':

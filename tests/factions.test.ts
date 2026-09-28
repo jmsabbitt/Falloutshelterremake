@@ -418,6 +418,19 @@ describe('caravans', () => {
     expect(sendCaravan(unmet, content, 'tinkers', ids, { food: 10 })).toMatch(/contact/);
   });
 
+  it('Halcyon Fizz brings a caravan home at once, trading first if it was still heading out', () => {
+    const { s, ids } = ready();
+    s.fizz = 1;
+    applyCommand(s, content, { type: 'sendCaravan', factionId: 'caravaners', residentIds: ids, goods: { food: 60, salvage: { costume_jewelry: 5 } } });
+    const c = s.caravans[0]!;
+    expect(applyCommand(s, content, { type: 'fizz', target: 'caravan', id: c.id, pay: 'fizz' }).ok).toBe(true);
+    expect(c.status).toBe('returned');
+    expect(c.result).not.toBeNull();
+    expect(s.fizz).toBe(0);
+    expect(applyCommand(s, content, { type: 'fizz', target: 'caravan', id: c.id, pay: 'scrip' }).ok).toBe(false);
+    expect(collectCaravan(s, content, c.id)).toBeNull();
+  });
+
   it('takes residents and goods, travels, resolves and pays out on collection', () => {
     const { s, ids } = ready();
     const jobs = ids.map((id) => s.residents.find((r) => r.id === id)!.roomId);
