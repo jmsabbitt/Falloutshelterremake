@@ -229,3 +229,4 @@ We need commercial use rights with no attribution or exclusivity strings. Record
 | legend bodies (11 legends × walk, idle, work, fight, fallen, carry) | artlist.io, Nano Banana 2 I2I 2K | AI Suite plan (credits) | 2026-09-28 | ☐ |
 | wide room walls (ART-LIST §1), P1: generator, waterworks, canteen, quarters × 3 levels × w2/w3 | artlist.io, Nano Banana 2 I2I 2K | AI Suite plan (credits) | 2026-09-28 | ☐ |
 | resident weapon grip fight sheets (ART-LIST §2), P1: pistol, long gun, melee, unarmed, heavy × male/female | artlist.io, Nano Banana 2 I2I 2K | AI Suite plan (credits) | 2026-09-28 | ☐ |
+| backdrops, elevator, fire, resource / crate / toolbar / HUD / status / incident / ruleset / faction icons (ART-LIST P1 and part of P2 and P3) | artlist.io, Nano Banana 2 I2I 2K | AI Suite plan (credits) | 2026-09-28 | ☐ |

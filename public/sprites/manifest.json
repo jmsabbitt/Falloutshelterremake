@@ -1181,6 +1181,24 @@
         }
       }
     },
+    "fx_fire": {
+      "refHeight": 72,
+      "anims": {
+        "idle": {
+          "frames": 7,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 63,
+          "frameH": 75,
+          "anchorX": 0.5096,
+          "anchorY": 1.0,
+          "files": {
+            "full": "fx_fire/idle_full.webp"
+          }
+        }
+      }
+    },
     "glassback": {
       "refHeight": 160,
       "anims": {
@@ -4043,6 +4061,17 @@
     }
   },
   "portraits": {
+    "backdrop": {
+      "surface": "backdrop/surface.webp",
+      "crust": "backdrop/crust.webp",
+      "dirt": "backdrop/dirt.webp"
+    },
+    "crates": {
+      "standard": "icons/crate_standard.webp",
+      "rare": "icons/crate_rare.webp",
+      "legendary": "icons/crate_legendary.webp",
+      "card_back": "icons/crate_card_back.webp"
+    },
     "endings": {
       "open_renewal": "endings/open_renewal.webp",
       "open_eviction": "endings/open_eviction.webp",
@@ -4158,6 +4187,10 @@
     },
     "room_door": {
       "1": "rooms/room_door_1.webp"
+    },
+    "room_elevator": {
+      "shaft": "rooms/room_elevator_shaft.webp",
+      "car": "rooms/room_elevator_car.webp"
     },
     "room_farm_plots": {
       "1": "rooms/room_farm_plots_1.webp",
@@ -4299,6 +4332,84 @@
       "costume_jewelry": "items/costume_jewelry.webp",
       "silver_locket": "items/silver_locket.webp",
       "gold_pocket_watch": "items/gold_pocket_watch.webp"
+    },
+    "ui_icons": {
+      "power": "icons/power.webp",
+      "food": "icons/food.webp",
+      "water": "icons/water.webp",
+      "scrip": "icons/scrip.webp",
+      "medpatch": "icons/medpatch.webp",
+      "purge": "icons/purge.webp",
+      "crate_token": "icons/crate_token.webp",
+      "treasure_map": "icons/treasure_map.webp",
+      "build": "icons/build.webp",
+      "residents": "icons/residents.webp",
+      "storage": "icons/storage.webp",
+      "crates": "icons/crates.webp",
+      "explore": "icons/explore.webp",
+      "quests": "icons/quests.webp",
+      "research": "icons/research.webp",
+      "factions": "icons/factions.webp",
+      "legacy": "icons/legacy.webp",
+      "goals": "icons/goals.webp",
+      "menu": "icons/menu.webp",
+      "population": "icons/population.webp",
+      "mood": "icons/mood.webp",
+      "shift_morning": "icons/shift_morning.webp",
+      "shift_day": "icons/shift_day.webp",
+      "shift_night": "icons/shift_night.webp",
+      "weather_clear": "icons/weather_clear.webp",
+      "weather_dust": "icons/weather_dust.webp",
+      "weather_taintstorm": "icons/weather_taintstorm.webp",
+      "weather_heatwave": "icons/weather_heatwave.webp",
+      "inc_fire": "icons/inc_fire.webp",
+      "inc_skitters": "icons/inc_skitters.webp",
+      "inc_burrowers": "icons/inc_burrowers.webp",
+      "inc_rustmen": "icons/inc_rustmen.webp",
+      "inc_cavein": "icons/inc_cavein.webp",
+      "inc_flood": "icons/inc_flood.webp",
+      "inc_deepcrawlers": "icons/inc_deepcrawlers.webp",
+      "inc_surge": "icons/inc_surge.webp",
+      "inc_hollowed": "icons/inc_hollowed.webp",
+      "inc_glassbacks": "icons/inc_glassbacks.webp",
+      "inc_maulers": "icons/inc_maulers.webp",
+      "crafting": "icons/crafting.webp",
+      "rewards": "icons/rewards.webp",
+      "homestead": "icons/homestead.webp",
+      "warning": "icons/warning.webp",
+      "industry": "icons/industry.webp",
+      "medicine": "icons/medicine.webp",
+      "defense": "icons/defense.webp",
+      "automation": "icons/automation.webp",
+      "deep": "icons/deep.webp",
+      "lock": "icons/lock.webp",
+      "check": "icons/check.webp",
+      "cross": "icons/cross.webp",
+      "alert": "icons/alert.webp",
+      "skull": "icons/skull.webp",
+      "star": "icons/star.webp",
+      "diamond": "icons/diamond.webp",
+      "sad": "icons/sad.webp",
+      "famine": "icons/famine.webp",
+      "lean_times": "icons/lean_times.webp",
+      "brownout": "icons/brownout.webp",
+      "short_fuse": "icons/short_fuse.webp",
+      "no_radio": "icons/no_radio.webp",
+      "iron_door": "icons/iron_door.webp",
+      "endless_night": "icons/endless_night.webp",
+      "glass_sky": "icons/glass_sky.webp",
+      "skeleton_crew": "icons/skeleton_crew.webp",
+      "rules": "icons/rules.webp",
+      "blank_slate": "icons/blank_slate.webp",
+      "boomtown": "icons/boomtown.webp",
+      "faction_tinkers": "icons/faction_tinkers.webp",
+      "faction_lamplighters": "icons/faction_lamplighters.webp",
+      "faction_rustmen": "icons/faction_rustmen.webp",
+      "faction_homestead9": "icons/faction_homestead9.webp",
+      "relic": "icons/relic.webp",
+      "map_objective": "icons/map_objective.webp",
+      "map_unknown": "icons/map_unknown.webp",
+      "map_go": "icons/map_go.webp"
     }
   },
   "legends": {
