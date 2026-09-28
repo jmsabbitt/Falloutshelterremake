@@ -1,0 +1,31 @@
+name: WebKit check
+
+# Loads the published web build in WebKit (Safari's engine) on an emulated iPhone
+# and a desktop, and logs errors and screenshots, to debug Safari-only problems.
+
+on:
+  workflow_dispatch:
+    inputs:
+      url:
+        description: Page to load
+        default: https://jmsabbitt.github.io/Falloutshelterremake/
+
+jobs:
+  webkit:
+    runs-on: macos-15
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: scripts/ci
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm init -y >/dev/null && npm i playwright@1.56.0
+      - run: npx playwright install webkit
+      - run: node scripts/ci/webkit-check.mjs "${{ inputs.url }}"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: webkit-screenshots
+          path: webkit-*.png
