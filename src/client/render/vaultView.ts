@@ -551,13 +551,19 @@ export class VaultView {
   }
 
   /**
-   * The opening shot: the elevator shaft beside the door on phones (door to
-   * the left, the first rooms to the right), a little right of it on wider screens.
+   * The opening shot. Phones: the queue outside, the door and the shaft from
+   * the left edge, with the first rooms to their right. Wider screens: centred
+   * a little right of the shaft, with dirt to build on either side.
    */
   centerOnHome(): void {
     const door = this.game.state.rooms.find((r) => r.type === 'door');
-    const shaft = door ? door.x + roomCells(this.game.content, door) : this.game.content.balance.grid.starterShaftX;
-    this.centerOn((window.innerWidth < 640 ? shaft : shaft + 3) * CELL, SURFACE_H + FLOOR_H * 0.8);
+    const doorX = door?.x ?? this.game.content.balance.grid.starterShaftX - 6;
+    const shaft = door ? door.x + roomCells(this.game.content, door) : doorX + 6;
+    const y = SURFACE_H + FLOOR_H * 0.8;
+    if (window.innerWidth < 640) {
+      this.world.scale.set(this.zoom);
+      this.centerOn((doorX - 4) * CELL + this.app.screen.width / this.zoom / 2, y);
+    } else this.centerOn((shaft + 3) * CELL, y);
   }
 
   /** Centre the camera on a floor (the dig site, a new stratum). */
