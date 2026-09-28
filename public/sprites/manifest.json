@@ -3972,8 +3972,14 @@
     },
     "room_canteen": {
       "1": "rooms/room_canteen_1.webp",
+      "1w2": "rooms/room_canteen_1w2.webp",
+      "1w3": "rooms/room_canteen_1w3.webp",
       "2": "rooms/room_canteen_2.webp",
-      "3": "rooms/room_canteen_3.webp"
+      "2w2": "rooms/room_canteen_2w2.webp",
+      "2w3": "rooms/room_canteen_2w3.webp",
+      "3": "rooms/room_canteen_3.webp",
+      "3w2": "rooms/room_canteen_3w2.webp",
+      "3w3": "rooms/room_canteen_3w3.webp"
     },
     "room_clinic": {
       "1": "rooms/room_clinic_1.webp",
@@ -3995,8 +4001,14 @@
     },
     "room_generator": {
       "1": "rooms/room_generator_1.webp",
+      "1w2": "rooms/room_generator_1w2.webp",
+      "1w3": "rooms/room_generator_1w3.webp",
       "2": "rooms/room_generator_2.webp",
-      "3": "rooms/room_generator_3.webp"
+      "2w2": "rooms/room_generator_2w2.webp",
+      "2w3": "rooms/room_generator_2w3.webp",
+      "3": "rooms/room_generator_3.webp",
+      "3w2": "rooms/room_generator_3w2.webp",
+      "3w3": "rooms/room_generator_3w3.webp"
     },
     "room_geothermal": {
       "1": "rooms/room_geothermal_1.webp",
@@ -4025,8 +4037,14 @@
     },
     "room_quarters": {
       "1": "rooms/room_quarters_1.webp",
+      "1w2": "rooms/room_quarters_1w2.webp",
+      "1w3": "rooms/room_quarters_1w3.webp",
       "2": "rooms/room_quarters_2.webp",
-      "3": "rooms/room_quarters_3.webp"
+      "2w2": "rooms/room_quarters_2w2.webp",
+      "2w3": "rooms/room_quarters_2w3.webp",
+      "3": "rooms/room_quarters_3.webp",
+      "3w2": "rooms/room_quarters_3w2.webp",
+      "3w3": "rooms/room_quarters_3w3.webp"
     },
     "room_radio": {
       "1": "rooms/room_radio_1.webp",
@@ -4070,8 +4088,14 @@
     },
     "room_waterworks": {
       "1": "rooms/room_waterworks_1.webp",
+      "1w2": "rooms/room_waterworks_1w2.webp",
+      "1w3": "rooms/room_waterworks_1w3.webp",
       "2": "rooms/room_waterworks_2.webp",
-      "3": "rooms/room_waterworks_3.webp"
+      "2w2": "rooms/room_waterworks_2w2.webp",
+      "2w3": "rooms/room_waterworks_2w3.webp",
+      "3": "rooms/room_waterworks_3.webp",
+      "3w2": "rooms/room_waterworks_3w2.webp",
+      "3w3": "rooms/room_waterworks_3w3.webp"
     },
     "room_weaponshop": {
       "1": "rooms/room_weaponshop_1.webp",

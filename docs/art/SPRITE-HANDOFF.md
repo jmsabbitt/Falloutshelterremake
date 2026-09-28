@@ -227,3 +227,4 @@ We need commercial use rights with no attribution or exclusivity strings. Record
 | legend and faction portraits, loot icons, 33 bosses, glassback, topside buildings | artlist.io, Nano Banana 2 I2I / T2I 2K | AI Suite plan (credits) | 2026-09-26 | ☐ |
 | Act 4: 2 loot icons, 10 bosses, 16 regular enemies, 10 ending illustrations | artlist.io, Nano Banana 2 I2I / T2I 2K | AI Suite plan (credits) | 2026-09-26 | ☐ |
 | legend bodies (11 legends × walk, idle, work, fight, fallen, carry) | artlist.io, Nano Banana 2 I2I 2K | AI Suite plan (credits) | 2026-09-28 | ☐ |
+| wide room walls (ART-LIST §1), P1: generator, waterworks, canteen, quarters × 3 levels × w2/w3 | artlist.io, Nano Banana 2 I2I 2K | AI Suite plan (credits) | 2026-09-28 | ☐ |

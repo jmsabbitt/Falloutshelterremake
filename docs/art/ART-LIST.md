@@ -440,3 +440,15 @@ Images count generations: an icon sheet of four is one image. At 130 credits an 
 6. For anything marked **needs hookup**, tell the code session which folders landed; §1, §2, S1 and V2 show up on their own.
 
 Partial delivery is fine everywhere: anything missing keeps its current look.
+
+---
+
+## Delivery log
+
+Updated by the art session as batches land. "Shows up on its own" means the code already reads it; "needs hookup" means the code session still has to wire the folder.
+
+| Date | Items | Folders | Code |
+|---|---|---|---|
+| 2026-09-28 | §1 P1 wide walls: generator, waterworks, canteen, quarters, levels 1 to 3, `w2` and `w3` (24) | `room_generator`, `room_waterworks`, `room_canteen`, `room_quarters` | shows up on its own |
+
+Notes on the wide walls: `w2` is generated at 21:9 from the level's single painting, then cropped to 2:1. `w3` is generated at 4:1 from that level's `w2`, then cropped to 3:1. The image tool sometimes leaves a soft, ghosted patch at 4:1; those were repaired with an edit pass or by copying a sharp neighbour, and a few small soft spots remain at the edges of `quarters` level 1 and 2 `w3` and `canteen` level 2 `w3`.
