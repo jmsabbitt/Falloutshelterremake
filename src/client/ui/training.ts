@@ -98,7 +98,7 @@ export function trainingSection(state: GameState, content: Content, room: Room):
   return out;
 }
 
-const FLASH_MS = 2600;
+const FLASH_MS = 4000;
 
 /** Recently raised stats per resident, so their card can flash the number. */
 export class StatFlash {
