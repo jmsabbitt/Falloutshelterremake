@@ -4,6 +4,10 @@ name: WebKit check
 # and a desktop, and logs errors and screenshots, to debug Safari-only problems.
 
 on:
+  # Runs when the check itself changes (edit scripts/ci/webkit-check.mjs to re-run it).
+  push:
+    branches: [claude/dreamy-bell-vi4u67]
+    paths: [scripts/ci/webkit-check.mjs, .github/workflows/webkit-check.yml]
   workflow_dispatch:
     inputs:
       url:
@@ -23,7 +27,7 @@ jobs:
           node-version: 22
       - run: npm init -y >/dev/null && npm i playwright@1.56.0
       - run: npx playwright install webkit
-      - run: node scripts/ci/webkit-check.mjs "${{ inputs.url }}"
+      - run: node scripts/ci/webkit-check.mjs "${{ inputs.url || 'https://jmsabbitt.github.io/Falloutshelterremake/' }}"
       - uses: actions/upload-artifact@v4
         if: always()
         with:
