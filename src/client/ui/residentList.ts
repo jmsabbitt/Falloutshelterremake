@@ -31,7 +31,7 @@ export interface ResidentListHost {
   toast: ToastFn;
   /** Re-render the open panel now. */
   refresh(): void;
-  /** The resident picked for tap-a-room assignment (single select). */
+  /** The resident whose card is open (single select). */
   selectedId(): number | null;
   select(id: number | null): void;
   /** The expanded card (gear, heal, explore) for the picked resident. */
@@ -538,7 +538,6 @@ export class ResidentList {
         h('button', { disabled: !n, onclick: () => this.unassign() }, 'Unassign'),
         h('button', { disabled: !n, onclick: () => this.healAll() }, '✚ Heal'),
       ),
-      n ? h('div', { class: 'muted small', style: 'margin-top:4px' }, 'Or tap a room in the homestead to send them there.') : null,
     );
   }
 

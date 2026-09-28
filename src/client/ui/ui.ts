@@ -367,14 +367,7 @@ export class UI {
 
   onRoomTap(room: Room): void {
     const { state } = this.game;
-    if (this.panel === 'residents' && this.qol.people.bulkCount()) {
-      this.qol.people.assignPicked(room);
-      return;
-    }
-    if (this.residentId !== null && this.panel === 'residents') {
-      this.assign(this.residentId, room);
-      return;
-    }
+    // Assigning is drag only: a room tap never sends the selected resident (playtest 1).
     if (room.type === 'door' && state.residents.some((r) => r.waiting)) {
       const res = this.game.run({ type: 'admitAll' });
       this.toast(res.ok ? `Welcome to Homestead ${state.homesteadNumber}! (${res.detail})` : res.reason, res.ok ? 'good' : 'bad');
@@ -469,7 +462,6 @@ export class UI {
       this.insetsAt = now;
       this.view.insets = this.viewInsets();
     }
-    this.view.fitResidentId = this.assignee()?.id ?? null;
     this.renderHud();
     syncHudHeight(this.hud);
     this.renderHint();
@@ -625,10 +617,10 @@ export class UI {
       const def = this.game.content.rooms[this.view.buildMode];
       text = `Tap a green slot to build ${def?.name ?? ''} (${buildCost(state, this.game.content, this.view.buildMode)} scrip)`;
     } else if (this.panel === 'residents' && this.qol.people.bulkCount()) {
-      text = `Tap a room to send the ${this.qol.people.bulkCount()} selected there`;
+      text = `Use Assign to… to send the ${this.qol.people.bulkCount()} selected to a room`;
     } else if (this.residentId !== null && this.panel === 'residents') {
       const r = state.residents.find((x) => x.id === this.residentId);
-      if (r && !r.dead && !isChild(state, r)) text = `Tap a room (or drag ${r.firstName}) to assign`;
+      if (r && !r.dead && !isChild(state, r)) text = `Drag ${r.firstName} into a room to assign them`;
     } else if (mauler) {
       const where = state.rooms.find((r) => r.id === mauler.roomId);
       text =
@@ -836,7 +828,7 @@ export class UI {
     this.closePanel();
   }
 
-  /** The resident picked for tap-a-room assignment, if they can take a job right now. */
+  /** The resident whose card is open, if they can take a job right now (drag them to assign). */
   private assignee(): Resident | undefined {
     if (this.panel !== 'residents' || this.residentId === null || this.qol.people.bulk) return undefined;
     const { state } = this.game;
@@ -953,7 +945,7 @@ export class UI {
         'div',
         { class: 'sb-text' },
         h('b', {}, r ? `${r.firstName} ${r.lastName}` : 'Assign'),
-        h('span', { class: 'muted small' }, `Tap a room to assign. Green rooms use ${orList(top.map((k) => STAT_NAME[k]))}.`),
+        h('span', { class: 'muted small' }, `Drag ${r ? r.firstName : 'them'} into a room. While you drag, rooms that use ${orList(top.map((k) => STAT_NAME[k]))} light up green.`),
       ),
       h(
         'div',

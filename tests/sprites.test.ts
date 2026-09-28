@@ -38,7 +38,8 @@ vi.mock('pixi.js', () => {
   return { Assets: { load: (url: string) => load(url) }, Texture, Rectangle, Container, Sprite };
 });
 
-import { CharacterArt, Figure, LAYERS, type Anim, type Character } from '../src/client/render/sprites';
+import { CharacterArt, Figure, LAYERS, fightAnim, weaponGrip, type Anim, type Character } from '../src/client/render/sprites';
+import { loadContent } from '../src/sim';
 
 const anim = (layers: readonly string[]): Anim => ({
   frames: 2,
@@ -133,5 +134,41 @@ describe('legend bodies', () => {
     tinted.setTints(tints);
     expect(tinted.children).toHaveLength(LAYERS.length);
     expect((tinted.children as unknown as { tint: number }[]).map((s) => s.tint)).toEqual(LAYERS.map((l) => tints[l]));
+  });
+});
+
+describe('fight animations', () => {
+  const figure = (...extra: string[]) => new Figure({ ...shared('m'), anims: Object.fromEntries(['walk', 'idle', 'fight', ...extra].map((n) => [n, anim(LAYERS)])) }, 50);
+
+  it('use the sheet for the weapon grip when the art has it', () => {
+    const f = figure('fight_pistol', 'fight_melee', 'fight_unarmed');
+    expect(fightAnim(f, 'pistol')).toBe('fight_pistol');
+    expect(fightAnim(f, 'melee')).toBe('fight_melee');
+    expect(fightAnim(f, null)).toBe('fight_unarmed');
+    f.play(fightAnim(f, 'pistol'), 0);
+    expect(f.showing).toBe('fight_pistol');
+  });
+
+  it('fall back to the generic fight sheet for weapons, and never give the unarmed that gun', () => {
+    const f = figure();
+    for (const grip of ['pistol', 'longgun', 'heavy', 'melee'] as const) expect(fightAnim(f, grip)).toBe('fight');
+    expect(fightAnim(f, null)).toBe('idle');
+    f.play(fightAnim(f, null), 0);
+    expect(f.showing).toBe('idle');
+  });
+
+  it('play idle for a named animation the art lacks', () => {
+    const f = figure();
+    f.play('fight_heavy', 0);
+    expect(f.showing).toBe('idle');
+  });
+
+  it('read the grip from content (a weapon missing from content holds like a pistol)', () => {
+    const content = loadContent();
+    const r = (weapon: string | null) => ({ weapon }) as unknown as Resident;
+    expect(weaponGrip(content, r(null))).toBeNull();
+    expect(weaponGrip(content, r('wrench'))).toBe('melee');
+    expect(weaponGrip(content, r('scattergun'))).toBe('heavy');
+    expect(weaponGrip(content, r('no_such_gun'))).toBe('pistol');
   });
 });

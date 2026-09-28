@@ -17,7 +17,7 @@ A short guide to playing the current build and reporting what you find. The ques
 
 Play normally from a new game and note anything confusing:
 
-1. **Starting out:** read the welcome, let the founders in (tap the door), and drag residents into rooms that suit their best stat.
+1. **Starting out:** read the welcome, let the founders in (tap the door), and drag residents into rooms that suit their best stat (dragging is the only way to assign; tapping a resident just opens their card, and rooms light up green while you drag).
 2. **Building:** tap Build, pick a room, tap a green slot to place it, build a second one of the same kind next to it to merge them, then upgrade a room from its panel.
 3. **Collecting:** collect power, food and water when they're ready, and try a rush.
 4. **Supply crates:** open some, and equip what you get from Storage (Items on a phone).

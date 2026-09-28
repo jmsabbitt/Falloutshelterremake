@@ -6,7 +6,8 @@
       "rarity": "common",
       "min": 1,
       "max": 2,
-      "craftStat": "knack"
+      "craftStat": "knack",
+      "grip": "pistol"
     },
     {
       "id": "wrench",
@@ -14,7 +15,8 @@
       "rarity": "common",
       "min": 1,
       "max": 3,
-      "craftStat": "brawn"
+      "craftStat": "brawn",
+      "grip": "melee"
     },
     {
       "id": "service_pistol",
@@ -22,7 +24,8 @@
       "rarity": "common",
       "min": 2,
       "max": 3,
-      "craftStat": "knack"
+      "craftStat": "knack",
+      "grip": "pistol"
     },
     {
       "id": "nail_driver",
@@ -30,7 +33,8 @@
       "rarity": "common",
       "min": 2,
       "max": 4,
-      "craftStat": "brawn"
+      "craftStat": "brawn",
+      "grip": "pistol"
     },
     {
       "id": "flare_gun",
@@ -38,7 +42,8 @@
       "rarity": "common",
       "min": 2,
       "max": 5,
-      "craftStat": "knack"
+      "craftStat": "knack",
+      "grip": "pistol"
     },
     {
       "id": "scrap_carbine",
@@ -46,7 +51,8 @@
       "rarity": "common",
       "min": 3,
       "max": 5,
-      "craftStat": "sight"
+      "craftStat": "sight",
+      "grip": "longgun"
     },
     {
       "id": "rivet_rifle",
@@ -54,7 +60,8 @@
       "rarity": "rare",
       "min": 6,
       "max": 9,
-      "craftStat": "sight"
+      "craftStat": "sight",
+      "grip": "longgun"
     },
     {
       "id": "scattergun",
@@ -62,7 +69,8 @@
       "rarity": "rare",
       "min": 7,
       "max": 10,
-      "craftStat": "grit"
+      "craftStat": "grit",
+      "grip": "heavy"
     },
     {
       "id": "arc_pistol",
@@ -70,7 +78,8 @@
       "rarity": "rare",
       "min": 8,
       "max": 11,
-      "craftStat": "wits"
+      "craftStat": "wits",
+      "grip": "pistol"
     },
     {
       "id": "longrifle",
@@ -78,7 +87,8 @@
       "rarity": "rare",
       "min": 9,
       "max": 12,
-      "craftStat": "sight"
+      "craftStat": "sight",
+      "grip": "longgun"
     },
     {
       "id": "coilgun",
@@ -86,7 +96,8 @@
       "rarity": "rare",
       "min": 10,
       "max": 13,
-      "craftStat": "wits"
+      "craftStat": "wits",
+      "grip": "longgun"
     },
     {
       "id": "sunbeam_rifle",
@@ -94,7 +105,8 @@
       "rarity": "legendary",
       "min": 15,
       "max": 19,
-      "craftStat": "wits"
+      "craftStat": "wits",
+      "grip": "longgun"
     },
     {
       "id": "thunderclap",
@@ -102,7 +114,8 @@
       "rarity": "legendary",
       "min": 16,
       "max": 20,
-      "craftStat": "grit"
+      "craftStat": "grit",
+      "grip": "heavy"
     },
     {
       "id": "peacemaker",
@@ -110,7 +123,8 @@
       "rarity": "legendary",
       "min": 18,
       "max": 22,
-      "craftStat": "knack"
+      "craftStat": "knack",
+      "grip": "pistol"
     },
     {
       "id": "glare_lance",
@@ -118,7 +132,8 @@
       "rarity": "legendary",
       "min": 20,
       "max": 25,
-      "craftStat": "wits"
+      "craftStat": "wits",
+      "grip": "longgun"
     },
     {
       "id": "dust_devil",
@@ -127,6 +142,7 @@
       "min": 9,
       "max": 12,
       "craftStat": "sight",
+      "grip": "longgun",
       "lootOnly": true,
       "flavor": "A lever-action carbine the Dustbowl drovers keep oiled with the last of the cooking fat. Only found in the Dustbowl."
     },
@@ -137,6 +153,7 @@
       "min": 17,
       "max": 22,
       "craftStat": "wits",
+      "grip": "longgun",
       "lootOnly": true,
       "flavor": "A beam rifle ground from a single slab of Glass Flats crystal. It hums in a key HALCY describes as 'non-standard'. Only found in the Glass Flats."
     },
@@ -147,6 +164,7 @@
       "min": 18,
       "max": 23,
       "craftStat": "brawn",
+      "grip": "longgun",
       "lootOnly": true,
       "flavor": "Stillwater divers fire these at scrap, eels and disagreements. The line is rated for all three. Only found in the Stillwater."
     },
@@ -157,6 +175,7 @@
       "min": 8,
       "max": 12,
       "craftStat": "brawn",
+      "grip": "melee",
       "lootOnly": true,
       "flavor": "Big Tin's own knuckle-dusters, riveted from a hubcap. Still warm. First taken from Big Tin, Clan Champion."
     },
@@ -167,6 +186,7 @@
       "min": 21,
       "max": 26,
       "craftStat": "brawn",
+      "grip": "melee",
       "lootOnly": true,
       "flavor": "A tusk the length of a forearm, with a grip wrapped in someone's old work shirt. It is exactly as heavy as it looks. Taken from a Mauler."
     },
@@ -177,6 +197,7 @@
       "min": 19,
       "max": 24,
       "craftStat": "knack",
+      "grip": "pistol",
       "lootOnly": true,
       "flavor": "A flare pistol the Lamplighters converted to fire lit wicks. Technically a candle. Legally a candle. First taken from High Lamplighter Solenne."
     },
@@ -187,6 +208,7 @@
       "min": 20,
       "max": 25,
       "craftStat": "wits",
+      "grip": "melee",
       "lootOnly": true,
       "flavor": "Issued to HALCY-9 Custodian Frames for 'gentle crowd guidance'. The dial goes from Gentle to Very Gentle. First taken from the Custodian Frame."
     },
@@ -197,6 +219,7 @@
       "min": 10,
       "max": 13,
       "craftStat": "brawn",
+      "grip": "melee",
       "lootOnly": true,
       "flavor": "A pick with forty years of notches in the handle and a name scratched off. Dug up from a Dustbowl cache."
     },
@@ -207,6 +230,7 @@
       "min": 21,
       "max": 26,
       "craftStat": "knack",
+      "grip": "pistol",
       "lootOnly": true,
       "flavor": "The Official Receiver's own seal-breaker, reissued. Every shot comes with a notice saying the target has no claim to anything."
     }

@@ -56,7 +56,7 @@ import {
 import { drawOffice } from './officeArt';
 import { CREATURE_COLORS, drawDoorDamage, drawGlassbackLeap, drawGlassbacks, drawHollowed, drawMauler, drawSealMonument, drawSurge } from './creatureArt';
 import { buildDeepBackground, DEEP_INCIDENT_COLORS, DeepLayer, deepViewKey, drawDeepFrame, drawDeepIncident, drawDepthRoom, labelInk, lampFor, SEAL_H, type DeepGeometry } from './deepArt';
-import { type Action, type CharacterArt, CreatureFigure, Figure, residentTints } from './sprites';
+import { type Action, type CharacterArt, CreatureFigure, Figure, fightAnim, residentTints, weaponGrip } from './sprites';
 import { drawTopsideBuilding, drawTopsideParts, GROUND_DEPTH, TopsideLayer, WeatherLayer, type TopsidePart } from './topsideArt';
 
 export const CELL = 44;
@@ -130,6 +130,54 @@ interface IncidentTrack {
 /** Room categories where a resident standing still is shown at work. */
 const WORK_ROOMS = new Set(['production', 'workshop', 'research', 'radio', 'office']);
 
+/** Where a resident may stand: a stretch of floor at height y, on a floor (null: the surface or topside). */
+interface Bounds {
+  min: number;
+  max: number;
+  y: number;
+  floor: number | null;
+}
+
+/** A run of stacked elevators: its centre x and the floors it spans. */
+interface Shaft {
+  x: number;
+  top: number;
+  bottom: number;
+}
+
+/** One leg of a walk: along a floor to x, or riding a shaft to y. */
+interface Leg {
+  x: number;
+  y: number;
+  floor: number | null;
+  ride: boolean;
+  /** Cruising speed for this leg (world units per second). */
+  speed: number;
+}
+
+// Resident movement (world units and seconds). Walks ease in and out; the
+// walk animation advances with distance covered (WALK_STRIDE units per
+// animation second, which matches the sheet at a normal pace), so feet don't slide.
+const WALK_STRIDE = 38;
+const WALK_CRUISE = 34;
+const WALK_ACCEL = 70;
+/** Going somewhere (a new room) is brisker than a wander. */
+const TRAVEL_PACE = 1.5;
+const RIDE_SPEED = 120;
+const RIDE_ACCEL = 260;
+const WANDER_PAUSE_MIN = 2;
+const WANDER_PAUSE_MAX = 7;
+const WANDER_MIN_DIST = 30;
+const FADE_SECONDS = 0.25;
+const LAND_SECONDS = 0.14;
+const SETTLE_SECONDS = 0.2;
+const RETURN_SECONDS = 0.3;
+
+/** Where residents' feet are on a floor. */
+function floorY(floor: number): number {
+  return SURFACE_H + floor * FLOOR_H + FLOOR_H - DEPTH_Y / 2 - 4;
+}
+
 interface ResidentSprite {
   root: Container;
   /** Rotated as one: the drawn figure (or sprite) plus its overlays. */
@@ -137,11 +185,37 @@ interface ResidentSprite {
   body: Graphics;
   /** Sprite art, when the resident's body type has some; else body draws a placeholder. */
   figure: Figure | null;
+  /** Walking this frame (plays the walk). */
   moving: boolean;
+  /** Riding a shaft this frame. */
+  riding: boolean;
+  /** Where they stand (feet), and on which floor (null: the surface). The drawn spot differs while gliding. */
   x: number;
-  targetX: number;
-  roomId: number | null | 'waiting' | 'child';
-  phase: number;
+  y: number;
+  floor: number | null;
+  roomId: number | null | 'waiting' | 'child' | -999;
+  /** Distance walked, which drives the walk animation. */
+  walk: number;
+  /** Current speed along the path, and this resident's own wander pace. */
+  speed: number;
+  cruise: number;
+  /** Seconds left standing before the next wander. */
+  pause: number;
+  /** Their small random stream (see rand). */
+  seed: number;
+  /** Waypoints still to reach; the first is the current one. */
+  path: Leg[];
+  /** Fading out and back in at a new spot (no walkable route). */
+  fade: { t: number; x: number; y: number; floor: number | null } | null;
+  /** Drawn easing from (fx, fy) down to where they stand: a landing after a drop, or a return after a bad one. */
+  glide: { fx: number; fy: number; t: number; dur: number; settle: boolean } | null;
+  /** Seconds left of the little squash after landing. */
+  settle: number;
+  /** Just dropped into a room at this world x (placed on the next frame). */
+  dropX: number | null;
+  /** While carried: last drawn x and the swing it gives. */
+  dragLast: number;
+  tilt: number;
   facing: 1 | -1;
   /** Key of what the sprite currently shows; redraw when it changes. */
   look: string;
@@ -197,6 +271,8 @@ const TAP_SLOP_TOUCH = 10;
 const TAP_SLOP_MOUSE = 5;
 /** Hold a resident this long to pick them up (touch). Moving first pans the camera instead. */
 const LONG_PRESS_MS = 180;
+/** While that hold lands, the finger may drift this far before the touch turns into a pan. */
+const PRESS_SLOP_TOUCH = 16;
 /** Two taps this close in time and space are a double tap (zoom in or out). */
 const DOUBLE_TAP_MS = 300;
 const DOUBLE_TAP_SLOP = 36;
@@ -264,6 +340,11 @@ export class VaultView {
 
   private builtLayout = -1;
   private sprites = new Map<number, ResidentSprite>();
+  /** Elevator shafts residents ride between floors, and the layout they were found for. */
+  private shafts: Shaft[] = [];
+  private shaftKey = '';
+  /** A resident being carried is drawn here, above the rooms, the fit badges and the other residents. */
+  private dragLayer = new Container();
   private walkers = new Map<number, Walker>();
   private floats: FloatText[] = [];
   private time = 0;
@@ -272,8 +353,6 @@ export class VaultView {
   buildMode: string | null = null;
   selectedRoomId: number | null = null;
   selectedResidentId: number | null = null;
-  /** Resident picked for tap-a-room assignment: rooms using their best stats light up green. */
-  fitResidentId: number | null = null;
   /** Screen space the DOM covers (HUD, toolbar, open panel), so the camera can pan rooms out from under it. */
   insets = { top: 0, right: 0, bottom: 0 };
   /** Where the room picked in build mode can go right now. */
@@ -322,7 +401,7 @@ export class VaultView {
     private game: Game,
     private cb: ViewCallbacks,
   ) {
-    this.world.addChild(this.bg, this.weather.back, this.statics, this.topside.root, this.overlay, this.deep.root, this.ghostLayer, this.incidentLayer, this.residentLayer, this.fitLayer, this.crowdTags, this.caravanCarts, this.walkerLayer, this.weather.front, this.popLayer, this.fxLayer);
+    this.world.addChild(this.bg, this.weather.back, this.statics, this.topside.root, this.overlay, this.deep.root, this.ghostLayer, this.incidentLayer, this.residentLayer, this.fitLayer, this.crowdTags, this.caravanCarts, this.walkerLayer, this.weather.front, this.popLayer, this.fxLayer, this.dragLayer);
     this.caravanCarts.eventMode = 'none';
     this.crowdTags.eventMode = 'none';
     this.crowdTags.addChild(this.crowdMarks);
@@ -673,15 +752,34 @@ export class VaultView {
     this.glideTo(this.clamped(sx - wx * z, sy - wy * z, z), 0.26);
   }
 
-  /** Keep a lifted resident under the finger. */
+  /**
+   * Keep a lifted resident under the finger, drawn above everything else. Their
+   * spot on the floor (sp.x, sp.y) is kept, so a bad drop can glide them back.
+   */
   private placeDragged(global: { x: number; y: number }): void {
     const id = this.gesture.residentId;
     const sp = id === undefined ? undefined : this.sprites.get(id);
     if (!sp) return;
+    if (sp.root.parent !== this.dragLayer) {
+      this.dragLayer.addChild(sp.root);
+      sp.dragLast = sp.root.x;
+      sp.path = [];
+      sp.fade = null;
+      sp.glide = null;
+      sp.settle = 0;
+    }
     const local = this.world.toLocal(global);
-    sp.x = local.x;
     // Held a little above the finger so the player can see who they carry.
-    sp.root.position.set(local.x, local.y + (this.gesture.touch ? -8 / this.zoom : 20));
+    sp.root.position.set(local.x, local.y + (this.gesture.touch ? -12 / this.zoom : 20));
+    sp.root.visible = true;
+    sp.root.alpha = 1;
+  }
+
+  /** A carried resident who wasn't dropped into a room glides back to where they were picked up. */
+  private returnDragged(id: number | undefined): void {
+    const sp = id === undefined ? undefined : this.sprites.get(id);
+    if (!sp || sp.root.parent !== this.dragLayer) return;
+    this.glideHome(sp, RETURN_SECONDS, true);
   }
 
   // ---------------------------------------------------------------- drawing
@@ -1346,10 +1444,10 @@ export class VaultView {
     return { x: r.x + r.w / 2, y: (pb?.y1 ?? r.y + DEPTH_Y + 18) + radius + 7 };
   }
 
-  /** Who is being assigned right now: the resident being dragged, or the one picked in Residents. */
+  /** Who is being assigned right now: only a resident being dragged (drag is the only way to assign). */
   private fitId(): number | null {
-    if (this.gesture.kind === 'drag' && this.gesture.moved && this.gesture.residentId !== undefined) return this.gesture.residentId;
-    return this.fitResidentId;
+    const g = this.gesture;
+    return g.kind === 'drag' && g.lifted && g.residentId !== undefined ? g.residentId : null;
   }
 
   /**
@@ -1644,8 +1742,9 @@ export class VaultView {
    * resident's body type, else the drawn placeholder. A legend's own body
    * swaps in here once it loads (the art's body version is part of every look key);
    * it is painted, so the outfit colour doesn't apply, but the overlays do.
+   * No weapon is ever drawn: one shows only in a fight, held in the fight sheet.
    */
-  private dress(f: { pose: Container; body: Graphics; figure: Figure | null }, res: Resident, child: boolean, backpack: boolean, armed = false): void {
+  private dress(f: { pose: Container; body: Graphics; figure: Figure | null }, res: Resident, child: boolean, backpack: boolean): void {
     const character = this.art?.forResident(res);
     if (f.figure && f.figure.character !== character) {
       f.figure.destroy();
@@ -1661,7 +1760,7 @@ export class VaultView {
     if (backpack && !f.figure?.has('carry')) drawBackpack(f.body);
     if (f.figure) {
       f.figure.setTints(residentTints(res, content, child));
-      drawOverlays(f.body, res, content, !armed);
+      drawOverlays(f.body, res);
     } else {
       drawResident(f.body, res, content, child);
     }
@@ -1669,76 +1768,333 @@ export class VaultView {
     f.pose.setChildIndex(f.body, f.pose.children.length - 1);
   }
 
+  /** Elevator shafts (runs of stacked elevators), rebuilt when the layout changes. */
+  private shaftList(): Shaft[] {
+    const { state, content } = this.game;
+    const key = `${this.game.layoutVersion}|${state.rooms.length}`;
+    if (this.shaftKey === key) return this.shafts;
+    this.shaftKey = key;
+    const byX = new Map<number, number[]>();
+    for (const r of state.rooms) {
+      if (r.type !== 'elevator' || isTopside(r)) continue;
+      const cx = r.x * CELL + (roomCells(content, r) * CELL) / 2;
+      const list = byX.get(cx) ?? [];
+      list.push(r.floor);
+      byX.set(cx, list);
+    }
+    const out: Shaft[] = [];
+    for (const [x, floors] of byX) {
+      floors.sort((a, b) => a - b);
+      let top = floors[0]!;
+      let prev = top;
+      for (const f of floors.slice(1)) {
+        if (f !== prev + 1) {
+          out.push({ x, top, bottom: prev });
+          top = f;
+        }
+        prev = f;
+      }
+      out.push({ x, top, bottom: prev });
+    }
+    this.shafts = out;
+    return out;
+  }
+
+  /**
+   * Waypoints from a spot on one floor to a spot on another: walk to a shaft,
+   * ride it (changing shafts on a shared floor if need be), walk to the spot.
+   * Null when no shaft connects the two floors.
+   */
+  private route(fromFloor: number, fromX: number, toFloor: number, toX: number, speed: number): Leg[] | null {
+    const walk = (x: number, floor: number): Leg => ({ x, y: floorY(floor), floor, ride: false, speed });
+    if (fromFloor === toFloor) return [walk(toX, toFloor)];
+    const shafts = this.shaftList();
+    const covers = (s: Shaft, f: number) => f >= s.top && f <= s.bottom;
+    const detour = (s: Shaft) => Math.abs(s.x - fromX) + Math.abs(s.x - toX);
+    // Breadth first over shafts, nearest start shafts first.
+    const queue = shafts
+      .map((s, i) => i)
+      .filter((i) => covers(shafts[i]!, fromFloor))
+      .sort((a, b) => detour(shafts[a]!) - detour(shafts[b]!));
+    const prev = new Map<number, number>();
+    for (const i of queue) prev.set(i, -1);
+    let goal = -1;
+    for (let q = 0; q < queue.length; q++) {
+      const i = queue[q]!;
+      const here = shafts[i]!;
+      if (covers(here, toFloor)) {
+        goal = i;
+        break;
+      }
+      shafts.forEach((s, j) => {
+        if (prev.has(j) || s.bottom < here.top || s.top > here.bottom) return;
+        prev.set(j, i);
+        queue.push(j);
+      });
+    }
+    if (goal < 0) return null;
+    const chain: Shaft[] = [];
+    for (let i = goal; i >= 0; i = prev.get(i)!) chain.unshift(shafts[i]!);
+    const legs: Leg[] = [];
+    let floor = fromFloor;
+    chain.forEach((s, n) => {
+      const next = chain[n + 1];
+      // Change shafts on the shared floor closest to where they're going.
+      const to = next ? Math.min(Math.max(toFloor, Math.max(s.top, next.top)), Math.min(s.bottom, next.bottom)) : toFloor;
+      legs.push(walk(s.x, floor));
+      // Long rides go quicker, so a trip down to the Deep doesn't take a minute.
+      const rideSpeed = Math.max(RIDE_SPEED, (Math.abs(to - floor) * FLOOR_H) / 3);
+      if (to !== floor) legs.push({ x: s.x, y: floorY(to), floor: to, ride: true, speed: rideSpeed });
+      floor = to;
+    });
+    legs.push(walk(toX, toFloor));
+    return legs;
+  }
+
+  /** Small per-sprite random numbers in [0, 1): client-only, deterministic per resident. */
+  private rand(sp: ResidentSprite): number {
+    sp.seed = (sp.seed + 0x9e3779b9) >>> 0;
+    return (hash(sp.seed) % 10007) / 10007;
+  }
+
+  /** Start walking a list of legs; facing is set as each walk begins, never mid-walk. */
+  private setPath(sp: ResidentSprite, legs: Leg[]): void {
+    sp.path = legs;
+    sp.speed = 0;
+    this.faceLeg(sp);
+  }
+
+  private faceLeg(sp: ResidentSprite): void {
+    const leg = sp.path[0];
+    if (leg && !leg.ride && Math.abs(leg.x - sp.x) > 0.5) sp.facing = leg.x > sp.x ? 1 : -1;
+  }
+
+  /** Fade out, move, fade back in (~250 ms): for moves with no walkable route. */
+  private fadeTo(sp: ResidentSprite, x: number, y: number, floor: number | null): void {
+    sp.path = [];
+    sp.speed = 0;
+    if (reducedMotion()) {
+      sp.x = x;
+      sp.y = y;
+      sp.floor = floor;
+      sp.fade = null;
+      return;
+    }
+    // Already on the way out: keep going from there.
+    sp.fade = { t: sp.fade && sp.fade.t < FADE_SECONDS / 2 ? sp.fade.t : 0, x, y, floor };
+  }
+
+  /** A resident's room changed (or their room moved): walk there by the shafts, else fade across. */
+  private relocate(sp: ResidentSprite, bounds: Bounds): void {
+    const tx = bounds.min + this.rand(sp) * (bounds.max - bounds.min);
+    // Mid-ride there is no floor to set off from: fade.
+    const riding = sp.path[0]?.ride ?? false;
+    const legs = !riding && sp.floor !== null && bounds.floor !== null && !reducedMotion() && !sp.fade ? this.route(sp.floor, sp.x, bounds.floor, tx, sp.cruise * TRAVEL_PACE) : null;
+    if (legs) this.setPath(sp, legs);
+    else this.fadeTo(sp, tx, bounds.y, bounds.floor);
+    sp.pause = 0.6 + this.rand(sp) * 1.5;
+  }
+
+  /** Move one sprite along its path (ease in and out), its fade, its glide or its wander. */
+  private stepResident(sp: ResidentSprite, bounds: Bounds, dt: number, still: boolean, hold: boolean): void {
+    sp.moving = false;
+    sp.riding = false;
+    const reduced = reducedMotion();
+    if (sp.fade) {
+      const before = sp.fade.t;
+      sp.fade.t += dt;
+      const half = FADE_SECONDS / 2;
+      if (before < half && sp.fade.t >= half) {
+        sp.x = sp.fade.x;
+        sp.y = sp.fade.y;
+        sp.floor = sp.fade.floor;
+      }
+      if (sp.fade.t >= FADE_SECONDS) sp.fade = null;
+      return;
+    }
+    if (sp.glide) {
+      sp.glide.t += dt;
+      if (reduced || sp.glide.t >= sp.glide.dur) {
+        if (sp.glide.settle && !reduced) sp.settle = SETTLE_SECONDS;
+        sp.glide = null;
+      }
+      return;
+    }
+    if (sp.settle > 0) sp.settle = Math.max(0, sp.settle - dt);
+    if (still) {
+      sp.path = [];
+      sp.speed = 0;
+      return;
+    }
+    const leg = sp.path[0];
+    // A last stroll along their own floor stays inside their stretch, even if it just moved (the door crowd re-spacing).
+    if (leg && sp.path.length === 1 && !leg.ride && leg.floor === bounds.floor && Math.abs(leg.y - bounds.y) < 1) {
+      const x = Math.min(bounds.max, Math.max(bounds.min, leg.x));
+      if (x !== leg.x) {
+        leg.x = x;
+        // Now behind them: that's a new move, so they turn (and set off again).
+        if (Math.abs(x - sp.x) > 0.5 && (x > sp.x ? 1 : -1) !== sp.facing) {
+          sp.speed = 0;
+          this.faceLeg(sp);
+        }
+      }
+    }
+    if (leg) {
+      const d = leg.ride ? Math.abs(leg.y - sp.y) : Math.abs(leg.x - sp.x);
+      const accel = leg.ride ? RIDE_ACCEL : WALK_ACCEL;
+      // Speed up to cruise, and slow so as to stop right on the waypoint.
+      const v = reduced ? leg.speed : Math.max(4, Math.min(leg.speed, sp.speed + accel * dt, Math.sqrt(2 * accel * d)));
+      const step = Math.min(d, v * dt);
+      sp.speed = v;
+      if (leg.ride) {
+        sp.y += Math.sign(leg.y - sp.y) * step;
+        sp.riding = true;
+      } else {
+        sp.x += Math.sign(leg.x - sp.x) * step;
+        sp.walk += step;
+        sp.moving = step > 0;
+      }
+      if (d - step < 0.01) {
+        sp.x = leg.x;
+        sp.y = leg.y;
+        sp.floor = leg.floor;
+        sp.path.shift();
+        sp.speed = 0;
+        this.faceLeg(sp);
+      }
+      return;
+    }
+    // Out of their stretch (a crowd spot moved, a room shrank): walk back into it.
+    if (sp.x < bounds.min - 0.5 || sp.x > bounds.max + 0.5) {
+      this.setPath(sp, [{ x: Math.min(bounds.max, Math.max(bounds.min, sp.x)), y: sp.y, floor: sp.floor, ride: false, speed: sp.cruise }]);
+      return;
+    }
+    // Fighting: stand and fight, no strolling off.
+    if (hold) return;
+    // Wander: stand a while, then stroll somewhere a fair way off.
+    sp.pause -= dt;
+    if (sp.pause > 0) return;
+    sp.pause = WANDER_PAUSE_MIN + this.rand(sp) * (WANDER_PAUSE_MAX - WANDER_PAUSE_MIN);
+    const span = bounds.max - bounds.min;
+    if (span < 8) return;
+    const minDist = Math.min(WANDER_MIN_DIST, span * 0.4);
+    // Somewhere at least minDist away: on the roomier side of where they stand.
+    const left = sp.x - bounds.min;
+    const right = bounds.max - sp.x;
+    const tx = left > right ? sp.x - minDist - this.rand(sp) * Math.max(0, left - minDist) : sp.x + minDist + this.rand(sp) * Math.max(0, right - minDist);
+    const clamped = Math.min(bounds.max, Math.max(bounds.min, tx));
+    if (Math.abs(clamped - sp.x) >= 2) this.setPath(sp, [{ x: clamped, y: sp.y, floor: sp.floor, ride: false, speed: sp.cruise }]);
+  }
+
   private updateResidents(dt: number): void {
-    const { state } = this.game;
+    const { state, content } = this.game;
     const alive = new Set<number>();
     const crowd = this.crowdLayout();
     const marks = this.crowdMarks;
     marks.clear();
     // What each room has its residents doing when they stand still.
     const roomAction = new Map<number, Action>();
-    for (const room of state.rooms) if (WORK_ROOMS.has(this.game.content.rooms[room.type]?.category ?? '')) roomAction.set(room.id, 'work');
+    for (const room of state.rooms) if (WORK_ROOMS.has(content.rooms[room.type]?.category ?? '')) roomAction.set(room.id, 'work');
     for (const inc of state.incidents) roomAction.set(inc.roomId, 'fight');
+    const dragId = this.gesture.kind === 'drag' && this.gesture.lifted ? this.gesture.residentId : undefined;
+    const reduced = reducedMotion();
     for (const res of state.residents) {
       // Explorers are out in the Glarelands, not inside (see updateWalkers).
       if (isAway(res)) continue;
       alive.add(res.id);
       let sp = this.sprites.get(res.id);
+      const fresh = !sp;
       if (!sp) {
         sp = this.createSprite(res);
         this.sprites.set(res.id, sp);
       }
       const child = isChild(state, res);
-      // Last frame's action decides whether fight art holds the weapon itself.
-      const armed = sp.action === 'fight' && !!sp.figure?.has('fight');
-      const look = `${res.pregnancy ? 'p' : ''}${child ? 'c' : ''}${armed ? 'a' : ''}${res.weapon ?? ''}|${res.outfit ?? ''}|${this.art?.bodyVersion ?? ''}`;
+      // Weapons are never drawn, so the look doesn't depend on them (or on fighting).
+      const look = `${res.pregnancy ? 'p' : ''}${child ? 'c' : ''}|${res.outfit ?? ''}|${this.art?.bodyVersion ?? ''}`;
       if (sp.look !== look) {
         sp.look = look;
-        this.dress(sp, res, child, false, armed);
+        this.dress(sp, res, child, false);
       }
       const where: ResidentSprite['roomId'] = res.waiting ? 'waiting' : child ? 'child' : res.roomId;
       const spot = crowd.spots.get(res.id);
-      const bounds = spot ? { min: spot.min, max: spot.max, y: spot.y } : this.residentBounds(res);
+      const bounds: Bounds = spot ?? this.residentBounds(res);
       // Past the cap in a crowd: not drawn (a "+N" tag stands in for them).
       const hidden = crowd.hidden.has(res.id);
-      if (sp.roomId !== where) {
-        sp.roomId = where;
-        sp.x = bounds.min + (hash(res.id) % 1000) / 1000 * (bounds.max - bounds.min);
-        sp.targetX = sp.x;
-      }
-      if (this.gesture.kind === 'drag' && this.gesture.residentId === res.id) continue;
-      // wander
-      sp.moving = false;
-      if (Math.abs(sp.targetX - sp.x) < 2) {
-        if (hash(res.id + Math.floor(this.time * 0.4 + res.id)) % 60 === 0 || sp.targetX < bounds.min || sp.targetX > bounds.max) {
-          sp.targetX = bounds.min + ((hash(Math.floor(this.time * 10) + res.id * 31) % 1000) / 1000) * (bounds.max - bounds.min);
+      const dragged = res.id === dragId;
+      if (!dragged) {
+        // Carried but no longer (a cancelled gesture): back to where they were picked up.
+        if (sp.root.parent === this.dragLayer && sp.dropX === null) this.glideHome(sp, RETURN_SECONDS, true);
+        if (sp.dropX !== null) {
+          // Just dropped into a room: land where they were let go, and settle.
+          sp.roomId = where;
+          sp.x = Math.min(bounds.max, Math.max(bounds.min, sp.dropX));
+          sp.y = bounds.y;
+          sp.floor = bounds.floor;
+          sp.path = [];
+          sp.fade = null;
+          sp.pause = 0.8 + this.rand(sp) * 1.6;
+          this.glideHome(sp, LAND_SECONDS, true);
+          sp.dropX = null;
+        } else if (fresh || sp.roomId === -999) {
+          // First sight: stand somewhere in their stretch (fading in unless the homestead just loaded).
+          sp.roomId = where;
+          sp.x = bounds.min + this.rand(sp) * (bounds.max - bounds.min);
+          sp.y = bounds.y;
+          sp.floor = bounds.floor;
+          sp.pause = this.rand(sp) * WANDER_PAUSE_MAX;
+          if (this.time > 1.5 && !reduced) sp.fade = { t: FADE_SECONDS / 2, x: sp.x, y: sp.y, floor: sp.floor };
+        } else if (sp.roomId !== where || (!sp.path.length && !sp.fade && !sp.glide && Math.abs(sp.y - bounds.y) > 1)) {
+          sp.roomId = where;
+          this.relocate(sp, bounds);
         }
-      } else {
-        const dir = Math.sign(sp.targetX - sp.x);
-        sp.facing = dir > 0 ? 1 : -1;
-        const speed = res.dead ? 0 : 38;
-        sp.x += dir * Math.min(Math.abs(sp.targetX - sp.x), speed * dt);
-        sp.phase += dt * 9;
-        sp.moving = speed > 0;
+        const fighting = !child && res.roomId !== null && roomAction.get(res.roomId) === 'fight' && sp.roomId === where;
+        this.stepResident(sp, bounds, dt, res.dead, fighting);
+        // The surface queue faces the door once in place.
+        if (res.waiting && !sp.moving) sp.facing = 1;
+        let px = sp.x;
+        let py = sp.y;
+        if (sp.glide) {
+          const k = Math.min(1, sp.glide.t / sp.glide.dur);
+          // Landing falls (ease in); gliding back is smooth both ends.
+          const e = sp.glide.settle ? k * k : k * k * (3 - 2 * k);
+          px = sp.glide.fx + (sp.x - sp.glide.fx) * e;
+          py = sp.glide.fy + (sp.y - sp.glide.fy) * e;
+        }
+        sp.root.position.set(px, py);
+        sp.pose.scale.set(1, 1);
+        if (sp.settle > 0) {
+          // A little squash as their feet meet the floor.
+          const k = Math.sin((1 - sp.settle / SETTLE_SECONDS) * Math.PI);
+          sp.pose.scale.set(1 + 0.06 * k, 1 - 0.09 * k);
+        }
       }
-      // In the door crowd, a resident whose spot moved walks over to it rather than jumping.
-      if (spot && !res.dead && !hidden && !res.waiting) sp.targetX = Math.min(bounds.max, Math.max(bounds.min, sp.targetX));
-      else sp.x = Math.min(bounds.max, Math.max(bounds.min, sp.x));
-      // The surface queue faces the door.
-      if (res.waiting) sp.facing = 1;
-      sp.root.position.set(sp.x, bounds.y);
       const size = child ? 0.62 : 1;
-      sp.root.scale.set(sp.facing * size, size);
-      sp.action = res.dead ? 'fallen' : sp.moving ? 'walk' : (!child && res.roomId !== null && roomAction.get(res.roomId)) || 'idle';
+      const lift = dragged && !reduced ? 1.08 : 1;
+      sp.root.scale.set(sp.facing * size * lift, size * lift);
+      const standing: Action = (!child && res.roomId !== null && roomAction.get(res.roomId)) || 'idle';
+      sp.action = res.dead ? 'fallen' : dragged ? 'idle' : sp.moving ? 'walk' : sp.riding || sp.glide || sp.fade ? 'idle' : standing;
       // Sprites carry their own walk; only the placeholder needs a wobble.
       // The dead lie flat unless the art has its own fallen pose.
       const flat = res.dead && !sp.figure?.has('fallen');
-      sp.pose.rotation = flat ? -Math.PI / 2 : sp.figure ? 0 : Math.sin(sp.phase) * 0.04;
-      sp.figure?.play(sp.action, sp.action === 'walk' ? sp.phase / 9 : this.time + (hash(res.id) % 1000) / 250);
-      sp.root.alpha = res.dead ? 0.8 : 1;
+      if (dragged) {
+        // Swing a little with the finger.
+        const vx = (sp.root.x - sp.dragLast) / Math.max(dt, 1 / 240);
+        sp.dragLast = sp.root.x;
+        sp.tilt += (Math.max(-0.22, Math.min(0.22, -vx * 0.0012)) - sp.tilt) * (1 - Math.exp(-dt * 12));
+        sp.pose.rotation = reduced ? 0 : sp.tilt * sp.facing;
+      } else {
+        sp.tilt = 0;
+        sp.pose.rotation = flat ? -Math.PI / 2 : sp.figure ? 0 : sp.moving ? Math.sin((sp.walk / WALK_STRIDE) * 9) * 0.04 : 0;
+      }
+      // A weapon shows only while fighting, in the fight sheet for its grip (fightAnim).
+      const anim = sp.action === 'fight' && sp.figure ? fightAnim(sp.figure, weaponGrip(content, res)) : sp.action;
+      sp.figure?.play(anim, sp.action === 'walk' ? sp.walk / WALK_STRIDE : this.time + (hash(res.id) % 1000) / 250);
+      let alpha = res.dead ? 0.8 : 1;
+      if (sp.fade) alpha *= Math.min(1, Math.abs(1 - (2 * sp.fade.t) / FADE_SECONDS));
+      sp.root.alpha = alpha;
       // The fallen are drained of colour and carry a small marker, so they don't read as napping.
       sp.pose.tint = res.dead ? 0x9aa0a8 : 0xffffff;
-      if (hidden) sp.root.visible = false;
+      if (hidden && !dragged) sp.root.visible = false;
       else if (res.dead && sp.root.visible) {
         // Just above the body, which lies along the floor (drawn flat, or the art's own fallen pose).
         const mx = flat ? sp.x - sp.facing * SPRITE_H * 0.45 : sp.x;
@@ -1757,6 +2113,12 @@ export class VaultView {
     this.setCrowdTag('queue', crowd.queueTag);
   }
 
+  /** Ease a sprite's drawn position from where it is now (in the air, under the finger) to its spot on the floor. */
+  private glideHome(sp: ResidentSprite, dur: number, settle: boolean): void {
+    if (sp.root.parent !== this.residentLayer) this.residentLayer.addChild(sp.root);
+    sp.glide = reducedMotion() ? null : { fx: sp.root.x, fy: sp.root.y, t: 0, dur, settle };
+  }
+
   /**
    * The door room fills up with idle adults and newcomers, and the surface
    * queue can run long. Spread both out deterministically: each resident in
@@ -1766,13 +2128,13 @@ export class VaultView {
    * door), and past what fits a "+N" tag stands in for the rest.
    */
   private crowdLayout(): {
-    spots: Map<number, { min: number; max: number; y: number }>;
+    spots: Map<number, Bounds>;
     hidden: Set<number>;
     doorTag: { x: number; y: number; n: number } | null;
     queueTag: { x: number; y: number; n: number } | null;
   } {
     const { state } = this.game;
-    const spots = new Map<number, { min: number; max: number; y: number }>();
+    const spots = new Map<number, Bounds>();
     const hidden = new Set<number>();
     let doorTag: { x: number; y: number; n: number } | null = null;
     let queueTag: { x: number; y: number; n: number } | null = null;
@@ -1790,7 +2152,7 @@ export class VaultView {
     queue.forEach((r, i) => {
       if (i >= qShown) hidden.add(r.id);
       const x = qBase - Math.min(i, qShown) * QUEUE_GAP;
-      spots.set(r.id, { min: x, max: x, y: qy });
+      spots.set(r.id, { min: x, max: x, y: qy, floor: null });
     });
     if (queue.length > qShown) queueTag = { x: qBase - qShown * QUEUE_GAP, y: qy - 24, n: queue.length - qShown };
     // The door room: idle adults, and anyone whose room is gone.
@@ -1810,7 +2172,7 @@ export class VaultView {
     inDoor.forEach((r, i) => {
       const c = min + slotW * (Math.min(i, shown) + 0.5);
       if (i >= shown) hidden.add(r.id);
-      spots.set(r.id, { min: c - half, max: c + half, y });
+      spots.set(r.id, { min: c - half, max: c + half, y, floor: door.floor });
     });
     if (inDoor.length > shown) doorTag = { x: min + slotW * (shown + 0.5), y: y - 24, n: inDoor.length - shown };
     return { spots, hidden, doorTag, queueTag };
@@ -1868,7 +2230,7 @@ export class VaultView {
         w = { root, pose, body, figure: null, look: '' };
         this.walkers.set(e.id, w);
       }
-      const look = `${res.weapon ?? ''}|${res.outfit ?? ''}|${this.art?.bodyVersion ?? ''}`;
+      const look = `${res.outfit ?? ''}|${this.art?.bodyVersion ?? ''}`;
       if (w.look !== look) {
         w.look = look;
         this.dress(w, res, false, true);
@@ -1958,7 +2320,7 @@ export class VaultView {
           w = { root, pose, body, figure: null, look: '' };
           this.caravanWalkers.set(key, w);
         }
-        const look = `${res.weapon ?? ''}|${res.outfit ?? ''}|${this.art?.bodyVersion ?? ''}`;
+        const look = `${res.outfit ?? ''}|${this.art?.bodyVersion ?? ''}`;
         if (w.look !== look) {
           w.look = look;
           this.dress(w, res, false, false);
@@ -2000,9 +2362,9 @@ export class VaultView {
   }
 
   /** Where a resident may wander (the door crowd and the surface queue are laid out in crowdLayout). */
-  private residentBounds(res: Resident) {
+  private residentBounds(res: Resident): Bounds {
     const { state } = this.game;
-    if (res.waiting) return { min: -22, max: -22, y: SURFACE_H - GROUND_DEPTH };
+    if (res.waiting) return { min: -22, max: -22, y: SURFACE_H - GROUND_DEPTH, floor: null };
     let room = res.roomId !== null ? state.rooms.find((r) => r.id === res.roomId) : undefined;
     if (!room && isChild(state, res)) {
       // Children play in the quarters.
@@ -2010,11 +2372,11 @@ export class VaultView {
       room = homes[hash(res.id) % Math.max(1, homes.length)];
     }
     const target = room ?? state.rooms.find((r) => r.type === 'door');
-    if (!target) return { min: 0, max: 0, y: SURFACE_H };
+    if (!target) return { min: 0, max: 0, y: SURFACE_H, floor: null };
     const r = this.roomRect(target);
     // Topside workers stand on the open ground in front of their building.
-    if (isTopside(target)) return { min: r.x + 14, max: r.x + r.w - 14, y: SURFACE_H - GROUND_DEPTH + 4 };
-    return { min: r.x + DEPTH_X + 12, max: r.x + r.w - DEPTH_X - 12, y: r.y + r.h - DEPTH_Y / 2 - 4 };
+    if (isTopside(target)) return { min: r.x + 14, max: r.x + r.w - 14, y: SURFACE_H - GROUND_DEPTH + 4, floor: null };
+    return { min: r.x + DEPTH_X + 12, max: r.x + r.w - DEPTH_X - 12, y: floorY(target.floor), floor: target.floor };
   }
 
   private createSprite(res: Resident): ResidentSprite {
@@ -2049,7 +2411,35 @@ export class VaultView {
       if (touch) this.pressTimer = window.setTimeout(() => this.liftResident(res.id), LONG_PRESS_MS);
     });
     this.residentLayer.addChild(root);
-    return { root, pose, body, figure: null, moving: false, x: 0, targetX: 0, roomId: -999, phase: hash(res.id) % 10, facing: 1, look: '', action: 'idle' };
+    const seed = hash(res.id * 7919 + 17);
+    return {
+      root,
+      pose,
+      body,
+      figure: null,
+      moving: false,
+      riding: false,
+      x: 0,
+      y: 0,
+      floor: null,
+      roomId: -999,
+      walk: 0,
+      speed: 0,
+      // Everyone keeps their own pace, within about 15% either side.
+      cruise: WALK_CRUISE * (0.85 + ((seed % 1000) / 1000) * 0.3),
+      pause: 0,
+      seed,
+      path: [],
+      fade: null,
+      glide: null,
+      settle: 0,
+      dropX: null,
+      dragLast: 0,
+      tilt: 0,
+      facing: hash(res.id) % 2 ? 1 : -1,
+      look: '',
+      action: 'idle',
+    };
   }
 
   /**
@@ -2062,7 +2452,7 @@ export class VaultView {
     const reach = 26;
     let best: { id: number; d: number } | null = null;
     for (const [id, sp] of this.sprites) {
-      if (!sp.root.visible || sp.root.alpha < 1) continue;
+      if (!sp.root.visible || sp.root.alpha < 0.5) continue;
       const p = this.world.toGlobal({ x: sp.root.x, y: sp.root.y - (RESIDENT_H / 2) * Math.abs(sp.root.scale.y) });
       const d = Math.max(0, Math.abs(p.x - x) - 8 * this.zoom) + Math.max(0, Math.abs(p.y - y) - (RESIDENT_H / 2) * this.zoom);
       if (d < reach && (!best || d < best.d)) best = { id, d };
@@ -2091,11 +2481,7 @@ export class VaultView {
     window.clearTimeout(this.pressTimer);
     const [a, b] = [...this.pointers.values()] as [{ x: number; y: number }, { x: number; y: number }];
     // A resident already lifted goes back where they were.
-    const id = this.gesture.residentId;
-    if (id !== undefined) {
-      const sp = this.sprites.get(id);
-      if (sp) sp.roomId = -999;
-    }
+    this.returnDragged(this.gesture.residentId);
     this.dragPoint = null;
     this.gesture = { kind: 'pinch', startX: 0, startY: 0, t: 0, moved: true, touch: true, pinchDist: Math.hypot(a.x - b.x, a.y - b.y), pinchMid: { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 } };
   }
@@ -2131,7 +2517,9 @@ export class VaultView {
       const g = this.gesture;
       const slop = g.touch ? TAP_SLOP_TOUCH : TAP_SLOP_MOUSE;
       const far = Math.hypot(e.global.x - g.startX, e.global.y - g.startY) > slop;
-      if (g.kind === 'press' && far) {
+      // A finger holding a resident drifts a little while the hold lands: allow a bit more before it becomes a pan.
+      const panned = g.kind === 'press' && Math.hypot(e.global.x - g.startX, e.global.y - g.startY) > PRESS_SLOP_TOUCH;
+      if (panned) {
         // Moved before the hold landed: this is a pan that happened to start on a resident.
         window.clearTimeout(this.pressTimer);
         this.panSamples = [];
@@ -2192,13 +2580,19 @@ export class VaultView {
       const local = this.world.toLocal(e.global);
       if ((g.kind === 'drag' || g.kind === 'press') && g.residentId !== undefined) {
         const res = this.game.state.residents.find((r) => r.id === g.residentId);
-        if (res) {
-          if (g.lifted && !res.dead) this.cb.onResidentDrop(res.id, outside ? null : this.roomAt(local.x, local.y));
-          else if (!g.moved && !outside) this.cb.onResidentTap(res);
-        }
         const sp = this.sprites.get(g.residentId);
+        let landed = false;
+        if (res) {
+          if (g.lifted && !res.dead) {
+            const room = outside ? null : this.roomAt(local.x, local.y);
+            this.cb.onResidentDrop(res.id, room);
+            // Now working there (or already was): they land where they were let go.
+            landed = !!room && res.roomId === room.id && !res.waiting;
+            if (landed && sp) sp.dropX = local.x;
+          } else if (!g.moved && !outside) this.cb.onResidentTap(res);
+        }
         if (sp) {
-          sp.roomId = -999; // re-seat
+          if (!landed) this.returnDragged(g.residentId);
           sp.root.cursor = 'grab';
         }
       } else if (g.kind === 'pan' && g.moved) {
@@ -2820,16 +3214,7 @@ export function drawResident(g: Graphics, res: Resident, content: Content, child
   // eye (facing right; sprite is mirrored for left)
   g.circle(4, top + 8, 1.4).fill(0x1b1b1b);
   if (res.pregnancy) g.ellipse(9, top + 27, 5, 6).fill(suit);
-  drawWeapon(g, res, content, 10, top + 24);
   drawRarityPip(g, res, top - 6);
-}
-
-function drawWeapon(g: Graphics, res: Resident, content: Content, x: number, y: number): void {
-  if (!res.weapon) return;
-  const w = content.weapons[res.weapon];
-  const len = w ? 10 + Math.min(12, w.max / 2) : 10;
-  g.rect(x, y, len, 4).fill(0x2b2f33);
-  g.rect(x, y + 3, 4, 5).fill(0x4a3a2a);
 }
 
 function drawRarityPip(g: Graphics, res: Resident, y: number): void {
@@ -2848,13 +3233,11 @@ function drawRarityPip(g: Graphics, res: Resident, y: number): void {
 }
 
 /**
- * What sprite art doesn't show, drawn over it: the weapon held low at the
- * side (left out while a fight animation holds its own), an expecting marker,
- * and the rarity pip.
+ * What sprite art doesn't show, drawn over it: an expecting marker and the
+ * rarity pip. Weapons are never drawn; the fight sheets hold them.
  */
-export function drawOverlays(g: Graphics, res: Resident, content: Content, weapon = true): void {
+export function drawOverlays(g: Graphics, res: Resident): void {
   const top = -SPRITE_H;
-  if (weapon) drawWeapon(g, res, content, 4, top + SPRITE_H * 0.5);
   if (res.pregnancy) drawHeart(g, 11, top + 4, 3);
   drawRarityPip(g, res, top - 5);
 }

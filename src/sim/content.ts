@@ -60,6 +60,10 @@ export interface RoomDef {
   topside?: boolean;
 }
 
+/** How a weapon is held, which picks the resident's fight animation (fight_<grip>). */
+export type WeaponGrip = 'pistol' | 'longgun' | 'heavy' | 'melee';
+export const WEAPON_GRIPS: readonly WeaponGrip[] = ['pistol', 'longgun', 'heavy', 'melee'];
+
 export interface WeaponDef {
   id: string;
   name: string;
@@ -68,6 +72,8 @@ export interface WeaponDef {
   max: number;
   /** Stat that speeds up crafting this item. */
   craftStat: StatKey;
+  /** How it is held in a fight (one-handed gun, long gun, big two-hander, or melee). */
+  grip: WeaponGrip;
   /** M9: only from rare-item paths (systems/loot.ts); never in random pools, no recipe. */
   lootOnly?: boolean;
   flavor?: string;

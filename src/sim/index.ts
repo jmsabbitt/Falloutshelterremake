@@ -10,6 +10,8 @@ export {
   type AchievementDef,
   type ItemDef,
   type WeaponDef,
+  type WeaponGrip,
+  WEAPON_GRIPS,
   type OutfitDef,
   type SalvageDef,
 } from './content';

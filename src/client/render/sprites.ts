@@ -7,7 +7,7 @@
 // one painted, untinted layer, loaded the first time the legend is drawn.
 
 import { Assets, Container, Rectangle, Sprite, Texture } from 'pixi.js';
-import type { Content, Resident } from '../../sim';
+import type { Content, Resident, WeaponGrip } from '../../sim';
 import appearance from '../../content/appearance.json';
 
 export const LAYERS = ['base', 'suit', 'skin', 'hair', 'trim'] as const;
@@ -344,6 +344,25 @@ async function loadCharacter(
 export type Action = 'walk' | 'idle' | 'work' | 'fight' | 'fallen' | 'carry';
 
 /**
+ * The fight animation for a resident's weapon grip (null: unarmed). Art can add
+ * `fight_pistol`, `fight_longgun`, `fight_heavy`, `fight_melee` and
+ * `fight_unarmed` to a sprite.json and they are picked up here with no code
+ * change; until then guns use the generic `fight` sheet (which holds a
+ * shotgun), and the unarmed stand idle rather than borrow that gun.
+ */
+/** How a resident holds their weapon (a weapon missing from content counts as a pistol), or null when unarmed. */
+export function weaponGrip(content: Content, res: Resident): WeaponGrip | null {
+  if (!res.weapon) return null;
+  return content.weapons[res.weapon]?.grip ?? 'pistol';
+}
+
+export function fightAnim(fig: { has(anim: string): boolean }, grip: WeaponGrip | null): string {
+  if (!grip) return fig.has('fight_unarmed') ? 'fight_unarmed' : 'idle';
+  const own = `fight_${grip}`;
+  return fig.has(own) ? own : 'fight';
+}
+
+/**
  * Animations to try for each action, best first. Every chain ends on the walk
  * sheet, which every character has; standing actions hold its idleFrame.
  */
@@ -365,7 +384,7 @@ export class Figure extends Container {
   private parts: Sprite[] = [];
   private anim: Anim;
   private animName = '';
-  private action: Action | null = null;
+  private action: string | null = null;
   /** Clock value when the current action began, so non-looping anims play once. */
   private startedAt = 0;
   private frame = -1;
@@ -391,9 +410,9 @@ export class Figure extends Container {
     return this.animName;
   }
 
-  /** True if the character has its own art for an action (no fallback needed). */
-  has(action: Action): boolean {
-    return !!this.character.anims[action];
+  /** True if the character has its own art for an action or named animation (no fallback needed). */
+  has(anim: Action | string): boolean {
+    return !!this.character.anims[anim];
   }
 
   /** Tint the layers; a painted "full" layer (a legend's own body) stays as drawn. */
@@ -405,11 +424,14 @@ export class Figure extends Container {
 
   /**
    * Show an action at a clock value in seconds. Walking and carrying take the
-   * walk phase; other actions take any steadily increasing clock.
+   * walk phase; other actions take any steadily increasing clock. Any other
+   * name plays that animation from the manifest (e.g. "fight_pistol"),
+   * falling back to idle.
    */
-  play(action: Action, time: number): void {
+  play(action: Action | string, time: number): void {
     const { anims } = this.character;
-    const name = FALLBACK[action].find((n) => anims[n]) ?? Object.keys(anims)[0]!;
+    const chain = FALLBACK[action as Action] ?? [action, 'idle', 'walk'];
+    const name = chain.find((n) => anims[n]) ?? Object.keys(anims)[0]!;
     if (action !== this.action) {
       this.action = action;
       this.startedAt = time;

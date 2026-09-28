@@ -41,7 +41,7 @@ import {
   strHash,
   themeFor,
 } from './ruinArt';
-import { type Action, type CharacterArt, CreatureFigure, Figure, residentTints } from './sprites';
+import { type Action, type CharacterArt, CreatureFigure, Figure, fightAnim, residentTints, weaponGrip } from './sprites';
 import { RESIDENT_H, SPRITE_H, drawOverlays, drawResident } from './vaultView';
 
 /** Displayed height of party members, in world units. */
@@ -796,12 +796,10 @@ export class QuestView {
         sp.pose.rotation = flat ? -Math.PI / 2 * sp.facing : sp.figure ? 0 : sp.moving ? Math.sin(sp.walk * 12) * 0.05 : 0;
         sp.pose.alpha = down ? 0.6 : 1;
         const action = down ? 'fallen' : sp.moving ? 'walk' : fight ? 'fight' : 'idle';
-        if (action !== sp.action) {
-          sp.action = action;
-          // Fight art holds the weapon itself; redress to drop the overlay.
-          if (sp.figure?.has('fight')) this.dress(sp, res);
-        }
-        sp.figure?.play(action, action === 'walk' ? sp.walk : this.time + i * 0.37);
+        sp.action = action;
+        // A weapon shows only in a fight, held in the fight sheet for its grip; nobody carries a drawn one.
+        const anim = action === 'fight' && sp.figure ? fightAnim(sp.figure, weaponGrip(this.game.content, res)) : action;
+        sp.figure?.play(anim, action === 'walk' ? sp.walk : this.time + i * 0.37);
         sp.root.tint = sp.hurt > 0.5 ? 0xff9a8a : 0xffffff;
         sp.name.position.set(0, down ? -30 : -PARTY_H - 30);
       });
@@ -832,7 +830,7 @@ export class QuestView {
       this.members.set(res.id, sp);
     }
     // The body version changes when a legend's own body arrives.
-    const look = `${res.weapon ?? ''}|${res.outfit ?? ''}|${this.art?.bodyVersion ?? ''}`;
+    const look = `${res.outfit ?? ''}|${this.art?.bodyVersion ?? ''}`;
     if (sp.look !== look) {
       sp.look = look;
       this.dress(sp, res);
@@ -854,7 +852,7 @@ export class QuestView {
     sp.body.clear();
     if (sp.figure) {
       sp.figure.setTints(residentTints(res, content, false));
-      drawOverlays(sp.body, res, content, !(sp.action === 'fight' && sp.figure.has('fight')));
+      drawOverlays(sp.body, res);
     } else {
       drawResident(sp.body, res, content, false);
     }
