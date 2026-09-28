@@ -38,8 +38,34 @@ self.addEventListener('fetch', (event) => {
   const url = new URL(req.url);
   if (url.origin !== self.location.origin) return;
   if (req.mode === 'navigate') {
-    // The shell is versioned with its assets: serve the cached one, fall back to the network.
-    event.respondWith(caches.match(new URL('index.html', self.registration.scope).href, MATCH).then((hit) => hit || fetch(req)));
+    // The device-check page never comes from the cache: it has to work when the game doesn't.
+    if (url.pathname.endsWith('/check.html')) return;
+    // The page itself is network-first, so a new release (or a fix) arrives on the next
+    // visit instead of an old copy sticking; the cached shell is the offline fallback,
+    // and also the answer when the network takes more than a few seconds.
+    const cached = () => caches.match(new URL('index.html', self.registration.scope).href, MATCH);
+    event.respondWith(
+      new Promise((resolve) => {
+        let done = false;
+        const settle = (res) => {
+          if (!done && res) {
+            done = true;
+            resolve(res);
+          }
+        };
+        const timer = setTimeout(() => cached().then(settle), 4000);
+        fetch(req)
+          .then((res) => {
+            clearTimeout(timer);
+            if (res.ok) settle(res);
+            else cached().then((hit) => settle(hit || res));
+          })
+          .catch(() => {
+            clearTimeout(timer);
+            cached().then((hit) => settle(hit || Response.error()));
+          });
+      }),
+    );
     return;
   }
   event.respondWith(

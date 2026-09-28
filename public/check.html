@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Homestead: device check</title>
+    <style>
+      body { margin: 0; padding: 16px; padding-top: calc(16px + env(safe-area-inset-top)); background: #1b2a2f; color: #f4ecd8; font: 15px/1.45 -apple-system, system-ui, sans-serif; }
+      h1 { font-size: 20px; margin: 0 0 12px; color: #f2a541; }
+      table { width: 100%; border-collapse: collapse; margin: 8px 0 16px; }
+      td { padding: 6px 4px; border-bottom: 1px solid #2f4448; vertical-align: top; word-break: break-word; }
+      td:first-child { color: #b8c4c2; width: 38%; }
+      .ok { color: #8fc93a; } .bad { color: #ff8a6b; }
+      button, a.btn { display: block; width: 100%; box-sizing: border-box; min-height: 48px; margin: 8px 0; border: 0; border-radius: 10px; font-size: 16px; font-weight: 600; text-align: center; text-decoration: none; padding: 12px; }
+      button { background: #f2a541; color: #1b1208; } a.btn { background: #2f4448; color: #f4ecd8; }
+      #log { white-space: pre-wrap; font: 12px ui-monospace, Menlo, monospace; color: #ffd9cf; }
+    </style>
+  </head>
+  <body>
+    <h1>Homestead: device check</h1>
+    <p>This page works even if the game shows a black screen. Please screenshot it and send it along.</p>
+    <table id="t"></table>
+    <button id="reset">Clear the game's offline copy and reload</button>
+    <a class="btn" href="./">Open the game</a>
+    <p style="color:#b8c4c2;font-size:13px">Clearing the offline copy doesn't touch your saves.</p>
+    <div id="log"></div>
+    <script>
+      (function () {
+        var t = document.getElementById('t');
+        var log = document.getElementById('log');
+        function row(k, v, good) {
+          var tr = document.createElement('tr');
+          var a = document.createElement('td'); a.textContent = k;
+          var b = document.createElement('td'); b.textContent = v;
+          if (good === true) b.className = 'ok'; if (good === false) b.className = 'bad';
+          tr.appendChild(a); tr.appendChild(b); t.appendChild(tr);
+        }
+        window.onerror = function (m) { log.textContent += 'Error: ' + m + '\n'; };
+        var ua = navigator.userAgent;
+        var ios = /OS (\d+)_(\d+)/.exec(ua);
+        row('Browser', ua);
+        if (ios) row('iOS version', ios[1] + '.' + ios[2], Number(ios[1]) >= 15);
+        row('Screen', screen.width + '×' + screen.height + ' @' + (window.devicePixelRatio || 1) + 'x');
+        row('Standalone (home screen)', String(!!(navigator.standalone || (window.matchMedia && matchMedia('(display-mode: standalone)').matches))));
+        var c = document.createElement('canvas');
+        var gl2 = null, gl = null;
+        try { gl2 = c.getContext('webgl2'); } catch (e) {}
+        try { gl = gl2 || c.getContext('webgl') || c.getContext('experimental-webgl'); } catch (e) {}
+        row('WebGL 2', gl2 ? 'yes' : 'no', !!gl2);
+        row('WebGL', gl ? 'yes' : 'NO (the game needs it)', !!gl);
+        if (gl) {
+          row('Max texture size', String(gl.getParameter(gl.MAX_TEXTURE_SIZE)), gl.getParameter(gl.MAX_TEXTURE_SIZE) >= 4096);
+          var dbg = gl.getExtension('WEBGL_debug_renderer_info');
+          if (dbg) row('GPU', String(gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL)));
+        }
+        var modules = 'noModule' in document.createElement('script');
+        row('JS modules', modules ? 'yes' : 'NO', modules);
+        try { localStorage.setItem('homestead.check', '1'); localStorage.removeItem('homestead.check'); row('Local storage', 'works', true); }
+        catch (e) { row('Local storage', 'blocked (' + e.name + ')', false); }
+        var saves = 0; try { for (var i = 0; i < localStorage.length; i++) if ((localStorage.key(i) || '').indexOf('homestead.save') === 0) saves++; } catch (e) {}
+        row('Saves on this device', String(saves));
+        if ('serviceWorker' in navigator) {
+          navigator.serviceWorker.getRegistrations().then(function (regs) { row('Offline copy (service worker)', regs.length ? 'installed (' + regs.length + ')' : 'none'); });
+        } else row('Offline copy (service worker)', 'not supported');
+        if (window.caches) caches.keys().then(function (k) { row('Cached versions', k.join(', ') || 'none'); });
+        document.getElementById('reset').onclick = function () {
+          var jobs = [];
+          if ('serviceWorker' in navigator) jobs.push(navigator.serviceWorker.getRegistrations().then(function (regs) { return Promise.all(regs.map(function (r) { return r.unregister(); })); }));
+          if (window.caches) jobs.push(caches.keys().then(function (k) { return Promise.all(k.map(function (n) { return caches.delete(n); })); }));
+          Promise.all(jobs).then(function () { log.textContent += 'Offline copy cleared. Opening the game…\n'; setTimeout(function () { location.href = './?fresh=' + Date.now(); }, 600); })
+            .catch(function (e) { log.textContent += 'Could not clear: ' + e + '\n'; });
+        };
+      })();
+    </script>
+  </body>
+</html>
