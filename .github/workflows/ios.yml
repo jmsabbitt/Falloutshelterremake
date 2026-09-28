@@ -1,0 +1,92 @@
+name: iOS build
+
+# Builds the Capacitor iOS app on a macOS runner.
+# - Always: an unsigned simulator build, to prove the Xcode project compiles.
+# - When the signing secrets below are set: a signed build uploaded to TestFlight,
+#   so the app can be installed on iPhones through Apple's TestFlight app.
+#
+# TestFlight needs an Apple Developer Program membership and these repository secrets
+# (Settings → Secrets and variables → Actions); see docs/mobile.md:
+#   IOS_CERT_P12_BASE64, IOS_CERT_PASSWORD      distribution certificate (.p12, base64)
+#   IOS_PROFILE_BASE64                          App Store provisioning profile for ai.avolis.homestead (base64)
+#   IOS_TEAM_ID                                 10-character Apple team id
+#   ASC_KEY_ID, ASC_ISSUER_ID, ASC_KEY_P8_BASE64 App Store Connect API key (base64 of the .p8)
+
+on:
+  push:
+    branches: [main, claude/dreamy-bell-vi4u67]
+  workflow_dispatch:
+
+concurrency:
+  group: ios-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ios:
+    runs-on: macos-15
+    timeout-minutes: 45
+    env:
+      # Secrets can't be read in a step's `if`, so expose whether signing is set up.
+      HAS_SIGNING: ${{ secrets.IOS_CERT_P12_BASE64 != '' }}
+    steps:
+      # Skip the raw source art (art/, about 2 GB): the build only needs public/sprites.
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /*
+            !/art/
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - run: npx cap sync ios
+
+      - name: Simulator build (unsigned)
+        run: |
+          xcodebuild -project ios/App/App.xcodeproj -scheme App -configuration Debug \
+            -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' \
+            CODE_SIGNING_ALLOWED=NO build | tail -n 40
+
+      - name: Signed archive and TestFlight upload
+        if: ${{ env.HAS_SIGNING == 'true' }}
+        env:
+          P12: ${{ secrets.IOS_CERT_P12_BASE64 }}
+          P12_PASSWORD: ${{ secrets.IOS_CERT_PASSWORD }}
+          PROFILE: ${{ secrets.IOS_PROFILE_BASE64 }}
+          TEAM_ID: ${{ secrets.IOS_TEAM_ID }}
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          ASC_KEY_P8: ${{ secrets.ASC_KEY_P8_BASE64 }}
+        run: |
+          set -euo pipefail
+          KC=$RUNNER_TEMP/build.keychain-db; KCP=$(uuidgen)
+          security create-keychain -p "$KCP" "$KC"; security set-keychain-settings -lut 21600 "$KC"; security unlock-keychain -p "$KCP" "$KC"
+          echo "$P12" | base64 --decode > $RUNNER_TEMP/cert.p12
+          security import $RUNNER_TEMP/cert.p12 -P "$P12_PASSWORD" -A -t cert -f pkcs12 -k "$KC"
+          security list-keychain -d user -s "$KC"
+          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+          echo "$PROFILE" | base64 --decode > ~/Library/MobileDevice/Provisioning\ Profiles/homestead.mobileprovision
+          PROFILE_UUID=$(security cms -D -i ~/Library/MobileDevice/Provisioning\ Profiles/homestead.mobileprovision | plutil -extract UUID raw -)
+          # Build numbers must go up for every TestFlight upload.
+          xcrun agvtool new-version -all "$GITHUB_RUN_NUMBER" >/dev/null 2>&1 || true
+          xcodebuild -project ios/App/App.xcodeproj -scheme App -configuration Release \
+            -destination 'generic/platform=iOS' -archivePath $RUNNER_TEMP/App.xcarchive \
+            CODE_SIGN_STYLE=Manual DEVELOPMENT_TEAM="$TEAM_ID" CODE_SIGN_IDENTITY="Apple Distribution" \
+            PROVISIONING_PROFILE="$PROFILE_UUID" CURRENT_PROJECT_VERSION="$GITHUB_RUN_NUMBER" archive | tail -n 40
+          cat > $RUNNER_TEMP/export.plist <<PLIST
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0"><dict>
+            <key>method</key><string>app-store-connect</string>
+            <key>teamID</key><string>$TEAM_ID</string>
+            <key>signingStyle</key><string>manual</string>
+            <key>provisioningProfiles</key><dict><key>ai.avolis.homestead</key><string>$PROFILE_UUID</string></dict>
+          </dict></plist>
+          PLIST
+          xcodebuild -exportArchive -archivePath $RUNNER_TEMP/App.xcarchive -exportOptionsPlist $RUNNER_TEMP/export.plist -exportPath $RUNNER_TEMP/export
+          mkdir -p ~/.appstoreconnect/private_keys
+          echo "$ASC_KEY_P8" | base64 --decode > ~/.appstoreconnect/private_keys/AuthKey_$ASC_KEY_ID.p8
+          xcrun altool --upload-app -f $RUNNER_TEMP/export/*.ipa -t ios --apiKey "$ASC_KEY_ID" --apiIssuer "$ASC_ISSUER_ID"

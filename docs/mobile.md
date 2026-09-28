@@ -51,6 +51,36 @@ npx cap open ios             # Xcode: pick a team under Signing, then Run
 
 iPhone is portrait only, and iPad allows every orientation (`Info.plist`).
 
+### iPhone without a Mac: the home-screen web app
+
+The web build is a PWA, so the quickest way onto an iPhone is Safari:
+- **Open it:** go to the GitHub Pages URL (see PLAYTEST.md).
+- **Install it:** Share → Add to Home Screen. It then starts full-screen from its own icon (`apple-touch-icon`, `apple-mobile-web-app-capable`) and plays offline after the first load (service worker).
+
+Two differences from the app:
+- **Notifications:** there are no local notifications. iOS only gives home-screen web apps server-sent push, which the game doesn't use.
+- **Saves:** they live in the web app's own storage. Home-screen web apps are exempt from Safari's seven-day storage clearing for websites, but exporting a save now and then (☰ → ⤓ Export) is still wise.
+
+### CI: `.github/workflows/ios.yml`
+
+On a macOS runner, every push builds the app for the iOS simulator, unsigned, to prove the Xcode project compiles. **This workflow has not been run yet**, so the first run may need small fixes.
+
+When signing secrets are added, the same workflow also archives a signed build and uploads it to **TestFlight**, so testers can install it on iPhones through Apple's TestFlight app. That needs:
+1. **A developer account:** an Apple Developer Program membership ($99 a year).
+2. **An app record:** in App Store Connect, create the app with bundle id `ai.avolis.homestead`.
+3. **A certificate:** an Apple Distribution certificate, exported as `.p12`, and an App Store provisioning profile for the bundle id.
+4. **An API key:** an App Store Connect API key (Users and Access → Integrations → Keys) with the App Manager role.
+5. **Repository secrets** (base64 means the output of `base64 -i file`):
+
+| Secret | Contents |
+|---|---|
+| `IOS_CERT_P12_BASE64`, `IOS_CERT_PASSWORD` | the distribution certificate |
+| `IOS_PROFILE_BASE64` | the provisioning profile |
+| `IOS_TEAM_ID` | the 10-character team id |
+| `ASC_KEY_ID`, `ASC_ISSUER_ID`, `ASC_KEY_P8_BASE64` | the API key |
+
+Each upload uses the workflow run number as its build number. After Apple processes a build (usually 10–30 minutes), add testers in App Store Connect → TestFlight.
+
 ## Icons and splash
 
 The mark is the favicon's "house over a door": `#f2a541` on `#1b2a2f`. The web icons are in `public/icons/`:

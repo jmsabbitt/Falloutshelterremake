@@ -8,6 +8,9 @@ A short guide to playing the current build and reporting what you find. The ques
 - **Browser, desktop or phone:** the "Web build on GitHub Pages" workflow publishes the game on every push.
   - **One-time setup:** in the repository on GitHub, go to Settings → Pages and set Source to "GitHub Actions". The game's URL then appears on that page, and in the workflow run.
   - **On a phone** you can add it to the home screen, and after the first load it plays offline.
+- **iPhone:**
+  - **Now:** open the GitHub Pages URL in Safari, then Share → Add to Home Screen. It runs full-screen, like an app, and plays offline, but without notifications.
+  - **As a real app:** use TestFlight once an Apple Developer account is set up; see docs/mobile.md, "iOS".
 - **Locally:** `npm install`, then `npm run dev`, then open the address it prints.
 
 ## Session 1: the first hour (about 30–60 minutes of real play)
