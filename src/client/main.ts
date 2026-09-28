@@ -74,6 +74,7 @@ async function boot(): Promise<void> {
   onSettingsChange(applySettings);
   // Founding, import and reset swap the whole homestead: redraw it from scratch.
   game.onReplace(() => view.resync());
+  (window as unknown as { __homesteadBooted?: boolean }).__homesteadBooted = true;
   // Sprite art streams in after first paint; until then (or without it) residents use drawn placeholders.
   void CharacterArt.load().then((art) => {
     view.setArt(art);
@@ -130,5 +131,9 @@ async function boot(): Promise<void> {
 
 boot().catch((err) => {
   console.error(err);
-  document.body.innerHTML = `<pre style="color:#f4ecd8;padding:20px">Failed to start: ${String(err)}</pre>`;
+  // Shown in the boot-diagnostics panel (index.html) with the browser's version, so a phone screenshot says what broke.
+  const show = (window as unknown as { __bootError?: (msg: string) => void }).__bootError;
+  const msg = `Failed to start: ${err instanceof Error ? (err.stack ?? err.message) : String(err)}`;
+  if (show) show(msg);
+  else document.body.innerHTML = `<pre style="color:#f4ecd8;padding:20px">${msg}</pre>`;
 });

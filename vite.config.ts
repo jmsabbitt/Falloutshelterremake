@@ -52,7 +52,8 @@ function serviceWorkerPlugin(): Plugin {
 
 export default defineConfig({
   base: './',
-  build: { target: 'es2022' },
+  // Safari 15 too: iPhones on older iOS get newer syntax down-levelled.
+  build: { target: ['es2022', 'safari15'] },
   define: { __APP_VERSION__: JSON.stringify(pkg.version) },
   plugins: [serviceWorkerPlugin()],
   // Some balance tests simulate days of play; under a full parallel run they can pass 5 s.
