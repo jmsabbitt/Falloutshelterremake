@@ -106,6 +106,7 @@ import { m9Console } from '../m9Dev';
 import { EndingsUI } from './endings';
 import { endingConsole } from '../endingDev';
 import { roomName as levelName } from './qolText';
+import { TutorialCoach } from './tutorial';
 
 declare const __APP_VERSION__: string;
 
@@ -238,6 +239,8 @@ export class UI {
   readonly gear: GearUI;
   /** Act 4: the ending choice, the epilogue and credits, replays and titles. */
   readonly endings: EndingsUI;
+  /** HALCY's first-homestead tutorial bubble. */
+  readonly coach: TutorialCoach;
   /** M9: incidents that left on their own this batch (their incidentResolved is not a win). */
   private escaped = new Set<number>();
 
@@ -248,6 +251,31 @@ export class UI {
   ) {
     this.root = document.getElementById('ui') as HTMLElement;
     this.root.append(this.hud, this.toasts, this.panelHost, this.hint, this.toolbar, this.modalHost);
+    this.coach = new TutorialCoach({
+      game,
+      view,
+      panel: () => this.panel,
+      openBuild: (type) => {
+        this.openPanel('build');
+        this.setBuildMode(type);
+        this.renderPanel(true);
+        this.revealGhosts();
+      },
+      endBuild: () => {
+        if (this.panel !== 'build') return;
+        this.setBuildMode(null);
+        this.closePanel();
+      },
+      toast: (text, kind) => this.toast(text, kind),
+      reveal: (roomId, above) => {
+        const room = this.game.state.rooms.find((r) => r.id === roomId);
+        if (!room) return;
+        const ins = this.viewInsets();
+        this.view.insets = ins;
+        this.view.revealRoom(room, { ...ins, top: ins.top + above });
+      },
+    });
+    this.root.insertBefore(this.coach.el, this.modalHost);
     this.qol = new QolUI({
       game,
       view,
@@ -360,7 +388,7 @@ export class UI {
     // Phones: pull a sheet down by its handle to close it.
     installSheetSwipe(this.panelHost, () => this.swipeClose());
     if (game.lastCatchUp) this.showAwaySummary();
-    else if (game.state.time < 5) this.showWelcome();
+    else if (game.state.time < 5 && !this.coach.active()) this.showWelcome();
   }
 
   // ---------------------------------------------------------------- view callbacks
@@ -466,6 +494,7 @@ export class UI {
     syncHudHeight(this.hud);
     this.renderHint();
     this.renderToolbar();
+    this.coach.update();
     this.quests.update();
     this.legacy.update();
     this.deep.update();
@@ -641,6 +670,8 @@ export class UI {
     } else if (state.residents.some((r) => !r.waiting && !r.dead && !isAway(r) && r.roomId === null && !isChild(state, r))) {
       text = 'Drag idle residents into rooms to put them to work';
     }
+    // The tutorial coach already says what to do next; only a shortage still needs the pill.
+    if (this.coach.active() && !shortage) text = '';
     // On phones an open panel covers the bottom of the screen; the hint would sit on top of it.
     // A sheet collapsed to its bar leaves room above it, but the bar already says what to do.
     const phone = isPhone();
@@ -692,7 +723,7 @@ export class UI {
     this.toolbar.replaceChildren(
       btn('Build', 'build', 'build-btn'),
       btn(phone ? 'People' : 'Residents', 'residents'),
-      btn(phone ? 'Items' : 'Storage', 'storage'),
+      btn(phone ? 'Items' : 'Storage', 'storage', 'storage-btn'),
       ...(phone ? [] : [btn('Crates', 'crates', '', crates, 'Supply Crates')]),
       btn(phone ? '🧭' : 'Explore', 'explore', phone ? 'icon' : '', homeOrFallen, 'Explore the Glarelands', phone ? 'Explore' : undefined),
       ...(office ? [btn(phone ? '⚔' : 'Quests', 'quests', phone ? 'icon' : '', questNeed, 'Quests', phone ? 'Quests' : undefined)] : []),
@@ -727,9 +758,13 @@ export class UI {
     if (kind === 'legacy') this.legacy.opened();
     if (kind === 'deep') this.deep.opened();
     if (kind === 'notices') this.qol.notices.opened();
+    // The tutorial's build steps open the list with their room already picked.
+    const lead = kind === 'build' && this.panel !== 'build' && !this.view.buildMode ? this.coach.buildTarget() : null;
     this.panel = kind;
+    if (lead) this.setBuildMode(lead);
     this.renderToolbar();
     this.renderPanel(true);
+    if (lead) this.revealGhosts();
   }
 
   openRoom(id: number): void {
@@ -852,7 +887,8 @@ export class UI {
   private viewInsets(): { top: number; right: number; bottom: number } {
     const W = window.innerWidth;
     const H = window.innerHeight;
-    const top = this.hud.getBoundingClientRect().bottom;
+    // HALCY's tutorial bubble sits under the HUD: keep build slots out from under it too.
+    const top = Math.max(this.hud.getBoundingClientRect().bottom, this.coach.visible() ? this.coach.el.getBoundingClientRect().bottom : 0);
     let bottom = H - this.toolbar.getBoundingClientRect().top;
     let right = 0;
     const p = this.panelHost.firstElementChild?.getBoundingClientRect();
@@ -915,7 +951,7 @@ export class UI {
           h(
             'span',
             { class: `small${slots && state.scrip >= cost ? ' muted' : ' short'}` },
-            !slots ? this.noSlotReason(type) : state.scrip < cost ? `Needs ${fmt(cost)} scrip (you have ${fmt(state.scrip)})` : `Tap a green slot · ${fmt(cost)} scrip${done ? ` · ${this.builtInMode} built` : ''}`,
+            !slots ? this.noSlotReason(type) : state.scrip < cost ? `Needs ${fmt(cost)} scrip (you have ${fmt(state.scrip)})` : `Tap a green slot · ${cost === 0 ? 'free' : `${fmt(cost)} scrip`}${done ? ` · ${this.builtInMode} built` : ''}`,
           ),
         ),
         h(
@@ -1134,7 +1170,7 @@ export class UI {
         const card = h(
           'div',
           {
-            class: `list-item build-item${selected ? ' selected' : ''}${unlocked ? '' : ' locked'}`,
+            class: `list-item build-item${selected ? ' selected' : ''}${unlocked ? '' : ' locked'}${this.coach.buildTarget() === def.id ? ' tut-pulse' : ''}`,
             onclick: () => {
               if (!unlocked) return;
               this.setBuildMode(selected ? null : def.id);
@@ -1146,7 +1182,7 @@ export class UI {
             'div',
             { class: 'row' },
             h('b', {}, def.name, def.stat ? h('span', { class: 'stat-badge', title: `Uses ${STAT_NAME[def.stat]}` }, STAT_LABEL[def.stat]) : null),
-            h('span', {}, unlocked ? `${fmt(cost)} scrip` : (info.lock ?? `🔒 pop ${def.unlockPop}`)),
+            h('span', {}, unlocked ? (cost === 0 ? 'Free' : `${fmt(cost)} scrip`) : (info.lock ?? `🔒 pop ${def.unlockPop}`)),
           ),
           h('div', { class: 'muted' }, `${what}${size}`),
           noSlot ? h('div', { class: 'small short', style: 'margin-top:4px' }, this.noSlotReason(def.id)) : null,
@@ -1979,6 +2015,8 @@ export class UI {
     let icon: string | HTMLElement = '';
     let title = '';
     let sub = '';
+    /** An item that went to storage: hand it straight to someone. */
+    let equip: string | null = null;
     switch (card.kind) {
       case 'scrip':
         icon = '💰';
@@ -2008,6 +2046,7 @@ export class UI {
         title = def?.name ?? card.defId;
         sub = def ? (def.kind === 'weapon' ? `${def.min}–${def.max} dmg` : bonusText(def.bonus)) : '';
         if (card.sold) sub += ` · storage full, sold for ${card.sold}`;
+        else if (def) equip = card.defId;
         break;
       }
       case 'resident': {
@@ -2022,7 +2061,15 @@ export class UI {
     return h(
       'div',
       { class: `crate-card ${rarity}`, style: `animation-delay:${i * 0.25}s` },
-      h('div', { class: 'crate-card-inner' }, h('div', { class: 'face back' }), h('div', { class: 'face front' }, h('div', { class: 'card-icon' }, icon), h('b', {}, title), h('div', { class: 'muted' }, sub))),
+      h('div', { class: 'crate-card-inner' }, h('div', { class: 'face back' }), h(
+          'div',
+          { class: 'face front' },
+          h('div', { class: 'card-icon' }, icon),
+          h('b', {}, title),
+          h('div', { class: 'muted' }, sub),
+          equip ? h('button', { class: 'card-equip', onclick: () => equip && state.items.some((it) => it.defId === equip) && this.gear.pickResident(equip) }, 'Equip') : null,
+        ),
+      ),
     );
   }
 
@@ -2126,7 +2173,7 @@ export class UI {
                 ask({ title: 'Start a new homestead?', text: 'Your current one is replaced. A copy is kept under Backups until the next load.', ok: 'Start over', danger: true }, () => {
                   this.game.reset();
                   this.closePanel();
-                  this.showWelcome();
+                  if (!this.coach.active()) this.showWelcome();
                 }),
             },
             'New homestead',
@@ -2694,6 +2741,7 @@ export class UI {
     this.factions.onEvents(events);
     this.legends.onEvents(events);
     this.endings.onEvents(events);
+    this.coach.onEvents(events);
     this.escaped.clear();
     for (const ev of events) if (ev.type === 'incidentEscaped') this.escaped.add(ev.incidentId);
     const incName = (type: string) => (content.balance.incidents.types as Record<string, { name: string }>)[type]?.name ?? 'Incident';
@@ -2903,6 +2951,7 @@ export class UI {
     this.deep.onStateReplaced();
     this.qol.onStateReplaced();
     this.factions.onStateReplaced();
+    this.coach.onStateReplaced();
     this.modalHost.replaceChildren();
     this.exploreDraft = null;
     this.explorerOf.clear();
@@ -2938,10 +2987,8 @@ export class UI {
         'ol',
         { class: 'welcome-steps muted' },
         h('li', {}, 'Tap the door to let them in.'),
-        h('li', {}, 'Drag residents into rooms that match their best stat. While you drag or pick someone, those rooms light up green.'),
-        h('li', {}, 'Tap rooms to collect power, food and water.'),
-        h('li', {}, 'Open your Supply Crates and arm your residents.'),
-        h('li', {}, 'Build more rooms to grow.'),
+        h('li', {}, 'Drag residents into rooms that match their best stat: those rooms light up green while you drag.'),
+        h('li', {}, 'Tap rooms to collect, open your Supply Crates, and build to grow.'),
       ),
       h('p', { class: 'muted small', style: 'display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap' }, 'Just want to tinker?', customGameButton(() => this.modalHost.replaceChildren())),
     );

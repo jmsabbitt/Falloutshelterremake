@@ -6,6 +6,7 @@ import { costMult } from './bonuses';
 import { livingResidents } from './residents';
 import type { GameState, ResourceKey, Room } from './types';
 import { rulesetMods } from './systems/rulesets';
+import { tutorialFreeBuild } from './systems/tutorial';
 
 export function storageCapacity(state: GameState, content: Content, kind: StorageKind): number {
   const base = (content.balance.baseStorage as Record<string, number>)[kind] ?? 0;
@@ -14,6 +15,9 @@ export function storageCapacity(state: GameState, content: Content, kind: Storag
     const def = roomDef(content, room);
     if (def.storage?.resource === kind) total += tableValue(def.storage.amount, room.level, room.segments);
   }
+  // Tutorial homesteads start without Quarters: the founders sleep on bedrolls until there are some.
+  const bedrolls = state.tutorial?.bedrolls ?? 0;
+  if (kind === 'population' && bedrolls > 0 && total === base) total = Math.max(total, bedrolls);
   if (kind === 'population') total = Math.min(total, content.balance.maxPopulation, rulesetMods(state, content).populationCap);
   return total;
 }
@@ -42,6 +46,8 @@ export function builtCount(state: GameState, type: string): number {
 export function buildCost(state: GameState, content: Content, type: string): number {
   const def = content.rooms[type];
   if (!def) return Infinity;
+  // The tutorial's power, water and food rooms are on the house.
+  if (tutorialFreeBuild(state, type)) return 0;
   const already = type === 'elevator' ? Math.max(0, builtCount(state, type) - 3) : builtCount(state, type);
   return Math.round((def.cost.base + def.cost.perBuilt * already) * costMult(state, content));
 }

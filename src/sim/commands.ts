@@ -22,6 +22,7 @@ import { applyCustom, type CustomCommand } from './systems/custom';
 import { isSurvival, rulesetMods } from './systems/rulesets';
 import { recallLegend } from './systems/legends';
 import { chooseEnding, setEndingTitle } from './systems/endings';
+import { onTutorialBuild, skipTutorial, tickTutorial } from './systems/tutorial';
 import type { CrateTier, GameState, Resident, Room } from './types';
 
 export type Command =
@@ -81,6 +82,8 @@ export type Command =
   // Act 4: the ending choice, and which ending's title to wear
   | { type: 'chooseEnding'; endingId: string }
   | { type: 'setEndingTitle'; endingId: string | null }
+  // The first-homestead tutorial: skip it (builds any core room still missing)
+  | { type: 'skipTutorial' }
   // M9: the Custom Game sandbox console (refused outside mode: 'custom')
   | ({ type: 'custom' } & CustomCommand);
 
@@ -127,6 +130,7 @@ export function applyCommand(state: GameState, content: Content, cmd: Command): 
   const from = state.events.length;
   const outcome = dispatch(state, content, cmd);
   if (outcome.ok) {
+    tickTutorial(state);
     refreshUnlocks(state, content);
     settle(state, content, from);
   }
@@ -162,6 +166,7 @@ function dispatch(state: GameState, content: Content, cmd: Command): CommandResu
         job: null, banked: 0,
       };
       state.rooms.push(room);
+      onTutorialBuild(state, content, room);
       bump(state, 'roomsBuilt');
       state.events.push({ type: 'roomBuilt', roomId: room.id, roomType: def.id });
       afterLayoutChange(state, content, cmd.floor);
@@ -452,6 +457,8 @@ function dispatch(state: GameState, content: Content, cmd: Command): CommandResu
       return result(chooseEnding(state, content, cmd.endingId));
     case 'setEndingTitle':
       return result(setEndingTitle(state, content, cmd.endingId));
+    case 'skipTutorial':
+      return result(skipTutorial(state, content));
     case 'custom': {
       const { type: _type, ...rest } = cmd;
       return result(applyCustom(state, content, rest as CustomCommand));

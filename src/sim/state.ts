@@ -16,6 +16,12 @@ export interface NewGameOptions {
   survival?: boolean;
   /** M9: start a Custom Game sandbox. */
   mode?: 'normal' | 'custom';
+  /**
+   * A first homestead with HALCY's tutorial: only the door and the elevator
+   * shaft are built, and the Warden builds power, water and food themselves.
+   * Off by default (the classic starter layout).
+   */
+  tutorial?: boolean;
 }
 
 export function newGame(content: Content, opts: NewGameOptions = {}): GameState {
@@ -82,14 +88,19 @@ export function newGame(content: Content, opts: NewGameOptions = {}): GameState 
   };
 
   // Starter layout: door, an elevator shaft three floors deep, and the basics.
+  // The tutorial starts with just the door and the shaft, so there are free
+  // slots on both sides of it on floors 1 and 2.
   place('door', 0, 0);
   place('elevator', 0, 6);
-  place('quarters', 0, 7);
+  if (!opts.tutorial) place('quarters', 0, 7);
   place('elevator', 1, 6);
-  place('generator', 1, 7);
-  place('canteen', 1, 10);
+  if (!opts.tutorial) {
+    place('generator', 1, 7);
+    place('canteen', 1, 10);
+  }
   place('elevator', 2, 6);
-  place('waterworks', 2, 7);
+  if (!opts.tutorial) place('waterworks', 2, 7);
+  if (opts.tutorial) state.tutorial = { step: 'admit', done: false, bedrolls: start.waitingResidents };
 
   // The founding crew each have a clear specialty matching a starter room, so
   // the first hour teaches "put people where they are good".
