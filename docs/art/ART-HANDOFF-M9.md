@@ -2,6 +2,8 @@
 
 This is the to-do list for the art session after M9. The first round (residents, 11 creature looks, HALCY, 36 item icons, 21 salvage icons, 49 room walls) is done and summarised in [ART-SESSION-HANDOFF.md](ART-SESSION-HANDOFF.md). How sheets are laid out, keyed and built is in [SPRITE-HANDOFF.md](SPRITE-HANDOFF.md). Use the same tools and style: Artlist, Nano Banana 2 at 2K, image-to-image from existing art wherever a style match matters.
 
+**Round 3 (playtest 1):** the full list of what is still drawn in code, with the wide room walls and weapon grip fight sheets first, is [ART-LIST.md](ART-LIST.md).
+
 **The code is already wired for everything in this list.** Drop the raw image in the named folder, add or extend its `sprite.json`, run `npm run sprites -- <folder>`, and it shows up in the game. Anything missing keeps its drawn fallback, so partial delivery is fine.
 
 The game is original IP: atompunk, 1950s Americana gone to seed, chunky cartoon proportions, dry humour. No Fallout names, logos, power armour or vault-boy look-alikes, no real brands, no real-world maps.
