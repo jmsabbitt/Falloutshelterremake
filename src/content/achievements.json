@@ -302,7 +302,8 @@
     "description": "Raise a resident's stat in a training room.",
     "tier": "bronze",
     "stat": "statsTrained",
-    "target": 1
+    "target": 1,
+    "optional": true
   },
   {
     "id": "train_25",
@@ -310,7 +311,8 @@
     "description": "Raise 25 stat points in training rooms.",
     "tier": "silver",
     "stat": "statsTrained",
-    "target": 25
+    "target": 25,
+    "optional": true
   },
   {
     "id": "stat_maxed",
@@ -318,7 +320,8 @@
     "description": "Get a resident to 10 in any stat.",
     "tier": "silver",
     "stat": "statsMaxed",
-    "target": 1
+    "target": 1,
+    "optional": true
   },
   {
     "id": "all_tens",
