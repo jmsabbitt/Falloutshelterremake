@@ -31,7 +31,9 @@ import {
   isTopside,
   TOPSIDE_FLOOR,
   type Caravan,
+  type GameState,
 } from '../../sim';
+import { mergeFloor } from '../../sim/grid';
 import type { Game } from '../game';
 import { haptic } from '../platform';
 import { FrameGovernor } from './governor';
@@ -147,6 +149,33 @@ interface ResidentSprite {
   action: Action;
 }
 
+/**
+ * A room's nameplate. `wide` is the Bungee plate drawn at 1:1; when zoomed out
+ * far enough that it would shrink below PLATE_MIN_PX on screen, the narrower
+ * `compact` plate is scaled up instead, as far as the room's width allows.
+ */
+interface Plate {
+  root: Container;
+  wide: Container;
+  compact: Container;
+  wideW: number;
+  compactW: number;
+  /** Unscaled plate height (world units). */
+  h: number;
+  /** Width the plate may use (world units). */
+  room: number;
+}
+
+/** Nameplates keep at least this on-screen text height (CSS px), room width permitting. */
+const PLATE_MIN_PX = 8.5;
+const PLATE_FONT = 11;
+
+/** The surface queue: at most this many drawn (the last place goes to a "+N" tag), this far apart. */
+const QUEUE_CAP = 5;
+const QUEUE_GAP = 24;
+/** Each resident in the door room gets at least this much floor; past that a "+N" tag stands in. */
+const DOOR_SLOT = 22;
+
 interface FloatText {
   text: Text;
   life: number;
@@ -249,6 +278,20 @@ export class VaultView {
   insets = { top: 0, right: 0, bottom: 0 };
   /** Where the room picked in build mode can go right now. */
   private ghostSlots: { floor: number; x: number }[] = [];
+  /** The slot tapped last in build mode (world rect), so the build pop plays over the new segment. */
+  private lastBuild: { type: string; x: number; y: number; w: number; h: number } | null = null;
+  /** Construction pops playing over rooms just built (flash, frame and dust, ~0.45 s). */
+  private pops: { x: number; y: number; w: number; h: number; t: number }[] = [];
+  private popLayer = new Graphics();
+  private popHold: number | null = null;
+  /** Room nameplates (tab + name), kept a readable size on screen when zoomed out. */
+  private plates = new Map<number, Plate>();
+  private plateZoom = 0;
+  /** "+N" tags for residents not drawn in the crowded door room and the surface queue. */
+  private crowdTags = new Container();
+  private tags = new Map<'door' | 'queue', { root: Container; text: string }>();
+  /** Markers over fallen residents (redrawn each frame). */
+  private crowdMarks = new Graphics();
   /** Stat badges on rooms while someone is being assigned. */
   private fitLayer = new Container();
   private fitKey = '';
@@ -279,8 +322,11 @@ export class VaultView {
     private game: Game,
     private cb: ViewCallbacks,
   ) {
-    this.world.addChild(this.bg, this.weather.back, this.statics, this.topside.root, this.overlay, this.fitLayer, this.deep.root, this.ghostLayer, this.incidentLayer, this.residentLayer, this.caravanCarts, this.walkerLayer, this.weather.front, this.fxLayer);
+    this.world.addChild(this.bg, this.weather.back, this.statics, this.topside.root, this.overlay, this.deep.root, this.ghostLayer, this.incidentLayer, this.residentLayer, this.fitLayer, this.crowdTags, this.caravanCarts, this.walkerLayer, this.weather.front, this.popLayer, this.fxLayer);
     this.caravanCarts.eventMode = 'none';
+    this.crowdTags.eventMode = 'none';
+    this.crowdTags.addChild(this.crowdMarks);
+    this.popLayer.eventMode = 'none';
     this.fitLayer.eventMode = 'none';
     app.stage.addChild(this.world);
     this.drawBackground();
@@ -312,13 +358,15 @@ export class VaultView {
         return sp ? this.world.toGlobal({ x: sp.root.x, y: sp.root.y - RESIDENT_H / 2 }) : null;
       },
       /** Camera and gesture state, for the touch tests. */
+      /** Hold construction pops at this progress (0..1) for screenshots; null lets them play. */
+      holdPops: (k: number | null) => (this.popHold = k),
       input: () => ({ gesture: this.gesture.kind, lifted: !!this.gesture.lifted, pointers: this.pointers.size, velocity: { ...this.velocity }, gliding: this.camTween !== null, revealed: this.revealed !== null, reducedMotion: reducedMotion() }),
     };
   }
 
   /** Something on screen should stay smooth: a gesture, a camera glide, an incident, a floater. */
   private busy(): boolean {
-    return this.suspended || this.pointers.size > 0 || this.camTween !== null || this.velocity.x !== 0 || this.velocity.y !== 0 || this.floats.length > 0 || this.game.state.incidents.length > 0;
+    return this.suspended || this.pointers.size > 0 || this.camTween !== null || this.velocity.x !== 0 || this.velocity.y !== 0 || this.floats.length > 0 || this.pops.length > 0 || this.game.state.incidents.length > 0;
   }
 
   /**
@@ -339,6 +387,9 @@ export class VaultView {
     this.incTrack.clear();
     for (const f of this.floats) f.text.destroy();
     this.floats = [];
+    this.pops = [];
+    this.popLayer.clear();
+    this.lastBuild = null;
     this.buildMode = null;
     this.selectedRoomId = null;
     this.selectedResidentId = null;
@@ -357,7 +408,7 @@ export class VaultView {
 
   /** For automated UI tests: what is drawn right now. */
   debugCounts() {
-    return { sprites: this.sprites.size, residentLayer: this.residentLayer.children.length, walkers: this.walkers.size, caravanWalkers: this.caravanWalkers.size, topside: this.topsideParts.size, statics: this.statics.children.length, ghosts: this.ghostLayer.children.length, zoom: this.zoom, x: Math.round(this.world.x), y: Math.round(this.world.y) };
+    return { sprites: this.sprites.size, residentLayer: this.residentLayer.children.length, walkers: this.walkers.size, caravanWalkers: this.caravanWalkers.size, topside: this.topsideParts.size, statics: this.statics.children.length, ghosts: this.ghostLayer.children.length, pops: this.pops.length, zoom: this.zoom, x: Math.round(this.world.x), y: Math.round(this.world.y) };
   }
 
   /**
@@ -423,6 +474,12 @@ export class VaultView {
     for (const room of this.game.state.rooms) {
       if (room.floor !== floor) continue;
       if (cell >= room.x && cell < room.x + roomCells(this.game.content, room)) return room;
+    }
+    // The queue waiting on the ground left of the door counts as the door (tap it to let them in).
+    const door = this.game.state.rooms.find((r) => r.type === 'door');
+    if (door && wy < SURFACE_H && wy > SURFACE_H - GROUND_DEPTH - RESIDENT_H - 16 && this.game.state.residents.some((r) => r.waiting)) {
+      const dx = this.roomRect(door).x;
+      if (wx < dx && wx > dx - 22 - (this.game.state.stats['wardensSeal'] ? 52 : 0) - QUEUE_CAP * QUEUE_GAP) return door;
     }
     return null;
   }
@@ -724,6 +781,7 @@ export class VaultView {
     const { state, content } = this.game;
     const isBraced = braced(state, content);
     this.topsideParts.clear();
+    this.plates.clear();
     for (const room of this.game.state.rooms) {
       if (isTopside(room)) {
         this.buildTopside(room);
@@ -752,23 +810,16 @@ export class VaultView {
       const def = roomDef(this.game.content, room);
       if (room.type !== 'elevator') {
         const name = def.levelNames?.[room.level - 1] ?? def.name;
-        const label = new Text({
-          text: name.toUpperCase(),
-          style: { fontFamily: 'Bungee, sans-serif', fontSize: 11, fill: labelInk(roomLook(room.type).wall), letterSpacing: 1 },
-        });
-        label.alpha = 0.7;
-        label.position.set(r.x + DEPTH_X + 6, r.y + DEPTH_Y + 4);
-        if (wall) {
-          // On painted walls the name sits on a dark tab so it stays readable.
-          label.style.fill = 0xf4ecd8;
-          label.alpha = 0.9;
-          const tab = new Graphics().roundRect(-4, -2, label.width + 8, label.height + 3, 4).fill({ color: 0x14100d, alpha: 0.6 });
-          tab.position.set(label.x, label.y);
-          this.statics.addChild(tab);
-        }
-        this.statics.addChild(label);
+        // On painted walls the name sits on a dark tab so it stays readable.
+        const plate = this.makePlate(name.toUpperCase(), wall ? 0xf4ecd8 : labelInk(roomLook(room.type).wall), !!wall, r.w - DEPTH_X - 12);
+        plate.root.position.set(r.x + DEPTH_X + 6, r.y + DEPTH_Y + 4);
+        this.plates.set(room.id, plate);
+        this.statics.addChild(plate.root);
       }
     }
+    this.addDeepHints();
+    this.plateZoom = 0;
+    this.fitPlates();
     this.builtLayout = this.game.layoutVersion;
     this.deepKey = deepViewKey(state, isBraced);
     this.rebuildGhosts();
@@ -808,12 +859,89 @@ export class VaultView {
     }
     const def = roomDef(content, room);
     const name = def.levelNames?.[room.level - 1] ?? def.name;
-    const label = new Text({ text: name.toUpperCase(), style: { fontFamily: 'Bungee, sans-serif', fontSize: 10, fill: 0xf4ecd8, letterSpacing: 1 } });
-    label.alpha = 0.92;
-    label.position.set(r.x + 8, r.y + gy + 12);
-    const tab = new Graphics().roundRect(-4, -2, label.width + 8, label.height + 3, 4).fill({ color: 0x14100d, alpha: 0.6 });
-    tab.position.set(label.x, label.y);
-    this.statics.addChild(tab, label);
+    const plate = this.makePlate(name.toUpperCase(), 0xf4ecd8, true, r.w - 12, 10);
+    plate.root.position.set(r.x + 8, r.y + gy + 12);
+    this.plates.set(room.id, plate);
+    this.statics.addChild(plate.root);
+  }
+
+  /** A nameplate: the Bungee name (on a dark tab when `tab`), plus a narrower copy for zoomed-out views. */
+  private makePlate(name: string, fill: number, tab: boolean, room: number, size = PLATE_FONT): Plate {
+    const make = (compact: boolean) => {
+      const c = new Container();
+      const label = new Text({
+        text: name,
+        style: compact ? { fontFamily: 'Work Sans, sans-serif', fontWeight: '800', fontSize: size, fill, letterSpacing: 0.3 } : { fontFamily: 'Bungee, sans-serif', fontSize: size, fill, letterSpacing: 1 },
+        // Drawn sharp enough to be scaled up a little.
+        resolution: compact ? 3 : 2,
+      });
+      label.alpha = tab ? 0.92 : 0.7;
+      if (tab) c.addChild(new Graphics().roundRect(-4, -2, label.width + 8, label.height + 3, 4).fill({ color: 0x14100d, alpha: 0.6 }));
+      c.addChild(label);
+      return { c, w: label.width + (tab ? 4 : 0), h: label.height };
+    };
+    const wide = make(false);
+    const compact = make(true);
+    compact.c.visible = false;
+    const root = new Container();
+    root.addChild(wide.c, compact.c);
+    return { root, wide: wide.c, compact: compact.c, wideW: wide.w, compactW: compact.w, h: wide.h, room };
+  }
+
+  /**
+   * Keep nameplates readable when zoomed out (phones start at 0.55): below
+   * PLATE_MIN_PX on screen the compact plate is counter-scaled up, but never
+   * past the room's width, so it doesn't spill over the neighbours' art.
+   */
+  private fitPlates(): void {
+    const z = this.zoom;
+    if (Math.abs(z - this.plateZoom) < 0.01) return;
+    this.plateZoom = z;
+    const want = PLATE_MIN_PX / (PLATE_FONT * z);
+    for (const p of this.plates.values()) {
+      const small = want > 1.02;
+      p.wide.visible = !small;
+      p.compact.visible = small;
+      const s = small ? Math.max(1, Math.min(want, p.room / Math.max(1, p.compactW))) : 1;
+      p.compact.scale.set(s);
+    }
+  }
+
+  /** Where a plate ends, in world units (right edge and bottom), at its current scale. */
+  private plateBounds(id: number): { x1: number; y1: number } | null {
+    const p = this.plates.get(id);
+    if (!p) return null;
+    const s = p.compact.visible ? p.compact.scale.x : 1;
+    return { x1: p.root.x + (p.compact.visible ? p.compactW : p.wideW) * s, y1: p.root.y + p.h * s };
+  }
+
+  /**
+   * M6: a quiet hint across each dug stratum that has no rooms yet, so an
+   * empty Deep doesn't read as a blank brown screen.
+   */
+  private addDeepHints(): void {
+    const { state, content } = this.game;
+    const geo = this.deepGeometry();
+    for (let s = 1; s <= state.deep.strata; s++) {
+      const f0 = geo.baseFloors + (s - 1) * geo.floorsPerStratum;
+      const f1 = f0 + geo.floorsPerStratum;
+      if (state.rooms.some((r) => r.floor >= f0 && r.floor < f1 && r.type !== 'elevator')) continue;
+      const shaft = state.rooms.some((r) => r.type === 'elevator' && r.floor === f0);
+      // Beside the elevator shaft, where the first deep rooms will attach (and where phones look).
+      const lift = state.rooms.filter((r) => r.type === 'elevator').sort((p, q) => q.floor - p.floor)[0];
+      const x = ((lift?.x ?? 6) + 1) * CELL + 16;
+      const y = SURFACE_H + f0 * FLOOR_H + 26;
+      const t1 = new Text({ text: 'BUILD DEEP ROOMS HERE', style: { fontFamily: 'Bungee, sans-serif', fontSize: 24, fill: 0xf4ecd8, letterSpacing: 1, wordWrap: true, wordWrapWidth: 250, lineHeight: 28 } });
+      t1.alpha = 0.42;
+      t1.position.set(x, y);
+      const t2 = new Text({
+        text: shaft ? 'Pick a room in Build: Deep-only rooms can go on these floors.' : 'Extend an elevator down to reach these floors.',
+        style: { fontFamily: 'Work Sans, sans-serif', fontWeight: '700', fontSize: 15, fill: 0xf4ecd8, wordWrap: true, wordWrapWidth: 280 },
+      });
+      t2.alpha = 0.42;
+      t2.position.set(x, y + t1.height + 6);
+      this.statics.addChild(t1, t2);
+    }
   }
 
   /** How many green slots build mode is showing. */
@@ -822,8 +950,10 @@ export class VaultView {
   }
 
   /**
-   * Build mode just started: if no green slot is in the part of the screen the
-   * DOM leaves free, pan to the nearest one. Returns how many slots there are.
+   * Build mode just started: bring the green slots into the part of the screen
+   * the DOM leaves free. Slots already in view but cut off at an edge are
+   * nudged fully on screen; if none shows, pan to the nearest one. Returns how
+   * many slots there are.
    */
   revealGhosts(): number {
     const type = this.buildMode;
@@ -832,34 +962,61 @@ export class VaultView {
     if (!def || !slots.length) return slots.length;
     const z = this.zoom;
     const ins = this.usableInsets();
-    const area = { x0: 0, x1: this.app.screen.width - ins.right, y0: ins.top, y1: this.app.screen.height - ins.bottom };
+    const pad = 8;
+    const area = { x0: pad, x1: this.app.screen.width - ins.right - pad, y0: ins.top + pad, y1: this.app.screen.height - ins.bottom - pad };
     const rect = (c: { floor: number; x: number }) => ({
       x: this.world.x + c.x * CELL * z,
       y: this.world.y + (SURFACE_H + c.floor * FLOOR_H) * z,
       w: def.cells * CELL * z,
-      h: FLOOR_H * z,
+      h: (c.floor < 0 ? FLOOR_H - GROUND_DEPTH : FLOOR_H) * z,
     });
-    const inView = slots.some((c) => {
-      const r = rect(c);
-      return r.x >= area.x0 - 2 && r.x + r.w <= area.x1 + 2 && r.y >= area.y0 - 2 && r.y + r.h <= area.y1 + 2;
-    });
-    if (inView) return slots.length;
-    const cx = (area.x0 + area.x1) / 2;
-    const cy = (area.y0 + area.y1) / 2;
-    let best: { dx: number; dy: number; d: number } | null = null;
-    for (const c of slots) {
-      const r = rect(c);
-      const dx = cx - (r.x + r.w / 2);
-      const dy = cy - (r.y + r.h / 2);
-      const d = Math.hypot(dx, dy);
-      if (!best || d < best.d) best = { dx, dy, d };
+    const rects = slots.map(rect);
+    const inside = (r: { x: number; y: number; w: number; h: number }) => r.x >= area.x0 - 2 && r.x + r.w <= area.x1 + 2 && r.y >= area.y0 - 2 && r.y + r.h <= area.y1 + 2;
+    const touching = rects.filter((r) => r.x + r.w > area.x0 && r.x < area.x1 && r.y + r.h > area.y0 && r.y < area.y1);
+    let dx = 0;
+    let dy = 0;
+    if (touching.length && !touching.every(inside)) {
+      // Some slots are cut off at an edge: shift just enough to show them whole
+      // (if they can't all fit, line up the top-left of the group with the free area).
+      const bx0 = Math.min(...touching.map((r) => r.x));
+      const bx1 = Math.max(...touching.map((r) => r.x + r.w));
+      const by0 = Math.min(...touching.map((r) => r.y));
+      const by1 = Math.max(...touching.map((r) => r.y + r.h));
+      const shift = (a0: number, a1: number, b0: number, b1: number) => (b1 - b0 > a1 - a0 || b0 < a0 ? a0 - b0 : b1 > a1 ? a1 - b1 : 0);
+      dx = shift(area.x0, area.x1, bx0, bx1);
+      dy = shift(area.y0, area.y1, by0, by1);
+    } else if (!touching.length) {
+      const cx = (area.x0 + area.x1) / 2;
+      const cy = (area.y0 + area.y1) / 2;
+      let best: { dx: number; dy: number; d: number } | null = null;
+      for (const r of rects) {
+        const ddx = cx - (r.x + r.w / 2);
+        const ddy = cy - (r.y + r.h / 2);
+        const d = Math.hypot(ddx, ddy);
+        if (!best || d < best.d) best = { dx: ddx, dy: ddy, d };
+      }
+      if (best) ({ dx, dy } = best);
     }
-    if (best) {
-      this.world.x += best.dx;
-      this.world.y += best.dy;
+    if (dx || dy) {
+      this.world.x += dx;
+      this.world.y += dy;
       this.clampCamera();
     }
     return slots.length;
+  }
+
+  /**
+   * How many segments wide a new room of `type` at (floor, x) would end up,
+   * found by running the sim's own merge on a scratch copy of that floor.
+   */
+  private mergedSegments(type: string, floor: number, x: number): number {
+    const { state, content } = this.game;
+    const probe: Room = { id: -1, type, floor, x, segments: 1, level: 1, pool: 0, ready: false, powered: true, timer: 0, job: null, banked: 0 };
+    const rooms = state.rooms.filter((r) => r.floor === floor).map((r) => ({ ...r }));
+    const scratch = { rooms: [...rooms, probe], residents: [], incidents: [] } as unknown as GameState;
+    mergeFloor(scratch, content, floor);
+    const into = scratch.rooms.find((r) => x >= r.x && x < r.x + roomCells(content, r));
+    return into?.segments ?? 1;
   }
 
   rebuildGhosts(): void {
@@ -901,33 +1058,104 @@ export class VaultView {
     this.ghostSlots = candidates;
     const cost = buildCost(state, content, type);
     const affordable = state.scrip >= cost;
+    const wall = this.art?.roomWall(type, 1);
     for (const c of candidates) {
-      const x = c.x * CELL;
-      const y = SURFACE_H + c.floor * FLOOR_H;
       const w = def.cells * CELL;
+      const topside = c.floor < 0;
       // On the surface the slot stands on the ground rather than filling a floor.
-      const gh = c.floor < 0 ? FLOOR_H - GROUND_DEPTH + 4 : FLOOR_H;
-      const g = new Graphics();
-      g.rect(x + 3, y + 3, w - 6, gh - 6).fill({ color: affordable ? 0x8fc93a : 0xe4572e, alpha: 0.18 });
-      g.rect(x + 3, y + 3, w - 6, gh - 6).stroke({ width: 3, color: affordable ? 0x8fc93a : 0xe4572e, alpha: 0.9 });
-      const cx = x + w / 2;
-      const cy = y + gh / 2;
-      g.rect(cx - 14, cy - 3, 28, 6).fill(0xf4ecd8);
-      g.rect(cx - 3, cy - 14, 6, 28).fill(0xf4ecd8);
-      g.eventMode = 'static';
-      g.cursor = 'pointer';
-      g.on('pointertap', (e: FederatedPointerEvent) => {
-        e.stopPropagation();
-        this.cb.onBuildAt(c.floor, c.x);
-      });
-      this.ghostLayer.addChild(g);
+      const gh = topside ? FLOOR_H - GROUND_DEPTH + 4 : FLOOR_H;
+      const merge = def.maxSegments > 1 ? this.mergedSegments(type, c.floor, c.x) : 1;
+      // Green: a new room. Teal: it joins the room beside it. Red: can't afford it.
+      const tone = !affordable ? 0xe4572e : merge > 1 ? 0x4fc3d0 : 0x8fc93a;
+      const slot = new Container();
+      slot.position.set(c.x * CELL, SURFACE_H + c.floor * FLOOR_H);
+      const box = new Graphics();
+      box.rect(3, 3, w - 6, gh - 6).fill({ color: tone, alpha: 0.18 });
+      box.rect(3, 3, w - 6, gh - 6).stroke({ width: 3, color: tone, alpha: 0.9 });
+      // A faint look at the room, shown while the pointer is over the slot.
+      const preview = new Container();
+      preview.visible = false;
+      preview.alpha = 0.5;
+      if (topside) {
+        if (wall) {
+          const hgt = Math.min(gh + 40, (w / Math.max(1, wall.width)) * wall.height);
+          const s = new Sprite(wall);
+          s.position.set(0, gh - 4 - hgt);
+          s.width = w;
+          s.height = hgt;
+          preview.addChild(s);
+        } else {
+          const pg = new Graphics();
+          drawTopsideBuilding(pg, type, w, FLOOR_H, 1, 1);
+          preview.addChild(pg);
+        }
+      } else {
+        const pg = new Graphics();
+        drawRoomBox(pg, type, w, FLOOR_H, 1, 1, !!wall);
+        preview.addChild(pg);
+        if (wall) {
+          const b = backWall(w, FLOOR_H);
+          const s = new Sprite(wall);
+          s.position.set(b.x, b.y);
+          s.width = b.w;
+          s.height = b.h;
+          preview.addChild(s);
+        }
+      }
+      const mark = new Graphics();
+      const cx = w / 2;
+      const cy = gh / 2 - (merge > 1 ? 10 : 0);
+      if (merge > 1) {
+        // Two arrows pulling together: this slot joins the room beside it.
+        mark.poly([cx - 26, cy, cx - 12, cy - 11, cx - 12, cy + 11]).fill(0xf4ecd8);
+        mark.poly([cx + 26, cy, cx + 12, cy - 11, cx + 12, cy + 11]).fill(0xf4ecd8);
+        mark.rect(cx - 13, cy - 3, 26, 6).fill(0xf4ecd8);
+      } else {
+        mark.rect(cx - 14, cy - 3, 28, 6).fill(0xf4ecd8);
+        mark.rect(cx - 3, cy - 14, 6, 28).fill(0xf4ecd8);
+      }
+      slot.addChild(box, preview, mark);
+      if (merge > 1) {
+        const t = new Text({ text: `MERGE: ${merge} WIDE`, style: { fontFamily: 'Work Sans, sans-serif', fontWeight: '800', fontSize: 12, fill: 0xf4ecd8, letterSpacing: 0.5 } });
+        t.anchor.set(0.5);
+        t.position.set(cx, cy + 25);
+        const tab = new Graphics().roundRect(cx - t.width / 2 - 5, cy + 25 - t.height / 2 - 2, t.width + 10, t.height + 4, 4).fill({ color: 0x14100d, alpha: 0.7 });
+        slot.addChild(tab, t);
+      }
       if (w >= CELL * 2) {
         const t = new Text({ text: `${cost}`, style: { fontFamily: 'Work Sans, sans-serif', fontWeight: '700', fontSize: 14, fill: 0xf4ecd8 } });
         t.anchor.set(0.5);
-        t.position.set(cx, cy + 28);
-        this.ghostLayer.addChild(t);
+        t.position.set(cx, merge > 1 ? cy + 46 : cy + 28);
+        slot.addChild(t);
       }
+      for (const ch of slot.children) ch.eventMode = 'none';
+      slot.eventMode = 'static';
+      slot.cursor = 'pointer';
+      slot.hitArea = new Rectangle(0, 0, w, gh);
+      // Hover (a mouse): a faint look at the room in the slot.
+      slot.on('pointerover', (e: FederatedPointerEvent) => {
+        if (e.pointerType !== 'mouse') return;
+        preview.visible = true;
+        mark.alpha = 0.3;
+      });
+      slot.on('pointerout', () => {
+        preview.visible = false;
+        mark.alpha = 1;
+      });
+      slot.on('pointertap', (e: FederatedPointerEvent) => {
+        e.stopPropagation();
+        this.lastBuild = { type, x: c.x * CELL, y: SURFACE_H + c.floor * FLOOR_H, w, h: gh };
+        this.cb.onBuildAt(c.floor, c.x);
+      });
+      this.ghostLayer.addChild(slot);
     }
+  }
+
+  /** For automated UI tests: the build slots on show, and how wide each would merge to. */
+  debugGhosts(): { floor: number; x: number; merge: number }[] {
+    const type = this.buildMode;
+    if (!type) return [];
+    return this.ghostSlots.map((c) => ({ ...c, merge: this.mergedSegments(type, c.floor, c.x) }));
   }
 
   // ---------------------------------------------------------------- frame
@@ -945,6 +1173,8 @@ export class VaultView {
       this.rebuildStatics();
       this.clampCamera();
     } else if (this.builtLayout !== this.game.layoutVersion) this.rebuildStatics();
+    this.fitPlates();
+    this.updatePops(dt);
     // M6: with up to 45 floors, only rooms near the camera are drawn.
     const vb = this.viewBounds();
     this.cull(vb);
@@ -1027,8 +1257,9 @@ export class VaultView {
       // ready bubble
       if (room.ready && def.produces) {
         const bob = Math.sin(this.time * 4 + room.id) * 3;
-        const cx = r.x + r.w / 2;
-        const cy = r.y + 30 + bob;
+        const at = this.bubbleAt(room, r, 17);
+        const cx = at.x;
+        const cy = at.y + bob;
         const color = RESOURCE_COLORS[def.produces.resource] ?? 0xffffff;
         g.circle(cx, cy, 17).fill(0x14100d);
         g.circle(cx, cy, 14).fill(color);
@@ -1044,8 +1275,9 @@ export class VaultView {
           g.rect(r.x + 6, r.y + r.h - 7, (r.w - 12) * p, 3).fill({ color: roomLook(room.type).accent, alpha: 0.95 });
         } else {
           const bob = Math.sin(this.time * 4 + room.id) * 3;
-          const cx = r.x + r.w / 2;
-          const cy = r.y + 30 + bob;
+          const at = this.bubbleAt(room, r, 19);
+          const cx = at.x;
+          const cy = at.y + bob;
           g.circle(cx, cy, 19).fill(0x14100d);
           g.circle(cx, cy, 16).fill(RARITY_COLORS[item?.rarity ?? 'common'] ?? 0xf4ecd8);
           drawItemGlyph(g, item?.kind ?? 'weapon', cx, cy);
@@ -1094,6 +1326,20 @@ export class VaultView {
     }
   }
 
+  /**
+   * Where a room's ready (or crafted-item) bubble goes: in the top-right corner
+   * when the nameplate leaves room for it, else centred just under the plate,
+   * so it never sits on the room's name.
+   */
+  private bubbleAt(room: Room, r: { x: number; y: number; w: number; h: number }, radius: number): { x: number; y: number } {
+    if (isTopside(room)) return { x: r.x + r.w / 2, y: r.y + 30 };
+    const pb = this.plateBounds(room.id);
+    const inner = r.x + r.w - DEPTH_X - 4;
+    const right = pb?.x1 ?? r.x + DEPTH_X;
+    if (inner - right >= radius * 2 + 10) return { x: inner - radius, y: r.y + DEPTH_Y + radius + 6 };
+    return { x: r.x + r.w / 2, y: (pb?.y1 ?? r.y + DEPTH_Y + 18) + radius + 7 };
+  }
+
   /** Who is being assigned right now: the resident being dragged, or the one picked in Residents. */
   private fitId(): number | null {
     if (this.gesture.kind === 'drag' && this.gesture.moved && this.gesture.residentId !== undefined) return this.gesture.residentId;
@@ -1126,13 +1372,19 @@ export class VaultView {
         const r = this.roomRect(room);
         const label = new Text({
           text: `${STAT_LETTERS[stat]}${full ? ' · FULL' : ''}`,
-          style: { fontFamily: 'Work Sans, sans-serif', fontWeight: '700', fontSize: 13, fill: good ? 0x14100d : 0xf4ecd8 },
+          style: { fontFamily: 'Work Sans, sans-serif', fontWeight: '800', fontSize: 12, fill: good ? 0x14100d : 0xf4ecd8 },
+          resolution: 2,
         });
         const bw = label.width + 12;
-        const bx = r.x + r.w - DEPTH_X - 6 - bw;
-        const by = r.y + DEPTH_Y + 20; // under the room's name
-        const bg = new Graphics().roundRect(bx, by, bw, 20, 6).fill({ color: good ? 0x8fc93a : 0x14100d, alpha: good ? 0.95 : 0.8 });
-        label.position.set(bx + 6, by + 2);
+        const bh = 18;
+        // On the room's top edge at the right (at the foot of surface buildings), clear of
+        // the nameplate at the top left and of the ready bubble below it.
+        const bx = r.x + r.w - 6 - bw;
+        const by = isTopside(room) ? r.y + r.h - GROUND_DEPTH - bh - 4 : r.y - 4;
+        const bg = new Graphics().roundRect(bx, by, bw, bh, 6).fill({ color: good ? 0x8fc93a : 0x14100d, alpha: good ? 0.95 : 0.85 });
+        if (!good) bg.roundRect(bx, by, bw, bh, 6).stroke({ width: 1, color: 0xf4ecd8, alpha: 0.35 });
+        label.anchor.set(0, 0.5);
+        label.position.set(bx + 6, by + bh / 2);
         this.fitLayer.addChild(bg, label);
       }
     }
@@ -1414,7 +1666,9 @@ export class VaultView {
   private updateResidents(dt: number): void {
     const { state } = this.game;
     const alive = new Set<number>();
-    const waitingList = state.residents.filter((r) => r.waiting);
+    const crowd = this.crowdLayout();
+    const marks = this.crowdMarks;
+    marks.clear();
     // What each room has its residents doing when they stand still.
     const roomAction = new Map<number, Action>();
     for (const room of state.rooms) if (WORK_ROOMS.has(this.game.content.rooms[room.type]?.category ?? '')) roomAction.set(room.id, 'work');
@@ -1437,7 +1691,10 @@ export class VaultView {
         this.dress(sp, res, child, false, armed);
       }
       const where: ResidentSprite['roomId'] = res.waiting ? 'waiting' : child ? 'child' : res.roomId;
-      const bounds = this.residentBounds(res, waitingList.indexOf(res));
+      const spot = crowd.spots.get(res.id);
+      const bounds = spot ? { min: spot.min, max: spot.max, y: spot.y } : this.residentBounds(res);
+      // Past the cap in a crowd: not drawn (a "+N" tag stands in for them).
+      const hidden = crowd.hidden.has(res.id);
       if (sp.roomId !== where) {
         sp.roomId = where;
         sp.x = bounds.min + (hash(res.id) % 1000) / 1000 * (bounds.max - bounds.min);
@@ -1458,7 +1715,11 @@ export class VaultView {
         sp.phase += dt * 9;
         sp.moving = speed > 0;
       }
-      sp.x = Math.min(bounds.max, Math.max(bounds.min, sp.x));
+      // In the door crowd, a resident whose spot moved walks over to it rather than jumping.
+      if (spot && !res.dead && !hidden && !res.waiting) sp.targetX = Math.min(bounds.max, Math.max(bounds.min, sp.targetX));
+      else sp.x = Math.min(bounds.max, Math.max(bounds.min, sp.x));
+      // The surface queue faces the door.
+      if (res.waiting) sp.facing = 1;
       sp.root.position.set(sp.x, bounds.y);
       const size = child ? 0.62 : 1;
       sp.root.scale.set(sp.facing * size, size);
@@ -1468,7 +1729,15 @@ export class VaultView {
       const flat = res.dead && !sp.figure?.has('fallen');
       sp.pose.rotation = flat ? -Math.PI / 2 : sp.figure ? 0 : Math.sin(sp.phase) * 0.04;
       sp.figure?.play(sp.action, sp.action === 'walk' ? sp.phase / 9 : this.time + (hash(res.id) % 1000) / 250);
-      sp.root.alpha = res.dead ? 0.7 : 1;
+      sp.root.alpha = res.dead ? 0.8 : 1;
+      // The fallen are drained of colour and carry a small marker, so they don't read as napping.
+      sp.pose.tint = res.dead ? 0x9aa0a8 : 0xffffff;
+      if (hidden) sp.root.visible = false;
+      else if (res.dead && sp.root.visible) {
+        // Just above the body, which lies along the floor (drawn flat, or the art's own fallen pose).
+        const mx = flat ? sp.x - sp.facing * SPRITE_H * 0.45 : sp.x;
+        drawFallenMark(marks, mx, bounds.y - 24);
+      }
       const selected = res.id === this.selectedResidentId;
       sp.root.children[0]!.visible = selected;
     }
@@ -1478,6 +1747,90 @@ export class VaultView {
         this.sprites.delete(id);
       }
     }
+    this.setCrowdTag('door', crowd.doorTag);
+    this.setCrowdTag('queue', crowd.queueTag);
+  }
+
+  /**
+   * The door room fills up with idle adults and newcomers, and the surface
+   * queue can run long. Spread both out deterministically: each resident in
+   * the door gets their own stretch of floor to wander in (by id, the selected
+   * resident first), the queue stands in single file on the ground just left
+   * of the door facing it (clear of the surface buildings, which stand over the
+   * door), and past what fits a "+N" tag stands in for the rest.
+   */
+  private crowdLayout(): {
+    spots: Map<number, { min: number; max: number; y: number }>;
+    hidden: Set<number>;
+    doorTag: { x: number; y: number; n: number } | null;
+    queueTag: { x: number; y: number; n: number } | null;
+  } {
+    const { state } = this.game;
+    const spots = new Map<number, { min: number; max: number; y: number }>();
+    const hidden = new Set<number>();
+    let doorTag: { x: number; y: number; n: number } | null = null;
+    let queueTag: { x: number; y: number; n: number } | null = null;
+    const door = state.rooms.find((r) => r.type === 'door');
+    if (!door) return { spots, hidden, doorTag, queueTag };
+    const dr = this.roomRect(door);
+    const sel = this.selectedResidentId;
+    const order = (a: Resident, b: Resident) => (a.id === sel ? -1 : b.id === sel ? 1 : a.id - b.id);
+    // Surface queue.
+    const queue = state.residents.filter((r) => r.waiting && !isAway(r)).sort(order);
+    const qShown = queue.length > QUEUE_CAP ? QUEUE_CAP - 1 : queue.length;
+    // The Warden's Seal monument stands just left of the door: queue beyond it.
+    const qBase = dr.x - 22 - (state.stats['wardensSeal'] ? 52 : 0);
+    const qy = SURFACE_H - GROUND_DEPTH;
+    queue.forEach((r, i) => {
+      if (i >= qShown) hidden.add(r.id);
+      const x = qBase - Math.min(i, qShown) * QUEUE_GAP;
+      spots.set(r.id, { min: x, max: x, y: qy });
+    });
+    if (queue.length > qShown) queueTag = { x: qBase - qShown * QUEUE_GAP, y: qy - 24, n: queue.length - qShown };
+    // The door room: idle adults, and anyone whose room is gone.
+    const ids = new Set(state.rooms.map((r) => r.id));
+    const inDoor = state.residents
+      .filter((r) => !isAway(r) && !r.waiting && (r.roomId === door.id || ((r.roomId === null || !ids.has(r.roomId)) && !isChild(state, r))))
+      .sort(order);
+    if (!inDoor.length) return { spots, hidden, doorTag, queueTag };
+    const min = dr.x + DEPTH_X + 12;
+    const max = dr.x + dr.w - DEPTH_X - 12;
+    const cap = Math.max(2, Math.floor((max - min) / DOOR_SLOT));
+    const shown = inDoor.length > cap ? cap - 1 : inDoor.length;
+    const slots = shown + (inDoor.length > shown ? 1 : 0);
+    const slotW = (max - min) / slots;
+    const half = Math.max(0, Math.min(slotW / 2 - 5, 36));
+    const y = dr.y + dr.h - DEPTH_Y / 2 - 4;
+    inDoor.forEach((r, i) => {
+      const c = min + slotW * (Math.min(i, shown) + 0.5);
+      if (i >= shown) hidden.add(r.id);
+      spots.set(r.id, { min: c - half, max: c + half, y });
+    });
+    if (inDoor.length > shown) doorTag = { x: min + slotW * (shown + 0.5), y: y - 24, n: inDoor.length - shown };
+    return { spots, hidden, doorTag, queueTag };
+  }
+
+  /** Show (or hide) one of the "+N" crowd tags. */
+  private setCrowdTag(key: 'door' | 'queue', tag: { x: number; y: number; n: number } | null): void {
+    let t = this.tags.get(key);
+    if (!tag) {
+      if (t) t.root.visible = false;
+      return;
+    }
+    const text = `+${tag.n}`;
+    if (!t || t.text !== text) {
+      t?.root.destroy({ children: true });
+      const root = new Container();
+      const label = new Text({ text, style: { fontFamily: 'Bungee, sans-serif', fontSize: 14, fill: 0xf4ecd8 }, resolution: 2 });
+      label.anchor.set(0.5);
+      const w = Math.max(30, label.width + 14);
+      root.addChild(new Graphics().roundRect(-w / 2, -12, w, 24, 12).fill({ color: 0x14100d, alpha: 0.85 }).roundRect(-w / 2, -12, w, 24, 12).stroke({ width: 2, color: 0xf2a541, alpha: 0.9 }), label);
+      this.crowdTags.addChild(root);
+      t = { root, text };
+      this.tags.set(key, t);
+    }
+    t.root.visible = true;
+    t.root.position.set(tag.x, tag.y);
   }
 
   /**
@@ -1640,14 +1993,10 @@ export class VaultView {
     return false;
   }
 
-  private residentBounds(res: Resident, waitingIndex: number) {
+  /** Where a resident may wander (the door crowd and the surface queue are laid out in crowdLayout). */
+  private residentBounds(res: Resident) {
     const { state } = this.game;
-    if (res.waiting) {
-      const door = state.rooms.find((r) => r.type === 'door');
-      const base = door ? this.roomRect(door).x + 20 : 20;
-      const x = base + waitingIndex * 30;
-      return { min: x, max: x, y: SURFACE_H - 40 };
-    }
+    if (res.waiting) return { min: -22, max: -22, y: SURFACE_H - GROUND_DEPTH };
     let room = res.roomId !== null ? state.rooms.find((r) => r.id === res.roomId) : undefined;
     if (!room && isChild(state, res)) {
       // Children play in the quarters.
@@ -1901,7 +2250,17 @@ export class VaultView {
   private onEvents(events: GameEvent[]): void {
     const { state } = this.game;
     for (const ev of events) {
-      if (ev.type === 'collected') {
+      if (ev.type === 'roomBuilt') {
+        // Over the slot that was tapped (the new segment may already have merged away).
+        const lb = this.lastBuild;
+        const room = state.rooms.find((r) => r.id === ev.roomId);
+        if (lb && lb.type === ev.roomType) this.pop(lb.x, lb.y, lb.w, lb.h);
+        else if (room) {
+          const r = this.roomRect(room);
+          this.pop(r.x, r.y, r.w, isTopside(room) ? r.h - GROUND_DEPTH + 4 : r.h);
+        }
+        this.lastBuild = null;
+      } else if (ev.type === 'collected') {
         const room = state.rooms.find((r) => r.id === ev.roomId);
         if (!room) continue;
         const r = this.roomRect(room);
@@ -1926,6 +2285,43 @@ export class VaultView {
         }
       }
     }
+  }
+
+  /** A room just went in: play a short construction pop over it (not with reduced motion). */
+  private pop(x: number, y: number, w: number, h: number): void {
+    if (reducedMotion()) return;
+    this.pops.push({ x, y, w, h, t: 0 });
+  }
+
+  /** Flash, a frame that springs out to the room's edges, and dust kicked up off the floor. */
+  private updatePops(dt: number): void {
+    const g = this.popLayer;
+    g.clear();
+    if (!this.pops.length) return;
+    const DUR = 0.45;
+    for (const p of this.pops) {
+      p.t = this.popHold === null ? p.t + dt : this.popHold * DUR;
+      const k = Math.min(1, p.t / DUR);
+      const fade = 1 - k;
+      // Flash fills the room, then fades fast.
+      g.rect(p.x + 3, p.y + 3, p.w - 6, p.h - 6).fill({ color: 0xfff4d8, alpha: 0.55 * fade * fade });
+      // The frame springs from 80% out to the room's edges, overshooting a touch.
+      const c1 = 1.7;
+      const e = 1 + (c1 + 1) * Math.pow(k - 1, 3) + c1 * Math.pow(k - 1, 2);
+      const s = 0.8 + 0.2 * e;
+      const fw = p.w * s;
+      const fh = p.h * s;
+      g.rect(p.x + (p.w - fw) / 2, p.y + (p.h - fh) / 2, fw, fh).stroke({ width: 4, color: 0xf2a541, alpha: 0.9 * fade });
+      // Dust puffs roll out from the floor on both sides.
+      const n = Math.max(6, Math.round(p.w / 22));
+      for (let i = 0; i < n; i++) {
+        const u = (i + 0.5) / n;
+        const px = p.x + u * p.w + (u - 0.5) * 30 * k;
+        const py = p.y + p.h - 8 - 18 * k * (0.6 + 0.4 * ((hash(i + 7) % 100) / 100));
+        g.circle(px, py, 4 + 9 * k).fill({ color: 0xb89a78, alpha: 0.45 * fade });
+      }
+    }
+    this.pops = this.pops.filter((p) => p.t < DUR || this.popHold !== null);
   }
 
   private float(text: string, x: number, y: number, color: number): void {
@@ -2379,6 +2775,14 @@ function drawHeart(g: Graphics, x: number, y: number, s: number): void {
   g.circle(x - s * 0.5, y, s * 0.55).fill(0xe4576e);
   g.circle(x + s * 0.5, y, s * 0.55).fill(0xe4576e);
   g.poly([x - s, y + s * 0.15, x + s, y + s * 0.15, x, y + s * 1.2]).fill(0xe4576e);
+}
+
+/** Over a fallen resident: a small dark disc with a pale red cross (they can be revived). */
+function drawFallenMark(g: Graphics, x: number, y: number): void {
+  g.circle(x, y, 8).fill({ color: 0x14100d, alpha: 0.85 });
+  g.circle(x, y, 8).stroke({ width: 1.5, color: 0xd9645b, alpha: 0.9 });
+  g.rect(x - 1.5, y - 5, 3, 10).fill(0xd9645b);
+  g.rect(x - 5, y - 1.5, 10, 3).fill(0xd9645b);
 }
 
 export function drawResident(g: Graphics, res: Resident, content: Content, child: boolean): void {

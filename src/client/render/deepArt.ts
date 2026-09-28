@@ -126,15 +126,16 @@ export function buildDeepBackground(geo: DeepGeometry, info: DeepBackgroundInfo)
     // The stratum's name, painted in the margin like a survey mark.
     const name = info.names[s] ?? `Stratum ${s}`;
     const [head, tail] = name.includes(':') ? [name.slice(0, name.indexOf(':')), name.slice(name.indexOf(':') + 1).trim()] : [name, ''];
-    const t1 = new Text({ text: head.toUpperCase(), style: { fontFamily: 'Bungee, sans-serif', fontSize: 15, fill: look.ink, letterSpacing: 1 } });
-    t1.alpha = 0.55;
-    t1.position.set(-geo.margin + 10, y0 + 14);
-    const t2 = new Text({ text: tail.toUpperCase(), style: { fontFamily: 'Bungee, sans-serif', fontSize: 10, fill: look.ink, letterSpacing: 1, wordWrap: true, wordWrapWidth: geo.margin - 16 } });
-    t2.alpha = 0.45;
-    t2.position.set(-geo.margin + 10, y0 + 34);
-    const depth = new Text({ text: `FLOORS ${geo.baseFloors + (s - 1) * geo.floorsPerStratum + 1}–${geo.baseFloors + s * geo.floorsPerStratum}`, style: { fontFamily: 'Work Sans, sans-serif', fontWeight: '700', fontSize: 10, fill: look.ink } });
-    depth.alpha = 0.35;
-    depth.position.set(-geo.margin + 10, y0 + 64);
+    // Big enough to read at the zoomed-out overview: the margin is the survey column.
+    const t1 = new Text({ text: head.toUpperCase(), style: { fontFamily: 'Bungee, sans-serif', fontSize: 22, fill: look.ink, letterSpacing: 1 } });
+    t1.alpha = 0.75;
+    t1.position.set(-geo.margin + 10, y0 + 16);
+    const t2 = new Text({ text: tail.toUpperCase(), style: { fontFamily: 'Bungee, sans-serif', fontSize: 14, fill: look.ink, letterSpacing: 1, lineHeight: 18, wordWrap: true, wordWrapWidth: geo.margin - 16 } });
+    t2.alpha = 0.65;
+    t2.position.set(-geo.margin + 10, y0 + 48);
+    const depth = new Text({ text: `FLOORS ${geo.baseFloors + (s - 1) * geo.floorsPerStratum + 1}–${geo.baseFloors + s * geo.floorsPerStratum}`, style: { fontFamily: 'Work Sans, sans-serif', fontWeight: '700', fontSize: 14, fill: look.ink } });
+    depth.alpha = 0.55;
+    depth.position.set(-geo.margin + 10, y0 + 52 + t2.height);
     root.addChild(t1, t2, depth);
   }
 
