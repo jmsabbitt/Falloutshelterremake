@@ -670,8 +670,15 @@ button.pulse { animation: ready 0.6s infinite alternate; }
 .rl-search:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
 .rl-sort { flex: 0 0 auto; width: 132px; }
 .rl-dir { flex: none; width: 40px; padding: 0; font-size: 17px; }
-.rl-filters { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
-.rl-chip { min-height: 40px; padding: 4px 10px; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.rl-filters { display: flex; flex-wrap: nowrap; gap: 6px; margin: 6px -12px 0 0; padding: 0 12px 2px 0; overflow-x: auto; touch-action: pan-x pan-y; scrollbar-width: none; -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 20px), transparent); mask-image: linear-gradient(to right, #000 calc(100% - 20px), transparent); }
+.rl-filters::-webkit-scrollbar { display: none; }
+.rl-chip { flex: none; }
+/* Search, sort and filters stay put while the list scrolls under them. */
+.rl-sticky { position: sticky; top: -10px; z-index: 3; margin: 0 -12px 6px; padding: 6px 12px 6px; background: #141e21; border-bottom: 1px solid #2c4043; box-shadow: 0 6px 8px -6px rgba(0, 0, 0, 0.6); }
+.rl-sticky .rl-bulk { position: static; margin: 6px 0 0; box-shadow: none; }
+.rl-detail.inline { position: absolute; left: 0; right: 0; z-index: 1; }
+.rl-detail > .list-item { margin-bottom: 4px; }
+.rl-chip { min-height: 36px; padding: 4px 10px; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
 .rl-chip .n { font-size: 12px; font-weight: 700; min-width: 20px; padding: 1px 5px; border-radius: 9px; background: #0b1113; color: var(--ink-dim); font-variant-numeric: tabular-nums; }
 .rl-chip.active { background: var(--accent); color: var(--accent-ink); border-color: #c98522; }
 .rl-chip.active .n { background: rgba(0, 0, 0, 0.25); color: var(--accent-ink); }
@@ -705,9 +712,6 @@ button.pulse { animation: ready 0.6s infinite alternate; }
 .rl-room-slots { grid-column: 2; grid-row: 1 / span 2; align-self: center; font-weight: 700; font-variant-numeric: tabular-nums; }
 .rl-room.full { opacity: 0.5; }
 @media (max-width: 640px) {
-  /* One scrolling line of chips on phones, so the list starts higher up. */
-  .rl-filters { flex-wrap: nowrap; overflow-x: auto; touch-action: pan-x pan-y; scrollbar-width: none; margin-right: -12px; padding-right: 12px; }
-  .rl-filters::-webkit-scrollbar { display: none; }
   .rl-sort { width: 118px; }
 }
 
@@ -1322,3 +1326,162 @@ button.pulse { animation: ready 0.6s infinite alternate; }
 @media (pointer: coarse) {
   .legends-section > summary, .seal-missing summary { min-height: 44px; }
 }
+
+/* ---------- UI review pass: storage, gear pickers, room panel, sticky headers ---------- */
+/* Desktop side panels get a little more room (Storage rows, the resident card). */
+@media (min-width: 1001px) and (min-height: 501px) {
+  .panel:not(.panel-wide) { width: min(440px, max(360px, 32vw)); }
+  #ui:has(.panel) .qol-fabs { right: calc(min(440px, max(360px, 32vw)) + 24px); }
+}
+
+/* A row of equal buttons that act as one control (Storage: All / Weapons / Outfits). */
+.segmented { display: flex; gap: 0; margin: 4px 0 6px; border: 1px solid #45625f; border-radius: 8px; overflow: hidden; }
+.segmented button { flex: 1 1 0; min-height: 36px; padding: 4px 6px; border: 0; border-radius: 0; background: #1a2729; font-size: 13px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; white-space: nowrap; }
+.segmented button + button { border-left: 1px solid #45625f; }
+.segmented button.active { background: var(--accent); color: var(--accent-ink); outline: none; }
+.segmented .n { font-size: 12px; font-weight: 700; padding: 0 5px; border-radius: 9px; background: rgba(0, 0, 0, 0.3); font-variant-numeric: tabular-nums; }
+.storage-head { margin-top: 0; }
+.storage-head .close { flex: none; }
+.storage-hint { margin: 0 0 6px; }
+
+/* Item names by rarity: common reads as plain ink, rare silver-blue, legendary gold. */
+.item-title { font-weight: 700; }
+.item-title.r-common { color: var(--ink); }
+.item-title.r-rare { color: #9fd3ff; }
+.item-title.r-legendary { color: var(--legendary); }
+.item-title .mark { font-size: 12px; }
+.item-title .count { color: var(--ink-dim); font-weight: 700; font-variant-numeric: tabular-nums; }
+.item-row { padding: 0; cursor: default; }
+.item-row.r-rare { border-left: 3px solid rgba(159, 211, 255, 0.55); }
+.item-row.r-legendary { border-left: 3px solid var(--legendary); }
+.item-line { display: flex; align-items: center; gap: 6px; padding: 6px 8px; min-height: 48px; cursor: pointer; border-radius: 8px; }
+.item-line:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.item-line .item-icon.small { flex: none; margin-right: 0; }
+.item-line .item-main { flex: 1 1 auto; gap: 1px; }
+.item-line .item-title { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.item-stats { font-size: 12px; color: var(--ink-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-variant-numeric: tabular-nums; }
+.item-line .equip-btn { flex: none; }
+.item-more { flex: none; width: 16px; text-align: center; color: var(--ink-dim); font-size: 12px; }
+.item-line .check { margin-left: auto; }
+.item-drawer { padding: 0 8px 8px 50px; display: flex; flex-direction: column; gap: 4px; }
+.item-drawer-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+.item-drawer-actions button { font-size: 13px; font-weight: 600; background: transparent; }
+
+/* Gear pickers (modal over the resident card or storage). */
+.gear-modal { width: min(460px, calc(100vw - 24px)); display: flex; flex-direction: column; }
+.gear-current { display: flex; align-items: center; flex-wrap: wrap; gap: 2px 6px; padding: 6px 8px; border-radius: 8px; background: #0b1113; font-size: 13px; }
+.gear-current .item-icon.small { margin-right: 0; }
+.gear-list { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; overflow: auto; min-height: 0; }
+.gear-option { display: flex; align-items: center; gap: 8px; text-align: left; font-weight: 400; min-height: 52px; padding: 6px 10px; }
+.gear-option .item-icon.small { flex: none; margin-right: 0; }
+.gear-option.worse { opacity: 0.7; }
+.gear-main { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.gear-main .item-title, .gear-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.gear-sub { font-size: 12px; color: var(--ink-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.gear-deltas { flex: none; display: flex; flex-direction: column; align-items: flex-end; gap: 2px; max-width: 45%; }
+.delta { font-size: 12px; font-weight: 700; padding: 1px 6px; border-radius: 9px; background: #0b1113; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.delta.up { color: var(--ok); }
+.delta.down { color: #ff8a6a; }
+.delta.same { color: var(--ink-dim); }
+
+/* Research and Legacy: their sticky tops cover what scrolls under them (the body has 10 px of padding above). */
+.panel .body.research-body, .panel .body.legacy-body { padding-top: 0; }
+.research-top, .legacy-top { top: 0; background: #141e21; box-shadow: 0 6px 8px -6px rgba(0, 0, 0, 0.7); margin-left: -12px; margin-right: -12px; padding-left: 12px; padding-right: 12px; }
+
+/* Room panel: actions under the numbers, crew as slots, the upgrade with what it brings, Demolish apart at the bottom. */
+.room-actions { justify-content: flex-start; flex-wrap: wrap; margin: 8px 0 4px; }
+.crew-head { margin-top: 12px; }
+.crew-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 6px; margin-bottom: 4px; }
+.crew-slot { display: flex; align-items: center; gap: 6px; min-height: 52px; padding: 4px 4px 4px 8px; border-radius: 8px; min-width: 0; }
+.crew-slot.filled { background: #1a2729; border: 1px solid #33484a; }
+.crew-slot.empty { border: 1px dashed #45625f; justify-content: center; }
+.crew-main { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.crew-name { font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.crew-sub { font-size: 12px; color: var(--ink-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.crew-sub b { color: var(--ink); font-variant-numeric: tabular-nums; }
+.crew-sub .fit { font-size: 12px; }
+.crew-remove { flex: none; width: 36px; padding: 0; color: var(--ink-dim); }
+.upgrade-box { margin: 12px 0 0; padding: 8px 10px; border-radius: 8px; background: #152124; border: 1px solid #33484a; }
+.upgrade-box.maxed { background: transparent; border-style: dashed; }
+.upgrade-gains { display: flex; flex-direction: column; gap: 2px; }
+.gain { display: flex; justify-content: space-between; gap: 8px; font-size: 13px; }
+.gain-vals { white-space: nowrap; font-variant-numeric: tabular-nums; }
+.gain-vals .from { color: var(--ink-dim); }
+.gain-vals .to { color: var(--ok); }
+.room-danger { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 18px 0 calc(4px + var(--safe-bottom, 0px)); padding-top: 10px; border-top: 1px dashed #45625f; }
+.room-danger .danger { flex: none; }
+
+/* Workshop recipes: the item's art and rarity, needs as "need 2 · have 30", time beside Craft. */
+.recipe-head { display: flex; align-items: center; gap: 6px; }
+.recipe-head .item-icon.small { flex: none; margin-right: 0; }
+.recipe-title { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.recipe-title .item-title { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cost .need { color: var(--ink-dim); }
+.cost.short .need { color: #ff8a6a; font-weight: 700; }
+.recipe-foot { margin-bottom: 0; }
+.recipe-go { display: flex; align-items: center; gap: 8px; flex: none; margin-left: auto; }
+.row.gear .gear-what { min-width: 0; }
+/* A panel is open: at most two toasts show (the newest), so they don't cover the vault or the panel. */
+#ui:has(.panel-host > .panel:not(.sheet-bar)) .toasts > .toast:nth-child(n + 3) { display: none; }
+
+/* Modals are opaque: nothing behind them reads through (the crate reveal's empty grid cell). */
+.modal { background: #141e21; }
+@media (max-width: 640px) {
+  /* Five cards on a three-column grid: the last two sit centred rather than leaving a hole. */
+  .cards { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+  .cards > .crate-card { grid-column: span 2; }
+  .cards > .crate-card:nth-last-child(2):nth-child(3n + 1) { grid-column: 2 / span 2; }
+}
+
+/* Clamped flavour text: tap it (or its "more") to read it all. */
+.clamp.clamped { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden; }
+.clamp.clamped .halcy-face { width: 34px; height: 34px; margin-bottom: 0; }
+.clamp-wrap { display: flex; align-items: flex-end; gap: 6px; margin: 5px 0; cursor: pointer; border-radius: 6px; }
+.clamp-wrap:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.clamp-wrap > .clamp { flex: 1 1 auto; min-width: 0; margin: 0; }
+.clamp-more { flex: none; font-size: 12px; font-weight: 700; color: var(--teal); white-space: nowrap; padding-bottom: 1px; }
+.clamp-wrap:hover .clamp-more { text-decoration: underline; }
+
+/* Quests: locked ones fold to a single line; Abandon stays well away from View. */
+.quest-locked-line { display: flex; align-items: center; gap: 8px; padding: 6px 8px; cursor: default; }
+.quest-locked-line .ql-title { flex: none; max-width: 50%; font-weight: 700; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--ink-dim); }
+.quest-locked-line .ql-why { flex: 1 1 auto; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.quest-locked-line .lvl { flex: none; }
+.quest-actions .quest-abandon { margin-left: auto; }
+
+/* Menu: section heads, the danger zone apart at the bottom, then a small version line. */
+h3.group.menu-head { font-family: var(--display); font-weight: 400; font-size: 15px; letter-spacing: 0.02em; text-transform: none; color: var(--accent); margin: 18px 0 4px; }
+.menu-danger { margin-top: 18px; padding: 8px 10px; border: 1px dashed rgba(228, 87, 46, 0.6); border-radius: 8px; }
+.menu-danger h3.group.menu-head { margin: 0 0 4px; color: #ff8a6a; }
+.menu-danger .danger { flex: none; }
+.menu-version { margin: 16px 0 4px; opacity: 0.8; }
+
+/* Toolbar: the open panel's button is filled; Build is a normal button unless it is open. */
+.toolbar button.active { background: var(--accent); color: var(--accent-ink); border-color: #c98522; outline: none; }
+.toolbar .research-btn.active, .toolbar .factions-btn.active, .toolbar .legacy-btn.active { color: var(--accent-ink); }
+.toolbar button .tb-icon, .toolbar button .tb-cap { display: block; line-height: 1; }
+.toolbar button .tb-cap { font-size: 12px; font-weight: 600; margin-top: 3px; letter-spacing: -0.01em; white-space: nowrap; }
+.toolbar button.captioned { display: flex; flex-direction: column; align-items: center; justify-content: center; }
+@media (max-width: 640px) {
+  /* Residents on phones: the counts live on the chips and the Auto-assign button, so the list starts higher. */
+  .rl-top { margin-bottom: 4px; }
+  .rl-top > .muted { display: none; }
+  .rl-body .legends-section { margin: 0 0 4px; padding: 0 8px; }
+}
+@media (max-height: 500px) and (orientation: landscape) {
+  /* On its side the toolbar shares the width with the docked panel: icons only, as before. */
+  .toolbar button .tb-cap { display: none; }
+  .toolbar button.captioned { font-size: 18px; }
+}
+/* Item names ellipsize, but a stack's ×N always shows. */
+.item-title { display: inline-flex; align-items: baseline; max-width: 100%; min-width: 0; }
+.item-title .nm { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.item-title .mark, .item-title .count { flex: none; white-space: pre; }
+.gear-current .item-title { flex: 0 1 auto; }
+@media (max-width: 640px) {
+  .item-drawer { padding-left: 8px; }
+  .storage-head .storage-more { display: none; }
+}
+.row.gear .gear-what .item-title { display: inline; }
+.row.gear .gear-what .item-title .nm { white-space: normal; }
+.row.gear .gear-what .item-stats { white-space: nowrap; }

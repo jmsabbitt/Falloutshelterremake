@@ -2,6 +2,7 @@
 // active quests), the party picker, the Command Office's room section, the
 // HUD chip and the quest toasts. Hooked into ui.ts with a few small calls.
 
+import { clamped } from './clamp';
 import { halcyFace } from './halcy';
 import { haptic } from '../platform';
 import {
@@ -192,12 +193,13 @@ export class QuestUI {
     if (q.status === 'returned') actions.push(h('button', { class: 'primary', onclick: () => this.cmd({ type: 'collectQuest', questId: q.id }) }, 'Collect'));
     if (q.status === 'onsite') actions.push(h('button', { class: `primary${fight ? ' pulse' : ''}`, onclick: () => this.open(q.id) }, fight ? '⚔ Open: fight!' : 'Open'));
     if (q.status === 'travelling' || q.status === 'returning') actions.push(h('button', { onclick: () => this.open(q.id) }, 'View'));
+    // Abandon sits apart from View and Open, at the far end, so a tap meant for one never hits the other.
     if (q.status === 'onsite' || q.status === 'travelling') {
       actions.push(
         h(
           'button',
           {
-            class: 'danger',
+            class: 'danger close quest-abandon',
             onclick: () =>
               ask({ title: `Abandon ${q.title}?`, text: 'The party keeps what it found but gets no reward.', ok: 'Abandon', danger: true }, () => this.cmd({ type: 'abandonQuest', questId: q.id })),
           },
@@ -216,7 +218,7 @@ export class QuestUI {
         { class: 'party-line' },
         ...party.map((r) => h('span', { class: `loot-chip${r.dead ? ' none' : ''}` }, `${r.dead ? '☠ ' : ''}${r.firstName} ${Math.ceil(Math.max(0, r.hp))}/${Math.ceil(effectiveMaxHp(r))}`)),
       ),
-      h('div', { class: 'row', style: 'justify-content:flex-start;flex-wrap:wrap;margin-bottom:0' }, ...actions),
+      h('div', { class: 'row quest-actions', style: 'justify-content:flex-start;flex-wrap:wrap;margin-bottom:0' }, ...actions),
     );
   }
 
@@ -282,11 +284,22 @@ export class QuestUI {
       );
     }
     const available = locked === null;
+    // Locked quests fold to one line: the name and what stands in the way.
+    if (!available && !active) {
+      const why = this.lockText(d, locked);
+      return h(
+        'div',
+        { class: 'list-item quest-card locked quest-locked-line', title: `${d.title}: locked, ${why}` },
+        h('span', { class: 'ql-title' }, `🔒 ${d.title}`),
+        h('span', { class: 'ql-why small short' }, why),
+        h('span', { class: `lvl ${this.levelClass(d.level)}` }, `L${d.level}`),
+      );
+    }
     return h(
       'div',
-      { class: `list-item quest-card${available ? ' available' : ''}${active ? ' active' : ''}${!available && !active ? ' locked' : ''}` },
-      h('div', { class: 'row', style: 'margin:0' }, h('b', {}, available || active ? d.title : `🔒 ${d.title}`), h('span', { class: `lvl ${this.levelClass(d.level)}` }, `Rec. L${d.level}`)),
-      h('div', { class: 'brief' }, d.giver === 'HALCY' ? halcyFace('smile') : null, h('span', { class: 'giver' }, `${d.giver}: `), d.brief),
+      { class: `list-item quest-card${available ? ' available' : ''}${active ? ' active' : ''}` },
+      h('div', { class: 'row', style: 'margin:0' }, h('b', {}, d.title), h('span', { class: `lvl ${this.levelClass(d.level)}` }, `Rec. L${d.level}`)),
+      clamped(`quest:${d.id}`, d.brief.length + d.giver.length, () => this.host.refreshPanel(), 'brief', d.giver === 'HALCY' ? halcyFace('smile') : null, h('span', { class: 'giver' }, `${d.giver}: `), d.brief),
       h('div', { class: 'muted small' }, `Travel ${duration(d.travelMinutes * 60)} each way${d.partyMin && d.partyMin > 1 ? ` · party of ${d.partyMin}+` : ''}`),
       h('div', { class: 'loot-line' }, ...rewardChips(content, d.rewards), ...this.m9Chips(d)),
       active
@@ -355,7 +368,7 @@ export class QuestUI {
       { class: 'list-item quest-card contract' },
       h('div', { class: 'row', style: 'margin:0' }, h('b', {}, o.title), h('span', { class: `lvl ${this.levelClass(o.level)}` }, `L${o.level}`)),
       bountyView(content, state, o.bounty),
-      h('div', { class: 'brief' }, o.brief),
+      clamped(`contract:${o.id}`, o.brief.length, () => this.host.refreshPanel(), 'brief', o.brief),
       h('div', { class: 'muted small' }, `Travel ${duration(o.travelSeconds)} each way · expires in ${duration(Math.max(0, o.expiresAt - state.time))}`),
       h('div', { class: 'row', style: 'justify-content:flex-end;margin-bottom:0' }, h('button', { class: 'primary', disabled: !free, onclick: () => this.showPicker({ contractId: o.id }) }, free ? 'Take contract' : 'No free slot')),
     );

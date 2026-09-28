@@ -24,7 +24,8 @@ export type ToastFn = (text: string, kind?: ToastKind, opts?: ToastOptions) => v
 
 const MAX = 3;
 /** Phones and short landscape screens show fewer at once, so they don't bury the vault. */
-const maxToasts = (): number => (window.innerWidth < 600 || window.innerHeight < 500 ? 2 : MAX);
+/** With a panel open, two at most on every screen: the panel already takes much of the view. */
+const maxToasts = (): number => (window.innerWidth < 600 || window.innerHeight < 500 || document.querySelector('.panel-host > .panel:not(.sheet-bar)') ? 2 : MAX);
 const LIFE = { low: 3500, normal: 4200, warn: 6500 };
 
 interface Open {

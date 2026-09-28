@@ -46,6 +46,8 @@ export interface ResidentListHost {
 const PITCH = 60;
 /** Extra rows built above and below the visible window. */
 const OVERSCAN = 6;
+/** Space kept under the open card before the next row. */
+const CARD_GAP = 4;
 
 const SORTS: { key: SortKey; label: string }[] = [
   { key: 'level', label: 'Level' },
@@ -88,6 +90,11 @@ export class ResidentList {
   bulk = false;
   picked = new Set<number>();
   private scrollQueued = false;
+  private measureQueued = false;
+  /** A reveal (scroll to the card) is waiting on the card's measured height. */
+  private revealQueued = false;
+  /** Height of the open card plus its gap, measured after each render. */
+  private cardH = 340;
   /** M9: a section shown above the controls (the Legends strip, from ui/legends.ts). */
   extra: (() => HTMLElement | null) | null = null;
 
@@ -218,7 +225,7 @@ export class ResidentList {
             title: 'Put idle adults into the free jobs that suit their stats best',
             onclick: () => this.autoAssign(),
           },
-          `⚙ Auto-assign idle${idle ? ` (${idle})` : ''}`,
+          `⚙ Auto-assign${idle ? ` (${idle})` : ''}`,
         ),
         h(
           'button',
@@ -280,8 +287,9 @@ export class ResidentList {
     const controls = h('div', { class: 'rl-controls' }, search, sortSel, dirBtn);
     const chips = h(
       'div',
-      { class: 'rl-filters', role: 'tablist' },
-      ...FILTERS.map((f) => {
+      { class: 'rl-filters', role: 'tablist', 'aria-label': 'Filter residents' },
+      // Empty filters are hidden (All always shows, and so does the one in use).
+      ...FILTERS.filter((f) => f.key === 'all' || f.key === this.filter || (counts.get(f.key) ?? 0) > 0).map((f) => {
         const n = counts.get(f.key) ?? 0;
         return h(
           'button',
@@ -302,18 +310,39 @@ export class ResidentList {
     );
 
     const selected = !this.bulk ? state.residents.find((r) => r.id === this.host.selectedId() && !r.waiting) : undefined;
+    // The picked resident's card opens in place of their row, so the rest of the list follows it.
+    // Someone the filter or search hides gets their card above the list instead.
+    const selIdx = selected ? rows.findIndex((x) => x.r.id === selected.id) : -1;
+    const card = selected ? h('div', { class: `rl-detail${selIdx >= 0 ? ' inline' : ''}` }, this.host.detailCard(selected)) : null;
     const body = h(
       'div',
       { class: 'body rl-body', onscroll: () => this.onScroll() },
       top,
       this.bulk ? null : (this.extra?.() ?? null),
-      controls,
-      chips,
-      this.bulk ? this.bulkBar(rows) : null,
-      selected ? this.host.detailCard(selected) : null,
-      rows.length ? this.list(rows) : this.empty(),
+      h('div', { class: 'rl-sticky' }, controls, chips, this.bulk ? this.bulkBar(rows) : null),
+      card && selIdx < 0 ? card : null,
+      rows.length ? this.list(rows, selIdx, selIdx >= 0 ? card : null) : this.empty(),
     );
+    if (card && selIdx >= 0) this.queueMeasure();
     return body;
+  }
+
+  /** After a render with an open card: if its real height differs from the space left for it, lay out again. */
+  private queueMeasure(): void {
+    if (this.measureQueued) return;
+    this.measureQueued = true;
+    requestAnimationFrame(() => {
+      this.measureQueued = false;
+      const el = document.querySelector<HTMLElement>('.panel .rl-detail.inline');
+      if (!el) return;
+      const hgt = el.offsetHeight + CARD_GAP;
+      if (Math.abs(hgt - this.cardH) > 1) {
+        this.cardH = hgt;
+        this.host.refresh();
+        if (this.revealQueued) this.toTop();
+      }
+      this.revealQueued = false;
+    });
   }
 
   /** Nobody matches: say which filter and search are hiding everyone, with a way out. */
@@ -343,27 +372,41 @@ export class ResidentList {
     );
   }
 
-  /** The windowed list: a tall box with only the rows in view placed inside it. */
-  private list(rows: RowInfo[]): HTMLElement {
-    const [from, to] = this.window(rows.length);
-    const el = h('div', { class: 'rl-list', style: `height:${rows.length * PITCH}px` });
+  /** The windowed list: a tall box with only the rows in view placed inside it (and the open card, if any). */
+  private list(rows: RowInfo[], selIdx: number, card: HTMLElement | null): HTMLElement {
+    const extra = card ? this.cardH - PITCH : 0;
+    const [from, to] = this.window(rows.length, selIdx, extra);
+    const el = h('div', { class: 'rl-list', style: `height:${rows.length * PITCH + extra}px` });
+    // The card always comes first in the DOM (it is placed absolutely), so re-renders while
+    // scrolling patch the same nodes and a tap on its buttons never lands on a swapped element.
+    // It is built even when scrolled out of the window, so its height stays known.
+    if (card) {
+      card.style.top = `${selIdx * PITCH}px`;
+      el.append(card);
+    }
     for (let i = from; i < to; i++) {
       const x = rows[i];
-      if (x) el.append(this.row(x, i));
+      if (!x || (i === selIdx && card)) continue;
+      el.append(this.row(x, i, i > selIdx && card ? extra : 0));
     }
     return el;
   }
 
   /** Which rows are in view, from the live scroller of the last render. */
-  private window(n: number): [number, number] {
+  private window(n: number, selIdx: number, extra: number): [number, number] {
     const body = document.querySelector<HTMLElement>('.panel .rl-body');
     const list = body?.querySelector<HTMLElement>('.rl-list');
-    if (!body || !list) return [0, Math.min(n, 16 + OVERSCAN)];
+    if (!body || !list) return [0, Math.min(n, Math.max(16, selIdx + 8) + OVERSCAN)];
     const listTop = list.getBoundingClientRect().top - body.getBoundingClientRect().top + body.scrollTop;
-    const first = Math.floor((body.scrollTop - listTop) / PITCH);
-    const count = Math.ceil(body.clientHeight / PITCH) + 1;
-    const from = Math.max(0, first - OVERSCAN);
-    return [from, Math.min(n, Math.max(from, first) + count + OVERSCAN)];
+    // Pixels in the list to a row index, allowing for the open card's extra height.
+    const at = (px: number): number => {
+      if (selIdx < 0 || px <= (selIdx + 1) * PITCH) return Math.floor(px / PITCH);
+      return Math.max(selIdx + 1, Math.floor((px - extra) / PITCH));
+    };
+    const y = body.scrollTop - listTop;
+    const from = Math.max(0, at(y) - OVERSCAN);
+    const to = Math.min(n, at(y + body.clientHeight) + 1 + OVERSCAN);
+    return [from, Math.max(from, to)];
   }
 
   private onScroll(): void {
@@ -375,12 +418,26 @@ export class ResidentList {
     });
   }
 
-  /** Scroll back to the top, where the picked resident's card sits. */
+  /** Scroll to where the picked resident's card sits: in its place in the list, or the top. */
   toTop(): void {
-    document.querySelector('.panel .rl-body')?.scrollTo(0, 0);
+    const body = document.querySelector<HTMLElement>('.panel .rl-body');
+    if (!body) return;
+    const card = body.querySelector<HTMLElement>('.rl-detail.inline');
+    if (!card) {
+      body.scrollTo(0, 0);
+      return;
+    }
+    this.revealQueued = true;
+    const sticky = body.querySelector<HTMLElement>('.rl-sticky')?.offsetHeight ?? 0;
+    const cardTop = card.getBoundingClientRect().top - body.getBoundingClientRect().top + body.scrollTop;
+    const view = body.clientHeight - sticky;
+    // Already fully in view: leave the scroll alone.
+    const rel = cardTop - body.scrollTop - sticky;
+    if (rel >= 0 && rel + card.offsetHeight <= view) return;
+    body.scrollTo(0, Math.max(0, cardTop - sticky - 6));
   }
 
-  private row(x: RowInfo, i: number): HTMLElement {
+  private row(x: RowInfo, i: number, shift = 0): HTMLElement {
     const { content } = this.game;
     const r = x.r;
     const picked = this.picked.has(r.id);
@@ -405,7 +462,7 @@ export class ResidentList {
       'div',
       {
         class: `rl-row${picked ? ' picked' : ''}${single ? ' selected' : ''}${r.dead ? ' dead' : ''}${x.away ? ' away' : ''}`,
-        style: `top:${i * PITCH}px`,
+        style: `top:${i * PITCH + shift}px`,
         role: this.bulk ? 'checkbox' : 'button',
         'aria-checked': this.bulk ? (picked ? 'true' : 'false') : undefined,
         'data-id': r.id,
@@ -417,6 +474,8 @@ export class ResidentList {
             else this.picked.add(r.id);
           } else this.host.select(single ? null : r.id);
           this.host.refresh();
+          // The card opened in the row's place: make sure all of it is in view.
+          if (!this.bulk && !single) this.toTop();
         },
       },
       this.bulk ? h('span', { class: `rl-check${picked ? ' on' : ''}` }, picked ? '✓' : '') : null,
