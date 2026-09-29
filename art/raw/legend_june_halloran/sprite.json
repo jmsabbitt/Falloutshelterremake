@@ -76,6 +76,16 @@
       "fps": 10,
       "split": "figures",
       "fitHeight": false
+    },
+    "fight_extinguish": {
+      "file": "fight_extinguish.png",
+      "fps": 10,
+      "split": "figures"
+    },
+    "fight_repair": {
+      "file": "fight_repair.png",
+      "fps": 10,
+      "split": "figures"
     }
   }
 }
