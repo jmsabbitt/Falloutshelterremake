@@ -1,0 +1,14 @@
+{
+  "id": "fx_fire",
+  "kind": "creature",
+  "background": "green",
+  "targetHeight": 72,
+  "referenceAnim": "idle",
+  "anims": {
+    "idle": {
+      "file": "idle.png",
+      "fps": 10,
+      "split": "figures"
+    }
+  }
+}

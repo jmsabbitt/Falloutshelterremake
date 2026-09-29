@@ -1,0 +1,32 @@
+{
+  "id": "fx_beacon",
+  "kind": "portrait",
+  "background": "magenta",
+  "outDir": "fx",
+  "prefix": "beacon_",
+  "fit": 128,
+  "targetHeight": 128,
+  "anims": {
+    "beacon": {
+      "file": "beacon.png",
+      "names": [
+        "off",
+        "on"
+      ],
+      "boxes": [
+        [
+          0,
+          0,
+          1032,
+          1024
+        ],
+        [
+          3096,
+          0,
+          4128,
+          1024
+        ]
+      ]
+    }
+  }
+}

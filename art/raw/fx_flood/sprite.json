@@ -1,0 +1,17 @@
+{
+  "id": "fx_flood",
+  "kind": "portrait",
+  "background": "magenta",
+  "outDir": "fx",
+  "prefix": "",
+  "targetHeight": 256,
+  "anims": {
+    "pipe": {
+      "file": "pipe.png",
+      "whole": true,
+      "names": [
+        "pipe"
+      ]
+    }
+  }
+}

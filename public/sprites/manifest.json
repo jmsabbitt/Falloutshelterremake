@@ -106,6 +106,125 @@
             "hair": "resident_f/carry_hair.webp",
             "trim": "resident_f/carry_trim.webp"
           }
+        },
+        "fight_pistol": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 100,
+          "frameH": 132,
+          "anchorX": 0.3736,
+          "anchorY": 1.0,
+          "files": {
+            "base": "resident_f/fight_pistol_base.webp",
+            "suit": "resident_f/fight_pistol_suit.webp",
+            "skin": "resident_f/fight_pistol_skin.webp",
+            "hair": "resident_f/fight_pistol_hair.webp",
+            "trim": "resident_f/fight_pistol_trim.webp"
+          }
+        },
+        "fight_longgun": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 116,
+          "frameH": 132,
+          "anchorX": 0.2971,
+          "anchorY": 1.0,
+          "files": {
+            "base": "resident_f/fight_longgun_base.webp",
+            "suit": "resident_f/fight_longgun_suit.webp",
+            "skin": "resident_f/fight_longgun_skin.webp",
+            "hair": "resident_f/fight_longgun_hair.webp",
+            "trim": "resident_f/fight_longgun_trim.webp"
+          }
+        },
+        "fight_melee": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 149,
+          "frameH": 156,
+          "anchorX": 0.334,
+          "anchorY": 1.0,
+          "files": {
+            "base": "resident_f/fight_melee_base.webp",
+            "suit": "resident_f/fight_melee_suit.webp",
+            "skin": "resident_f/fight_melee_skin.webp",
+            "hair": "resident_f/fight_melee_hair.webp",
+            "trim": "resident_f/fight_melee_trim.webp"
+          }
+        },
+        "fight_unarmed": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 93,
+          "frameH": 134,
+          "anchorX": 0.4041,
+          "anchorY": 1.0,
+          "files": {
+            "base": "resident_f/fight_unarmed_base.webp",
+            "suit": "resident_f/fight_unarmed_suit.webp",
+            "skin": "resident_f/fight_unarmed_skin.webp",
+            "hair": "resident_f/fight_unarmed_hair.webp",
+            "trim": "resident_f/fight_unarmed_trim.webp"
+          }
+        },
+        "fight_heavy": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 118,
+          "frameH": 133,
+          "anchorX": 0.2712,
+          "anchorY": 1.0,
+          "files": {
+            "base": "resident_f/fight_heavy_base.webp",
+            "suit": "resident_f/fight_heavy_suit.webp",
+            "skin": "resident_f/fight_heavy_skin.webp",
+            "hair": "resident_f/fight_heavy_hair.webp",
+            "trim": "resident_f/fight_heavy_trim.webp"
+          }
+        },
+        "fight_extinguish": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 127,
+          "frameH": 133,
+          "anchorX": 0.2805,
+          "anchorY": 1.0,
+          "files": {
+            "base": "resident_f/fight_extinguish_base.webp",
+            "suit": "resident_f/fight_extinguish_suit.webp",
+            "skin": "resident_f/fight_extinguish_skin.webp",
+            "hair": "resident_f/fight_extinguish_hair.webp",
+            "trim": "resident_f/fight_extinguish_trim.webp"
+          }
+        },
+        "fight_repair": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 127,
+          "frameH": 144,
+          "anchorX": 0.3142,
+          "anchorY": 1.0,
+          "files": {
+            "base": "resident_f/fight_repair_base.webp",
+            "suit": "resident_f/fight_repair_suit.webp",
+            "skin": "resident_f/fight_repair_skin.webp",
+            "hair": "resident_f/fight_repair_hair.webp",
+            "trim": "resident_f/fight_repair_trim.webp"
+          }
         }
       }
     },
@@ -213,6 +332,125 @@
             "skin": "resident_m/carry_skin.webp",
             "hair": "resident_m/carry_hair.webp",
             "trim": "resident_m/carry_trim.webp"
+          }
+        },
+        "fight_pistol": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 106,
+          "frameH": 131,
+          "anchorX": 0.3835,
+          "anchorY": 1.0,
+          "files": {
+            "base": "resident_m/fight_pistol_base.webp",
+            "suit": "resident_m/fight_pistol_suit.webp",
+            "skin": "resident_m/fight_pistol_skin.webp",
+            "hair": "resident_m/fight_pistol_hair.webp",
+            "trim": "resident_m/fight_pistol_trim.webp"
+          }
+        },
+        "fight_longgun": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 120,
+          "frameH": 134,
+          "anchorX": 0.295,
+          "anchorY": 1.0,
+          "files": {
+            "base": "resident_m/fight_longgun_base.webp",
+            "suit": "resident_m/fight_longgun_suit.webp",
+            "skin": "resident_m/fight_longgun_skin.webp",
+            "hair": "resident_m/fight_longgun_hair.webp",
+            "trim": "resident_m/fight_longgun_trim.webp"
+          }
+        },
+        "fight_melee": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 107,
+          "frameH": 132,
+          "anchorX": 0.4817,
+          "anchorY": 1.0,
+          "files": {
+            "base": "resident_m/fight_melee_base.webp",
+            "suit": "resident_m/fight_melee_suit.webp",
+            "skin": "resident_m/fight_melee_skin.webp",
+            "hair": "resident_m/fight_melee_hair.webp",
+            "trim": "resident_m/fight_melee_trim.webp"
+          }
+        },
+        "fight_unarmed": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 96,
+          "frameH": 131,
+          "anchorX": 0.3965,
+          "anchorY": 1.0,
+          "files": {
+            "base": "resident_m/fight_unarmed_base.webp",
+            "suit": "resident_m/fight_unarmed_suit.webp",
+            "skin": "resident_m/fight_unarmed_skin.webp",
+            "hair": "resident_m/fight_unarmed_hair.webp",
+            "trim": "resident_m/fight_unarmed_trim.webp"
+          }
+        },
+        "fight_heavy": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 125,
+          "frameH": 132,
+          "anchorX": 0.2669,
+          "anchorY": 1.0,
+          "files": {
+            "base": "resident_m/fight_heavy_base.webp",
+            "suit": "resident_m/fight_heavy_suit.webp",
+            "skin": "resident_m/fight_heavy_skin.webp",
+            "hair": "resident_m/fight_heavy_hair.webp",
+            "trim": "resident_m/fight_heavy_trim.webp"
+          }
+        },
+        "fight_extinguish": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 109,
+          "frameH": 132,
+          "anchorX": 0.4616,
+          "anchorY": 1.0,
+          "files": {
+            "base": "resident_m/fight_extinguish_base.webp",
+            "suit": "resident_m/fight_extinguish_suit.webp",
+            "skin": "resident_m/fight_extinguish_skin.webp",
+            "hair": "resident_m/fight_extinguish_hair.webp",
+            "trim": "resident_m/fight_extinguish_trim.webp"
+          }
+        },
+        "fight_repair": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 114,
+          "frameH": 132,
+          "anchorX": 0.469,
+          "anchorY": 1.0,
+          "files": {
+            "base": "resident_m/fight_repair_base.webp",
+            "suit": "resident_m/fight_repair_suit.webp",
+            "skin": "resident_m/fight_repair_skin.webp",
+            "hair": "resident_m/fight_repair_hair.webp",
+            "trim": "resident_m/fight_repair_trim.webp"
           }
         }
       }
@@ -879,6 +1117,24 @@
         }
       }
     },
+    "dig_drill": {
+      "refHeight": 128,
+      "anims": {
+        "idle": {
+          "frames": 4,
+          "fps": 12,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 109,
+          "frameH": 131,
+          "anchorX": 0.4529,
+          "anchorY": 1.0,
+          "files": {
+            "full": "dig_drill/idle_full.webp"
+          }
+        }
+      }
+    },
     "director_hale": {
       "refHeight": 160,
       "anims": {
@@ -1007,6 +1263,42 @@
           "anchorY": 1.0,
           "files": {
             "full": "foreman_crank/death_full.webp"
+          }
+        }
+      }
+    },
+    "fx_fire": {
+      "refHeight": 72,
+      "anims": {
+        "idle": {
+          "frames": 7,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 63,
+          "frameH": 75,
+          "anchorX": 0.5096,
+          "anchorY": 1.0,
+          "files": {
+            "full": "fx_fire/idle_full.webp"
+          }
+        }
+      }
+    },
+    "fx_surge": {
+      "refHeight": 128,
+      "anims": {
+        "idle": {
+          "frames": 6,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 72,
+          "frameH": 156,
+          "anchorX": 0.477,
+          "anchorY": 1.0,
+          "files": {
+            "full": "fx_surge/idle_full.webp"
           }
         }
       }
@@ -1711,6 +2003,19 @@
           "anchorY": 1.0,
           "files": {
             "full": "mauler/death_full.webp"
+          }
+        },
+        "walk": {
+          "frames": 8,
+          "fps": 8,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 153,
+          "frameH": 169,
+          "anchorX": 0.5063,
+          "anchorY": 1.0,
+          "files": {
+            "full": "mauler/walk_full.webp"
           }
         }
       }
@@ -3873,6 +4178,48 @@
     }
   },
   "portraits": {
+    "app": {
+      "icon": "app/icon.webp",
+      "splash": "app/splash.webp"
+    },
+    "arrival": {
+      "arrival": "portraits/arrival.webp"
+    },
+    "backdrop": {
+      "surface": "backdrop/surface.webp",
+      "crust": "backdrop/crust.webp",
+      "dirt": "backdrop/dirt.webp",
+      "stratum1": "backdrop/stratum1.webp",
+      "stratum2": "backdrop/stratum2.webp",
+      "stratum3": "backdrop/stratum3.webp",
+      "stratum4": "backdrop/stratum4.webp",
+      "bulkhead": "backdrop/bulkhead.webp",
+      "seal_band": "backdrop/seal_band.webp",
+      "seal_centre": "backdrop/seal_centre.webp"
+    },
+    "badges": {
+      "heart": "icons/badge_heart.webp",
+      "fallen": "icons/badge_fallen.webp",
+      "rare": "icons/badge_rare.webp",
+      "legendary": "icons/badge_legendary.webp",
+      "legend": "icons/badge_legend.webp"
+    },
+    "caravan_carts": {
+      "caravaners": "props/cart_caravaners.webp",
+      "tinkers": "props/cart_tinkers.webp",
+      "lamplighters": "props/cart_lamplighters.webp",
+      "rustmen": "props/cart_rustmen.webp",
+      "homestead9": "props/cart_homestead9.webp"
+    },
+    "crates": {
+      "standard": "icons/crate_standard.webp",
+      "rare": "icons/crate_rare.webp",
+      "legendary": "icons/crate_legendary.webp",
+      "card_back": "icons/crate_card_back.webp"
+    },
+    "dig_rig": {
+      "derrick": "props/dig_derrick.webp"
+    },
     "endings": {
       "open_renewal": "endings/open_renewal.webp",
       "open_eviction": "endings/open_eviction.webp",
@@ -3891,6 +4238,27 @@
       "lamplighters": "portraits/faction_lamplighters.webp",
       "rustmen": "portraits/faction_rustmen.webp",
       "homestead9": "portraits/faction_homestead9.webp"
+    },
+    "fx_beacon": {
+      "off": "fx/beacon_off.webp",
+      "on": "fx/beacon_on.webp"
+    },
+    "fx_cavein": {
+      "rubble_1": "fx/rubble_1.webp",
+      "rubble_2": "fx/rubble_2.webp",
+      "rubble_3": "fx/rubble_3.webp",
+      "rock_a": "fx/rock_a.webp",
+      "rock_b": "fx/rock_b.webp",
+      "rock_c": "fx/rock_c.webp",
+      "rock_d": "fx/rock_d.webp"
+    },
+    "fx_door_damage": {
+      "1": "fx/door_damage_1.webp",
+      "2": "fx/door_damage_2.webp",
+      "3": "fx/door_damage_3.webp"
+    },
+    "fx_flood": {
+      "pipe": "fx/pipe.webp"
     },
     "halcy": {
       "smile": "portraits/halcy_smile.webp",
@@ -3963,50 +4331,152 @@
       "granny_ash": "portraits/legend_granny_ash.webp",
       "brother_wick": "portraits/legend_brother_wick.webp",
       "june_halloran": "portraits/legend_june_halloran.webp",
-      "captain_orla": "portraits/legend_captain_orla.webp"
+      "captain_orla": "portraits/legend_captain_orla.webp",
+      "unknown": "portraits/legend_unknown.webp"
+    },
+    "quest_backdrop": {
+      "sky": "quest/quest_sky.webp",
+      "skyline": "quest/quest_skyline.webp"
+    },
+    "regions": {
+      "dustbowl": "regions/dustbowl.webp",
+      "glassflats": "regions/glassflats.webp",
+      "stillwater": "regions/stillwater.webp"
     },
     "room_aquifer": {
       "1": "rooms/room_aquifer_1.webp",
+      "1w2": "rooms/room_aquifer_1w2.webp",
+      "1w3": "rooms/room_aquifer_1w3.webp",
       "2": "rooms/room_aquifer_2.webp",
-      "3": "rooms/room_aquifer_3.webp"
+      "2w2": "rooms/room_aquifer_2w2.webp",
+      "2w3": "rooms/room_aquifer_2w3.webp",
+      "3": "rooms/room_aquifer_3.webp",
+      "3w2": "rooms/room_aquifer_3w2.webp",
+      "3w3": "rooms/room_aquifer_3w3.webp"
     },
     "room_canteen": {
       "1": "rooms/room_canteen_1.webp",
+      "1w2": "rooms/room_canteen_1w2.webp",
+      "1w3": "rooms/room_canteen_1w3.webp",
       "2": "rooms/room_canteen_2.webp",
-      "3": "rooms/room_canteen_3.webp"
+      "2w2": "rooms/room_canteen_2w2.webp",
+      "2w3": "rooms/room_canteen_2w3.webp",
+      "3": "rooms/room_canteen_3.webp",
+      "3w2": "rooms/room_canteen_3w2.webp",
+      "3w3": "rooms/room_canteen_3w3.webp"
+    },
+    "room_card_parlour": {
+      "1": "rooms/room_card_parlour_1.webp",
+      "1w2": "rooms/room_card_parlour_1w2.webp",
+      "1w3": "rooms/room_card_parlour_1w3.webp",
+      "2": "rooms/room_card_parlour_2.webp",
+      "2w2": "rooms/room_card_parlour_2w2.webp",
+      "2w3": "rooms/room_card_parlour_2w3.webp",
+      "3": "rooms/room_card_parlour_3.webp",
+      "3w2": "rooms/room_card_parlour_3w2.webp",
+      "3w3": "rooms/room_card_parlour_3w3.webp"
     },
     "room_clinic": {
       "1": "rooms/room_clinic_1.webp",
+      "1w2": "rooms/room_clinic_1w2.webp",
+      "1w3": "rooms/room_clinic_1w3.webp",
       "2": "rooms/room_clinic_2.webp",
-      "3": "rooms/room_clinic_3.webp"
+      "2w2": "rooms/room_clinic_2w2.webp",
+      "2w3": "rooms/room_clinic_2w3.webp",
+      "3": "rooms/room_clinic_3.webp",
+      "3w2": "rooms/room_clinic_3w2.webp",
+      "3w3": "rooms/room_clinic_3w3.webp"
     },
     "room_door": {
-      "1": "rooms/room_door_1.webp"
+      "1": "rooms/room_door_1.webp",
+      "2": "rooms/room_door_2.webp",
+      "3": "rooms/room_door_3.webp"
+    },
+    "room_elevator": {
+      "shaft": "rooms/room_elevator_shaft.webp",
+      "car": "rooms/room_elevator_car.webp"
+    },
+    "room_endurance_track": {
+      "1": "rooms/room_endurance_track_1.webp",
+      "1w2": "rooms/room_endurance_track_1w2.webp",
+      "1w3": "rooms/room_endurance_track_1w3.webp",
+      "2": "rooms/room_endurance_track_2.webp",
+      "2w2": "rooms/room_endurance_track_2w2.webp",
+      "2w3": "rooms/room_endurance_track_2w3.webp",
+      "3": "rooms/room_endurance_track_3.webp",
+      "3w2": "rooms/room_endurance_track_3w2.webp",
+      "3w3": "rooms/room_endurance_track_3w3.webp"
     },
     "room_farm_plots": {
       "1": "rooms/room_farm_plots_1.webp",
+      "1w2": "rooms/room_farm_plots_1w2.webp",
+      "1w3": "rooms/room_farm_plots_1w3.webp",
       "2": "rooms/room_farm_plots_2.webp",
-      "3": "rooms/room_farm_plots_3.webp"
+      "2w2": "rooms/room_farm_plots_2w2.webp",
+      "2w3": "rooms/room_farm_plots_2w3.webp",
+      "3": "rooms/room_farm_plots_3.webp",
+      "3w2": "rooms/room_farm_plots_3w2.webp",
+      "3w3": "rooms/room_farm_plots_3w3.webp"
+    },
+    "room_frame": {
+      "frame": "rooms/room_frame_frame.webp",
+      "deep": "rooms/room_frame_deep.webp",
+      "deep_braced": "rooms/room_frame_deep_braced.webp"
     },
     "room_fungalfarm": {
       "1": "rooms/room_fungalfarm_1.webp",
+      "1w2": "rooms/room_fungalfarm_1w2.webp",
+      "1w3": "rooms/room_fungalfarm_1w3.webp",
       "2": "rooms/room_fungalfarm_2.webp",
-      "3": "rooms/room_fungalfarm_3.webp"
+      "2w2": "rooms/room_fungalfarm_2w2.webp",
+      "2w3": "rooms/room_fungalfarm_2w3.webp",
+      "3": "rooms/room_fungalfarm_3.webp",
+      "3w2": "rooms/room_fungalfarm_3w2.webp",
+      "3w3": "rooms/room_fungalfarm_3w3.webp"
     },
     "room_generator": {
       "1": "rooms/room_generator_1.webp",
+      "1w2": "rooms/room_generator_1w2.webp",
+      "1w3": "rooms/room_generator_1w3.webp",
       "2": "rooms/room_generator_2.webp",
-      "3": "rooms/room_generator_3.webp"
+      "2w2": "rooms/room_generator_2w2.webp",
+      "2w3": "rooms/room_generator_2w3.webp",
+      "3": "rooms/room_generator_3.webp",
+      "3w2": "rooms/room_generator_3w2.webp",
+      "3w3": "rooms/room_generator_3w3.webp"
     },
     "room_geothermal": {
       "1": "rooms/room_geothermal_1.webp",
+      "1w2": "rooms/room_geothermal_1w2.webp",
+      "1w3": "rooms/room_geothermal_1w3.webp",
       "2": "rooms/room_geothermal_2.webp",
-      "3": "rooms/room_geothermal_3.webp"
+      "2w2": "rooms/room_geothermal_2w2.webp",
+      "2w3": "rooms/room_geothermal_2w3.webp",
+      "3": "rooms/room_geothermal_3.webp",
+      "3w2": "rooms/room_geothermal_3w2.webp",
+      "3w3": "rooms/room_geothermal_3w3.webp"
     },
     "room_lab": {
       "1": "rooms/room_lab_1.webp",
+      "1w2": "rooms/room_lab_1w2.webp",
+      "1w3": "rooms/room_lab_1w3.webp",
       "2": "rooms/room_lab_2.webp",
-      "3": "rooms/room_lab_3.webp"
+      "2w2": "rooms/room_lab_2w2.webp",
+      "2w3": "rooms/room_lab_2w3.webp",
+      "3": "rooms/room_lab_3.webp",
+      "3w2": "rooms/room_lab_3w2.webp",
+      "3w3": "rooms/room_lab_3w3.webp"
+    },
+    "room_lounge": {
+      "1": "rooms/room_lounge_1.webp",
+      "1w2": "rooms/room_lounge_1w2.webp",
+      "1w3": "rooms/room_lounge_1w3.webp",
+      "2": "rooms/room_lounge_2.webp",
+      "2w2": "rooms/room_lounge_2w2.webp",
+      "2w3": "rooms/room_lounge_2w3.webp",
+      "3": "rooms/room_lounge_3.webp",
+      "3w2": "rooms/room_lounge_3w2.webp",
+      "3w3": "rooms/room_lounge_3w3.webp"
     },
     "room_office": {
       "1": "rooms/room_office_1.webp",
@@ -4020,28 +4490,80 @@
     },
     "room_purgelab": {
       "1": "rooms/room_purgelab_1.webp",
+      "1w2": "rooms/room_purgelab_1w2.webp",
+      "1w3": "rooms/room_purgelab_1w3.webp",
       "2": "rooms/room_purgelab_2.webp",
-      "3": "rooms/room_purgelab_3.webp"
+      "2w2": "rooms/room_purgelab_2w2.webp",
+      "2w3": "rooms/room_purgelab_2w3.webp",
+      "3": "rooms/room_purgelab_3.webp",
+      "3w2": "rooms/room_purgelab_3w2.webp",
+      "3w3": "rooms/room_purgelab_3w3.webp"
     },
     "room_quarters": {
       "1": "rooms/room_quarters_1.webp",
+      "1w2": "rooms/room_quarters_1w2.webp",
+      "1w3": "rooms/room_quarters_1w3.webp",
       "2": "rooms/room_quarters_2.webp",
-      "3": "rooms/room_quarters_3.webp"
+      "2w2": "rooms/room_quarters_2w2.webp",
+      "2w3": "rooms/room_quarters_2w3.webp",
+      "3": "rooms/room_quarters_3.webp",
+      "3w2": "rooms/room_quarters_3w2.webp",
+      "3w3": "rooms/room_quarters_3w3.webp"
     },
     "room_radio": {
       "1": "rooms/room_radio_1.webp",
+      "1w2": "rooms/room_radio_1w2.webp",
+      "1w3": "rooms/room_radio_1w3.webp",
       "2": "rooms/room_radio_2.webp",
-      "3": "rooms/room_radio_3.webp"
+      "2w2": "rooms/room_radio_2w2.webp",
+      "2w3": "rooms/room_radio_2w3.webp",
+      "3": "rooms/room_radio_3.webp",
+      "3w2": "rooms/room_radio_3w2.webp",
+      "3w3": "rooms/room_radio_3w3.webp"
     },
     "room_rain_catcher": {
       "1": "rooms/room_rain_catcher_1.webp",
+      "1w2": "rooms/room_rain_catcher_1w2.webp",
+      "1w3": "rooms/room_rain_catcher_1w3.webp",
       "2": "rooms/room_rain_catcher_2.webp",
-      "3": "rooms/room_rain_catcher_3.webp"
+      "2w2": "rooms/room_rain_catcher_2w2.webp",
+      "2w3": "rooms/room_rain_catcher_2w3.webp",
+      "3": "rooms/room_rain_catcher_3.webp",
+      "3w2": "rooms/room_rain_catcher_3w2.webp",
+      "3w3": "rooms/room_rain_catcher_3w3.webp"
+    },
+    "room_reading_room": {
+      "1": "rooms/room_reading_room_1.webp",
+      "1w2": "rooms/room_reading_room_1w2.webp",
+      "1w3": "rooms/room_reading_room_1w3.webp",
+      "2": "rooms/room_reading_room_2.webp",
+      "2w2": "rooms/room_reading_room_2w2.webp",
+      "2w3": "rooms/room_reading_room_2w3.webp",
+      "3": "rooms/room_reading_room_3.webp",
+      "3w2": "rooms/room_reading_room_3w2.webp",
+      "3w3": "rooms/room_reading_room_3w3.webp"
     },
     "room_refinery": {
       "1": "rooms/room_refinery_1.webp",
+      "1w2": "rooms/room_refinery_1w2.webp",
+      "1w3": "rooms/room_refinery_1w3.webp",
       "2": "rooms/room_refinery_2.webp",
-      "3": "rooms/room_refinery_3.webp"
+      "2w2": "rooms/room_refinery_2w2.webp",
+      "2w3": "rooms/room_refinery_2w3.webp",
+      "3": "rooms/room_refinery_3.webp",
+      "3w2": "rooms/room_refinery_3w2.webp",
+      "3w3": "rooms/room_refinery_3w3.webp"
+    },
+    "room_shooting_gallery": {
+      "1": "rooms/room_shooting_gallery_1.webp",
+      "1w2": "rooms/room_shooting_gallery_1w2.webp",
+      "1w3": "rooms/room_shooting_gallery_1w3.webp",
+      "2": "rooms/room_shooting_gallery_2.webp",
+      "2w2": "rooms/room_shooting_gallery_2w2.webp",
+      "2w3": "rooms/room_shooting_gallery_2w3.webp",
+      "3": "rooms/room_shooting_gallery_3.webp",
+      "3w2": "rooms/room_shooting_gallery_3w2.webp",
+      "3w3": "rooms/room_shooting_gallery_3w3.webp"
     },
     "room_signal_mast": {
       "1": "rooms/room_signal_mast_1.webp",
@@ -4050,13 +4572,36 @@
     },
     "room_solar_array": {
       "1": "rooms/room_solar_array_1.webp",
+      "1w2": "rooms/room_solar_array_1w2.webp",
+      "1w3": "rooms/room_solar_array_1w3.webp",
       "2": "rooms/room_solar_array_2.webp",
-      "3": "rooms/room_solar_array_3.webp"
+      "2w2": "rooms/room_solar_array_2w2.webp",
+      "2w3": "rooms/room_solar_array_2w3.webp",
+      "3": "rooms/room_solar_array_3.webp",
+      "3w2": "rooms/room_solar_array_3w2.webp",
+      "3w3": "rooms/room_solar_array_3w3.webp"
     },
     "room_storeroom": {
       "1": "rooms/room_storeroom_1.webp",
+      "1w2": "rooms/room_storeroom_1w2.webp",
+      "1w3": "rooms/room_storeroom_1w3.webp",
       "2": "rooms/room_storeroom_2.webp",
-      "3": "rooms/room_storeroom_3.webp"
+      "2w2": "rooms/room_storeroom_2w2.webp",
+      "2w3": "rooms/room_storeroom_2w3.webp",
+      "3": "rooms/room_storeroom_3.webp",
+      "3w2": "rooms/room_storeroom_3w2.webp",
+      "3w3": "rooms/room_storeroom_3w3.webp"
+    },
+    "room_tinker_bench": {
+      "1": "rooms/room_tinker_bench_1.webp",
+      "1w2": "rooms/room_tinker_bench_1w2.webp",
+      "1w3": "rooms/room_tinker_bench_1w3.webp",
+      "2": "rooms/room_tinker_bench_2.webp",
+      "2w2": "rooms/room_tinker_bench_2w2.webp",
+      "2w3": "rooms/room_tinker_bench_2w3.webp",
+      "3": "rooms/room_tinker_bench_3.webp",
+      "3w2": "rooms/room_tinker_bench_3w2.webp",
+      "3w3": "rooms/room_tinker_bench_3w3.webp"
     },
     "room_trading_post": {
       "1": "rooms/room_trading_post_1.webp",
@@ -4070,18 +4615,67 @@
     },
     "room_waterworks": {
       "1": "rooms/room_waterworks_1.webp",
+      "1w2": "rooms/room_waterworks_1w2.webp",
+      "1w3": "rooms/room_waterworks_1w3.webp",
       "2": "rooms/room_waterworks_2.webp",
-      "3": "rooms/room_waterworks_3.webp"
+      "2w2": "rooms/room_waterworks_2w2.webp",
+      "2w3": "rooms/room_waterworks_2w3.webp",
+      "3": "rooms/room_waterworks_3.webp",
+      "3w2": "rooms/room_waterworks_3w2.webp",
+      "3w3": "rooms/room_waterworks_3w3.webp"
     },
     "room_weaponshop": {
       "1": "rooms/room_weaponshop_1.webp",
       "2": "rooms/room_weaponshop_2.webp",
       "3": "rooms/room_weaponshop_3.webp"
     },
+    "room_weight_room": {
+      "1": "rooms/room_weight_room_1.webp",
+      "1w2": "rooms/room_weight_room_1w2.webp",
+      "1w3": "rooms/room_weight_room_1w3.webp",
+      "2": "rooms/room_weight_room_2.webp",
+      "2w2": "rooms/room_weight_room_2w2.webp",
+      "2w3": "rooms/room_weight_room_2w3.webp",
+      "3": "rooms/room_weight_room_3.webp",
+      "3w2": "rooms/room_weight_room_3w2.webp",
+      "3w3": "rooms/room_weight_room_3w3.webp"
+    },
     "room_wind_turbine": {
       "1": "rooms/room_wind_turbine_1.webp",
+      "1w2": "rooms/room_wind_turbine_1w2.webp",
+      "1w3": "rooms/room_wind_turbine_1w3.webp",
       "2": "rooms/room_wind_turbine_2.webp",
-      "3": "rooms/room_wind_turbine_3.webp"
+      "2w2": "rooms/room_wind_turbine_2w2.webp",
+      "2w3": "rooms/room_wind_turbine_2w3.webp",
+      "3": "rooms/room_wind_turbine_3.webp",
+      "3w2": "rooms/room_wind_turbine_3w2.webp",
+      "3w3": "rooms/room_wind_turbine_3w3.webp",
+      "rotor": "rooms/room_wind_turbine_rotor.webp"
+    },
+    "ruin_homestead": {
+      "wall1": "ruins/ruin_homestead_wall1.webp",
+      "wall2": "ruins/ruin_homestead_wall2.webp",
+      "boss": "ruins/ruin_homestead_boss.webp"
+    },
+    "ruin_props": {
+      "locker_shut": "ruins/prop_locker_shut.webp",
+      "locker_open": "ruins/prop_locker_open.webp",
+      "console": "ruins/prop_console.webp",
+      "trophies": "ruins/prop_trophies.webp",
+      "hatch": "ruins/prop_hatch.webp",
+      "corridor": "ruins/prop_corridor.webp",
+      "ladder": "ruins/prop_ladder.webp",
+      "stairs": "ruins/prop_stairs.webp"
+    },
+    "ruin_relay": {
+      "wall1": "ruins/ruin_relay_wall1.webp",
+      "wall2": "ruins/ruin_relay_wall2.webp",
+      "boss": "ruins/ruin_relay_boss.webp"
+    },
+    "ruin_scrapyard": {
+      "wall1": "ruins/ruin_scrapyard_wall1.webp",
+      "wall2": "ruins/ruin_scrapyard_wall2.webp",
+      "boss": "ruins/ruin_scrapyard_boss.webp"
     },
     "salvage": {
       "vacuum_tube": "items/vacuum_tube.webp",
@@ -4105,6 +4699,110 @@
       "costume_jewelry": "items/costume_jewelry.webp",
       "silver_locket": "items/silver_locket.webp",
       "gold_pocket_watch": "items/gold_pocket_watch.webp"
+    },
+    "seal_monument": {
+      "monument": "props/monument.webp"
+    },
+    "sites": {
+      "plot7": "sites/plot7.webp",
+      "the_scorch": "sites/the_scorch.webp",
+      "rust_country": "sites/rust_country.webp",
+      "log_paper": "sites/log_paper.webp",
+      "relic_case": "sites/relic_case.webp",
+      "dry_wells": "sites/dry_wells.webp",
+      "ribbon": "sites/ribbon.webp"
+    },
+    "ui_chrome": {
+      "panel": "ui/panel.webp",
+      "button": "ui/button.webp",
+      "hud_bar": "ui/hud_bar.webp"
+    },
+    "ui_icons": {
+      "power": "icons/power.webp",
+      "food": "icons/food.webp",
+      "water": "icons/water.webp",
+      "scrip": "icons/scrip.webp",
+      "medpatch": "icons/medpatch.webp",
+      "purge": "icons/purge.webp",
+      "crate_token": "icons/crate_token.webp",
+      "treasure_map": "icons/treasure_map.webp",
+      "build": "icons/build.webp",
+      "residents": "icons/residents.webp",
+      "storage": "icons/storage.webp",
+      "crates": "icons/crates.webp",
+      "explore": "icons/explore.webp",
+      "quests": "icons/quests.webp",
+      "research": "icons/research.webp",
+      "factions": "icons/factions.webp",
+      "legacy": "icons/legacy.webp",
+      "goals": "icons/goals.webp",
+      "menu": "icons/menu.webp",
+      "population": "icons/population.webp",
+      "mood": "icons/mood.webp",
+      "shift_morning": "icons/shift_morning.webp",
+      "shift_day": "icons/shift_day.webp",
+      "shift_night": "icons/shift_night.webp",
+      "weather_clear": "icons/weather_clear.webp",
+      "weather_dust": "icons/weather_dust.webp",
+      "weather_taintstorm": "icons/weather_taintstorm.webp",
+      "weather_heatwave": "icons/weather_heatwave.webp",
+      "inc_fire": "icons/inc_fire.webp",
+      "inc_skitters": "icons/inc_skitters.webp",
+      "inc_burrowers": "icons/inc_burrowers.webp",
+      "inc_rustmen": "icons/inc_rustmen.webp",
+      "inc_cavein": "icons/inc_cavein.webp",
+      "inc_flood": "icons/inc_flood.webp",
+      "inc_deepcrawlers": "icons/inc_deepcrawlers.webp",
+      "inc_surge": "icons/inc_surge.webp",
+      "inc_hollowed": "icons/inc_hollowed.webp",
+      "inc_glassbacks": "icons/inc_glassbacks.webp",
+      "inc_maulers": "icons/inc_maulers.webp",
+      "crafting": "icons/crafting.webp",
+      "rewards": "icons/rewards.webp",
+      "homestead": "icons/homestead.webp",
+      "warning": "icons/warning.webp",
+      "industry": "icons/industry.webp",
+      "medicine": "icons/medicine.webp",
+      "defense": "icons/defense.webp",
+      "automation": "icons/automation.webp",
+      "deep": "icons/deep.webp",
+      "lock": "icons/lock.webp",
+      "check": "icons/check.webp",
+      "cross": "icons/cross.webp",
+      "alert": "icons/alert.webp",
+      "skull": "icons/skull.webp",
+      "star": "icons/star.webp",
+      "diamond": "icons/diamond.webp",
+      "sad": "icons/sad.webp",
+      "famine": "icons/famine.webp",
+      "lean_times": "icons/lean_times.webp",
+      "brownout": "icons/brownout.webp",
+      "short_fuse": "icons/short_fuse.webp",
+      "no_radio": "icons/no_radio.webp",
+      "iron_door": "icons/iron_door.webp",
+      "endless_night": "icons/endless_night.webp",
+      "glass_sky": "icons/glass_sky.webp",
+      "skeleton_crew": "icons/skeleton_crew.webp",
+      "rules": "icons/rules.webp",
+      "blank_slate": "icons/blank_slate.webp",
+      "boomtown": "icons/boomtown.webp",
+      "faction_tinkers": "icons/faction_tinkers.webp",
+      "faction_lamplighters": "icons/faction_lamplighters.webp",
+      "faction_rustmen": "icons/faction_rustmen.webp",
+      "faction_homestead9": "icons/faction_homestead9.webp",
+      "relic": "icons/relic.webp",
+      "map_objective": "icons/map_objective.webp",
+      "map_unknown": "icons/map_unknown.webp",
+      "map_go": "icons/map_go.webp",
+      "deep_day_one": "icons/deep_day_one.webp",
+      "ruined": "icons/ruined.webp",
+      "all_rooms": "icons/all_rooms.webp",
+      "faction_caravaners": "icons/faction_caravaners.webp",
+      "creature": "icons/creature.webp",
+      "room": "icons/room.webp",
+      "seal_medal": "icons/seal_medal.webp",
+      "halcyon_log": "icons/halcyon_log.webp",
+      "fizz": "icons/fizz.webp"
     }
   },
   "legends": {
@@ -4189,6 +4887,71 @@
           "anchorY": 1.0,
           "files": {
             "full": "legend_ada_quill/carry_full.webp"
+          }
+        },
+        "fight_pistol": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 92,
+          "frameH": 132,
+          "anchorX": 0.412,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_ada_quill/fight_pistol_full.webp"
+          }
+        },
+        "fight_longgun": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 97,
+          "frameH": 142,
+          "anchorX": 0.3761,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_ada_quill/fight_longgun_full.webp"
+          }
+        },
+        "fight_melee": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 100,
+          "frameH": 134,
+          "anchorX": 0.4947,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_ada_quill/fight_melee_full.webp"
+          }
+        },
+        "fight_unarmed": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 91,
+          "frameH": 133,
+          "anchorX": 0.4248,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_ada_quill/fight_unarmed_full.webp"
+          }
+        },
+        "fight_heavy": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 91,
+          "frameH": 132,
+          "anchorX": 0.4285,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_ada_quill/fight_heavy_full.webp"
           }
         }
       }
@@ -4275,6 +5038,71 @@
           "files": {
             "full": "legend_brother_wick/carry_full.webp"
           }
+        },
+        "fight_pistol": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 102,
+          "frameH": 131,
+          "anchorX": 0.4123,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_brother_wick/fight_pistol_full.webp"
+          }
+        },
+        "fight_longgun": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 97,
+          "frameH": 131,
+          "anchorX": 0.3496,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_brother_wick/fight_longgun_full.webp"
+          }
+        },
+        "fight_melee": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 117,
+          "frameH": 142,
+          "anchorX": 0.5199,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_brother_wick/fight_melee_full.webp"
+          }
+        },
+        "fight_unarmed": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 96,
+          "frameH": 132,
+          "anchorX": 0.4034,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_brother_wick/fight_unarmed_full.webp"
+          }
+        },
+        "fight_heavy": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 99,
+          "frameH": 132,
+          "anchorX": 0.397,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_brother_wick/fight_heavy_full.webp"
+          }
         }
       }
     },
@@ -4359,6 +5187,71 @@
           "anchorY": 1.0,
           "files": {
             "full": "legend_captain_orla/carry_full.webp"
+          }
+        },
+        "fight_pistol": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 93,
+          "frameH": 132,
+          "anchorX": 0.4305,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_captain_orla/fight_pistol_full.webp"
+          }
+        },
+        "fight_longgun": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 110,
+          "frameH": 145,
+          "anchorX": 0.4104,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_captain_orla/fight_longgun_full.webp"
+          }
+        },
+        "fight_melee": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 120,
+          "frameH": 133,
+          "anchorX": 0.4593,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_captain_orla/fight_melee_full.webp"
+          }
+        },
+        "fight_unarmed": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 90,
+          "frameH": 133,
+          "anchorX": 0.4241,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_captain_orla/fight_unarmed_full.webp"
+          }
+        },
+        "fight_heavy": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 91,
+          "frameH": 132,
+          "anchorX": 0.4268,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_captain_orla/fight_heavy_full.webp"
           }
         }
       }
@@ -4445,6 +5338,71 @@
           "files": {
             "full": "legend_doc_ferris/carry_full.webp"
           }
+        },
+        "fight_pistol": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 98,
+          "frameH": 131,
+          "anchorX": 0.4074,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_doc_ferris/fight_pistol_full.webp"
+          }
+        },
+        "fight_longgun": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 95,
+          "frameH": 132,
+          "anchorX": 0.4101,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_doc_ferris/fight_longgun_full.webp"
+          }
+        },
+        "fight_melee": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 104,
+          "frameH": 132,
+          "anchorX": 0.4902,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_doc_ferris/fight_melee_full.webp"
+          }
+        },
+        "fight_unarmed": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 92,
+          "frameH": 131,
+          "anchorX": 0.4198,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_doc_ferris/fight_unarmed_full.webp"
+          }
+        },
+        "fight_heavy": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 100,
+          "frameH": 132,
+          "anchorX": 0.4038,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_doc_ferris/fight_heavy_full.webp"
+          }
         }
       }
     },
@@ -4529,6 +5487,71 @@
           "anchorY": 1.0,
           "files": {
             "full": "legend_granny_ash/carry_full.webp"
+          }
+        },
+        "fight_pistol": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 96,
+          "frameH": 132,
+          "anchorX": 0.4032,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_granny_ash/fight_pistol_full.webp"
+          }
+        },
+        "fight_longgun": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 91,
+          "frameH": 133,
+          "anchorX": 0.4042,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_granny_ash/fight_longgun_full.webp"
+          }
+        },
+        "fight_melee": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 94,
+          "frameH": 136,
+          "anchorX": 0.4215,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_granny_ash/fight_melee_full.webp"
+          }
+        },
+        "fight_unarmed": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 91,
+          "frameH": 132,
+          "anchorX": 0.406,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_granny_ash/fight_unarmed_full.webp"
+          }
+        },
+        "fight_heavy": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 91,
+          "frameH": 132,
+          "anchorX": 0.411,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_granny_ash/fight_heavy_full.webp"
           }
         }
       }
@@ -4615,6 +5638,71 @@
           "files": {
             "full": "legend_june_halloran/carry_full.webp"
           }
+        },
+        "fight_longgun": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 110,
+          "frameH": 148,
+          "anchorX": 0.3942,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_june_halloran/fight_longgun_full.webp"
+          }
+        },
+        "fight_unarmed": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 93,
+          "frameH": 133,
+          "anchorX": 0.4162,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_june_halloran/fight_unarmed_full.webp"
+          }
+        },
+        "fight_heavy": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 109,
+          "frameH": 147,
+          "anchorX": 0.4009,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_june_halloran/fight_heavy_full.webp"
+          }
+        },
+        "fight_pistol": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 97,
+          "frameH": 132,
+          "anchorX": 0.431,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_june_halloran/fight_pistol_full.webp"
+          }
+        },
+        "fight_melee": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 122,
+          "frameH": 132,
+          "anchorX": 0.4301,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_june_halloran/fight_melee_full.webp"
+          }
         }
       }
     },
@@ -4699,6 +5787,71 @@
           "anchorY": 1.0,
           "files": {
             "full": "legend_lucky_lou/carry_full.webp"
+          }
+        },
+        "fight_pistol": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 108,
+          "frameH": 132,
+          "anchorX": 0.4459,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_lucky_lou/fight_pistol_full.webp"
+          }
+        },
+        "fight_melee": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 98,
+          "frameH": 132,
+          "anchorX": 0.4518,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_lucky_lou/fight_melee_full.webp"
+          }
+        },
+        "fight_unarmed": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 98,
+          "frameH": 132,
+          "anchorX": 0.4185,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_lucky_lou/fight_unarmed_full.webp"
+          }
+        },
+        "fight_heavy": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 103,
+          "frameH": 132,
+          "anchorX": 0.4036,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_lucky_lou/fight_heavy_full.webp"
+          }
+        },
+        "fight_longgun": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 103,
+          "frameH": 133,
+          "anchorX": 0.3898,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_lucky_lou/fight_longgun_full.webp"
           }
         }
       }
@@ -4785,6 +5938,71 @@
           "files": {
             "full": "legend_marla_voss/carry_full.webp"
           }
+        },
+        "fight_pistol": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 91,
+          "frameH": 131,
+          "anchorX": 0.4207,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_marla_voss/fight_pistol_full.webp"
+          }
+        },
+        "fight_longgun": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 95,
+          "frameH": 132,
+          "anchorX": 0.4012,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_marla_voss/fight_longgun_full.webp"
+          }
+        },
+        "fight_melee": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 110,
+          "frameH": 139,
+          "anchorX": 0.5025,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_marla_voss/fight_melee_full.webp"
+          }
+        },
+        "fight_unarmed": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 92,
+          "frameH": 133,
+          "anchorX": 0.4194,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_marla_voss/fight_unarmed_full.webp"
+          }
+        },
+        "fight_heavy": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 93,
+          "frameH": 131,
+          "anchorX": 0.4164,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_marla_voss/fight_heavy_full.webp"
+          }
         }
       }
     },
@@ -4869,6 +6087,71 @@
           "anchorY": 1.0,
           "files": {
             "full": "legend_pip/carry_full.webp"
+          }
+        },
+        "fight_pistol": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 93,
+          "frameH": 132,
+          "anchorX": 0.4031,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_pip/fight_pistol_full.webp"
+          }
+        },
+        "fight_melee": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 115,
+          "frameH": 140,
+          "anchorX": 0.4615,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_pip/fight_melee_full.webp"
+          }
+        },
+        "fight_unarmed": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 93,
+          "frameH": 133,
+          "anchorX": 0.3982,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_pip/fight_unarmed_full.webp"
+          }
+        },
+        "fight_heavy": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 92,
+          "frameH": 131,
+          "anchorX": 0.3978,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_pip/fight_heavy_full.webp"
+          }
+        },
+        "fight_longgun": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 97,
+          "frameH": 132,
+          "anchorX": 0.3925,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_pip/fight_longgun_full.webp"
           }
         }
       }
@@ -4955,6 +6238,71 @@
           "files": {
             "full": "legend_rook/carry_full.webp"
           }
+        },
+        "fight_pistol": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 92,
+          "frameH": 132,
+          "anchorX": 0.4214,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_rook/fight_pistol_full.webp"
+          }
+        },
+        "fight_longgun": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 97,
+          "frameH": 132,
+          "anchorX": 0.4024,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_rook/fight_longgun_full.webp"
+          }
+        },
+        "fight_melee": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 104,
+          "frameH": 132,
+          "anchorX": 0.4599,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_rook/fight_melee_full.webp"
+          }
+        },
+        "fight_unarmed": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 95,
+          "frameH": 132,
+          "anchorX": 0.4047,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_rook/fight_unarmed_full.webp"
+          }
+        },
+        "fight_heavy": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 94,
+          "frameH": 132,
+          "anchorX": 0.4215,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_rook/fight_heavy_full.webp"
+          }
         }
       }
     },
@@ -5039,6 +6387,71 @@
           "anchorY": 1.0,
           "files": {
             "full": "legend_seven/carry_full.webp"
+          }
+        },
+        "fight_pistol": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 102,
+          "frameH": 132,
+          "anchorX": 0.4153,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_seven/fight_pistol_full.webp"
+          }
+        },
+        "fight_longgun": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 98,
+          "frameH": 132,
+          "anchorX": 0.4101,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_seven/fight_longgun_full.webp"
+          }
+        },
+        "fight_melee": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 103,
+          "frameH": 132,
+          "anchorX": 0.4982,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_seven/fight_melee_full.webp"
+          }
+        },
+        "fight_unarmed": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 96,
+          "frameH": 132,
+          "anchorX": 0.4099,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_seven/fight_unarmed_full.webp"
+          }
+        },
+        "fight_heavy": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 99,
+          "frameH": 131,
+          "anchorX": 0.4078,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_seven/fight_heavy_full.webp"
           }
         }
       }

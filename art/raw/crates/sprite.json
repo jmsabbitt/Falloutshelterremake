@@ -1,0 +1,32 @@
+{
+  "id": "crates",
+  "kind": "portrait",
+  "background": "magenta",
+  "outDir": "icons",
+  "prefix": "crate_",
+  "fit": 192,
+  "targetHeight": 192,
+  "anims": {
+    "crates": {
+      "file": "crates.png",
+      "split": "figures",
+      "order": "x",
+      "take": 3,
+      "names": [
+        "standard",
+        "rare",
+        "legendary"
+      ]
+    },
+    "card_back": {
+      "file": "card_back.png",
+      "whole": true,
+      "names": [
+        "card_back"
+      ],
+      "background": "none",
+      "fit": 0,
+      "targetHeight": 512
+    }
+  }
+}

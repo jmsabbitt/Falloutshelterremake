@@ -1,0 +1,22 @@
+{
+  "id": "fx_door_damage",
+  "kind": "portrait",
+  "background": "magenta",
+  "outDir": "fx",
+  "prefix": "door_damage_",
+  "fit": 256,
+  "targetHeight": 256,
+  "anims": {
+    "damage": {
+      "file": "damage.png",
+      "split": "figures",
+      "order": "x",
+      "take": 3,
+      "names": [
+        "1",
+        "2",
+        "3"
+      ]
+    }
+  }
+}

@@ -227,3 +227,12 @@ We need commercial use rights with no attribution or exclusivity strings. Record
 | legend and faction portraits, loot icons, 33 bosses, glassback, topside buildings | artlist.io, Nano Banana 2 I2I / T2I 2K | AI Suite plan (credits) | 2026-09-26 | ☐ |
 | Act 4: 2 loot icons, 10 bosses, 16 regular enemies, 10 ending illustrations | artlist.io, Nano Banana 2 I2I / T2I 2K | AI Suite plan (credits) | 2026-09-26 | ☐ |
 | legend bodies (11 legends × walk, idle, work, fight, fallen, carry) | artlist.io, Nano Banana 2 I2I 2K | AI Suite plan (credits) | 2026-09-28 | ☐ |
+| wide room walls (ART-LIST §1), P1: generator, waterworks, canteen, quarters × 3 levels × w2/w3 | artlist.io, Nano Banana 2 I2I 2K | AI Suite plan (credits) | 2026-09-28 | ☐ |
+| resident weapon grip fight sheets (ART-LIST §2), P1: pistol, long gun, melee, unarmed, heavy × male/female | artlist.io, Nano Banana 2 I2I 2K | AI Suite plan (credits) | 2026-09-28 | ☐ |
+| backdrops, elevator, fire, resource / crate / toolbar / HUD / status / incident / ruleset / faction icons (ART-LIST P1 and part of P2 and P3) | artlist.io, Nano Banana 2 I2I 2K | AI Suite plan (credits) | 2026-09-28 | ☐ |
+| Deep strata, frames, quest ruins, region banners, app icon, sites, UI chrome and the remaining ART-LIST P2 and P3 images | artlist.io, Nano Banana 2 I2I 2K | AI Suite plan (credits) | 2026-09-28 | ☐ |
+| wide room walls (ART-LIST §1), P2: storeroom, clinic, purgelab, radio, lab and the four surface types; door levels 2 and 3, mauler walk, door-damage patches, rotor, site art | artlist.io, Nano Banana 2 I2I 2K | AI Suite plan (credits) | 2026-09-28 | ☐ |
+| wide room walls (ART-LIST §1), rest of P2 and P3: surface types w3, geothermal, fungalfarm, refinery, aquifer w2 and w3; legend weapon grip fight sheets (ART-LIST §2, P3) for 11 legends × 5 grips | artlist.io, Nano Banana 2 I2I 2K | AI Suite plan (credits) | 2026-09-28 | ☐ |
+| Training room walls (7 types x 3 levels) | artlist.io, Nano Banana 2 I2I 2K | AI Suite plan (credits) | 2026-09-28 | ☐ |
+| Wide training room walls (7 types x 3 levels x w2/w3) | artlist.io, Nano Banana 2 I2I 2K | AI Suite plan (credits) | 2026-09-28 | ☐ |
+| Resident tool sheets (extinguisher, repair) and Fizz bottle icon | artlist.io, Nano Banana 2 I2I 2K | AI Suite plan (credits) | 2026-09-28 | ☐ |

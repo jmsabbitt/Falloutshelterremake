@@ -1,0 +1,31 @@
+{
+  "id": "ruin_scrapyard",
+  "kind": "portrait",
+  "background": "none",
+  "outDir": "ruins",
+  "prefix": "ruin_scrapyard_",
+  "targetHeight": 512,
+  "anims": {
+    "wall1": {
+      "file": "wall1.png",
+      "whole": true,
+      "names": [
+        "wall1"
+      ]
+    },
+    "wall2": {
+      "file": "wall2.png",
+      "whole": true,
+      "names": [
+        "wall2"
+      ]
+    },
+    "boss": {
+      "file": "boss.png",
+      "whole": true,
+      "names": [
+        "boss"
+      ]
+    }
+  }
+}

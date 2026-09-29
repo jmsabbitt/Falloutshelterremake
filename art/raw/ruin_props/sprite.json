@@ -1,0 +1,71 @@
+{
+  "id": "ruin_props",
+  "kind": "portrait",
+  "background": "magenta",
+  "outDir": "ruins",
+  "prefix": "prop_",
+  "fit": 192,
+  "targetHeight": 192,
+  "anims": {
+    "props1": {
+      "file": "props1.png",
+      "split": "figures",
+      "order": "x",
+      "take": 3,
+      "names": [
+        "locker_shut",
+        "locker_open",
+        "console"
+      ]
+    },
+    "props2": {
+      "file": "props2.png",
+      "names": [
+        "trophies",
+        "hatch"
+      ],
+      "boxes": [
+        [
+          0,
+          0,
+          2100,
+          1024
+        ],
+        [
+          2330,
+          0,
+          3950,
+          700
+        ]
+      ]
+    },
+    "corridor": {
+      "file": "corridor.png",
+      "whole": true,
+      "names": [
+        "corridor"
+      ],
+      "background": "none",
+      "targetHeight": 256,
+      "fit": 0
+    },
+    "ladder": {
+      "file": "ladder.png",
+      "whole": true,
+      "names": [
+        "ladder"
+      ],
+      "fit": 0,
+      "targetHeight": 512
+    },
+    "stairs": {
+      "file": "stairs.png",
+      "whole": true,
+      "names": [
+        "stairs"
+      ],
+      "fit": 0,
+      "targetHeight": 256
+    }
+  }
+}

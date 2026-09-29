@@ -1,0 +1,60 @@
+{
+  "id": "sites",
+  "kind": "portrait",
+  "background": "none",
+  "outDir": "sites",
+  "prefix": "",
+  "targetHeight": 512,
+  "anims": {
+    "plot7": {
+      "file": "plot7.png",
+      "whole": true,
+      "names": [
+        "plot7"
+      ]
+    },
+    "the_scorch": {
+      "file": "the_scorch.png",
+      "whole": true,
+      "names": [
+        "the_scorch"
+      ]
+    },
+    "rust_country": {
+      "file": "rust_country.png",
+      "whole": true,
+      "names": [
+        "rust_country"
+      ]
+    },
+    "log_paper": {
+      "file": "log_paper.png",
+      "whole": true,
+      "names": [
+        "log_paper"
+      ]
+    },
+    "relic_case": {
+      "file": "relic_case.png",
+      "whole": true,
+      "names": [
+        "relic_case"
+      ]
+    },
+    "dry_wells": {
+      "file": "dry_wells.png",
+      "whole": true,
+      "names": [
+        "dry_wells"
+      ]
+    },
+    "ribbon": {
+      "file": "ribbon.png",
+      "whole": true,
+      "names": [
+        "ribbon"
+      ],
+      "background": "magenta"
+    }
+  }
+}

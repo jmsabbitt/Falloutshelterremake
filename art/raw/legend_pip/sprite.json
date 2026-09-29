@@ -50,6 +50,32 @@
     "carry": {
       "file": "carry.png",
       "fps": 11
+    },
+    "fight_pistol": {
+      "file": "fight_pistol.png",
+      "fps": 10,
+      "split": "figures"
+    },
+    "fight_melee": {
+      "file": "fight_melee.png",
+      "fps": 10,
+      "split": "figures",
+      "fitHeight": false
+    },
+    "fight_unarmed": {
+      "file": "fight_unarmed.png",
+      "fps": 10,
+      "split": "figures"
+    },
+    "fight_heavy": {
+      "file": "fight_heavy.png",
+      "fps": 10,
+      "split": "figures"
+    },
+    "fight_longgun": {
+      "file": "fight_longgun.png",
+      "fps": 10,
+      "split": "figures"
     }
   }
 }

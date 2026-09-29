@@ -1,0 +1,85 @@
+{
+  "id": "backdrop",
+  "kind": "portrait",
+  "background": "none",
+  "outDir": "backdrop",
+  "prefix": "",
+  "targetHeight": 1024,
+  "anims": {
+    "surface": {
+      "file": "surface.png",
+      "whole": true,
+      "names": [
+        "surface"
+      ]
+    },
+    "crust": {
+      "file": "crust.png",
+      "whole": true,
+      "names": [
+        "crust"
+      ],
+      "targetHeight": 256
+    },
+    "dirt": {
+      "file": "dirt.png",
+      "whole": true,
+      "names": [
+        "dirt"
+      ]
+    },
+    "stratum1": {
+      "file": "stratum1.png",
+      "whole": true,
+      "names": [
+        "stratum1"
+      ]
+    },
+    "stratum2": {
+      "file": "stratum2.png",
+      "whole": true,
+      "names": [
+        "stratum2"
+      ]
+    },
+    "stratum3": {
+      "file": "stratum3.png",
+      "whole": true,
+      "names": [
+        "stratum3"
+      ]
+    },
+    "stratum4": {
+      "file": "stratum4.png",
+      "whole": true,
+      "names": [
+        "stratum4"
+      ]
+    },
+    "bulkhead": {
+      "file": "bulkhead.png",
+      "whole": true,
+      "names": [
+        "bulkhead"
+      ],
+      "targetHeight": 256
+    },
+    "seal_band": {
+      "file": "seal_band.png",
+      "whole": true,
+      "names": [
+        "seal_band"
+      ],
+      "targetHeight": 256
+    },
+    "seal_centre": {
+      "file": "seal_centre.png",
+      "whole": true,
+      "names": [
+        "seal_centre"
+      ],
+      "background": "magenta",
+      "trimBottom": true
+    }
+  }
+}

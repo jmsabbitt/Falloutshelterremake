@@ -86,6 +86,13 @@
         "june_halloran",
         "captain_orla"
       ]
+    },
+    "d": {
+      "file": "silhouette.png",
+      "whole": true,
+      "names": [
+        "unknown"
+      ]
     }
   }
 }

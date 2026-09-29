@@ -1,0 +1,24 @@
+{
+  "id": "app",
+  "kind": "portrait",
+  "background": "none",
+  "outDir": "app",
+  "prefix": "",
+  "targetHeight": 1024,
+  "anims": {
+    "icon": {
+      "file": "icon.png",
+      "whole": true,
+      "names": [
+        "icon"
+      ]
+    },
+    "splash": {
+      "file": "splash.png",
+      "whole": true,
+      "names": [
+        "splash"
+      ]
+    }
+  }
+}

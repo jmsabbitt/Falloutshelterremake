@@ -27,6 +27,12 @@
       "mirror": true,
       "take": 4,
       "heightFrom": 0
+    },
+    "walk": {
+      "file": "walk.png",
+      "fps": 8,
+      "split": "figures",
+      "mirror": true
     }
   }
 }

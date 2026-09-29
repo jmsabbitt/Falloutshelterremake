@@ -1,0 +1,35 @@
+{
+  "id": "fx_cavein",
+  "kind": "portrait",
+  "background": "magenta",
+  "outDir": "fx",
+  "prefix": "",
+  "fit": 192,
+  "targetHeight": 192,
+  "anims": {
+    "rubble": {
+      "file": "rubble.png",
+      "split": "figures",
+      "order": "x",
+      "take": 3,
+      "names": [
+        "rubble_1",
+        "rubble_2",
+        "rubble_3"
+      ]
+    },
+    "rocks": {
+      "file": "rocks.png",
+      "split": "figures",
+      "order": "x",
+      "take": 4,
+      "names": [
+        "rock_a",
+        "rock_b",
+        "rock_c",
+        "rock_d"
+      ],
+      "fit": 96
+    }
+  }
+}

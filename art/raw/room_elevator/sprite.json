@@ -1,0 +1,25 @@
+{
+  "id": "room_elevator",
+  "kind": "portrait",
+  "background": "none",
+  "outDir": "rooms",
+  "prefix": "room_elevator_",
+  "targetHeight": 256,
+  "anims": {
+    "shaft": {
+      "file": "shaft.png",
+      "whole": true,
+      "names": [
+        "shaft"
+      ]
+    },
+    "car": {
+      "file": "car.png",
+      "whole": true,
+      "names": [
+        "car"
+      ],
+      "background": "magenta"
+    }
+  }
+}

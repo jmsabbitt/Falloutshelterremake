@@ -1,0 +1,18 @@
+{
+  "id": "dig_rig",
+  "kind": "portrait",
+  "background": "magenta",
+  "outDir": "props",
+  "prefix": "dig_",
+  "targetHeight": 512,
+  "anims": {
+    "derrick": {
+      "file": "derrick.png",
+      "whole": true,
+      "names": [
+        "derrick"
+      ],
+      "trimBottom": true
+    }
+  }
+}

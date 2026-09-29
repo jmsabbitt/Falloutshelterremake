@@ -1,0 +1,73 @@
+{
+  "id": "room_reading_room",
+  "kind": "portrait",
+  "background": "none",
+  "outDir": "rooms",
+  "prefix": "room_reading_room_",
+  "targetHeight": 256,
+  "anims": {
+    "1": {
+      "file": "level1.png",
+      "whole": true,
+      "names": [
+        "1"
+      ]
+    },
+    "1w2": {
+      "file": "level1_w2.png",
+      "whole": true,
+      "names": [
+        "1w2"
+      ]
+    },
+    "1w3": {
+      "file": "level1_w3.png",
+      "whole": true,
+      "names": [
+        "1w3"
+      ]
+    },
+    "2": {
+      "file": "level2.png",
+      "whole": true,
+      "names": [
+        "2"
+      ]
+    },
+    "2w2": {
+      "file": "level2_w2.png",
+      "whole": true,
+      "names": [
+        "2w2"
+      ]
+    },
+    "2w3": {
+      "file": "level2_w3.png",
+      "whole": true,
+      "names": [
+        "2w3"
+      ]
+    },
+    "3": {
+      "file": "level3.png",
+      "whole": true,
+      "names": [
+        "3"
+      ]
+    },
+    "3w2": {
+      "file": "level3_w2.png",
+      "whole": true,
+      "names": [
+        "3w2"
+      ]
+    },
+    "3w3": {
+      "file": "level3_w3.png",
+      "whole": true,
+      "names": [
+        "3w3"
+      ]
+    }
+  }
+}
