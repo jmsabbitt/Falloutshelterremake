@@ -501,3 +501,17 @@ Updated by the art session as batches land. "Shows up on its own" means the code
 Notes on the wide walls: `w2` is generated at 21:9 from the level's single painting, then cropped to 2:1. `w3` is generated at 4:1 from that level's `w2`, then cropped to 3:1. The image tool sometimes leaves a soft, ghosted patch at 4:1; those were repaired with an edit pass or by copying a sharp neighbour, and a few small soft spots remain at the edges of `quarters` level 1 and 2 `w3` and `canteen` level 2 `w3`.
 
 Completion notes: all 17 merging room types now have `w2` and `w3` at levels 1 to 3. The `w3` walls for `wind_turbine` level 1 and `solar_array` level 3 were rerolled or patched (a sharp neighbouring stack copied over a ghosted one), and small soft spots remain at the edges of a few others (`radio` level 2 `w3`, `purgelab` level 3 `w3`, `fungalfarm` levels 2 and 3 `w3`, `geothermal` level 3 `w3`). Legend grip sheets: two of them (`legend_captain_orla/fight_longgun` and `legend_rook/fight_pistol`) had weapons touching the next figure, so a thin gap was cut between frames so that `split: figures` finds all 12. Folder names for the surface and Deep walls are the existing `room_<type>` folders, and no `regions` entry is set on legend grips.
+
+---
+
+## Redo list (from the code session's hookup pass)
+
+These are wired and showing now, but need a new generation before any public release.
+
+| Image | Problem | Redo brief |
+|---|---|---|
+| `app/icon.png`, `app/splash.png` | **IP risk.** A round, cog-edged door rolled open in a hillside reads as the Fallout vault door. | Keep the hillside at dusk and the warm light, but make the entrance a **square or arched blast hatch**: two sliding leaves with hazard chevrons (like our own `room_door` art), a Halcyon sunburst over the lintel, and a porch lamp. No round door, cog rim or gear shapes. |
+| `ui_icons` `residents` (in `u1a.png`) | **IP risk.** Blond, quiffed cartoon men in teal-and-orange collars read as Vault Boy. It also has a pink smear on the right-hand head. | Two or three mixed residents (one woman, varied hair colours and styles, none blond-quiffed), shown as simple head-and-shoulder silhouettes in our jumpsuit teal. Or a plain "people" pictogram. |
+| `ui_icons` `fizz`, `crates` `legendary`, the ribbon's left tail | A magenta fringe around the edges | Re-key, or regenerate with a thin dark outline so the magenta trims cleanly. |
+| `ui_icons` `skeleton_crew` | Hard to read at icon size | A single empty hard hat on a hook. |
+| `ui_icons` `inc_surge` | The figure is too small in its frame | The same bolt, filling the frame. |
