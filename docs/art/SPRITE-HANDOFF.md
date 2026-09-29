@@ -238,3 +238,4 @@ We need commercial use rights with no attribution or exclusivity strings. Record
 | Resident tool sheets (extinguisher, repair) and Fizz bottle icon | artlist.io, Nano Banana 2 I2I 2K | AI Suite plan (credits) | 2026-09-28 | ☐ |
 | Quarters level 1 floor fix and six redone UI icons | artlist.io, Nano Banana 2 I2I 2K | AI Suite plan (credits) | 2026-09-28 | ☐ |
 | Legend extinguisher and repair sheets (22) | artlist.io, Nano Banana 2 I2I 2K | AI Suite plan (credits) | 2026-09-28 | ☐ |
+| Generated for this project; no third-party assets | artlist.io, Nano Banana 2 I2I 2K | AI Suite plan (credits) | 2026-09-28 | ☐ |
