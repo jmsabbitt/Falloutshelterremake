@@ -5,7 +5,7 @@ A short guide to playing the current build and reporting what you find. The ques
 ## Getting the game
 
 - **Android:** install the debug APK (sent in chat, or from the latest "Android debug APK" run in the repo's Actions tab, artifact `homestead-debug-apk`). Allow "install unknown apps" for your browser or file manager when asked.
-- **Browser, desktop or phone:** the "Web build on GitHub Pages" workflow publishes the game on every push.
+- **Browser, desktop or phone:** the "Web build on GitHub Pages" workflow publishes the game on every push to `main` (or run it by hand from the Actions tab).
   - **One-time setup:** in the repository on GitHub, go to Settings → Pages and set Source to "GitHub Actions". The game's URL then appears on that page, and in the workflow run.
   - **On a phone** you can add it to the home screen, and after the first load it plays offline.
 - **iPhone:**
@@ -32,7 +32,7 @@ Then keep playing normally:
 2. **Collecting:** keep collecting power, food and water, and try a rush.
 3. **Incidents:** when fires, Skitters or raiders arrive, drag people to fight them.
 4. **Exploring:** send an explorer (pack Med-Patches and Purge), and later bring them home.
-5. **Close the game** for a while, then come back and read the "while you were away" summary. On Android, check that the notifications made sense.
+5. **Close the game** for a while, then come back and read the "while you were away" summary. Finished batches collect themselves into storage while you're away (while there's space), so the homestead should have kept working. On Android, check that the notifications made sense.
 
 **Things to judge:**
 - Did you always know what to do next? Where did you get stuck?
@@ -46,11 +46,13 @@ A real playthrough of every act takes weeks of game time. To try the later conte
 
 | Preset | What it's for |
 |---|---|
+| Blank Slate | The usual start, with the Sandbox and nobody keeping score |
 | Boomtown | The mid game: plenty of rooms, few people |
 | The Neighbours Call | **Act 2** (homestead 2): factions, trade, caravans, the surface |
 | Below the Seal | **Act 3** (homestead 3): the Seal and the Stillwater |
 | Last Rent | **Act 4 and the endings** (homestead 4). The true ending, *Good Neighbours*, needs some conditions met first; the choice screen lists them |
 | The Deep from Day One | The Deep and its rooms |
+| A Ruined Homestead | A rescue: empty stores, injured residents and some already lost |
 | Old Hands / All Rooms, No People | High-level quests; every room type |
 | The Hard Road | Famine, Iron Door and Survival together |
 
@@ -91,6 +93,5 @@ The browser console (F12) has helpers on `window.homestead`:
 
 ## Known gaps
 
-- **Placeholder art:** the sky above ground and the dirt around the rooms are still drawn, not painted. The art brief is in `docs/art/ART-HANDOFF-M9.md` section 10.
 - **Phone title:** on phones, an ending's title only shows in the ☰ menu.
 - **Late-game pacing:** in bot runs the third homestead took about 9 in-game days. Tell us if that feels like a grind.

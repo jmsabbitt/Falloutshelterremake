@@ -1,6 +1,6 @@
 # Art list: everything still drawn in code
 
-Playtest 1, item 4 ([playtest-1-plan.md](../design/playtest-1-plan.md)). The team's note: "Everything in the game should have a generated image for its texture. The drawn shapes clash with the painted art." This is the complete list of what is still drawn in code at runtime in normal play: PixiJS `Graphics` shapes, CSS-drawn shapes and emoji used as pictures. It is in priority order, so the art session can work from the top.
+Playtest 1, item 4 ([playtest-1-plan.md](../design/playtest-1-plan.md)). The team's note: "Everything in the game should have a generated image for its texture. The drawn shapes clash with the painted art." This was the complete list of what was still drawn in code at runtime in normal play: PixiJS `Graphics` shapes, CSS-drawn shapes and emoji used as pictures. It is in priority order, so the art session could work from the top. Each **Now:** line describes the drawn version from when the list was made; that drawing is now only a fallback.
 
 How this list was made: every drawing function in `src/client/render/*.ts` and every icon or emoji in `src/client/ui/*.ts`, `style.css`, `m9.css` and `endings.css` was checked against what is built into `public/sprites/manifest.json` and loaded by `sprites.ts` (`roomWall`, `backdrop`, `creatureFor`, `forResident`) or by the UI (`items/`, `portraits/`, `endings/`). A drawn fallback that never shows, because the art exists, is left out. Those are listed at the end so nobody paints them twice.
 
@@ -8,7 +8,7 @@ Tools and method stay the same as in rounds 1 and 2: Artlist, Nano Banana 2 at 2
 
 **Priority:** P1 is seen in the first hour of a new game. P2 is seen in a normal first week (the surface, quests, the Explore panel). P3 is late game, rare, or polish.
 
-**Code status:** §1 and §2 are being wired now, so the code picks them up with no further changes. Section 10 of ART-HANDOFF-M9 (backdrops) and the door levels are already wired. Everything else says **needs hookup**: the folder names here are the proposal, and the code session will read the art from exactly these paths. They can be painted before the hookup lands.
+**Code status:** everything on this list has been delivered and is wired, so the game shows the painted art. The one exception is S3, the wind turbine rotor: it was optional, the sheet is in the manifest but unused, and the turbine paintings have their rotors painted in. Images that need a new generation before a public release are in the [Redo list](#redo-list-from-the-code-sessions-hookup-pass) at the end.
 
 ---
 
@@ -26,7 +26,7 @@ From `art/raw/room_generator/level1.png`, `art/raw/items/icons_w1.png`, `art/raw
 
 ---
 
-## §1. Wide room walls (P1 to P3, 102 images, being wired now)
+## §1. Wide room walls (P1 to P3, 102 images, wired)
 
 **Why:** a room merged to 2 or 3 segments shows the same single-width painting 2 or 3 times side by side (playtest item 2). The code now looks for a painting made for the room's width first, and falls back to tiling only when there isn't one.
 
@@ -101,9 +101,9 @@ Within a type, do `w2` for all three levels before `w3`: two-wide rooms are far 
 
 ---
 
-## §2. Weapon grip fight sheets (P1 and P3, 65 images, being wired now)
+## §2. Weapon grip fight sheets (P1 and P3, 65 images, wired)
 
-**Why:** residents no longer carry a drawn gun (playtest item 5). A weapon shows only while a resident fights an incident in their room, and it comes from a fight sheet for that weapon's grip. Each weapon gets a `grip` in `items.json`. Until a grip's sheet exists, the current `fight` sheet (a generic shotgun) stays as the fallback for the gun grips.
+**Why:** residents no longer carry a drawn gun (playtest item 5). A weapon shows only while a resident fights an incident in their room, and it comes from a fight sheet for that weapon's grip. Each weapon has a `grip` in `items.json`. All five grip sheets now exist for both resident bodies and all 11 legends, so the old generic `fight` sheet (a shotgun) is no longer needed and is being removed.
 
 **The five grips:**
 
@@ -130,7 +130,7 @@ The weapon in each sheet is **generic** for its grip: a plain revolver-sized pis
 }
 ```
 
-Add one like it per grip (`fight_longgun`, `fight_heavy`, `fight_melee`, `fight_unarmed`) to `art/raw/resident_m/sprite.json` and `art/raw/resident_f/sprite.json`, beside the existing `fight` entry, which stays.
+Add one like it per grip (`fight_longgun`, `fight_heavy`, `fight_melee`, `fight_unarmed`) to `art/raw/resident_m/sprite.json` and `art/raw/resident_f/sprite.json`, beside the old `fight` entry.
 
 **Rules that matter for residents** (their sheets are split into tinted layers, see [art-spec.md](../design/art-spec.md)):
 - Keep the reference outfit exactly: teal jumpsuit, orange chest stripe, dark hair, light skin, brown boots.
@@ -155,7 +155,7 @@ Legends paint their real colours, so the weapon-colour rule above doesn't apply 
 
 ## §2b. Tool sheets: fire extinguisher and repairs (P1, 4 images, wired)
 
-**Why:** residents used to fight fires with their weapons (round 2 feedback). Now an incident that isn't a creature uses a tool sheet instead: `fight_extinguish` for fires, and `fight_repair` for cave-ins, floods and power surges. Until a sheet exists they use the `work` pose. They never hold a gun for these.
+**Why:** residents used to fight fires with their weapons (round 2 feedback). Now an incident that isn't a creature uses a tool sheet instead: `fight_extinguish` for fires, and `fight_repair` for cave-ins, floods and power surges. Without a sheet the code falls back to the `work` pose. They never hold a gun for these.
 
 | Anim key | Pose | Used for |
 |---|---|---|
@@ -164,35 +164,35 @@ Legends paint their real colours, so the weapon-colour rule above doesn't apply 
 
 **Files:** `art/raw/resident_m/fight_extinguish.png`, `fight_repair.png`, and the same for `resident_f` (4 sheets). Same template as §2: 2752 × 1536, green, 12 frames in two rows of six, facing right. The entries look like `"fight_extinguish": { "file": "fight_extinguish.png", "fps": 10, "split": "figures", "regions": { "hair": { "aboveFraction": 0.36 } } }`.
 
-**Colour note:** the extinguisher body can't be bright red or orange, because the recolouring treats those as the rarity trim. Use a **dark oxblood red** with black hose and steel fittings, and a pale grey-white spray. Test with one frame through `npm run sprites -- resident_m` before doing the rest. Legends (P3) can have the same two sheets later, in their real colours.
+**Colour note:** the extinguisher body can't be bright red or orange, because the recolouring treats those as the rarity trim. Use a **dark oxblood red** with black hose and steel fittings, and a pale grey-white spray. Test with one frame through `npm run sprites -- resident_m` before doing the rest. The 11 legends now have the same two sheets too, in their real colours.
 
 ---
 
 ## 3. Vault rooms and structures
 
-### V1. Elevator shaft and car (P1, 2 images, needs hookup)
+### V1. Elevator shaft and car (P1, 2 images, wired)
 - **Now:** `vaultView.ts:drawRoomBox`, case `elevator`: a flat dark box with a centre rail and an amber-striped grey car. It is the only underground room type with no painting, and it runs down the middle of every homestead from the first second (the new tutorial starts with only the door and the shaft).
 - **Deliver:** `art/raw/room_elevator/shaft.png` (full bleed, `background: none`) and `car.png` (magenta), with a `sprite.json` like `room_generator`'s (`kind: portrait`, `outDir: rooms`, `prefix: room_elevator_`), entries `"shaft"` and `"car"`; put `"background": "magenta"` on the `car` entry.
 - **Shape:** the shaft is one cell wide by one floor tall, **1:3** (for example 768 × 2304). It must **tile vertically without a seam** (the top edge continues into the bottom): riveted steel guide rails, a cable, cross-bracing, a dim work lamp. The car is about 1 cell wide and 0.7 floor tall on magenta: a cage lift with a folding gate, brass trim, a little floor indicator dial.
-- **Note:** residents will ride the car when reassigned (playtest item 7), so the car is drawn separately and moves. The code needs to draw the shaft art across the whole cell rather than inside the usual back-wall inset.
+- **Note:** residents ride the car when reassigned (playtest item 7), so the car is a separate image and moves. Both the shaft and the car are painted and wired; the shaft art fills the whole cell rather than the usual back-wall inset.
 
 ### V2. Door levels 2 and 3 (P2, 2 images, wired)
 - **Now:** `art/raw/room_door/` has only `level1.png`, and `roomWall` falls back to it, so an upgraded door looks unchanged.
 - **Deliver:** `art/raw/room_door/level2.png` and `level3.png` at **3168 × 1344 (21:9)**, like level 1, image-to-image from it; add `"2"` and `"3"` entries to its `sprite.json`. Level 2 is a reinforced door with extra bolts and a heavier frame, level 3 a showpiece vault door with hydraulic rams and brass.
 
-### V3. Door damage marks (P2, 1 image, needs hookup)
+### V3. Door damage marks (P2, 1 image, wired)
 - **Now:** `creatureArt.ts:drawDoorDamage`: flat grey claw scratches and a dent over the door while a Mauler or raiders batter it.
 - **Deliver:** `art/raw/fx_door_damage/damage.png`, magenta, three stages side by side (light scratches, deep gouges, buckled and dented), `kind: portrait`, `split: figures`, `order: x`, names `["1", "2", "3"]`, `outDir: fx`. Each about 1:1 and sized to overlay the painted door slab.
 
-### V4. Room frame (P2, 1 image, needs hookup)
+### V4. Room frame (P2, 1 image, wired)
 - **Now:** `vaultView.ts:drawRoomBox` with `shell = true` still draws every room's box in flat colour around the painted wall: the dark frame, the ceiling and floor planes in perspective, and the two side walls. It's the most visible remaining style clash, since it borders every painting.
 - **Deliver:** `art/raw/room_frame/frame.png`, full bleed: a painted room box with the back wall area left as flat magenta (it's cut out and the painted wall shows through). Riveted steel ceiling with a lamp strip, a scuffed floor lip, side walls in perspective. **3:1** at 3 segments, painted so the code can stretch the middle and keep the ends (a 9-slice), for example 3072 × 1024.
 
-### V5. Deep-floor room frame (P3, 2 images, needs hookup)
+### V5. Deep-floor room frame (P3, 2 images, wired)
 - **Now:** `deepArt.ts:drawDeepFrame`: jagged rock teeth around rooms below floor 25, and timber and steel bracing once Deep Bracing is researched.
 - **Deliver:** `art/raw/room_frame/deep.png` and `deep_braced.png`, magenta, the same shape as V4's frame: a raw rock border, and the same with shoring timbers and steel props.
 
-### V6. The Warden's Seal monument (P3, 1 image, needs hookup)
+### V6. The Warden's Seal monument (P3, 1 image, wired)
 - **Now:** `creatureArt.ts:drawSealMonument`: a stepped plinth, an obelisk with a brass seal, an inscription band and a small pennant, on the ground left of the door once the Warden's Seal is earned.
 - **Deliver:** `art/raw/seal_monument/monument.png`, magenta, **1:2** (for example 1024 × 2048), ground line at the bottom, `kind: portrait`, `outDir: props`, `trimBottom: true`. A brass star-in-a-ring seal on a concrete obelisk; the pennant is a plain Halcyon teal swallowtail with no lettering.
 
@@ -213,7 +213,7 @@ Legends paint their real colours, so the weapon-colour rule above doesn't apply 
 | endurance_track (32) Endurance Track / Cinder Track / Iron Mile Stadium | Grit | A painted running lane on the floor, one hurdle and a stopwatch board | A cinder lane with hurdles, a medicine ball and a treadmill belt | A banked indoor track with lap-counter lamps, rowing machines and a finish-line arch |
 | card_parlour (36) Card Parlour / Bingo Hall / Lucky Seven Casino | Fortune | A felt card table under a hanging lamp, mismatched chairs | Bingo tables, a ball cage on a stand and a prize shelf | A small casino floor: a roulette wheel, a card table and a wall of lucky-seven slot machines (no real brands) |
 
-**Count:** 7 types × 3 levels = **21 images**. Wide versions (`w2`, `w3`, as in §1) can follow later at P3; until then merged training rooms tile the single painting.
+**Count:** 7 types × 3 levels = **21 images**. The wide versions (`w2`, `w3`, as in §1, 42 more) have been delivered too, so merged training rooms have their own paintings.
 
 ---
 
@@ -223,19 +223,20 @@ Legends paint their real colours, so the weapon-colour rule above doesn't apply 
 - **Now:** `vaultView.ts:drawBackground`: a banded sky gradient with two flat polygon mesas, a flat brown crust strip, and flat brown earth with rectangle speckles. The earth fills the whole screen around the rooms, so it's on screen at all times.
 - **Deliver:** exactly as in [ART-HANDOFF-M9.md §10](ART-HANDOFF-M9.md#10-backdrops-the-sky-above-ground-and-the-dirt-around-the-homestead): `art/raw/backdrop/surface.png` (about 3:1, wraps sideways), `crust.png` (about 8:1, wraps sideways), `dirt.png` (1:1, wraps both ways, dark and low contrast). The code is already wired, so these show up as soon as they're built. Do `dirt` first.
 
-### S2. Caravan handcarts (P2, 1 image, needs hookup)
+### S2. Caravan handcarts (P2, 1 image, wired)
 - **Now:** `vaultView.ts:updateCaravans`: a box of rectangles on two circle wheels, with a triangle pennant in the faction's colour, leading each caravan party across the surface.
 - **Deliver:** `art/raw/caravan_carts/carts.png`, magenta, five handcarts in a row, facing right, each flying its faction's pennant: caravaners amber `#f2a541`, tinkers teal `#4fb3a9`, lamplighters cream `#f4ecd8`, rustmen rust `#b5562f`, homestead9 pale blue `#7fb7c9`. `kind: portrait`, `split: figures`, `order: x`, names `["caravaners", "tinkers", "lamplighters", "rustmen", "homestead9"]`, `prefix: cart_`, `outDir: props`. Each cart about 3:2, loaded with crates and a tarp; about as tall as a resident's waist in game.
 
-### S3. Wind turbine rotor (P3, 1 image, needs hookup)
+### S3. Wind turbine rotor (P3, 1 image, optional, not wired)
 - **Now:** the painted turbines are drawn with a still rotor (the code can't animate a painting). Without art, `topsideArt.ts:drawTopsideParts` spins a drawn one.
 - **Deliver (optional):** `art/raw/room_wind_turbine/rotor.png`, magenta, one three-blade rotor seen face on, 1:1, so the code can spin it over the painted tower. Only worth doing if the still rotor bothers people.
+- **Status:** `rotor.png` was delivered and is in the manifest, but the code doesn't use it: the turbine paintings have their rotors painted in, and the drawn rotor spins only when there's no painting. It can be dropped (see the Redo list).
 
 ---
 
 ## 5. The Deep
 
-### D1. Stratum rock textures (P2, 4 images, needs hookup)
+### D1. Stratum rock textures (P2, 4 images, wired)
 - **Now:** `deepArt.ts:buildDeepBackground` and `stratumFeatures`: each dug stratum (5 floors) is a flat rock colour with speckles and drawn features.
 - **Deliver:** `art/raw/backdrop/stratum1.png` to `stratum4.png`, added to the backdrop `sprite.json`. **1:1, tiling both ways** (for example 1024 × 1024), dark and low contrast like `dirt`, getting darker and stranger with depth:
   1. The Service Levels: grey rock with Halcyon conduit runs, teal pipes with brass collars, a junction lamp.
@@ -244,15 +245,15 @@ Legends paint their real colours, so the weapon-colour rule above doesn't apply 
   4. The Seal: near-black rock with warm glowing cracks from somewhere below.
 - The stratum names stay as text in the margin.
 
-### D2. Sealed boundary bulkhead (P2, 1 image, needs hookup)
+### D2. Sealed boundary bulkhead (P2, 1 image, wired)
 - **Now:** `deepArt.ts:drawSealedBoundary`: a concrete band with chevrons under the last dug stratum, fading into black.
 - **Deliver:** `art/raw/backdrop/bulkhead.png`, full bleed, **8:1** (2048 × 256), tiling sideways: a concrete and steel bulkhead with hazard chevrons and bolts.
 
-### D3. The Seal (P3, 2 images, needs hookup)
+### D3. The Seal (P3, 2 images, wired)
 - **Now:** `deepArt.ts:drawTheSeal`: at the very bottom, one bulkhead as wide as the homestead with a half-sun sunburst.
 - **Deliver:** `art/raw/backdrop/seal_band.png` (8:1, tiling sideways, heavier and older than D2, heat bleeding round the edges) and `seal_centre.png` (magenta, 2:1, a half-sun of brass rays over a round hatch, not a cog), which the code centres on the band.
 
-### D4. Dig site rig (P2, 2 images, needs hookup)
+### D4. Dig site rig (P2, 2 images, wired)
 - **Now:** `deepArt.ts:DeepLayer` draws the excavation under the shaft while a stratum is dug: a derrick of amber bars, timber-ringed shaft, a spiral drill head, flying debris and a flashing lamp.
 - **Deliver:** `art/raw/dig_rig/derrick.png` (magenta, 1:2, a small lattice derrick with a winch and a work lamp, `kind: portrait`) and `art/raw/dig_rig/drill.png` (magenta, a 4-frame row of the drill head turning, `kind: creature` so it builds as an animation strip; name the anim `idle`). The debris and dust stay drawn.
 
@@ -260,7 +261,7 @@ Legends paint their real colours, so the weapon-colour rule above doesn't apply 
 
 ## 6. Residents and overlays
 
-### R1. Resident badges (P2, 1 image, needs hookup)
+### R1. Resident badges (P2, 1 image, wired)
 - **Now:** `vaultView.ts:drawOverlays`, `drawRarityPip`, `drawHeart`, `drawFallenMark`: small shapes drawn over the sprite art.
 - **Deliver:** `art/raw/badges/badges.png`, magenta, five small icons in a row with gaps, `kind: portrait`, `split: figures`, `order: x`, `fit: 64`, `outDir: icons`, `prefix: badge_`, names:
   - `heart`: a plump red heart (expecting residents, and over courting couples)
@@ -276,27 +277,27 @@ Legends paint their real colours, so the weapon-colour rule above doesn't apply 
 
 All quest enemies and bosses have creature art, and so do the vault's skitters, burrowers, rustmen, deepcrawlers, Hollowed and Glassbacks. What is still drawn:
 
-### I1. Fire (P1, 1 image, needs hookup)
+### I1. Fire (P1, 1 image, wired)
 - **Now:** `vaultView.ts:drawIncident`, case `fire`: rows of orange and yellow triangles flickering along the floor. Fire is the most common first incident.
 - **Deliver:** `art/raw/fx_fire/`, a `kind: creature` folder with one anim `idle`: a looping sheet of **8 frames** of a knee-high patch of cartoon flames with a little smoke, one row, green `#00FF00`, feet (the base of the flames) on a common line. Hard-edged cel flames with no soft glow, so the key stays clean. The code repeats it along the room.
 
-### I2. Electrical surge (P2, 1 image, needs hookup)
+### I2. Electrical surge (P2, 1 image, wired)
 - **Now:** `creatureArt.ts:drawSurge`: blue jagged bolts over the walls and floor, sparks and a flicker.
 - **Deliver:** `art/raw/fx_surge/`, `kind: creature`, anim `idle`, 6 frames of a crackling arc cluster jumping off a junction box, magenta. The room flicker stays drawn.
 
-### I3. The Mauler in the vault (P2, 1 image, needs hookup)
+### I3. The Mauler in the vault (P2, 1 image, wired)
 - **Now:** `creatureArt.ts:drawMauler`: the vault Mauler walks in from the horizon, claws the door and walks room to room, drawn from shapes. The `mauler` creature art has idle, attack and death, but no walk.
 - **Deliver:** `art/raw/mauler/walk.png`, a walk cycle, 8 frames, magenta, from `idle.png` image-to-image, with a `"walk"` entry in its `sprite.json` like `"idle"` (`split: figures`, `mirror: true`). The code then uses idle, walk and attack.
 
-### I4. Cave-in (P3, 2 images, needs hookup)
+### I4. Cave-in (P3, 2 images, wired)
 - **Now:** `deepArt.ts:drawDeepIncident`, case `cavein`: rubble polygons, falling rock shapes, ceiling cracks and dust.
 - **Deliver:** `art/raw/fx_cavein/rubble.png` (magenta, three rubble heaps, big to small, with a bent strut, `kind: portrait`, `split: figures`, names `["1", "2", "3"]`, `outDir: fx`, `prefix: rubble_`) and `rocks.png` (magenta, four falling rocks, names `["a", "b", "c", "d"]`, `prefix: rock_`). The dust and cracks stay drawn.
 
-### I5. Flood (P3, 1 image, needs hookup)
+### I5. Flood (P3, 1 image, wired)
 - **Now:** `deepArt.ts:drawDeepIncident`, case `flood`: rising water (fine as an effect) and a drawn burst pipe spraying.
 - **Deliver:** `art/raw/fx_flood/pipe.png`, magenta, a burst wall pipe with a split flange, about 2:1, `kind: portrait`, `outDir: fx`. The water stays drawn.
 
-### I6. Warning beacon (P3, 1 image, needs hookup)
+### I6. Warning beacon (P3, 1 image, wired)
 - **Now:** `deepArt.ts:beacon`: a flashing ceiling lamp in rooms with a deep incident.
 - **Deliver:** `art/raw/fx_beacon/beacon.png`, magenta, two frames side by side (off, on) of a caged red rotating lamp, names `["off", "on"]`, `outDir: fx`, `prefix: beacon_`.
 
@@ -306,27 +307,27 @@ All quest enemies and bosses have creature art, and so do the vault's skitters, 
 
 The quest screen (`questView.ts`, `ruinArt.ts`) draws each quest as ruined cutaway rooms under a skyline. None of it is painted yet. Rooms are 360 × 210 world units, in three themes picked from the quest: `relay` (grey concrete, teal diodes), `homestead` (cream Halcyon enamel, amber trim) and `scrapyard` (rust and corrugated sheet).
 
-### Q1. Quest sky (P2, 1 image, needs hookup)
+### Q1. Quest sky (P2, 1 image, wired)
 - **Now:** `questView.ts:drawSky`: a bruised purple-to-dusk gradient with a pale Glare sun.
 - **Deliver:** `art/raw/quest_backdrop/sky.png`, full bleed, **16:9** (2752 × 1536): a bruised violet sky, sickly green-white Glare sun top right, thin clouds. No land.
 
-### Q2. Quest skyline (P2, 1 image, needs hookup)
+### Q2. Quest skyline (P2, 1 image, wired)
 - **Now:** `questView.ts:rebuildStatics`: far mesa polygons, a bombed-out skyline of rectangles with lit windows, leaning radio masts, then a flat ground strip and speckled rock.
 - **Deliver:** `art/raw/quest_backdrop/skyline.png`, magenta, **4:1**, tiling sideways: far mesas and a broken town skyline in dusk purples, a few lit windows, a leaning mast with a red light. The ground and rock under the rooms reuse S1's `crust` and `dirt`.
 
-### Q3. Ruin room walls (P2, 9 images, needs hookup)
+### Q3. Ruin room walls (P2, 9 images, wired)
 - **Now:** `ruinArt.ts:drawRuinRoom`: a cutaway box like the vault rooms, with peeling wainscot, stains, cracks, a blown-out hole, broken pipes, a dangling lamp and theme dressing (dead equipment racks, a faded HALCY poster, corrugated patches).
 - **Deliver:** `art/raw/ruin_<theme>/` for `relay`, `homestead` and `scrapyard`: `wall1.png`, `wall2.png` (two variants so neighbouring rooms differ) and `boss.png` (a darker lair: hazard stripes, scorch marks, a nest of scrap). Full bleed, `background: none`, **16:9** (2752 × 1536; the back wall shows at about 1.8:1). `kind: portrait`, `outDir: ruins`, `prefix: ruin_<theme>_`. Same style as the vault walls, but ruined: the homestead theme is a vault room like the ones players build, 40 years abandoned. Doorways, ladder hatches and rubble stay drawn over them.
 
-### Q4. Ruin room props (P2, 2 images, needs hookup)
+### Q4. Ruin room props (P2, 2 images, wired)
 - **Now:** `ruinArt.ts:drawContents`: footlockers (lids off once looted), a console with one stubborn light, a boss's trophy pile, daylight through a broken entrance hatch.
 - **Deliver:** `art/raw/ruin_props/props1.png` (magenta: `locker_shut`, `locker_open`, `console`) and `props2.png` (magenta: `trophies`, `hatch`), `split: figures`, `order: x`, `outDir: ruins`, `prefix: prop_`. Each about knee to waist height in game.
 
-### Q5. Passages (P3, 3 images, needs hookup)
+### Q5. Passages (P3, 3 images, wired)
 - **Now:** `ruinArt.ts:drawCorridor`, `drawLadder`, `drawStairs`: flat-colour connecting passages.
 - **Deliver:** `art/raw/ruin_props/corridor.png` (full bleed, 2:1, tiles sideways: a short rubble-strewn service tunnel), `ladder.png` (magenta, 1:4, tiles vertically: a rusty ladder in a shaft) and `stairs.png` (magenta, 1:1, a broken concrete stairway going down to the right; the code mirrors it).
 
-### Q6. Map markers (P2, 1 image, needs hookup)
+### Q6. Map markers (P2, 1 image, wired)
 - **Now:** `questView.ts:rebuildStatics`: HALCY's objective flag (a pole and triangle), a grey `?` over rooms that are known but unseen, and `chevron()` arrows in doorways you can tap.
 - **Deliver:** `art/raw/ruin_props/markers.png`, magenta, three icons: `objective` (a small amber Halcyon pennant on a pole), `unknown` (a stencilled question mark on a scrap of board; one of the few images with a symbol), `go` (a chunky amber arrow pointing right), `fit: 96`, `outDir: icons`, `prefix: map_`.
 
@@ -336,7 +337,7 @@ The quest screen (`questView.ts`, `ruinArt.ts`) draws each quest as ruined cutaw
 
 Every weapon, outfit and salvage type has an icon (`items/<id>.webp`), so the emoji fallback in `icons.ts` never shows.
 
-### M1. Resource icons (P1, 2 images, needs hookup)
+### M1. Resource icons (P1, 2 images, wired)
 - **Now:** the room's "ready" bubble draws a flat black glyph (`vaultView.ts:drawResourceGlyph`: a bolt, a circle, a drop, and a plus for everything else). The HUD meters show the **letters** P, F and W (`ui.ts:renderHud`). The HUD chip, crate cards, research lines and trade panels use emoji: ⚡ 🥫 💧 ✚ ☢ 💰 🎟 🗺.
 - **Deliver:** `art/raw/ui_icons/resources1.png` (`power`, `food`, `water`, `scrip`) and `resources2.png` (`medpatch`, `purge`, `crate_token`, `treasure_map`), magenta, four per sheet with gaps, like `art/raw/items/`: `kind: portrait`, `split: figures`, `order: x`, `take: 4`, `fit: 96`, `outDir: icons`, `prefix: ""`.
   - `power`: a chunky lightning bolt over a small brass battery cell
@@ -352,17 +353,17 @@ Every weapon, outfit and salvage type has an icon (`items/<id>.webp`), so the em
 ### M2. Crafted-item bubble (P1, 0 images, code only)
 - **Now:** `vaultView.ts:drawItemGlyph` draws a black gun or coat silhouette in the bubble when a workshop finishes. The item's own icon already exists, so this needs no art, only a code change to show it.
 
-### M3. Supply crates (P1, 2 images, needs hookup)
+### M3. Supply crates (P1, 2 images, wired)
 - **Now:** the crate panel and the crate-opening cards are CSS: a striped card back (`style.css` `.crate-card .back`) and a gradient front with an emoji. The HUD crate chip is 📦. The new tutorial opens a crate in the first minutes.
 - **Deliver:** `art/raw/crates/crates.png`, magenta, three closed crates in a row: `standard` (a wooden supply crate with a Halcyon stencil shape), `rare` (a steel footlocker with silver trim), `legendary` (a brass-bound chest with a gold glow painted on, not a halo), `split: figures`, `order: x`, `fit: 192`, `outDir: icons`, `prefix: crate_`. Plus `art/raw/crates/card_back.png`, full bleed, **2:3**: the back of a reward card, riveted teal panel with a sunburst.
 
-### M4. New arrival portrait (P2, 1 image, needs hookup)
+### M4. New arrival portrait (P2, 1 image, wired)
 - **Now:** a crate card that brings a resident shows 🧑, and faction recruits show 👤 (`ui.ts`, `factions.ts`).
 - **Deliver:** `art/raw/ui_icons/arrival.png`, magenta, a head-and-shoulders silhouette of a resident in a Halcyon jumpsuit, in shadow with a warm rim light (so it works for anyone), 1:1, `outDir: portraits`, name `arrival`.
 
 ---
 
-### M9. Halcyon Fizz bottle (P1, 1 image, needs hookup)
+### M9. Halcyon Fizz bottle (P1, 1 image, wired)
 - **Now:** 🥤 emoji in the Explore panel, on the "Home now" button and on its crate card.
 - **What it is:** a new consumable. Drinking one brings an explorer home at once (the game's answer to an instant-return soda). It's Halcyon's own brand, so it should look like a 1950s company soda.
 - **Deliver:** `art/raw/ui_icons/fizz.png`, magenta background, one bottle, `kind: portrait`, `whole: true`, `fit: 96`, `outDir: icons`, `prefix: ""`. A curvy glass bottle with a crimped cap, fizzy amber-orange soda, and a teal-and-cream label with the Halcyon sunburst (no words). A little glow to say it's special, drawn inside the bottle's outline so it trims cleanly.
@@ -407,31 +408,31 @@ All of these are emoji or letters today, and they sit right next to painted item
 
 ## 11. Screens and modals
 
-### X1. Region banners (P2, 3 images, needs hookup)
+### X1. Region banners (P2, 3 images, wired)
 - **Now:** the Explore panel's region cards are text on a CSS gradient (`ui.ts`, `.region-card`).
 - **Deliver:** `art/raw/regions/dustbowl.png`, `glassflats.png`, `stillwater.png`, full bleed, **4:1** banners (4128 × 1024), `kind: portrait`, `outDir: regions`, `prefix: ""`. Dustbowl: dunes and a buried billboard frame; Glassflats: a glittering glass plain under the Glare; Stillwater: a drowned town with rooftops above flat water. Keep the left third calm; the region name sits there.
 
-### X2. App icon and splash (P2, 2 images, needs hookup)
+### X2. App icon and splash (P2, 2 images, wired)
 - **Now:** `public/icons/icon.svg` is a flat amber house shape; the PNG icons and the native splash follow it.
 - **Deliver:** `art/raw/app/icon.png` (1:1, 1024 × 1024, full bleed: a homestead door in a hillside, warm light spilling out, readable at 48 px) and `splash.png` (1:1, 2732 × 2732, the same scene wider with the centre third safe). The code session generates the icon sizes from these.
 
-### X3. New homestead sites (P3, 4 images, needs hookup)
+### X3. New homestead sites (P3, 4 images, wired)
 - **Now:** the Legacy "found a new homestead" flow shows each site as an emoji on a tinted CSS card (`prestige.ts:SITE_LOOK`, "the content has no art for sites yet").
 - **Deliver:** `art/raw/sites/plot7.png`, `dry_wells.png`, `rust_country.png`, `the_scorch.png`, full bleed, **16:9**, `outDir: sites`: a surveyor's view of each plot of land, with a small marker flag where the door will go.
 
-### X4. Ribbon-cutting ceremony (P3, 1 image, needs hookup)
+### X4. Ribbon-cutting ceremony (P3, 1 image, wired)
 - **Now:** a red CSS ribbon with a rosette that splits in two when a new homestead opens (`style.css` `.ribbon`).
 - **Deliver:** `art/raw/sites/ribbon.png`, magenta, a red ribbon with a rosette across a doorway, **4:1**. The cut animation can stay CSS over it.
 
-### X5. Deep discovery modal (P3, 2 images, needs hookup)
+### X5. Deep discovery modal (P3, 2 images, wired)
 - **Now:** Halcyon logs and relics open on a CSS paper or radial-gradient panel (`deep.ts`, `.disc-paper`).
 - **Deliver:** `art/raw/sites/log_paper.png` (full bleed, 3:4, an aged Halcyon memo sheet with a letterhead shape and no words) and `relic_case.png` (full bleed, 3:4, a museum display case interior, velvet and brass).
 
-### X6. Unmet legend silhouette (P3, 1 image, needs hookup)
+### X6. Unmet legend silhouette (P3, 1 image, wired)
 - **Now:** a legend you haven't met shows as a CSS-drawn head silhouette (`legends.ts:legendPortrait` with `silhouette`).
 - **Deliver:** `art/raw/legends/silhouette.png`, magenta, a dark head-and-shoulders shape with a gold question-mark glint, 1:1, name `unknown`, `prefix: legend_`.
 
-### X7. UI chrome (P3, 3 images, needs hookup)
+### X7. UI chrome (P3, 3 images, wired)
 - **Now:** every panel, button and HUD bar is a CSS box with a border and a gradient.
 - **Deliver (optional polish):** `art/raw/ui_chrome/panel.png` (a riveted dark-teal steel plate with a brass edge, 1:1, painted for a CSS `border-image` 9-slice: plain centre, detail only in a 64 px border), `button.png` (the same, 3:1, a raised enamel button) and `hud_bar.png` (8:1, a riveted strip for the top bar). Keep them dark and quiet, since text sits on them.
 
@@ -476,7 +477,7 @@ Images count generations: an icon sheet of four is one image. At 130 credits an 
 3. Check the output. Character and creature folders write previews to `art/previews/<id>_<anim>.png` (cut frames) and `art/previews/<id>_lineup.png` (sizes). Portrait-kind folders (walls, icons, backdrops) write no previews, so look at the files under `public/sprites/<outDir>/`.
 4. Look at it in the game with `npm run dev` (no offline cache), on desktop and at phone width. Useful console helpers: `homestead.qol.bigVault(40)` for many merged rooms, `homestead.m7.topside()` for the surface, `homestead.m9.creature('glassbacks')` and the other incident helpers for fights.
 5. Commit the raw PNG, the generated WebP files and `public/sprites/manifest.json` together, and add a licensing row in [SPRITE-HANDOFF.md §8](SPRITE-HANDOFF.md).
-6. For anything marked **needs hookup**, tell the code session which folders landed; §1, §2, S1 and V2 show up on their own.
+6. For anything new that the code doesn't read yet, tell the code session which folders landed. Everything on this list is already wired, so redos show up on their own.
 
 Partial delivery is fine everywhere: anything missing keeps its current look.
 
@@ -484,21 +485,21 @@ Partial delivery is fine everywhere: anything missing keeps its current look.
 
 ## Delivery log
 
-Updated by the art session as batches land. "Shows up on its own" means the code already reads it; "needs hookup" means the code session still has to wire the folder.
+Updated by the art session as batches land. "Shows up on its own" means the code already read it when it landed; "wired" means the code session hooked it up afterwards.
 
 | Date | Items | Folders | Code |
 |---|---|---|---|
 | 2026-09-28 | §1 P1 wide walls: generator, waterworks, canteen, quarters, levels 1 to 3, `w2` and `w3` (24) | `room_generator`, `room_waterworks`, `room_canteen`, `room_quarters` | shows up on its own |
 | 2026-09-28 | §2 P1 grip fight sheets: pistol, long gun, melee, unarmed, heavy for `resident_m` and `resident_f` (10) | `resident_m`, `resident_f` | shows up on its own (melee entries use `fitHeight: false`) |
-| 2026-09-28 | S1 backdrops (`surface`, `crust`, `dirt`); V1 elevator (`shaft`, `car`); I1 fire; M1 resources (2 sheets); M3 crates (`crate_standard`, `crate_rare`, `crate_legendary`, `crate_card_back`); U1 to U8 icon sheets, R1/Q6 icons as available (75 icons in `ui_icons`, names as in the list; map markers are `map_objective`, `map_unknown`, `map_go`) | `backdrop`, `room_elevator`, `fx_fire`, `crates`, `ui_icons` | S1 shows up on its own; the rest need hookup |
-| 2026-09-28 | Deep: D1 strata 1 to 4, D2 bulkhead, D3 `seal_band` and `seal_centre`, D4 derrick (`dig_rig/derrick`) and drill (own folder `dig_drill`, creature `idle`); V4/V5 room frames (`room_frame`: `frame`, `deep`, `deep_braced`); V6 monument; S2 carts; R1 badges (`badges`); I2 surge, I4 rubble and rocks (names `rubble_1..3`, `rock_a..d`), I5 pipe, I6 beacon; Q1 to Q5 quest sky, skyline, nine ruin walls, ruin props, corridor, ladder, stairs; M4 arrival; X1 regions; X2 app icon; X3 sites (3 of 4) and X5 log paper and relic case; X6 legend silhouette (`legend_unknown`); X7 UI chrome | `backdrop`, `room_frame`, `seal_monument`, `caravan_carts`, `dig_rig`, `dig_drill`, `badges`, `fx_surge`, `fx_cavein`, `fx_flood`, `fx_beacon`, `quest_backdrop`, `ruin_relay`, `ruin_homestead`, `ruin_scrapyard`, `ruin_props`, `arrival`, `regions`, `app`, `sites`, `legends`, `ui_chrome` | needs hookup (the code session reads these paths; where a folder name differs from the list above it is noted in the Items column) |
-| 2026-09-28 | Redo and P2 batch: door levels 2 and 3, mauler walk, door-damage patches, wind turbine rotor, dry-wells and ribbon site art, splash, log/relic icons; P2 wide walls for storeroom, clinic, purgelab, radio and lab (levels 1 to 3, `w2` and `w3`, 30) and the surface types solar_array, wind_turbine, rain_catcher, farm_plots at `w2` (12) | `room_door`, `mauler`, `fx_door_damage`, `room_wind_turbine`, `sites`, `app`, `ui_icons`, `room_storeroom`, `room_clinic`, `room_purgelab`, `room_radio`, `room_lab`, `room_solar_array`, `room_wind_turbine`, `room_rain_catcher`, `room_farm_plots` | walls show up on their own; door, mauler walk and fx need hookup |
-| 2026-09-28 | Wide walls, rest of P2 and P3: surface types `w3` (solar_array, wind_turbine, rain_catcher, farm_plots, 12) and the Deep rooms geothermal, fungalfarm, refinery, aquifer at `w2` and `w3` (24), so every merging room now has all six wide walls (102 in total); legend fight grips: pistol, long gun, melee, unarmed, heavy for all 11 legend bodies (55) | `room_solar_array`, `room_wind_turbine`, `room_rain_catcher`, `room_farm_plots`, `room_geothermal`, `room_fungalfarm`, `room_refinery`, `room_aquifer`, `legend_ada_quill`, `legend_brother_wick`, `legend_captain_orla`, `legend_doc_ferris`, `legend_granny_ash`, `legend_june_halloran`, `legend_lucky_lou`, `legend_marla_voss`, `legend_pip`, `legend_rook`, `legend_seven` | walls show up on their own; legend grip sheets show up wherever the grip lookup already reads `fight_<grip>` for legend bodies, otherwise they need hookup (melee entries use `fitHeight: false`) |
+| 2026-09-28 | S1 backdrops (`surface`, `crust`, `dirt`); V1 elevator (`shaft`, `car`); I1 fire; M1 resources (2 sheets); M3 crates (`crate_standard`, `crate_rare`, `crate_legendary`, `crate_card_back`); U1 to U8 icon sheets, R1/Q6 icons as available (75 icons in `ui_icons`, names as in the list; map markers are `map_objective`, `map_unknown`, `map_go`) | `backdrop`, `room_elevator`, `fx_fire`, `crates`, `ui_icons` | S1 shows up on its own; the rest are wired |
+| 2026-09-28 | Deep: D1 strata 1 to 4, D2 bulkhead, D3 `seal_band` and `seal_centre`, D4 derrick (`dig_rig/derrick`) and drill (own folder `dig_drill`, creature `idle`); V4/V5 room frames (`room_frame`: `frame`, `deep`, `deep_braced`); V6 monument; S2 carts; R1 badges (`badges`); I2 surge, I4 rubble and rocks (names `rubble_1..3`, `rock_a..d`), I5 pipe, I6 beacon; Q1 to Q5 quest sky, skyline, nine ruin walls, ruin props, corridor, ladder, stairs; M4 arrival; X1 regions; X2 app icon; X3 sites (3 of 4) and X5 log paper and relic case; X6 legend silhouette (`legend_unknown`); X7 UI chrome | `backdrop`, `room_frame`, `seal_monument`, `caravan_carts`, `dig_rig`, `dig_drill`, `badges`, `fx_surge`, `fx_cavein`, `fx_flood`, `fx_beacon`, `quest_backdrop`, `ruin_relay`, `ruin_homestead`, `ruin_scrapyard`, `ruin_props`, `arrival`, `regions`, `app`, `sites`, `legends`, `ui_chrome` | wired (where a folder name differs from the list above it is noted in the Items column) |
+| 2026-09-28 | Redo and P2 batch: door levels 2 and 3, mauler walk, door-damage patches, wind turbine rotor, dry-wells and ribbon site art, splash, log/relic icons; P2 wide walls for storeroom, clinic, purgelab, radio and lab (levels 1 to 3, `w2` and `w3`, 30) and the surface types solar_array, wind_turbine, rain_catcher, farm_plots at `w2` (12) | `room_door`, `mauler`, `fx_door_damage`, `room_wind_turbine`, `sites`, `app`, `ui_icons`, `room_storeroom`, `room_clinic`, `room_purgelab`, `room_radio`, `room_lab`, `room_solar_array`, `room_wind_turbine`, `room_rain_catcher`, `room_farm_plots` | walls show up on their own; door, mauler walk and fx are wired; the rotor is unused |
+| 2026-09-28 | Wide walls, rest of P2 and P3: surface types `w3` (solar_array, wind_turbine, rain_catcher, farm_plots, 12) and the Deep rooms geothermal, fungalfarm, refinery, aquifer at `w2` and `w3` (24), so every merging room now has all six wide walls (102 in total); legend fight grips: pistol, long gun, melee, unarmed, heavy for all 11 legend bodies (55) | `room_solar_array`, `room_wind_turbine`, `room_rain_catcher`, `room_farm_plots`, `room_geothermal`, `room_fungalfarm`, `room_refinery`, `room_aquifer`, `legend_ada_quill`, `legend_brother_wick`, `legend_captain_orla`, `legend_doc_ferris`, `legend_granny_ash`, `legend_june_halloran`, `legend_lucky_lou`, `legend_marla_voss`, `legend_pip`, `legend_rook`, `legend_seven` | walls show up on their own; legend grip sheets are wired through the same `fight_<grip>` lookup as residents (melee entries use `fitHeight: false`) |
 | 2026-09-28 | V7 training room walls: weight_room, reading_room, lounge, shooting_gallery, tinker_bench, endurance_track, card_parlour at levels 1 to 3 (21) | `room_<type>` | Shows up on its own (`roomWall()`) |
 | 2026-09-28 | V7 wide training room walls: the seven training rooms at `w2` and `w3`, levels 1 to 3 (42) | `room_<type>` | Shows up on its own (`roomWall()`) |
-| 2026-09-28 | §2b tool sheets: `fight_extinguish` and `fight_repair` for male and female residents (4), M9 Halcyon Fizz bottle icon (1) | `resident_m`, `resident_f`, `ui_icons` | Needs hookup (animation keys `fight_extinguish`, `fight_repair`; icon `fizz`) |
+| 2026-09-28 | §2b tool sheets: `fight_extinguish` and `fight_repair` for male and female residents (4), M9 Halcyon Fizz bottle icon (1) | `resident_m`, `resident_f`, `ui_icons` | Wired (animation keys `fight_extinguish`, `fight_repair`; icon `fizz`) |
 | 2026-09-28 | Fixes: quarters level 1 (single, w2, w3) redone with a wood plank floor and a flat rug (the rug read as hanging on the wall); toolbar/UI icons redone clean: `residents`, `goals`, `deep_day_one`, `ruined`, `room`, and `fizz` without an outer glow | `room_quarters`, `ui_icons` | Shows up on its own |
-| 2026-09-28 | Legend tool sheets: `fight_extinguish` and `fight_repair` for all 11 legends (22), same 12-frame template as the resident sheets | `legend_<id>` (all 11) | Needs hookup (animation keys `fight_extinguish`, `fight_repair` per legend) |
+| 2026-09-28 | Legend tool sheets: `fight_extinguish` and `fight_repair` for all 11 legends (22), same 12-frame template as the resident sheets | `legend_<id>` (all 11) | Wired (animation keys `fight_extinguish`, `fight_repair` per legend) |
 | 2026-09-28 | Reroll of four weakest 3x walls (shooting gallery L1/L3, geothermal L3, quarters L3) | art/raw/room_*/ | npm run sprites |
 | 2026-09-28 | Quests and Legacy toolbar icons redone (scroll with exclamation mark; laurel wreath with diamond) | art/raw/ui_icons/ | npm run sprites |
 | 2026-09-28 | Star icon (Legends tab) redone; Legacy scroll restored to the original | art/raw/ui_icons/ | npm run sprites |

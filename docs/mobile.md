@@ -63,7 +63,7 @@ Two differences from the app:
 
 ### CI: `.github/workflows/ios.yml`
 
-On a macOS runner, every push builds the app for the iOS simulator, unsigned, to prove the Xcode project compiles. **This workflow has not been run yet**, so the first run may need small fixes.
+On a macOS runner, every push to `main` (and to `claude/dreamy-bell-vi4u67`, or by hand from the Actions tab) builds the app for the iOS simulator, unsigned, to prove the Xcode project compiles. It has run and passes.
 
 When signing secrets are added, the same workflow also archives a signed build and uploads it to **TestFlight**, so testers can install it on iPhones through Apple's TestFlight app. That needs:
 1. **A developer account:** an Apple Developer Program membership ($99 a year).
@@ -81,6 +81,15 @@ When signing secrets are added, the same workflow also archives a signed build a
 
 Each upload uses the workflow run number as its build number. After Apple processes a build (usually 10–30 minutes), add testers in App Store Connect → TestFlight.
 
+## CI workflows
+
+All four are in `.github/workflows/`, and each can also be run by hand from the Actions tab.
+
+- **`android.yml`** (Android debug APK): on every push, to any branch. It typechecks, runs the tests, builds the web game and the debug APK, and uploads it as `homestead-debug-apk`.
+- **`pages.yml`** (Web build on GitHub Pages): on pushes to `main` (and `claude/dreamy-bell-vi4u67`). It builds the web game and publishes it to the repository's Pages URL.
+- **`ios.yml`** (iOS build): on pushes to `main` (and `claude/dreamy-bell-vi4u67`). An unsigned simulator build, plus a TestFlight upload once the signing secrets exist (see above).
+- **`webkit-check.yml`** (WebKit check): loads the published site in WebKit on an emulated iPhone and a desktop, and saves errors and screenshots, to debug Safari-only problems. It runs by hand (with a page URL), or on a push that changes the check itself.
+
 ## Icons and splash
 
 The icon and splash are paintings (docs/art/ART-LIST.md X2): `art/raw/app/icon.png` (a homestead door in a hillside, 1024 px) and `art/raw/app/splash.png` (the same scene wider, centre third safe). The web boot screen shows `public/sprites/app/splash.webp` until the game starts. The web icons are in `public/icons/`:
@@ -97,8 +106,8 @@ To regenerate every size from the paintings, run `python3 tools/app_icons.py` (P
 ## PWA and offline play
 
 - `public/manifest.webmanifest` makes the web build installable (standalone, portrait, dark theme).
-- `vite.config.ts` writes `dist/sw.js` after each build from `src/client/platform/sw.template.js`. It precaches every output file: the app shell, the JS chunks, the bundled fonts and all the sprites (about 7 MB). The cache is named `homestead-<version>-<content hash>`, so each build gets a fresh cache and the old ones are deleted on activate.
-- The page is served from the cache first, so it starts in airplane mode. Requests the precache missed are cached as they happen.
+- `vite.config.ts` writes `dist/sw.js` after each build from `src/client/platform/sw.template.js`. It precaches the app shell, the JS chunks, the bundled fonts and the sprite folders the game needs at start-up (`PRECACHED_SPRITES` in `vite.config.ts`: residents, room walls, items, portraits, backdrops, icons, effects and the vault's creatures, about 20 MB). Everything else (quest enemies, bosses, legend bodies, ending art) is cached at runtime, the first time it loads. The service worker is registered only after the game's own art has loaded, so the two downloads don't compete on a first visit. The cache is named `homestead-<version>-<content hash>`, so each build gets a fresh cache and the old ones are deleted on activate.
+- The page itself is network-first, so a new release arrives on the next visit; the cached copy is the fallback offline, or when the network takes more than a few seconds, so it still starts in airplane mode. Other files come from the cache first, and requests the precache missed are cached as they happen.
 - The fonts come from `@fontsource/bungee` and `@fontsource/work-sans` (400/600/700), bundled by Vite. There are no Google Fonts requests.
 - Everything is relative (`base: './'`), so the build runs from any sub-path. The native app loads its files locally and never registers the service worker.
 

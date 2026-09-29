@@ -1,8 +1,10 @@
-# Art handoff, round 2: what still needs painting (M7–M9 and the true ending)
+# Art handoff, round 2: M7–M9 and the true ending
 
-This is the to-do list for the art session after M9. The first round (residents, 11 creature looks, HALCY, 36 item icons, 21 salvage icons, 49 room walls) is done and summarised in [ART-SESSION-HANDOFF.md](ART-SESSION-HANDOFF.md). How sheets are laid out, keyed and built is in [SPRITE-HANDOFF.md](SPRITE-HANDOFF.md). Use the same tools and style: Artlist, Nano Banana 2 at 2K, image-to-image from existing art wherever a style match matters.
+**Status: every section here (1 to 10) has been delivered and is wired in the game.** What is left is the [Redo list in ART-LIST.md](ART-LIST.md#redo-list-from-the-code-sessions-hookup-pass).
 
-**Round 3 (playtest 1):** the full list of what is still drawn in code, with the wide room walls and weapon grip fight sheets first, is [ART-LIST.md](ART-LIST.md).
+This was the to-do list for the art session after M9. The first round (residents, 11 creature looks, HALCY, 36 item icons, 21 salvage icons, 49 room walls) is done and summarised in [ART-SESSION-HANDOFF.md](ART-SESSION-HANDOFF.md). How sheets are laid out, keyed and built is in [SPRITE-HANDOFF.md](SPRITE-HANDOFF.md). Use the same tools and style: Artlist, Nano Banana 2 at 2K, image-to-image from existing art wherever a style match matters.
+
+**Round 3 (playtest 1):** the list of what was still drawn in code, with the wide room walls and weapon grip fight sheets first, is [ART-LIST.md](ART-LIST.md). It has been delivered and wired too.
 
 **The code is already wired for everything in this list.** Drop the raw image in the named folder, add or extend its `sprite.json`, run `npm run sprites -- <folder>`, and it shows up in the game. Anything missing keeps its drawn fallback, so partial delivery is fine.
 
@@ -55,10 +57,10 @@ Section 9, bespoke legend bodies (2026-09-28):
 Integrated by the code session (2026-09-26):
 - **Surface buildings:** the 3-cell types now stand one painting per segment, so merged Solar Arrays and the rest no longer stretch.
 - **Loading:** creature art for quest enemies and bosses loads when a quest opens, not at start-up. The vault's own looks still load up front.
-- **Offline cache:** the service worker precaches only the start-up art. Bosses, enemies and ending illustrations are cached the first time they load, so a first visit no longer downloads the whole 22 MB.
+- **Offline cache:** the service worker precaches only the start-up art. Bosses, enemies and ending illustrations are cached the first time they load, so a first visit no longer downloads the whole art set (22 MB then, about 47 MB now).
 - **Checked in the browser, desktop and phone:** legend and faction portraits, the Glassbacks in the vault, the surface buildings, bespoke bosses in combat (HALCY-9 Custodian Frame, The Official Receiver) and the ending illustrations.
-- **Legend bodies:** a legendary resident is drawn with their own `legend_<id>` body once one is built, and with the shared body until then. `npm run sprites -- <folder>` builds only the named `art/raw` folders and merges them into the manifest, instead of rebuilding all 1.9 GB.
-- **Repo size:** `art/raw/` is now 1.9 GB, so clones are slow. Moving `art/raw/` and `art/previews/` to Git LFS, or out of the repo, is worth doing before the repo is shared more widely.
+- **Legend bodies:** a legendary resident is drawn with their own `legend_<id>` body once one is built, and with the shared body until then. `npm run sprites -- <folder>` builds only the named `art/raw` folders and merges them into the manifest, instead of rebuilding all of it (1.9 GB then, about 3.6 GB now).
+- **Repo size:** `art/raw/` was 1.9 GB then and is about 3.6 GB now (plus about 100 MB of previews), so clones are slow. Moving `art/raw/` and `art/previews/` to Git LFS, or out of the repo, is worth doing before the repo is shared more widely.
 
 ---
 
@@ -412,7 +414,9 @@ This builds only that folder and merges it into the existing manifest, so it tak
 
 ## 10. Backdrops: the sky above ground and the dirt around the homestead
 
-Today the sky is a drawn gradient with two flat mesas, and the earth around the rooms is flat brown with speckles. The vault view now uses painted backdrops for both when they exist, and keeps the drawn versions until then. There are three images, and each one repeats (tiles), so **every edge must wrap seamlessly**: the left edge continues into the right edge, and for the dirt, the top continues into the bottom too.
+**Delivered and wired:** `surface`, `crust` and `dirt` are painted and in the game (see the Redo list in ART-LIST.md for a seam fix on `crust` and `dirt`). The brief is kept below for reference.
+
+Before this, the sky was a drawn gradient with two flat mesas, and the earth around the rooms was flat brown with speckles. The vault view uses the painted backdrops when they exist, and keeps the drawn versions as a fallback. There are three images, and each one repeats (tiles), so **every edge must wrap seamlessly**: the left edge continues into the right edge, and for the dirt, the top continues into the bottom too.
 
 | file name | What it is | Size and shape | How the game uses it |
 |---|---|---|---|

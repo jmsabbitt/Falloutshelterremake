@@ -2,7 +2,7 @@
 
 An original atompunk colony-management game inspired by *Fallout Shelter*: a 2.5D cross-section of an underground homestead, with residents, production, incidents, exploration, quests and a prestige system that expands the game every cycle.
 
-Web first (TypeScript + PixiJS), with a mobile build through Capacitor later.
+Web first (TypeScript + PixiJS). It also runs as an Android and iOS app through Capacitor, and installs as a PWA that plays offline.
 
 ## Run it
 
@@ -14,26 +14,28 @@ npm run typecheck
 npm run build      # production build in dist/
 npm run sim -- 48  # headless bot-player balance run: 48 in-game hours
 npm run quest-balance  # every quest and contract with scripted parties
-npm run sprites    # rebuild character sprites from art/raw (see docs/design/art-spec.md)
+npm run sprites    # rebuild all game art from art/raw (see docs/design/art-spec.md)
 npm run sprites -- resident_f  # just the named art/raw folders, merged into the manifest
 ```
 
-In the browser console, `window.homestead` is a developer console: `skip(seconds)`, `addScrip(n)`, `spawn(n)`, `fill()`, `raid()`, `incident(type)`, `give(itemId)`, `crate(tier, n)`, `salvage(id, n)`, `fragments(itemId, n)`, `learn(itemId)`, `explore(residentId?)`, `run(command)`, `reset()`. It is the basis for the future Custom Game mode.
+In the browser console, `window.homestead` is a developer console: `skip(seconds)`, `addScrip(n)`, `spawn(n)`, `fill()`, `raid()`, `incident(type)`, `give(itemId)`, `crate(tier, n)`, `salvage(id, n)`, `fragments(itemId, n)`, `learn(itemId)`, `explore(residentId?)`, `run(command)`, `reset()`. It also has sub-consoles for each area: `quest`, `prestige`, `research`, `deep`, `qol`, `m7`, `m9`, `custom` and `ending`. The in-game **Custom Game** mode (☰ → Custom Game) is built on it.
 
 ## How to play (current prototype)
 
-1. Tap the door to let the founding residents in.
-2. Drag residents into rooms. A room is a good fit when it matches the resident's highest stat (Generator = Brawn, Canteen = Knack, Water Works = Sight).
-3. Tap a room when its bubble appears to collect.
-4. **Build**, then tap a green slot. Rooms of the same type and level merge up to 3 wide.
-5. Open a room to **Rush** it (instant batch, with a risk of an incident) or **Upgrade** it.
-6. **Crates**: open Supply Crates for scrip, supplies, gear and even new residents. You get one every day you play, from milestones, and from crate tokens earned by playing. A legendary is guaranteed at least every 10 crates.
-7. **Residents → Change** to equip weapons (for fighting) and outfits (stat boosts). **Storage** holds spare gear.
-8. Put a woman and a man in the **Quarters** to start a family. Babies grow up into working adults in a few hours.
-9. Defend against fires, skitters, burrowers and **Rustmen raiders**: drag residents into the affected room. Arm your two door guards.
-10. Build a **Radio Room** (population 20) to attract new residents.
-11. **Explore**: send a resident into the Glarelands with Med-Patches and Purge. They keep exploring while you're away, writing a journal, and bring home scrip, gear, salvage and blueprint fragments. Recall them before they get into trouble.
-12. **Craft**: build a Weapon Workshop (population 22) or Outfit Workshop (32), staff it, and turn salvage into gear. Rare and legendary recipes come from blueprint fragments (exploring, scrapping duplicates). **Storage → Scrap** breaks items into salvage; **Reforge** turns three of a kind into a chance at the next rarity, guaranteed after a few tries.
+1. Your first homestead starts empty: just the door and the elevator shaft. HALCY's tutorial walks you through it (you can skip it at any step). Tap the door to let the founding residents in.
+2. Build power, water and food. In the tutorial these three are free, and there are slots on both sides of the shaft.
+3. **Drag** residents into rooms (tapping a resident opens their card; it never assigns them). A room is a good fit when it matches the resident's highest stat (Generator = Brawn, Canteen = Knack, Water Works = Sight). Rooms that suit the person you're dragging light up.
+4. Tap a room when its bubble appears to collect. A room shows how long until its batch is ready. While you're away, finished batches collect themselves into storage while there's space.
+5. **Build**, then tap a green slot. Rooms of the same type and level merge up to 3 wide. A room's **Move** button moves it (with its level and crew) to another slot for scrip.
+6. Open a room to **Rush** it (instant batch, with a risk of an incident) or **Upgrade** it.
+7. **Crates**: open Supply Crates for scrip, supplies, gear, Halcyon Fizz and even new residents. You get one every day you play, from milestones, and from crate tokens earned by playing. **Settling In** sends a legendary crate on the third day you play. A legendary is guaranteed at least every 10 crates.
+8. **Residents → Change** to equip weapons (for fighting) and outfits (stat boosts). The gear pickers rank items by what each resident is doing now. **Auto-equip** shares everyone's gear out by best fit, and **Unequip all** takes weapons, outfits or both back into **Storage**, which holds spare gear.
+9. Put a woman and a man in the **Quarters** to start a family. Babies grow up into working adults in a few hours.
+10. Defend against fires, skitters, burrowers and **Rustmen raiders**: drag residents into the affected room. Arm your two door guards. Weapons only show in a fight; fires are fought with extinguishers.
+11. Build a **Radio Room** (population 20) to attract new residents.
+12. **Train**: seven training rooms (Weight Room, Reading Room, Lounge, Shooting Gallery, Tinker Bench, Endurance Track, Card Parlour; from population 15 to 36), one per stat, raise a resident's stat 1 point at a time, up to 10.
+13. **Explore**: send a resident into the Glarelands with Med-Patches and Purge. They keep exploring while you're away, writing a journal, and bring home scrip, gear, salvage and blueprint fragments. Recall them before they get into trouble. A bottle of **Halcyon Fizz** (or some scrip) brings an explorer, a caravan or a quest party to the end of the road at once.
+14. **Craft**: build a Weapon Workshop (population 22) or Outfit Workshop (32), staff it, and turn salvage into gear. Rare and legendary recipes come from blueprint fragments (exploring, scrapping duplicates). **Storage → Scrap** breaks items into salvage; **Reforge** turns three of a kind into a chance at the next rarity, guaranteed after a few tries.
 
 ## Layout
 
@@ -70,7 +72,7 @@ The client only changes the game through `applyCommand`. This keeps the simulati
   - *Act 2 "Neighbours":* 8 quests for the second homestead, ending in `act2_finale`, which the Charter now requires. There are faction-choice events and 6 faction contracts. It opens the Glass Flats, a harsher region with 17 enemies, 12 locations, 10 NPCs and 46 musings.
   - The game now has 141 achievements. Screenshots are in `docs/screens/m7/`; the contract is `docs/design/M7-spec.md`. Console: `homestead.m7.topside()`, `.meet()`, `.influence(n)`, `.weather(kind)`, `.arrive()`.
 - **M8 (Mobile): playable on phones.**
-  - *App:* a Capacitor 8 shell for Android and iOS (`ai.avolis.homestead`). `npm run android:build` builds a debug APK, and CI does the same on every push (`.github/workflows/android.yml`). iOS is generated, with Swift Package Manager and no CocoaPods, and needs Xcode on a Mac to compile.
+  - *App:* a Capacitor 8 shell for Android and iOS (`ai.avolis.homestead`). `npm run android:build` builds a debug APK, and CI does the same on every push (`.github/workflows/android.yml`). iOS is generated, with Swift Package Manager and no CocoaPods; it needs Xcode on a Mac to compile locally, and CI builds it for the simulator (`.github/workflows/ios.yml`).
   - *Web:* the build also installs as a PWA. It plays offline and the fonts are bundled.
   - *Saves:* they are compressed (a population-100 save is about 7.7k characters) and mirrored to native storage, so the OS clearing the WebView can't lose them.
   - *Notifications:* local notifications come from `upcomingReminders`, which predicts what finishes while the game is closed: explorers, caravans, quest parties, crafting, research, storage, births, fresh offers, the daily crate, digs and outposts. Each kind can be switched on or off, and there are quiet hours. Permission is asked the first time it matters.
@@ -79,11 +81,11 @@ The client only changes the game through `applyCommand`. This keeps the simulati
 - **M9 (Content): playable.**
   - *Act 3, "The Seal":* 8 quests for the third homestead, ending in `act3_finale` (the Charter now needs it). It has a two-phase finale, 21 new enemies, 15 events and 5 contracts. It opens the **Stillwater**, the hardest region, with 15 enemies, 11 locations, 9 NPCs and 45 musings.
   - *Legendary residents:* 11 named characters (for example Marla "Switchback" Voss, Doc Ferris, Rook, Captain Orla Brandt). Each has a signature trait and a two-quest personal questline that "awakens" them. They join through faction standing, the radio, Legendary crates, the Deep, a boss's first defeat, treasure caches or the story. You can recall them from outposts.
-  - *Collection Log and Warden's Seal:* a codex of items, legends, creatures, rooms and regions, with milestone crates. The Seal is earned with every other achievement; the ones for losing people are optional. The game now has 229 achievements.
+  - *Collection Log and Warden's Seal:* a codex of items, legends, creatures, rooms and regions, with milestone crates. The Seal is earned with every other achievement; the ones for losing people are optional. The game now has 203 achievements, 13 of them optional (the Seal doesn't need them).
   - *New threats:* electrical surges, the Hollowed, Glassbacks (they jump rooms and drain power) and **Maulers**, which a noise-and-wealth meter on the Threat gauge summons with a warning.
   - *Rare-item paths:* a guaranteed drop the first time each of the 24 bosses is defeated, treasure maps that lead to 5 caches, region-exclusive loot, and 14 loot-only items.
   - *Rulesets and Survival:* 9 rulesets (Famine, Lean Times, Brownout, Short Fuse, No Radio, Iron Door, Endless Night, Glass Sky, Skeleton Crew) chosen when founding. Each is unlocked by prestige progress and pays extra Legacy. Survival means the fallen stay fallen.
-  - *Custom Game:* 7 presets or an advanced setup, a sandbox console, a ×1–×100 time scale, its own save slot and no achievements.
+  - *Custom Game:* 10 presets (Blank Slate, Boomtown, The Deep from Day One, A Ruined Homestead, All Rooms No People, Old Hands, The Hard Road, The Neighbours Call, Below the Seal, Last Rent) or an advanced setup, a sandbox console, a ×1–×100 time scale, its own save slot and no achievements.
   - Screenshots are in `docs/screens/m9/`; the contract is `docs/design/M9-spec.md`. Console: `homestead.m9.*` and `homestead.custom.*`.
 - **The true ending: playable.** Act 4, "Rent Day", is for the fourth homestead onward: 8 quests at levels 36–50, 26 new enemies, 17 events and a two-phase finale. It answers the story's questions: the Freeholder under the ground, what the Glare was, and what HALCY is.
   - *Network help:* your outposts and allied factions help in the field on network quests (supplies, turrets, heals, stuns, shields). A legend standing in the party can settle their own event option.
@@ -92,8 +94,10 @@ The client only changes the game through `applyCommand`. This keeps the simulati
   - *Rewards:* each ending pays Legacy, a lasting bonus and a title. Endings are kept for your whole save and can be replayed from Goals.
   - *After the ending:* the game carries on. A Rent Review in later homesteads lets you answer again.
   - Screenshots are in `docs/screens/ending/`. Console: `homestead.ending.*`.
-- **Art:** the list of sprites still to paint (legend and faction portraits, loot icons, 56 bosses, the Glassback, the surface buildings and the ending illustrations) is in [`docs/art/ART-HANDOFF-M9.md`](docs/art/ART-HANDOFF-M9.md). The game picks each one up automatically as it lands.
-- Next: bespoke art as it arrives, a full playthrough and polish pass, and more regions and creatures.
+- **Playtest 1: done.** HALCY's tutorial with an empty first homestead; drag-only assigning; weapons only in fights, held in a fight sheet for each weapon grip (and extinguishers and repair tools for fires, cave-ins, floods and surges); a wider grid (44 cells per floor, starter shaft at x 24) and moving rooms for scrip; mastery as job experience (Journeyman at 8 h, Master at 24 h, with a boost for every batch collected); offline auto-collect; batch countdowns; 7 training rooms, plus +1 in a stat every 10 levels; Halcyon Fizz for explorers, caravans and quest parties; best-fit gear pickers, Auto-equip and Unequip all; a stat strip on every row of the People list; Settling In; and lazy art loading (only the art on screen loads at start-up). The plan is in `docs/design/playtest-1-plan.md` and the balance numbers in `docs/design/balance-playtest-1.md`.
+- **Art:** every art brief ([`docs/art/ART-HANDOFF-M9.md`](docs/art/ART-HANDOFF-M9.md) and [`docs/art/ART-LIST.md`](docs/art/ART-LIST.md)) has been delivered and wired. What's left is the Redo list at the end of `ART-LIST.md`: images to regenerate before a public release.
+- **CI** (`.github/workflows/`): `android.yml` typechecks, tests and builds the debug APK on every push; `pages.yml` publishes the web build to GitHub Pages on pushes to `main`; `ios.yml` builds the iOS app for the simulator on pushes to `main` (and uploads to TestFlight once signing secrets exist); `webkit-check.yml` loads the live site in WebKit on an emulated iPhone. Details in `docs/mobile.md`.
+- Next: the art redo list, a full playthrough and polish pass, and more regions and creatures.
 
 Quest tools: `npm run quest-balance` plays every quest with a scripted party across levels and gear. In the browser console, `homestead.quest.office()`, `.party(level, weapon)`, `.skip()` and `.win()` help testing.
 

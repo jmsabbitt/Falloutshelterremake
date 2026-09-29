@@ -1,7 +1,7 @@
 # Game Design Document — v0.2
 
 **Status:** v0.2. It now includes the owner's decisions and wishlist (§15, §16). Every name here is a **placeholder** until we settle the identity and run a trademark check.
-**Direction (decided):** an original IP inspired by Fallout Shelter. Web first, with a port to mobile later. Wasteland exploration and quests are in scope from the start. The headline feature is a **prestige system** that keeps opening up the game instead of simply resetting it.
+**Direction (decided):** an original IP inspired by Fallout Shelter. Web first, with a port to mobile later (done: Android and iOS apps through Capacitor, and an installable offline PWA). Wasteland exploration and quests are in scope from the start. The headline feature is a **prestige system** that keeps opening up the game instead of simply resetting it.
 
 Research that backs this document is in [`../research/`](../research/00_overview.md). When this doc says "same as the original", the formulas are in those files.
 
@@ -49,11 +49,11 @@ These match the original closely, because they work. Numbers start from the rese
 
 | System | Baseline (from research) | Our change |
 |---|---|---|
-| Grid | 25 floors × 8 segments + 2 elevator slots per floor | Start with **25 floors**. The Deep (§6.3) adds more below |
+| Grid | 25 floors × 8 segments + 2 elevator slots per floor | Start with **25 floors**, each **44 cells** wide (a room segment is 3 cells), with the starter elevator shaft at x 24 so both sides have room. The Deep (§6.3) adds more below |
 | Rooms | 1–3 wide, levels 1–3, merge same type and level | Add **level 4 "Mastercraft"** rooms after the first prestige. **Move and rebuild rooms** without demolishing them, a common wish |
 | Production | Time pool: `poolBase × width / (Σ stat × (1 + happiness bonus))` | Same |
 | Rush | `max(10, 40 − 1.5·(avg stat + avg Fortune)) + 10 per recent rush` | Same, plus a visible "strain" meter so the risk is readable |
-| 7 stats | SPECIAL, trained to 10, gear adds up to +7 | Our own 7 stats (§4.1). The cap can rise through prestige perks |
+| 7 stats | SPECIAL, trained to 10, gear adds up to +7 | Our own 7 stats (§4.1). Seven training rooms, one per stat, raise them 1 point at a time up to 10, and every 10 levels a resident gains +1 in the stat of their room. The cap can rise through prestige perks |
 | HP | 105 + (2.5 + 0.5·Grit) per level, not retroactive | **Retroactive recalculation** unlockable as a perk, which removes a newbie trap |
 | Happiness | 50% baseline, 75% in the matching room, up to +10% production | Add traits and needs (§6.1), so happiness means more than room matching |
 | Breeding | 3 h pregnancy, 3 h childhood, stat inheritance formula | Add **family trees**, heirs and trait inheritance |
@@ -331,7 +331,7 @@ If you would rather end up in Godot for sure, **Option B** is better than C: bui
   - PixiJS for the vault view
   - UI in plain DOM, or Preact/React for menus
   - Vitest for sim tests
-- **Saves:** IndexedDB locally, JSON export/import, a version number on every save, and migrations between versions. Cloud save later.
+- **Saves:** `localStorage` on the web, mirrored to Capacitor Preferences in the apps (so the OS clearing the WebView can't lose them); big saves are LZ-compressed. JSON export/import, a version number on every save (currently version 11), and migrations between versions. Cloud save later.
 - **Time:** the sim uses wall-clock deltas. It is protected against clock tampering, and offline catch-up is capped (for example, a maximum of 3 days per session, adjustable).
 - **Balancing:** a headless "bot player" runs whole cycles to check the pacing targets in §10.4.
 
@@ -358,7 +358,7 @@ Two systems grow with every milestone instead of being a milestone of their own:
 - **Achievements and the Collection Log.** The event bus and tracker land in M1, and every later milestone adds achievements for its systems.
 - **Supply Crates and crate tokens.** These arrive in M2, and their sources expand with each system.
 
-The **Custom Game** mode ships after M9. It is built on the developer console, which exists from M0.
+The **Custom Game** mode shipped with M9 (done: ☰ → Custom Game). It is built on the developer console, which exists from M0.
 
 ---
 
@@ -410,7 +410,7 @@ In the original, a lunchbox could take hours to earn without paying. Our target:
 - **Crate tiers:** Standard, Rare-guaranteed and Legendary-guaranteed.
 - **Crate economy guardrail:** crates must not make crafting and exploring pointless. Crates give variety and a boost; targeted paths (§15.1) give control.
 
-### 15.4 Custom Game (post-launch, low priority)
+### 15.4 Custom Game (done in M9)
 
 This is a sandbox and scenario mode for testing and "what if" play:
 - Set resources and population, spawn residents and items, choose rooms and layout
@@ -436,6 +436,7 @@ This is a sandbox and scenario mode for testing and "what if" play:
 | 2026-09-24 | **Quest levels are recommended levels:** enemies fight 2 levels below a quest's stated level, so a party at the stated level wins comfortably and an under-levelled one has a real fight |
 | 2026-09-24 | **Depth pass (M6):** one bonus() lookup for perks and research. Research is lost on founding unless Institutional Memory keeps a share. Mastery tiers fall at 2 and 7 days (offline counts). Deep threats split depth between HP and damage. The refinery gives only a trickle of legendary salvage. Cave-ins settle offline |
 | 2026-09-24 | **Prestige v1 (M5):** Legacy is earned only by founding and scores only the homestead being left; founders keep levels, stats and worn gear; recipes, fragments, story, regions, achievements, lifetime stats and crates carry; outposts are an idle trickle capped at 24 h (visiting, raids and trade later); later Charters use contracts until Act 2 exists; residents gain +0.25 incident damage per level so seasoned residents keep up with level-scaled incidents |
+| 2026-09-28 | **Playtest 1:** mastery is job experience, one second per second worked plus 120 s for every batch collected from the room, with Journeyman at 8 h and Master at 24 h (first 2 h and 10 h, retuned after testing), so improvement follows play without speeding up the game clock. Residents are assigned by drag only; tapping opens their card. No weapon is drawn outside a fight, and in a fight it comes from the sheet for the weapon's grip; fires take an extinguisher and repairs a tool, never a gun. The first homestead starts empty (the door and the shaft) with HALCY's tutorial, whose three core rooms are free; skipping it builds whichever are missing. Seven training rooms raise stats to 10. Settling In, an optional achievement, gives a legendary crate on the third day played. See `docs/design/playtest-1-plan.md` |
 | 2026-09-28 | **Playtest 1, round 2:** offline, finished batches collect themselves while storage has space (`offline.autoCollectEfficiency` 0.5 of the scrip, XP and mastery; the resources in full), so nobody comes back to a stalled homestead; full storage leaves batches ready. Rooms show the time left on a batch, not its length. Power was the one supply that always needed more crew (about 1.5 to 1.9 times food or water from a few hours in, because a level-3 room drew 1.8 times a level-2 one), so power rooms fill faster (poolBase 1320 to 1100) and level 3 draws 1.2 times level 2. See `docs/design/balance-playtest-1.md` |
 
 ## 17. Open questions
