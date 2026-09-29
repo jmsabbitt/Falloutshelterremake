@@ -18,8 +18,14 @@ function filesUnder(dir: string): string[] {
  * is on disk, precaching every output file (relative, so base './' works).
  * The cache version is a hash of the file list and contents.
  */
-/** Sprite folders loaded at start-up (see EAGER_CREATURES in src/client/render/sprites.ts). */
-const PRECACHED_SPRITES = ['resident_f', 'resident_m', 'rooms', 'items', 'portraits', 'skitter', 'burrower', 'rustman', 'deepcrawler', 'hollowed', 'glassback'];
+/**
+ * Sprite folders loaded at start-up or in the first minutes (see EAGER_CREATURES,
+ * EAGER_IMAGES and LAZY_IMAGES in src/client/render/sprites.ts): rooms holds the
+ * walls, the room frames and the elevator; backdrop the sky, dirt and Deep rock;
+ * icons the badges and resource icons; fx and props the door damage, incident
+ * pieces, carts and the monument (all small).
+ */
+const PRECACHED_SPRITES = ['resident_f', 'resident_m', 'rooms', 'items', 'portraits', 'backdrop', 'icons', 'fx', 'props', 'fx_fire', 'skitter', 'burrower', 'rustman', 'deepcrawler', 'hollowed', 'glassback'];
 
 function serviceWorkerPlugin(): Plugin {
   let outDir = 'dist';

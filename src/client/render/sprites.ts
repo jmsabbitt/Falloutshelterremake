@@ -99,7 +99,39 @@ export interface Creature {
 }
 
 /** Creature looks the vault view draws in incidents: loaded at start-up. */
-const EAGER_CREATURES = new Set(['skitter', 'burrower', 'rustman', 'deepcrawler', 'hollowed', 'glassback']);
+const EAGER_CREATURES = new Set(['skitter', 'burrower', 'rustman', 'deepcrawler', 'hollowed', 'glassback', 'fx_fire']);
+
+/**
+ * Single images (manifest portraits) the vault view draws, by folder: these
+ * small ones load with the rest at start-up; every other folder listed in
+ * LAZY_IMAGES loads the first time it is asked for (see CharacterArt.image).
+ * Null means every name in the folder.
+ */
+const EAGER_IMAGES: Record<string, readonly string[] | null> = {
+  badges: null,
+  ui_icons: ['power', 'food', 'water', 'medpatch', 'purge'],
+};
+const LAZY_IMAGES = new Set(['fx_door_damage', 'seal_monument', 'caravan_carts', 'dig_rig', 'fx_cavein', 'fx_flood', 'fx_beacon', 'items', 'ui_icons']);
+/** Backdrops the start-up draws; the Deep's strata and seals load when the Deep first shows. */
+const EAGER_BACKDROPS = new Set(['surface', 'crust', 'dirt']);
+
+/** Painted backdrop names (art/raw/backdrop). */
+export type BackdropName = 'surface' | 'crust' | 'dirt' | 'stratum1' | 'stratum2' | 'stratum3' | 'stratum4' | 'bulkhead' | 'seal_band' | 'seal_centre';
+
+async function loadImage(base: string, file: string, repeat = false): Promise<Texture | null> {
+  try {
+    const t = await Assets.load<Texture>(`${base}${file}`);
+    t.source.scaleMode = 'linear';
+    // Walls, props and icons are drawn well under their pixel size (a 192 px cart at
+    // about 25 px on a phone): mipmaps keep them from sparkling. Set before the first upload.
+    t.source.autoGenerateMipmaps = true;
+    if (repeat) t.source.addressMode = 'repeat';
+    return t;
+  } catch (err) {
+    console.warn(`sprites: could not load ${file}`, err);
+    return null;
+  }
+}
 
 async function loadCreature(base: string, id: string, c: { refHeight: number; anims: Record<string, AnimManifest> }): Promise<Creature | null> {
   try {
@@ -127,6 +159,10 @@ export class CharacterArt {
   private pendingLegends = new Map<string, LegendManifest>();
   private lazyLoaded = 0;
   private bodiesLoaded = 0;
+  /** Single images by "folder:name", and those in the manifest not loaded yet (file paths). */
+  private images = new Map<string, Texture>();
+  private pendingImages = new Map<string, string>();
+  private backdropsLoaded = 0;
 
   constructor(
     readonly characters: Character[],
@@ -136,7 +172,10 @@ export class CharacterArt {
     lazy: Record<string, { refHeight: number; anims: Record<string, AnimManifest> }> = {},
     legends: Record<string, LegendManifest> = {},
     private base = 'sprites/',
+    images: { loaded?: Map<string, Texture>; pending?: Map<string, string> } = {},
   ) {
+    if (images.loaded) this.images = images.loaded;
+    if (images.pending) this.pendingImages = images.pending;
     // The first character listed for a body type is its default.
     for (const c of characters) if (!this.bySex.has(c.sex)) this.bySex.set(c.sex, c);
     for (const c of creatures) this.byLook.set(c.id, c);
@@ -156,6 +195,43 @@ export class CharacterArt {
    */
   get bodyVersion(): number {
     return this.bodiesLoaded;
+  }
+
+  /**
+   * Goes up by one each time a lazily loaded backdrop (a stratum, the bulkhead,
+   * the seal) arrives, so the view redraws the rock it paints.
+   */
+  get backdropVersion(): number {
+    return this.backdropsLoaded;
+  }
+
+  /**
+   * A single painted image from the manifest (portraits.<folder>.<name>), or
+   * undefined to draw it: images that aren't loaded yet start loading here and
+   * show up on a later frame.
+   */
+  image(folder: string, name: string): Texture | undefined {
+    const key = `${folder}:${name}`;
+    const t = this.images.get(key);
+    if (t) return t;
+    const file = this.pendingImages.get(key);
+    if (file) {
+      // Out of the pending list as it starts: a failed load keeps the drawn version for good.
+      this.pendingImages.delete(key);
+      const backdrop = folder === 'backdrop';
+      void loadImage(this.base, file, backdrop).then((tex) => {
+        if (!tex) return;
+        this.images.set(key, tex);
+        this.lazyLoaded++;
+        if (backdrop) this.backdropsLoaded++;
+      });
+    }
+    return undefined;
+  }
+
+  /** A room piece stored with the room walls: "elevator:shaft", "elevator:car", "frame:frame", "frame:deep", "frame:deep_braced". */
+  roomPiece(type: string, name: string): Texture | undefined {
+    return this.rooms.get(`${type}:${name}`);
   }
 
   /** Start loading creature art in the background (for a quest that is about to be shown). */
@@ -215,8 +291,8 @@ export class CharacterArt {
    * tiled sideways, standing on the horizon), "crust" (the ground strip under it)
    * and "dirt" (the earth around and behind the rooms, tiled). Undefined: draw it.
    */
-  backdrop(name: 'surface' | 'crust' | 'dirt'): Texture | undefined {
-    return this.rooms.get(`backdrop:${name}`);
+  backdrop(name: BackdropName): Texture | undefined {
+    return this.rooms.get(`backdrop:${name}`) ?? this.image('backdrop', name);
   }
 
   /** A room's back-wall art at a level (falling back to a lower level's), or undefined to draw it. */
@@ -281,26 +357,38 @@ export class CharacterArt {
     const lazy = Object.fromEntries(Object.entries(all).filter(([id]) => !EAGER_CREATURES.has(id)));
     const creatures = (await Promise.all(eager.map(([id, c]) => loadCreature(base, id, c)))).filter((c): c is Creature => c !== null);
     const rooms = new Map<string, Texture>();
-    await Promise.all(
-      Object.entries(manifest.portraits ?? {})
+    const images = new Map<string, Texture>();
+    const pendingImages = new Map<string, string>();
+    const portraits = manifest.portraits ?? {};
+    for (const [id, files] of Object.entries(portraits)) {
+      for (const [name, file] of Object.entries(files)) {
+        if (id === 'backdrop' ? !EAGER_BACKDROPS.has(name) : LAZY_IMAGES.has(id) && !(EAGER_IMAGES[id] ?? []).includes(name)) pendingImages.set(`${id}:${name}`, file);
+      }
+    }
+    await Promise.all([
+      ...Object.entries(portraits)
         .filter(([id]) => id.startsWith('room_') || id === 'backdrop')
         .flatMap(([id, files]) =>
-          Object.entries(files).map(async ([level, file]) => {
-            try {
-              const t = await Assets.load<Texture>(`${base}${file}`);
-              t.source.scaleMode = 'linear';
+          Object.entries(files)
+            .filter(([level]) => id !== 'backdrop' || EAGER_BACKDROPS.has(level))
+            .map(async ([level, file]) => {
               // Backdrops tile, so their edges must wrap.
-              if (id === 'backdrop') t.source.addressMode = 'repeat';
-              rooms.set(id === 'backdrop' ? `backdrop:${level}` : `${id.slice(5)}:${level}`, t);
-            } catch (err) {
-              console.warn(`sprites: could not load ${file}`, err);
-            }
-          }),
+              const t = await loadImage(base, file, id === 'backdrop');
+              if (t) rooms.set(id === 'backdrop' ? `backdrop:${level}` : `${id.slice(5)}:${level}`, t);
+            }),
         ),
-    );
+      ...Object.entries(EAGER_IMAGES).flatMap(([id, names]) =>
+        Object.entries(portraits[id] ?? {})
+          .filter(([name]) => !names || names.includes(name))
+          .map(async ([name, file]) => {
+            const t = await loadImage(base, file);
+            if (t) images.set(`${id}:${name}`, t);
+          }),
+      ),
+    ]);
     // Legend bodies load the first time their legend is drawn (see forResident).
     const legends = manifest.legends ?? {};
-    return characters.length || creatures.length || rooms.size || Object.keys(lazy).length || Object.keys(legends).length ? new CharacterArt(characters, creatures, rooms, lazy, legends, base) : null;
+    return characters.length || creatures.length || rooms.size || Object.keys(lazy).length || Object.keys(legends).length ? new CharacterArt(characters, creatures, rooms, lazy, legends, base, { loaded: images, pending: pendingImages }) : null;
   }
 }
 

@@ -4,10 +4,14 @@
 // Lab and the deep rooms, their animated bits, and the deep incidents.
 //
 // Everything here is drawn with plain Graphics in the same 2.5D cutaway style
-// as vaultView.ts. Static pieces (background, room props, frames) are built
+// as vaultView.ts, with painted art in its place where it exists (the strata,
+// bulkhead and Seal backdrops, the dig rig, and the cave-in, flood and beacon
+// pieces; see DeepPaint). Static pieces (background, room props, frames) are built
 // once per layout; DeepLayer.update() redraws the cheap animated bits per frame.
 
-import { Container, Graphics, Text } from 'pixi.js';
+import { Container, Graphics, Sprite, Text, type Texture, TilingSprite } from 'pixi.js';
+import { SpritePool } from './spritePool';
+import { type Creature, CreatureFigure } from './sprites';
 import {
   digShaft,
   isDeepFloor,
@@ -35,6 +39,15 @@ export interface DeepGeometry {
   floorsPerStratum: number;
   depthX: number;
   depthY: number;
+}
+
+/**
+ * Painted pieces for what this file draws, when the art exists: `image` gives
+ * a manifest image (undefined: draw it), `pool` takes the per-frame ones.
+ */
+export interface DeepPaint {
+  pool: SpritePool;
+  image(folder: string, name: string): Texture | undefined;
 }
 
 export interface StratumLook {
@@ -96,8 +109,11 @@ export interface DeepBackgroundInfo {
   names: Record<number, string>;
 }
 
+/** Painted Deep backdrops by name (art/raw/backdrop: stratum1..4, bulkhead, seal_band, seal_centre), or undefined to draw them. */
+export type DeepBackdrops = (name: 'stratum1' | 'stratum2' | 'stratum3' | 'stratum4' | 'bulkhead' | 'seal_band' | 'seal_centre') => Texture | undefined;
+
 /** Everything below the charter floors: dug strata, then the seal. */
-export function buildDeepBackground(geo: DeepGeometry, info: DeepBackgroundInfo): Container {
+export function buildDeepBackground(geo: DeepGeometry, info: DeepBackgroundInfo, painted?: DeepBackdrops): Container {
   const root = new Container();
   const g = new Graphics();
   root.addChild(g);
@@ -110,19 +126,32 @@ export function buildDeepBackground(geo: DeepGeometry, info: DeepBackgroundInfo)
     const y0 = baseBottom + (s - 1) * bandH;
     const look = stratumLook(s);
     const above = stratumLook(s - 1);
-    g.rect(left, y0, full, bandH + 2).fill(look.rock);
-    // speckle
-    for (let i = 0; i < 260; i++) {
-      const x = left + rnd(s, i) * full;
-      const y = y0 + rnd(s + 50, i) * bandH;
-      const w = 3 + rnd(s + 90, i) * 8;
-      g.rect(x, y, w, w / 2).fill(i % 3 === 0 ? look.dark : look.speck);
+    const rock = painted?.(`stratum${Math.min(4, s)}` as 'stratum1');
+    let over = g;
+    if (rock) {
+      // The painted rock, tiled like the dirt (about two floors a tile); the seam and grid go on top.
+      const tile = new TilingSprite({ texture: rock, width: full, height: bandH + 2 });
+      // Three floors a tile, and dimmed: the paintings are busier and brighter than the dirt above.
+      tile.tileScale.set((geo.floorH * 3) / rock.height);
+      tile.tint = STRATUM_DIM[Math.min(4, s)] ?? 0xffffff;
+      tile.position.set(left, y0);
+      over = new Graphics();
+      root.addChild(tile, over);
+    } else {
+      g.rect(left, y0, full, bandH + 2).fill(look.rock);
+      // speckle
+      for (let i = 0; i < 260; i++) {
+        const x = left + rnd(s, i) * full;
+        const y = y0 + rnd(s + 50, i) * bandH;
+        const w = 3 + rnd(s + 90, i) * 8;
+        g.rect(x, y, w, w / 2).fill(i % 3 === 0 ? look.dark : look.speck);
+      }
+      stratumFeatures(g, s, left, full, y0, bandH, geo);
     }
-    stratumFeatures(g, s, left, full, y0, bandH, geo);
     // A ragged seam where the stratum above gives way.
-    seam(g, left, full, y0, above.rock, s);
+    seam(over, left, full, y0, above.rock, s);
     // faint build grid
-    for (let f = 0; f <= geo.floorsPerStratum; f++) g.rect(0, y0 + f * geo.floorH - 1, geo.width, 2).fill({ color: 0x000000, alpha: 0.22 });
+    for (let f = 0; f <= geo.floorsPerStratum; f++) over.rect(0, y0 + f * geo.floorH - 1, geo.width, 2).fill({ color: 0x000000, alpha: 0.22 });
     // The stratum's name, painted in the margin like a survey mark.
     const name = info.names[s] ?? `Stratum ${s}`;
     const [head, tail] = name.includes(':') ? [name.slice(0, name.indexOf(':')), name.slice(name.indexOf(':') + 1).trim()] : [name, ''];
@@ -141,10 +170,13 @@ export function buildDeepBackground(geo: DeepGeometry, info: DeepBackgroundInfo)
 
   // The seal under the last open stratum.
   const yS = baseBottom + info.strata * bandH;
-  if (info.strata >= info.maxStrata) drawTheSeal(root, g, geo, left, full, yS);
-  else drawSealedBoundary(root, g, geo, left, full, yS, info.strata);
+  if (info.strata >= info.maxStrata) drawTheSeal(root, g, geo, left, full, yS, painted);
+  else drawSealedBoundary(root, g, geo, left, full, yS, info.strata, painted);
   return root;
 }
+
+/** How far each painted stratum is dimmed (a tint), so rooms stay the brightest thing on screen. */
+const STRATUM_DIM: Record<number, number> = { 1: 0x8f8f8f, 2: 0x7a7a7a, 3: 0xbdbdbd, 4: 0xa8a8a8 };
 
 function seam(g: Graphics, left: number, full: number, y: number, color: number, s: number): void {
   const pts: number[] = [left, y - 1];
@@ -254,21 +286,30 @@ function stratumFeatures(g: Graphics, s: number, left: number, full: number, y0:
 }
 
 /** A concrete-and-steel bulkhead, then the next stratum lost in the dark. */
-function drawSealedBoundary(root: Container, g: Graphics, geo: DeepGeometry, left: number, full: number, y: number, strata: number): void {
+function drawSealedBoundary(root: Container, g: Graphics, geo: DeepGeometry, left: number, full: number, y: number, strata: number, painted?: DeepBackdrops): void {
   const next = stratumLook(strata + 1);
   g.rect(left, y, full, SEAL_H + 900).fill(next.dark);
   for (let i = 0; i < 120; i++) g.rect(left + rnd(900 + strata, i) * full, y + 30 + rnd(950 + strata, i) * SEAL_H, 4, 2).fill(next.speck);
   // fog into black
   for (let k = 0; k < 8; k++) g.rect(left, y + 40 + k * 18, full, 20).fill({ color: 0x000000, alpha: 0.1 + k * 0.1 });
   g.rect(left, y + 184, full, 900).fill(0x000000);
-  // the bulkhead band with chevrons
-  g.rect(left, y, full, 26).fill(0x3d3a35);
-  g.rect(left, y + 22, full, 4).fill(0x201e1b);
-  for (let x = left; x < left + full; x += 28) {
-    g.poly([x, y, x + 14, y, x + 6, y + 10, x - 8, y + 10]).fill(0xf2c14e);
-    g.poly([x + 14, y, x + 28, y, x + 20, y + 10, x + 6, y + 10]).fill(0x1b1b1b);
+  const bulkhead = painted?.('bulkhead');
+  if (bulkhead) {
+    // The painted bulkhead band, tiled sideways.
+    const band = new TilingSprite({ texture: bulkhead, width: full, height: 36 });
+    band.tileScale.set(36 / bulkhead.height);
+    band.position.set(left, y - 4);
+    root.addChild(band);
+  } else {
+    // the bulkhead band with chevrons
+    g.rect(left, y, full, 26).fill(0x3d3a35);
+    g.rect(left, y + 22, full, 4).fill(0x201e1b);
+    for (let x = left; x < left + full; x += 28) {
+      g.poly([x, y, x + 14, y, x + 6, y + 10, x - 8, y + 10]).fill(0xf2c14e);
+      g.poly([x + 14, y, x + 28, y, x + 20, y + 10, x + 6, y + 10]).fill(0x1b1b1b);
+    }
+    for (let x = left + 10; x < left + full; x += 40) g.circle(x, y + 17, 2).fill(0x77706a);
   }
-  for (let x = left + 10; x < left + full; x += 40) g.circle(x, y + 17, 2).fill(0x77706a);
   const t = new Text({
     text: 'SEALED BY ORDER OF THE HALCYON SHELTER COMPANY',
     style: { fontFamily: 'Bungee, sans-serif', fontSize: 16, fill: 0xf2c14e, letterSpacing: 2 },
@@ -287,13 +328,36 @@ function drawSealedBoundary(root: Container, g: Graphics, geo: DeepGeometry, lef
 }
 
 /** The bottom of everything: one bulkhead as wide as the homestead, with the sunburst. */
-function drawTheSeal(root: Container, g: Graphics, geo: DeepGeometry, left: number, full: number, y: number): void {
+function drawTheSeal(root: Container, g: Graphics, geo: DeepGeometry, left: number, full: number, y: number, painted?: DeepBackdrops): void {
   g.rect(left, y, full, SEAL_H + 900).fill(0x070303);
   const x0 = -geo.margin * 0.5;
   const w = geo.width + geo.margin;
   const h = SEAL_H - 20;
   // heat bleeding round the edges
   g.rect(x0 - 12, y, w + 24, h + 6).fill({ color: 0xff6a2a, alpha: 0.12 });
+  const band = painted?.('seal_band');
+  const centre = painted?.('seal_centre');
+  if (band && centre) {
+    // The painted seal: the old bulkhead tiled across, the brass half-sun over its hatch in the middle.
+    const b = new TilingSprite({ texture: band, width: w, height: h });
+    b.tileScale.set(h / band.height);
+    b.position.set(x0, y);
+    const c = new Sprite(centre);
+    c.anchor.set(0.5, 1);
+    c.height = h * 0.82;
+    c.width = (c.height * centre.width) / centre.height;
+    c.position.set(geo.width / 2, y + h);
+    root.addChild(b, c);
+    const t = new Text({ text: 'THE SEAL', style: { fontFamily: 'Bungee, sans-serif', fontSize: 22, fill: 0xf2c14e, letterSpacing: 4, stroke: { color: 0x14100d, width: 4 } } });
+    t.alpha = 0.85;
+    t.anchor.set(0.5, 0);
+    t.position.set(geo.width / 2 - 250, y + 12);
+    const sub = new Text({ text: 'PLEASE DO NOT KNOCK', style: { fontFamily: 'Work Sans, sans-serif', fontWeight: '700', fontSize: 11, fill: 0xb9b19c, letterSpacing: 2 } });
+    sub.anchor.set(0.5, 0);
+    sub.position.set(geo.width / 2, y + h + 6);
+    root.addChild(t, sub);
+    return;
+  }
   g.rect(x0, y, w, h).fill(0x3a3430);
   for (let px = x0; px < x0 + w; px += 120) {
     g.rect(px + 2, y + 4, 116, h - 8).fill(0x45403a);
@@ -549,10 +613,11 @@ function aquiferSegment(g: Graphics, look: RoomLook, x: number, by: number, w: n
 // -------------------------------------------------------------------- incidents
 
 /** Draw a deep incident; returns false for other types. */
-export function drawDeepIncident(g: Graphics, inc: Incident, r: { x: number; y: number; w: number; h: number }, t: number): boolean {
+export function drawDeepIncident(g: Graphics, inc: Incident, r: { x: number; y: number; w: number; h: number }, t: number, paint?: DeepPaint): boolean {
   const floorY = r.y + r.h - 8;
   switch (inc.type) {
     case 'cavein': {
+      if (paint && paintCavein(g, inc, r, t, paint)) return true;
       const heap = 0.45 + 0.55 * Math.max(0, inc.hp / Math.max(1, inc.maxHp));
       // a haze of dust over everything
       g.rect(r.x + 3, r.y + 3, r.w - 6, r.h - 6).fill({ color: 0xb8a58c, alpha: 0.18 });
@@ -588,7 +653,7 @@ export function drawDeepIncident(g: Graphics, inc: Incident, r: { x: number; y: 
         const dy = r.y + r.h * 0.5 + Math.cos(t * 0.5 + i * 2) * 16;
         g.circle(dx, dy, 18 + (i % 3) * 9).fill({ color: 0xd8c8b0, alpha: 0.2 });
       }
-      beacon(g, r, t, 0xf2a541);
+      beacon(g, r, t, 0xf2a541, paint);
       return true;
     }
     case 'flood': {
@@ -613,9 +678,14 @@ export function drawDeepIncident(g: Graphics, inc: Incident, r: { x: number; y: 
         const p = (t * 1.6 + i / 10) % 1;
         g.circle(sx - p * 40, r.y + 26 + p * p * 60, 2.5).fill({ color: 0x9fd8e8, alpha: 1 - p });
       }
-      g.rect(sx, r.y + 18, 20, 8).fill(0x2d4a55);
-      g.rect(sx - 3, r.y + 16, 4, 12).fill(0x5d6a68);
-      beacon(g, r, t, 0x4fb3e9);
+      const pipe = paint?.image('fx_flood', 'pipe');
+      // The painted pipe's burst end is on its right: mirrored, it sprays into the room.
+      if (pipe) paint!.pool.add(pipe, sx + 14, r.y + 24, 42, 21, { flip: true });
+      else {
+        g.rect(sx, r.y + 18, 20, 8).fill(0x2d4a55);
+        g.rect(sx - 3, r.y + 16, 4, 12).fill(0x5d6a68);
+      }
+      beacon(g, r, t, 0x4fb3e9, paint);
       return true;
     }
     case 'deepcrawlers': {
@@ -637,21 +707,70 @@ export function drawDeepIncident(g: Graphics, inc: Incident, r: { x: number; y: 
       // a hole they came out of
       g.ellipse(r.x + 14, floorY - 16, 9, 18).fill(0x0a0706);
       g.ellipse(r.x + r.w - 14, r.y + r.h * 0.45, 8, 16).fill(0x0a0706);
-      beacon(g, r, t, 0x9cf0c0);
+      beacon(g, r, t, 0x9cf0c0, paint);
       return true;
     }
   }
   return false;
 }
 
+/**
+ * A cave-in from painted rubble heaps and falling rocks (art/raw/fx_cavein);
+ * the haze, cracks and dust stay drawn. False (draw it all) without the art.
+ */
+function paintCavein(g: Graphics, inc: Incident, r: { x: number; y: number; w: number; h: number }, t: number, paint: DeepPaint): boolean {
+  const heapTex = [1, 2, 3].map((n) => paint.image('fx_cavein', `rubble_${n}`));
+  const rockTex = ['a', 'b', 'c', 'd'].map((n) => paint.image('fx_cavein', `rock_${n}`));
+  if (heapTex.some((x) => !x) || rockTex.some((x) => !x)) return false;
+  const floorY = r.y + r.h - 8;
+  const heap = 0.45 + 0.55 * Math.max(0, inc.hp / Math.max(1, inc.maxHp));
+  g.rect(r.x + 3, r.y + 3, r.w - 6, r.h - 6).fill({ color: 0xb8a58c, alpha: 0.18 });
+  // falling rocks, each on its own loop (behind the heaps they land on)
+  for (let i = 0; i < Math.ceil(r.w / 30); i++) {
+    const period = 0.8 + (i % 4) * 0.22;
+    const p = ((t + i * 0.37) % period) / period;
+    const rx = r.x + 14 + ((i * 53) % Math.max(1, r.w - 28));
+    const ry = r.y + 12 + p * p * (r.h - 40);
+    const sz = 9 + (i % 3) * 4;
+    paint.pool.add(rockTex[i % 4]!, rx, ry, sz, sz, { rotation: t * 3 + i });
+  }
+  // rubble heaps, bigger while there is more to dig
+  const heaps = Math.max(2, Math.round(r.w / 60));
+  for (let i = 0; i < heaps; i++) {
+    const tex = heapTex[i % 3]!;
+    const hx = r.x + 14 + (i + 0.5) * ((r.w - 28) / heaps);
+    const hw = (64 + (i % 2) * 20) * (0.75 + 0.25 * heap);
+    const hh = ((hw * tex.height) / tex.width) * (0.6 + 0.4 * heap);
+    paint.pool.add(tex, hx, floorY + 5, hw, hh, { ay: 1, flip: i % 2 === 1 });
+  }
+  for (const f of [0.28, 0.55, 0.78]) {
+    const cx = r.x + r.w * f;
+    g.moveTo(cx, r.y + 3).lineTo(cx + 5, r.y + 16).lineTo(cx - 2, r.y + 26).lineTo(cx + 4, r.y + 34).stroke({ width: 2.5, color: 0x14100d });
+  }
+  for (let i = 0; i < 8; i++) {
+    const dx = r.x + r.w * (0.08 + i * 0.12) + Math.sin(t * 0.7 + i) * 10;
+    const dy = r.y + r.h * 0.5 + Math.cos(t * 0.5 + i * 2) * 16;
+    g.circle(dx, dy, 18 + (i % 3) * 9).fill({ color: 0xd8c8b0, alpha: 0.2 });
+  }
+  beacon(g, r, t, 0xf2a541, paint);
+  return true;
+}
+
 /** A flashing warning lamp on the ceiling of a room with a deep incident. */
-function beacon(g: Graphics, r: { x: number; y: number; w: number; h: number }, t: number, color: number): void {
+function beacon(g: Graphics, r: { x: number; y: number; w: number; h: number }, t: number, color: number, paint?: DeepPaint): void {
   const on = Math.sin(t * 8) > 0;
   const x = r.x + r.w - 20;
   const y = r.y + 22;
-  g.rect(x - 5, y - 8, 10, 4).fill(0x2b2f33);
-  g.circle(x, y, 5).fill(on ? 0xff5a3a : 0x5a2418);
-  if (on) g.circle(x, y, 14).fill({ color: 0xff5a3a, alpha: 0.25 });
+  const lamp = paint?.image('fx_beacon', on ? 'on' : 'off');
+  if (lamp) {
+    // The painted caged lamp hangs off its bracket; the glow stays drawn.
+    if (on) g.circle(x, y, 16).fill({ color: 0xff5a3a, alpha: 0.22 });
+    paint!.pool.add(lamp, x, y, 15, (15 * lamp.height) / lamp.width);
+  } else {
+    g.rect(x - 5, y - 8, 10, 4).fill(0x2b2f33);
+    g.circle(x, y, 5).fill(on ? 0xff5a3a : 0x5a2418);
+    if (on) g.circle(x, y, 14).fill({ color: 0xff5a3a, alpha: 0.25 });
+  }
   g.rect(r.x + 3, r.y + 3, r.w - 6, 3).fill({ color, alpha: on ? 0.8 : 0.3 });
 }
 
@@ -697,11 +816,15 @@ export class DeepLayer {
   private g = new Graphics();
   private digText = new Text({ text: '', style: { fontFamily: 'Bungee, sans-serif', fontSize: 13, fill: 0xf2c14e, stroke: { color: 0x14100d, width: 4 } } });
   private lastDigText = '';
+  /** Painted dig-site pieces: the derrick (dig_rig) and the turning drill (creature dig_drill). */
+  private pool = new SpritePool();
+  private drill: CreatureFigure | null = null;
+  art: { image(folder: string, name: string): Texture | undefined; creature(id: string): Creature | undefined } | null = null;
 
   constructor(private geo: () => DeepGeometry) {
     this.digText.anchor.set(1, 0.5);
     this.digText.visible = false;
-    this.root.addChild(this.g, this.digText);
+    this.root.addChild(this.g, this.pool.root, this.digText);
   }
 
   update(state: GameState, content: Content, time: number, rectOf: (room: Room) => { x: number; y: number; w: number; h: number }, view: { y0: number; y1: number }): void {
@@ -734,8 +857,11 @@ export class DeepLayer {
   private drawDig(state: GameState, content: Content, time: number, rectOf: (room: Room) => { x: number; y: number; w: number; h: number }, geo: DeepGeometry): void {
     const dig = state.deep.dig;
     const shaft = dig ? digShaft(state, content) : null;
+    this.pool.begin();
+    if (this.drill) this.drill.visible = false;
     if (!dig) {
       this.digText.visible = false;
+      this.pool.end();
       return;
     }
     // The dig runs from the shaft it started at; if that elevator is gone, draw it mid-grid.
@@ -757,27 +883,45 @@ export class DeepLayer {
     }
     // cable
     g.rect(cx - 1.5, top - 60, 3, depth + 30).fill(0x1b1b1b);
-    // derrick over the shaft mouth, standing in the elevator car
-    g.poly([cx - 20, top, cx - 4, top - 68, cx + 4, top - 68, cx + 20, top]).stroke({ width: 3, color: 0xf2a541 });
-    for (const y of [top - 22, top - 44]) {
-      const half = 20 - ((top - y) / 68) * 16;
-      g.rect(cx - half, y, half * 2, 3).fill(0xf2a541);
+    const derrick = this.art?.image('dig_rig', 'derrick');
+    if (derrick) {
+      // The painted derrick over the shaft mouth (its image's bottom edge stands on the floor).
+      this.pool.add(derrick, cx, top + 1, (84 * derrick.width) / derrick.height, 84, { ay: 1 });
+    } else {
+      // derrick over the shaft mouth, standing in the elevator car
+      g.poly([cx - 20, top, cx - 4, top - 68, cx + 4, top - 68, cx + 20, top]).stroke({ width: 3, color: 0xf2a541 });
+      for (const y of [top - 22, top - 44]) {
+        const half = 20 - ((top - y) / 68) * 16;
+        g.rect(cx - half, y, half * 2, 3).fill(0xf2a541);
+      }
+      g.circle(cx, top - 66, 5).fill(0x3b3f3a);
     }
-    g.circle(cx, top - 66, 5).fill(0x3b3f3a);
     // the drill head, spiral bands turning
     const hy = top + depth - 34;
     const bw = 18;
-    g.poly([cx - bw, hy, cx + bw, hy, cx, hy + 34]).fill(0x9a9a9a);
-    const spin = (time * 3) % 1;
-    for (let k = 0; k < 5; k++) {
-      const f = (k + spin) / 5;
-      const yy = hy + f * 30;
-      const half = bw * (1 - f);
-      g.poly([cx - half, yy, cx + half, yy - 4, cx + half, yy, cx - half, yy + 4]).fill(0x3b3f3a);
+    const drillArt = this.art?.creature('dig_drill');
+    if (drillArt) {
+      if (!this.drill || this.drill.creature !== drillArt) {
+        this.drill?.destroy();
+        this.drill = new CreatureFigure(drillArt, 40);
+        this.root.addChildAt(this.drill, this.root.getChildIndex(this.pool.root) + 1);
+      }
+      this.drill.visible = true;
+      this.drill.position.set(cx, hy + 36);
+      this.drill.play('idle', time);
+    } else {
+      g.poly([cx - bw, hy, cx + bw, hy, cx, hy + 34]).fill(0x9a9a9a);
+      const spin = (time * 3) % 1;
+      for (let k = 0; k < 5; k++) {
+        const f = (k + spin) / 5;
+        const yy = hy + f * 30;
+        const half = bw * (1 - f);
+        g.poly([cx - half, yy, cx + half, yy - 4, cx + half, yy, cx - half, yy + 4]).fill(0x3b3f3a);
+      }
+      g.rect(cx - bw - 3, hy - 12, (bw + 3) * 2, 12).fill(0xf2a541);
+      g.rect(cx - bw - 3, hy - 12, (bw + 3) * 2, 3).fill(0xffd27f);
+      for (let k = 0; k < 4; k++) g.rect(cx - bw + k * 11, hy - 8, 5, 5).fill(0x1b1b1b);
     }
-    g.rect(cx - bw - 3, hy - 12, (bw + 3) * 2, 12).fill(0xf2a541);
-    g.rect(cx - bw - 3, hy - 12, (bw + 3) * 2, 3).fill(0xffd27f);
-    for (let k = 0; k < 4; k++) g.rect(cx - bw + k * 11, hy - 8, 5, 5).fill(0x1b1b1b);
     // debris kicked up around the bit
     for (let i = 0; i < 12; i++) {
       const p = (time * 1.8 + i / 12) % 1;
@@ -798,6 +942,7 @@ export class DeepLayer {
     }
     this.digText.visible = true;
     this.digText.position.set(cx - 30, top + depth - 20);
+    this.pool.end();
   }
 }
 
