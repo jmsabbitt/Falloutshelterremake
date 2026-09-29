@@ -235,3 +235,4 @@ We need commercial use rights with no attribution or exclusivity strings. Record
 | wide room walls (ART-LIST §1), rest of P2 and P3: surface types w3, geothermal, fungalfarm, refinery, aquifer w2 and w3; legend weapon grip fight sheets (ART-LIST §2, P3) for 11 legends × 5 grips | artlist.io, Nano Banana 2 I2I 2K | AI Suite plan (credits) | 2026-09-28 | ☐ |
 | Training room walls (7 types x 3 levels) | artlist.io, Nano Banana 2 I2I 2K | AI Suite plan (credits) | 2026-09-28 | ☐ |
 | Wide training room walls (7 types x 3 levels x w2/w3) | artlist.io, Nano Banana 2 I2I 2K | AI Suite plan (credits) | 2026-09-28 | ☐ |
+| Resident tool sheets (extinguisher, repair) and Fizz bottle icon | artlist.io, Nano Banana 2 I2I 2K | AI Suite plan (credits) | 2026-09-28 | ☐ |

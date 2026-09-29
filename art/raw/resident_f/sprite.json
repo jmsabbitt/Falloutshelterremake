@@ -114,6 +114,26 @@
           "aboveFraction": 0.36
         }
       }
+    },
+    "fight_extinguish": {
+      "file": "fight_extinguish.png",
+      "fps": 10,
+      "split": "figures",
+      "regions": {
+        "hair": {
+          "aboveFraction": 0.36
+        }
+      }
+    },
+    "fight_repair": {
+      "file": "fight_repair.png",
+      "fps": 10,
+      "split": "figures",
+      "regions": {
+        "hair": {
+          "aboveFraction": 0.36
+        }
+      }
     }
   }
 }

@@ -191,6 +191,40 @@
             "hair": "resident_f/fight_heavy_hair.webp",
             "trim": "resident_f/fight_heavy_trim.webp"
           }
+        },
+        "fight_extinguish": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 127,
+          "frameH": 133,
+          "anchorX": 0.2805,
+          "anchorY": 1.0,
+          "files": {
+            "base": "resident_f/fight_extinguish_base.webp",
+            "suit": "resident_f/fight_extinguish_suit.webp",
+            "skin": "resident_f/fight_extinguish_skin.webp",
+            "hair": "resident_f/fight_extinguish_hair.webp",
+            "trim": "resident_f/fight_extinguish_trim.webp"
+          }
+        },
+        "fight_repair": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 127,
+          "frameH": 144,
+          "anchorX": 0.3142,
+          "anchorY": 1.0,
+          "files": {
+            "base": "resident_f/fight_repair_base.webp",
+            "suit": "resident_f/fight_repair_suit.webp",
+            "skin": "resident_f/fight_repair_skin.webp",
+            "hair": "resident_f/fight_repair_hair.webp",
+            "trim": "resident_f/fight_repair_trim.webp"
+          }
         }
       }
     },
@@ -383,6 +417,40 @@
             "skin": "resident_m/fight_heavy_skin.webp",
             "hair": "resident_m/fight_heavy_hair.webp",
             "trim": "resident_m/fight_heavy_trim.webp"
+          }
+        },
+        "fight_extinguish": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 109,
+          "frameH": 132,
+          "anchorX": 0.4616,
+          "anchorY": 1.0,
+          "files": {
+            "base": "resident_m/fight_extinguish_base.webp",
+            "suit": "resident_m/fight_extinguish_suit.webp",
+            "skin": "resident_m/fight_extinguish_skin.webp",
+            "hair": "resident_m/fight_extinguish_hair.webp",
+            "trim": "resident_m/fight_extinguish_trim.webp"
+          }
+        },
+        "fight_repair": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 114,
+          "frameH": 132,
+          "anchorX": 0.469,
+          "anchorY": 1.0,
+          "files": {
+            "base": "resident_m/fight_repair_base.webp",
+            "suit": "resident_m/fight_repair_suit.webp",
+            "skin": "resident_m/fight_repair_skin.webp",
+            "hair": "resident_m/fight_repair_hair.webp",
+            "trim": "resident_m/fight_repair_trim.webp"
           }
         }
       }
@@ -4733,7 +4801,8 @@
       "creature": "icons/creature.webp",
       "room": "icons/room.webp",
       "seal_medal": "icons/seal_medal.webp",
-      "halcyon_log": "icons/halcyon_log.webp"
+      "halcyon_log": "icons/halcyon_log.webp",
+      "fizz": "icons/fizz.webp"
     }
   },
   "legends": {
