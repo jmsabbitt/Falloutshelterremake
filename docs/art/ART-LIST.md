@@ -8,7 +8,7 @@ Tools and method stay the same as in rounds 1 and 2: Artlist, Nano Banana 2 at 2
 
 **Priority:** P1 is seen in the first hour of a new game. P2 is seen in a normal first week (the surface, quests, the Explore panel). P3 is late game, rare, or polish.
 
-**Code status:** everything on this list has been delivered and is wired, so the game shows the painted art. The one exception is S3, the wind turbine rotor: it was optional, the sheet is in the manifest but unused, and the turbine paintings have their rotors painted in. Images that need a new generation before a public release are in the [Redo list](#redo-list-from-the-code-sessions-hookup-pass) at the end.
+**Code status:** everything on this list has been delivered and is wired, so the game shows the painted art. The one exception is S3, the wind turbine rotor: it was optional and the turbine paintings have their rotors painted in, so it has been dropped from the build. Images that need a new generation before a public release are in the [Redo list](#redo-list-from-the-code-sessions-hookup-pass) at the end.
 
 ---
 
@@ -103,7 +103,7 @@ Within a type, do `w2` for all three levels before `w3`: two-wide rooms are far 
 
 ## §2. Weapon grip fight sheets (P1 and P3, 65 images, wired)
 
-**Why:** residents no longer carry a drawn gun (playtest item 5). A weapon shows only while a resident fights an incident in their room, and it comes from a fight sheet for that weapon's grip. Each weapon has a `grip` in `items.json`. All five grip sheets now exist for both resident bodies and all 11 legends, so the old generic `fight` sheet (a shotgun) is no longer needed and is being removed.
+**Why:** residents no longer carry a drawn gun (playtest item 5). A weapon shows only while a resident fights an incident in their room, and it comes from a fight sheet for that weapon's grip. Each weapon has a `grip` in `items.json`. All five grip sheets now exist for both resident bodies and all 11 legends, so the old generic `fight` sheet (a shotgun) has been removed (along with the unused turbine rotor and app/icon.webp).
 
 **The five grips:**
 
@@ -230,7 +230,7 @@ Legends paint their real colours, so the weapon-colour rule above doesn't apply 
 ### S3. Wind turbine rotor (P3, 1 image, optional, not wired)
 - **Now:** the painted turbines are drawn with a still rotor (the code can't animate a painting). Without art, `topsideArt.ts:drawTopsideParts` spins a drawn one.
 - **Deliver (optional):** `art/raw/room_wind_turbine/rotor.png`, magenta, one three-blade rotor seen face on, 1:1, so the code can spin it over the painted tower. Only worth doing if the still rotor bothers people.
-- **Status:** `rotor.png` was delivered and is in the manifest, but the code doesn't use it: the turbine paintings have their rotors painted in, and the drawn rotor spins only when there's no painting. It can be dropped (see the Redo list).
+- **Status:** dropped. The turbine paintings have their rotors painted in (the drawn rotor spins only when there's no painting), so `rotor.png` and its build entry were removed.
 
 ---
 
