@@ -523,3 +523,8 @@ These are wired and showing now, but need a new generation before any public rel
 | `backdrop` `stratum1`, `stratum2` | Bright, busy, and repeating as an obvious grid of pipes. The game dims them in code. | Dark, low-contrast rock like `dirt`, with any pipes rare and irregular. |
 | `room_elevator` `car` | About 1:1.25, taller than the 1 cell × 0.7 floor asked for. The game stretches it about 1.2×. | Repaint at 1 : 0.7. |
 | `fx_door_damage` `1` | Pale blue steel, while `2` and `3` are green-grey. All three are opaque plates, not overlays. | Paint as dents, scorch marks and cracks on a transparent (magenta) background, in one colour family. |
+| `ruin_props` `hatch` | Its daylight came out opaque pink from the magenta key. The game shifts those pixels to warm white when it loads. | Regenerate the daylight as a pale gold, not near-magenta. |
+| `backdrop` `crust`, `dirt` | The outermost pixel column on each side is lighter than the rest, which shows as a seam wherever they tile. | Make the edges tile cleanly. |
+| `ruin_props` `stairs` | 1:1, so it stretches into a steep tower. (No current map uses stairs.) | About 1:3, if stairs are ever used. |
+| `ruin_scrapyard` `boss` | Reads as grey concrete with hazard stripes, like the relay. | Rust and corrugated sheet, like the other scrapyard walls. |
+| ruin walls (917×512), props (192 px) | A bit soft at desktop fight zoom. | 2× resolution next time they're regenerated. |
