@@ -49,15 +49,17 @@ A few consequences:
 | `walk` | **used now** | 8–12 | yes | Also provides the idle pose (`idleFrame`) |
 | `idle` | wired | 4–8 | yes | Subtle breathing and weight shift |
 | `work` | wired | 6–10 | yes | Generic working at a console or bench, facing right |
-| `fight` | wired | 6–8 | yes | Holding a rifle-sized weapon at the ready, then firing |
+| `fight_pistol`, `fight_longgun`, `fight_heavy`, `fight_melee`, `fight_unarmed` | wired | 12 | yes | One sheet per weapon grip (the `grip` in items.json), with a generic weapon of that kind; no weapon is `fight_unarmed`. Used against creatures and raiders and in quest combat. Briefs in `docs/art/ART-LIST.md` §2 |
+| `fight_extinguish` | wired | 12 | yes | Spraying an extinguisher, for fires |
+| `fight_repair` | wired | 12 | yes | Hands-on repair with a big wrench, for cave-ins, floods and power surges |
 | `fallen` | wired | 1–4 | no | Lying down, used for dead residents |
 | `carry` / explorer | wired, optional | 8–12 | yes | Walk with a backpack, for surface explorers |
 
 The game picks the animation for what a resident is doing (`Figure.play` in `sprites.ts`). Every one in the table is wired and is used as soon as it's built. Until an animation exists, the game falls back:
 
-- **Standing, working or fighting:** `idle` if it exists, else the walk sheet's `idleFrame`.
+- **Standing, working or fighting:** `idle` if it exists, else the walk sheet's `idleFrame`. The tool sheets fall back to `work` first.
 - **Dead:** `idle` or the walk figure, rotated flat.
-- **Weapon:** drawn as a small overlay at the hip. It's hidden while `fight` art shows its own weapon.
+- **Weapons:** no weapon is ever drawn; one shows only in a fight, held in the grip's fight sheet.
 - **Explorers:** the walk sheet with a drawn pack. It's hidden when `carry` art exists.
 
 Every animation for one character must show the same character. The pipeline scales each animation so the figure stands `targetHeight` tall (see the options table in the handoff doc), and writes `art/previews/<id>_lineup.png` to check that they match.
