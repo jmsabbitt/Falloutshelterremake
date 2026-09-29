@@ -41,8 +41,12 @@ function bolt(g: Graphics, ax: number, ay: number, bx: number, by: number, seed:
   g.stroke({ width, color, alpha });
 }
 
-/** Arcs crawling over the walls and floor, a blue flicker, sparks from the fittings. */
-export function drawSurge(g: Graphics, r: Rect, t: number): void {
+/**
+ * Arcs crawling over the walls and floor, a blue flicker, sparks from the
+ * fittings. `bolts` false leaves the arcs to painted art (fx_surge) and draws
+ * only the flicker, the glowing conduit and the sparks.
+ */
+export function drawSurge(g: Graphics, r: Rect, t: number, bolts = true): void {
   const floorY = r.y + r.h - 8;
   const flash = Math.max(0, Math.sin(t * 23) * Math.sin(t * 7.3));
   g.rect(r.x + 3, r.y + 3, r.w - 6, r.h - 6).fill({ color: 0x3a8cff, alpha: 0.06 + 0.12 * flash });
@@ -50,7 +54,7 @@ export function drawSurge(g: Graphics, r: Rect, t: number): void {
   g.rect(r.x + 8, r.y + 16, r.w - 16, 3).fill({ color: 0xbfeaff, alpha: 0.5 + 0.4 * flash });
   const tick = Math.floor(t * 9);
   const n = Math.max(2, Math.round(r.w / 70));
-  for (let i = 0; i < n; i++) {
+  for (let i = 0; i < (bolts ? n : 0); i++) {
     const seed = tick * 13 + i * 101;
     const ax = r.x + 14 + hash(seed) * (r.w - 28);
     const bx = r.x + 14 + hash(seed + 5) * (r.w - 28);

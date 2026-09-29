@@ -57,8 +57,9 @@ import {
 import { drawTrainingRoom } from './trainingArt';
 import { drawOffice } from './officeArt';
 import { CREATURE_COLORS, drawDoorDamage, drawGlassbackLeap, drawGlassbacks, drawHollowed, drawMauler, drawSealMonument, drawSurge } from './creatureArt';
-import { buildDeepBackground, DEEP_INCIDENT_COLORS, DeepLayer, deepViewKey, drawDeepFrame, drawDeepIncident, drawDepthRoom, labelInk, lampFor, SEAL_H, type DeepGeometry } from './deepArt';
-import { type Action, type CharacterArt, CreatureFigure, Figure, fightAnim, residentTints, weaponGrip } from './sprites';
+import { buildDeepBackground, DEEP_INCIDENT_COLORS, DeepLayer, deepViewKey, drawDeepFrame, drawDeepIncident, drawDepthRoom, labelInk, lampFor, SEAL_H, stratumLook, type DeepGeometry } from './deepArt';
+import { type Action, type CharacterArt, type Creature, CreatureFigure, Figure, fightAnim, residentTints, weaponGrip } from './sprites';
+import { SpritePool } from './spritePool';
 import { drawTopsideBuilding, drawTopsideParts, GROUND_DEPTH, TopsideLayer, WeatherLayer, type TopsidePart } from './topsideArt';
 
 export const CELL = 44;
@@ -330,6 +331,8 @@ export class VaultView {
   private deep = new DeepLayer(() => this.deepGeometry());
   /** What the background and room frames were drawn for (strata, bracing). */
   private deepKey = '';
+  /** Lazily loaded backdrops (the Deep's rock and seals) the background was drawn with. */
+  private backdropVersion = 0;
   /** M7: weather over the surface, and the topside buildings' moving parts. */
   private weather = new WeatherLayer();
   private topside = new TopsideLayer();
@@ -337,6 +340,8 @@ export class VaultView {
   /** Caravan figures on the surface, by "caravanId:residentId". */
   private caravanWalkers = new Map<string, Walker>();
   private caravanCarts = new Graphics();
+  /** Painted handcarts (art/raw/caravan_carts), over the drawn ones' layer. */
+  private cartPaint = new SpritePool();
   /** Longest warning seen per raid, so approaching raiders walk in from the horizon. */
   private raidWarn = new Map<number, number>();
   /** M9: where each moving incident was, so Glassbacks leap and the Mauler walks between rooms. */
@@ -347,6 +352,13 @@ export class VaultView {
   /** Elevator shafts residents ride between floors, and the layout they were found for. */
   private shafts: Shaft[] = [];
   private shaftKey = '';
+  /** Painted elevator cars (one per shaft), and where each one last stopped (feet y, by shaft). */
+  private cars = new SpritePool();
+  private carAt = new Map<string, number>();
+  /** Painted pieces drawn frame by frame over the overlay: bubble icons, incident props, the monument, hearts. */
+  private paint = new SpritePool();
+  /** Painted fallen-resident badges, above the residents. */
+  private marksPaint = new SpritePool();
   /** A resident being carried is drawn here, above the rooms, the fit badges and the other residents. */
   private dragLayer = new Container();
   private walkers = new Map<number, Walker>();
@@ -410,10 +422,10 @@ export class VaultView {
     private game: Game,
     private cb: ViewCallbacks,
   ) {
-    this.world.addChild(this.bg, this.weather.back, this.statics, this.topside.root, this.overlay, this.deep.root, this.ghostLayer, this.incidentLayer, this.residentLayer, this.fitLayer, this.crowdTags, this.caravanCarts, this.walkerLayer, this.weather.front, this.popLayer, this.fxLayer, this.dragLayer);
+    this.world.addChild(this.bg, this.weather.back, this.statics, this.cars.root, this.topside.root, this.overlay, this.paint.root, this.deep.root, this.ghostLayer, this.incidentLayer, this.residentLayer, this.fitLayer, this.crowdTags, this.caravanCarts, this.cartPaint.root, this.walkerLayer, this.weather.front, this.popLayer, this.fxLayer, this.dragLayer);
     this.caravanCarts.eventMode = 'none';
     this.crowdTags.eventMode = 'none';
-    this.crowdTags.addChild(this.crowdMarks);
+    this.crowdTags.addChild(this.crowdMarks, this.marksPaint.root);
     this.popLayer.eventMode = 'none';
     this.fitLayer.eventMode = 'none';
     this.coachLayer.eventMode = 'none';
@@ -855,7 +867,9 @@ export class VaultView {
     const dc = deepContent(content);
     const names: Record<number, string> = {};
     for (const st of dc.strata) names[st.index] = stratumDef(content, st.index)?.name ?? `Stratum ${st.index}`;
-    this.bg.addChild(buildDeepBackground(this.deepGeometry(), { strata: state.deep.strata, maxStrata: dc.strata.length, names }));
+    const art = this.art;
+    this.bg.addChild(buildDeepBackground(this.deepGeometry(), { strata: state.deep.strata, maxStrata: dc.strata.length, names }, art ? (name) => art.backdrop(name) : undefined));
+    this.backdropVersion = art?.backdropVersion ?? 0;
   }
 
   /**
@@ -916,10 +930,23 @@ export class VaultView {
       const r = this.roomRect(room);
       const g = new Graphics();
       const wall = this.art?.roomWall(room.type, room.level);
-      drawRoomBox(g, room.type, r.w, r.h, room.level, room.segments, !!wall);
-      if (isDeepFloor(content, room.floor)) drawDeepFrame(g, r.w, r.h, stratumOf(content, room.floor), isBraced, room.id, room.type === 'elevator');
-      g.position.set(r.x, r.y);
-      this.statics.addChild(g);
+      const deepFloor = isDeepFloor(content, room.floor);
+      const frameName = deepFloor ? (isBraced ? 'deep_braced' : 'deep') : 'frame';
+      const frameArt = this.art?.roomPiece('frame', frameName);
+      const shaft = room.type === 'elevator' ? this.art?.roomPiece('elevator', 'shaft') : undefined;
+      if (shaft) {
+        // The painted shaft fills the whole cell (it tiles floor over floor); the car rides in it (updateCars).
+        const s = new Sprite(shaft);
+        s.position.set(r.x, r.y);
+        s.width = r.w;
+        s.height = r.h;
+        this.statics.addChild(s);
+      } else if (!(wall && frameArt)) {
+        drawRoomBox(g, room.type, r.w, r.h, room.level, room.segments, !!wall);
+        if (deepFloor) drawDeepFrame(g, r.w, r.h, stratumOf(content, room.floor), isBraced, room.id, room.type === 'elevator');
+        g.position.set(r.x, r.y);
+        this.statics.addChild(g);
+      }
       if (wall) {
         // Painted back wall: a merged room uses its wide painting when there is one;
         // otherwise one module per segment for rooms that merge, else one image.
@@ -934,6 +961,17 @@ export class VaultView {
           s.height = bh;
           this.statics.addChild(s);
         }
+      }
+      if (frameArt && room.type !== 'elevator') {
+        // The painted room box around the wall (or around the drawn props when there is no wall art).
+        const f = paintedFrame(frameArt, frameName, r.w, r.h);
+        f.position.set(r.x, r.y);
+        this.statics.addChild(f);
+      }
+      if (deepFloor && (frameArt || shaft)) {
+        // The Deep's darker mood, over the painted room too.
+        const look = stratumLook(stratumOf(content, room.floor));
+        if (look.tintAlpha > 0) this.statics.addChild(new Graphics().rect(0, 0, r.w, r.h).fill({ color: look.tint, alpha: look.tintAlpha * 0.8 })).position.set(r.x, r.y);
       }
       const def = roomDef(this.game.content, room);
       if (room.type !== 'elevator') {
@@ -1232,10 +1270,18 @@ export class VaultView {
           drawTopsideBuilding(pg, type, w, FLOOR_H, 1, 1);
           preview.addChild(pg);
         }
+      } else if (type === 'elevator' && this.art?.roomPiece('elevator', 'shaft')) {
+        const s = new Sprite(this.art.roomPiece('elevator', 'shaft'));
+        s.width = w;
+        s.height = FLOOR_H;
+        preview.addChild(s);
       } else {
-        const pg = new Graphics();
-        drawRoomBox(pg, type, w, FLOOR_H, 1, 1, !!wall);
-        preview.addChild(pg);
+        const frameArt = this.art?.roomPiece('frame', 'frame');
+        if (!(wall && frameArt)) {
+          const pg = new Graphics();
+          drawRoomBox(pg, type, w, FLOOR_H, 1, 1, !!wall);
+          preview.addChild(pg);
+        }
         if (wall) {
           const b = backWall(w, FLOOR_H);
           const s = new Sprite(wall);
@@ -1244,6 +1290,7 @@ export class VaultView {
           s.height = b.h;
           preview.addChild(s);
         }
+        if (frameArt) preview.addChild(paintedFrame(frameArt, 'frame', w, FLOOR_H));
       }
       const mark = new Graphics();
       const cx = w / 2;
@@ -1399,7 +1446,7 @@ export class VaultView {
     if (!this.suspended) this.stepCamera(dt);
     const { state, content } = this.game;
     const deepKey = deepViewKey(state, braced(state, content));
-    if (deepKey !== this.deepKey) {
+    if (deepKey !== this.deepKey || (this.art && this.art.backdropVersion !== this.backdropVersion)) {
       // A stratum opened (or Deep Bracing went in): redraw the rock and the room frames.
       this.bg.removeChildren().forEach((c) => c.destroy({ children: true }));
       this.drawBackground();
@@ -1417,6 +1464,7 @@ export class VaultView {
     this.deep.update(state, content, this.time, (room) => this.roomRect(room), vb);
     this.updateTopside(dt, vb);
     this.updateResidents(dt);
+    this.updateCars(vb);
     this.updateWalkers();
     this.updateCaravans();
     this.updateFloats(dt);
@@ -1464,6 +1512,7 @@ export class VaultView {
   private drawOverlay(vb: { y0: number; y1: number }): void {
     const g = this.overlay;
     g.clear();
+    this.paint.begin();
     const { state, content } = this.game;
     const burning = new Map(state.incidents.map((i) => [i.roomId, i]));
     this.incidentsShown.clear();
@@ -1498,7 +1547,10 @@ export class VaultView {
         const color = RESOURCE_COLORS[def.produces.resource] ?? 0xffffff;
         g.circle(cx, cy, 17).fill(0x14100d);
         g.circle(cx, cy, 14).fill(color);
-        drawResourceGlyph(g, def.produces.resource, cx, cy);
+        const icon = RESOURCE_ICONS[def.produces.resource];
+        const tex = icon ? this.art?.image('ui_icons', icon) : undefined;
+        if (tex) this.paint.add(tex, cx, cy, ...fitBox(tex, 22));
+        else drawResourceGlyph(g, def.produces.resource, cx, cy);
       }
       // crafting progress, and a bubble with the item once it is done
       if (room.job) {
@@ -1515,7 +1567,10 @@ export class VaultView {
           const cy = at.y + bob;
           g.circle(cx, cy, 19).fill(0x14100d);
           g.circle(cx, cy, 16).fill(RARITY_COLORS[item?.rarity ?? 'common'] ?? 0xf4ecd8);
-          drawItemGlyph(g, item?.kind ?? 'weapon', cx, cy);
+          // The item's own icon (the one the inventory shows), else a drawn silhouette.
+          const tex = this.art?.image('items', job.defId);
+          if (tex) this.paint.add(tex, cx, cy, ...fitBox(tex, 26));
+          else drawItemGlyph(g, item?.kind ?? 'weapon', cx, cy);
         }
       }
       const inc = burning.get(room.id);
@@ -1546,7 +1601,10 @@ export class VaultView {
       const door = state.rooms.find((room) => room.type === 'door');
       if (door) {
         const r = this.roomRect(door);
-        drawSealMonument(g, r.x - 34, SURFACE_H, this.time);
+        const monument = this.art?.image('seal_monument', 'monument');
+        // About two residents tall, standing on the ground (its image's bottom edge is the ground line).
+        if (monument) this.paint.add(monument, r.x - 36, SURFACE_H + 2, (110 * monument.width) / monument.height, 110, { ay: 1 });
+        else drawSealMonument(g, r.x - 34, SURFACE_H, this.time);
       }
     }
     // Hearts above courting couples.
@@ -1557,8 +1615,12 @@ export class VaultView {
       if (!a || !b) continue;
       const hx = (a.x + b.x) / 2;
       const hy = a.root.y - RESIDENT_H - 16 + Math.sin(this.time * 3) * 3;
-      drawHeart(g, hx, hy, 7 + Math.sin(this.time * 6) * 1);
+      const size = 7 + Math.sin(this.time * 6) * 1;
+      const heart = this.art?.image('badges', 'heart');
+      if (heart) this.paint.add(heart, hx, hy + size * 0.3, ...fitBox(heart, size * 2.4));
+      else drawHeart(g, hx, hy, size);
     }
+    this.paint.end();
   }
 
   /** The tutorial coach's pointer: a teal outline that breathes around each room it means. */
@@ -1713,10 +1775,83 @@ export class VaultView {
     return door.x + door.w + 30 + (warn / max) * 560;
   }
 
+  /**
+   * `n` figures of a creature sheet for an incident, made (or remade) as
+   * needed and kept in step by drawOverlay like INCIDENT_ART's creatures.
+   */
+  private incidentFigures(inc: Incident, creature: Creature, n: number, h: number): CreatureFigure[] {
+    let figs = this.incidentFigs.get(inc.id);
+    if (!figs || figs.length !== n || figs[0]?.creature !== creature) {
+      for (const f of figs ?? []) f.destroy();
+      figs = Array.from({ length: n }, () => this.incidentLayer.addChild(new CreatureFigure(creature, h)));
+      this.incidentFigs.set(inc.id, figs);
+    }
+    this.incidentsShown.add(inc.id);
+    return figs;
+  }
+
+  /** Painted flames (art/raw/fx_fire) along the floor, each on its own beat. False without the art. */
+  private drawFireArt(inc: Incident, r: { x: number; y: number; w: number; h: number }): boolean {
+    const fire = this.art?.forLook('fx_fire');
+    if (!fire) return false;
+    const n = Math.max(2, Math.round((r.w - 20) / 28));
+    const figs = this.incidentFigures(inc, fire, n, 30);
+    const step = (r.w - 32) / Math.max(1, n - 1);
+    figs.forEach((f, i) => {
+      f.position.set(r.x + 16 + i * step + Math.sin(i * 2.1) * 4, r.y + r.h - 8);
+      // Every other patch mirrored, and a little smaller, so the row doesn't read as a stamp.
+      const k = 0.85 + ((i * 37) % 10) / 40;
+      const base = (30 / fire.refHeight) * k;
+      f.scale.set((i % 2 ? -1 : 1) * base, base);
+      f.play('idle', this.time + i * 0.23);
+    });
+    return true;
+  }
+
+  /** Painted arcs off junction boxes along the wall (art/raw/fx_surge); the room's flicker stays drawn. False without the art. */
+  private drawSurgeArt(inc: Incident, r: { x: number; y: number; w: number; h: number }): boolean {
+    const surge = this.art?.forLook('fx_surge');
+    if (!surge) return false;
+    const n = Math.max(1, Math.round(r.w / 120));
+    const figs = this.incidentFigures(inc, surge, n, 80);
+    const xs: number[] = [];
+    figs.forEach((f, i) => {
+      const x = r.x + ((i + 0.5) * r.w) / n + (i % 2 ? 12 : -12);
+      f.position.set(x, r.y + r.h - 9);
+      f.play('idle', this.time * (1 + (i % 3) * 0.15) + i * 0.4);
+      xs.push(x);
+    });
+    this.threatX.set(inc.roomId, xs);
+    return true;
+  }
+
+  /**
+   * Painted claw damage on the door slab (art/raw/fx_door_damage, stages 1 to 3
+   * as the door gives), multiplied over the painted door so it stays that door.
+   * False when there is no art for it (or no painted door to put it on).
+   */
+  private drawDoorDamageArt(door: { x: number; y: number; w: number; h: number }, hpFrac: number): boolean {
+    const doorRoom = this.game.state.rooms.find((x) => x.type === 'door');
+    if (!doorRoom || !this.art?.roomWall('door', doorRoom.level)) return false;
+    const wear = 1 - hpFrac;
+    if (wear < 0.08) return true;
+    const stage = wear > 0.66 ? 3 : wear > 0.33 ? 2 : 1;
+    const tex = this.art.image('fx_door_damage', String(stage));
+    if (!tex) return false;
+    // The slab in the door paintings: about 6% to 46% across the back wall, 14% to 86% down.
+    const b = backWall(door.w, door.h);
+    const x0 = door.x + b.x + b.w * 0.065;
+    const x1 = door.x + b.x + b.w * 0.455;
+    const y0 = door.y + b.y + b.h * 0.14;
+    const y1 = door.y + b.y + b.h * 0.86;
+    this.paint.add(tex, (x0 + x1) / 2, (y0 + y1) / 2, x1 - x0, y1 - y0, { blend: 'multiply', alpha: 0.9 });
+    return true;
+  }
+
   private drawIncident(g: Graphics, inc: Incident, r: { x: number; y: number; w: number; h: number }): void {
     const floorY = r.y + r.h - 10;
     const t = this.time;
-    const art = this.drawIncidentArt(inc, r);
+    const art = this.drawIncidentArt(inc, r) || (inc.type === 'fire' && this.drawFireArt(inc, r));
     if (!this.threatX.has(inc.roomId)) this.threatX.set(inc.roomId, [r.x + r.w / 2]);
     switch (art && inc.type !== 'rustmen' ? 'art' : inc.type) {
       case 'art':
@@ -1768,13 +1903,14 @@ export class VaultView {
         if (breaking) {
           const doorMax = roomDef(this.game.content, this.game.state.rooms.find((x) => x.id === inc.roomId) as Room).doorHp?.[0] ?? 1;
           const hpFrac = Math.min(1, inc.doorHp / Math.max(doorMax, inc.doorHp));
+          this.drawDoorDamageArt(r, hpFrac);
           g.rect(r.x + 10, r.y - 14, r.w - 20, 6).fill(0x14100d);
           g.rect(r.x + 10, r.y - 14, (r.w - 20) * hpFrac, 6).fill(0x9fb4b2);
         }
         break;
       }
       case 'surge':
-        drawSurge(g, r, t);
+        drawSurge(g, r, t, !this.drawSurgeArt(inc, r));
         break;
       case 'hollowed':
         drawHollowed(g, r, t);
@@ -1793,7 +1929,7 @@ export class VaultView {
         this.drawMaulerIn(g, inc, r);
         break;
       default:
-        drawDeepIncident(g, inc, r, t);
+        drawDeepIncident(g, inc, r, t, this.art ? { pool: this.paint, image: (folder, name) => this.art?.image(folder, name) } : undefined);
     }
     // Spotted but not here yet: no health bar over the door room.
     if (inc.type === 'maulers' && (inc.warning ?? 0) > 0) return;
@@ -1845,7 +1981,7 @@ export class VaultView {
       swipe = c < 0.35 ? Math.sin((c / 0.35) * Math.PI) : 0;
       const doorMax = roomDef(this.game.content, this.game.state.rooms.find((x2) => x2.id === inc.roomId) as Room).doorHp?.[0] ?? 1;
       const hpFrac = Math.min(1, inc.doorHp / Math.max(doorMax, inc.doorHp));
-      drawDoorDamage(g, r, hpFrac);
+      if (!this.drawDoorDamageArt(r, hpFrac)) drawDoorDamage(g, r, hpFrac);
       g.rect(r.x + 10, r.y - 14, r.w - 20, 6).fill(0x14100d);
       g.rect(r.x + 10, r.y - 14, (r.w - 20) * hpFrac, 6).fill(0x9fb4b2);
     } else {
@@ -1874,12 +2010,24 @@ export class VaultView {
       }
     }
     tr.last = { x, y };
+    const mauler = this.art?.forLook('mauler');
+    if (mauler?.anims.walk) {
+      // The painted Mauler (sheets face left): walking, swiping (attack) or standing.
+      const [f] = this.incidentFigures(inc, mauler, 1, 92);
+      f!.position.set(x, y + 1);
+      f!.scale.x = Math.abs(f!.scale.x) * (facing > 0 ? -1 : 1);
+      if (swipe > 0) f!.play('attack', 0, Math.min(0.99, swipe));
+      else f!.play(walk ? 'walk' : 'idle', t);
+      if (approach === null && inc.doorHp <= 0) this.threatX.set(inc.roomId, [x]);
+      return;
+    }
     drawMauler(g, x, y, t, facing, walk, swipe);
   }
 
   /** Switch residents to sprite art once it has loaded. */
   setArt(art: CharacterArt | null): void {
     this.art = art;
+    this.deep.art = art ? { image: (folder, name) => art.image(folder, name), creature: (id) => art.creatureFor(id) } : null;
     this.builtLayout = -1; // rebuild rooms with any painted walls
     this.deepKey = ''; // and redraw the background with any painted backdrop
     for (const sp of this.sprites.values()) sp.look = '';
@@ -1908,14 +2056,78 @@ export class VaultView {
     f.body.clear();
     // Carry art draws its own pack.
     if (backpack && !f.figure?.has('carry')) drawBackpack(f.body);
+    let badges = f.pose.getChildByLabel('badges') as Container | null;
+    badges?.removeChildren().forEach((c) => c.destroy());
     if (f.figure) {
       f.figure.setTints(residentTints(res, content, child));
-      drawOverlays(f.body, res);
+      if (!badges) {
+        badges = new Container({ label: 'badges' });
+        f.pose.addChild(badges);
+      }
+      if (!this.addBadges(badges, res)) drawOverlays(f.body, res);
     } else {
       drawResident(f.body, res, content, child);
     }
     // Shadow sits under the sprite; overlays and placeholder on top.
     f.pose.setChildIndex(f.body, f.pose.children.length - 1);
+  }
+
+  /**
+   * The painted elevator car, one per shaft: it carries whoever is riding
+   * (the first rider found), else waits where it last stopped (at first, the
+   * shaft's top floor). Without car art the drawn shaft has no car.
+   */
+  private updateCars(vb: { y0: number; y1: number }): void {
+    const pool = this.cars;
+    pool.begin();
+    const tex = this.art?.roomPiece('elevator', 'car');
+    if (tex) {
+      const seen = new Set<string>();
+      for (const sh of this.shaftList()) {
+        const key = `${sh.x}:${sh.top}`;
+        seen.add(key);
+        let y = this.carAt.get(key) ?? floorY(sh.top);
+        for (const sp of this.sprites.values()) {
+          if (sp.riding && Math.abs(sp.x - sh.x) < 2 && sp.y >= floorY(sh.top) - FLOOR_H && sp.y <= floorY(sh.bottom) + 1) {
+            y = sp.y;
+            break;
+          }
+        }
+        this.carAt.set(key, y);
+        if (y + 10 < vb.y0 || y - FLOOR_H > vb.y1) continue;
+        // The car's floor sits just under the rider's feet; it spans the shaft's cell.
+        // A little taller than the picture's own shape, so a grown rider fits under its roof.
+        pool.add(carTexture(tex), sh.x, y + 6, CELL, CELL * CAR_ASPECT * 1.2, { ay: 1 });
+      }
+      for (const k of this.carAt.keys()) if (!seen.has(k)) this.carAt.delete(k);
+    }
+    pool.end();
+  }
+
+  /**
+   * Painted badges over a sprite resident (art/raw/badges): a heart while
+   * expecting, and a pip or the legend's star over the head. False when the
+   * badge art isn't there, so drawOverlays draws them instead.
+   */
+  private addBadges(c: Container, res: Resident): boolean {
+    const art = this.art;
+    const heart = art?.image('badges', 'heart');
+    if (!art || !heart) return false;
+    const top = -SPRITE_H;
+    const put = (tex: Texture | undefined, x: number, y: number, size: number) => {
+      if (!tex) return;
+      const s = new Sprite(tex);
+      s.anchor.set(0.5);
+      const [w, h] = fitBox(tex, size);
+      s.width = w;
+      s.height = h;
+      s.position.set(x, y);
+      c.addChild(s);
+    };
+    if (res.pregnancy) put(heart, 11, top + 6, 10);
+    if (res.legendary) put(art.image('badges', 'legend'), 0, top - 7, 14);
+    else if (res.rarity !== 'common') put(art.image('badges', res.rarity === 'legendary' ? 'legendary' : 'rare'), 0, top - 5, 8);
+    return true;
   }
 
   /** Elevator shafts (runs of stacked elevators), rebuilt when the layout changes. */
@@ -2151,6 +2363,7 @@ export class VaultView {
     const crowd = this.crowdLayout();
     const marks = this.crowdMarks;
     marks.clear();
+    this.marksPaint.begin();
     // What each room has its residents doing when they stand still.
     const roomAction = new Map<number, Action>();
     for (const room of state.rooms) if (WORK_ROOMS.has(content.rooms[room.type]?.category ?? '')) roomAction.set(room.id, 'work');
@@ -2263,7 +2476,9 @@ export class VaultView {
       else if (res.dead && sp.root.visible) {
         // Just above the body, which lies along the floor (drawn flat, or the art's own fallen pose).
         const mx = flat ? sp.x - sp.facing * SPRITE_H * 0.45 : sp.x;
-        drawFallenMark(marks, mx, bounds.y - 24);
+        const fallen = this.art?.image('badges', 'fallen');
+        if (fallen) this.marksPaint.add(fallen, mx, bounds.y - 24, 17, 17);
+        else drawFallenMark(marks, mx, bounds.y - 24);
       }
       const selected = res.id === this.selectedResidentId;
       sp.root.children[0]!.visible = selected;
@@ -2276,6 +2491,7 @@ export class VaultView {
     }
     this.setCrowdTag('door', crowd.doorTag);
     this.setCrowdTag('queue', crowd.queueTag);
+    this.marksPaint.end();
   }
 
   /** Ease a sprite's drawn position from where it is now (in the air, under the finger) to its spot on the floor. */
@@ -2443,6 +2659,7 @@ export class VaultView {
     const { state } = this.game;
     const g = this.caravanCarts;
     g.clear();
+    this.cartPaint.begin();
     const door = state.rooms.find((r) => r.type === 'door');
     const base = door ? this.roomRect(door).x + this.roomRect(door).w + 24 : 220;
     const laneY = SURFACE_H - GROUND_DEPTH + 10;
@@ -2459,15 +2676,21 @@ export class VaultView {
       const cartX = lead + facing * 10;
       const bump = home ? 0 : Math.abs(Math.sin(this.time * 6 + c.id)) * 1.5;
       const colour = FACTION_COLOURS[c.factionId] ?? 0xf2a541;
-      g.rect(cartX - 20, laneY - 20 - bump, 40, 12).fill({ color: 0x8a6a45, alpha });
-      g.rect(cartX - 20, laneY - 20 - bump, 40, 3).fill({ color: 0xb08d5b, alpha });
-      g.rect(cartX - 16, laneY - 32 - bump, 16, 12).fill({ color: 0x9b7447, alpha });
-      g.rect(cartX + 2, laneY - 29 - bump, 12, 9).fill({ color: 0xe9d9b6, alpha });
-      g.circle(cartX - 11, laneY - 6, 6).stroke({ width: 2, color: 0x2b2f33, alpha });
-      g.circle(cartX + 11, laneY - 6, 6).stroke({ width: 2, color: 0x2b2f33, alpha });
-      g.rect(cartX - facing * 20 - 1, laneY - 50 - bump, 2, 32).fill({ color: 0x2b2f33, alpha });
-      const wave = Math.sin(this.time * 5 + c.id) * 2;
-      g.poly([cartX - facing * 20, laneY - 50 - bump, cartX - facing * 34, laneY - 46 - bump + wave, cartX - facing * 20, laneY - 42 - bump]).fill({ color: colour, alpha });
+      const cart = this.art?.image('caravan_carts', c.factionId) ?? this.art?.image('caravan_carts', 'caravaners');
+      if (cart) {
+        // The painted cart (pennant and all) faces right; its wheels stand on the lane.
+        this.cartPaint.add(cart, cartX, laneY + 1 - bump * 0.5, (46 * cart.width) / cart.height, 46, { ay: 1, flip: facing < 0, alpha });
+      } else {
+        g.rect(cartX - 20, laneY - 20 - bump, 40, 12).fill({ color: 0x8a6a45, alpha });
+        g.rect(cartX - 20, laneY - 20 - bump, 40, 3).fill({ color: 0xb08d5b, alpha });
+        g.rect(cartX - 16, laneY - 32 - bump, 16, 12).fill({ color: 0x9b7447, alpha });
+        g.rect(cartX + 2, laneY - 29 - bump, 12, 9).fill({ color: 0xe9d9b6, alpha });
+        g.circle(cartX - 11, laneY - 6, 6).stroke({ width: 2, color: 0x2b2f33, alpha });
+        g.circle(cartX + 11, laneY - 6, 6).stroke({ width: 2, color: 0x2b2f33, alpha });
+        g.rect(cartX - facing * 20 - 1, laneY - 50 - bump, 2, 32).fill({ color: 0x2b2f33, alpha });
+        const wave = Math.sin(this.time * 5 + c.id) * 2;
+        g.poly([cartX - facing * 20, laneY - 50 - bump, cartX - facing * 34, laneY - 46 - bump + wave, cartX - facing * 20, laneY - 42 - bump]).fill({ color: colour, alpha });
+      }
       c.residentIds.forEach((rid, i) => {
         const res = state.residents.find((r) => r.id === rid);
         if (!res) return;
@@ -2499,6 +2722,7 @@ export class VaultView {
         w.figure?.play(home ? 'idle' : 'walk', home ? this.time + rid : this.time * 1.2 + rid);
       });
     });
+    this.cartPaint.end();
     for (const [key, w] of this.caravanWalkers) {
       if (keep.has(key)) continue;
       w.root.destroy({ children: true });
@@ -2955,6 +3179,75 @@ function lerpColor(a: number, b: number, t: number): number {
 function backWall(w: number, h: number): { x: number; y: number; w: number; h: number } {
   const i = 3;
   return { x: i + DEPTH_X, y: i + DEPTH_Y, w: w - 2 * (i + DEPTH_X), h: h - 2 * (i + DEPTH_Y) };
+}
+
+/** Ready-bubble icons (art/raw/ui_icons) by the resource a room makes. */
+const RESOURCE_ICONS: Record<string, string> = { power: 'power', food: 'food', water: 'water', medpatch: 'medpatch', purge: 'purge' };
+
+/** Width and height that fit a texture inside a size×size box, keeping its shape. */
+function fitBox(tex: Texture, size: number): [number, number] {
+  const k = size / Math.max(1, tex.width, tex.height);
+  return [tex.width * k, tex.height * k];
+}
+
+/** The painted car's picture, trimmed to the cage (its image has margins), and its height per unit of width. */
+const CAR_TRIM = { x: 32, y: 4, w: 192, h: 240 };
+const CAR_ASPECT = CAR_TRIM.h / CAR_TRIM.w;
+const carTextures = new WeakMap<Texture, Texture>();
+function carTexture(tex: Texture): Texture {
+  let t = carTextures.get(tex);
+  if (!t) {
+    const k = tex.width / 256;
+    t = new Texture({ source: tex.source, frame: new Rectangle(tex.frame.x + CAR_TRIM.x * k, tex.frame.y + CAR_TRIM.y * k, CAR_TRIM.w * k, CAR_TRIM.h * k) });
+    carTextures.set(tex, t);
+  }
+  return t;
+}
+
+/**
+ * Where each painted frame's cut-out (the back wall) sits in its image, in
+ * pixels from each edge: left, top, right, bottom (art/raw/room_frame).
+ */
+const FRAME_HOLES: Record<string, [number, number, number, number]> = {
+  frame: [197, 79, 193, 60],
+  deep: [208, 59, 215, 58],
+  deep_braced: [176, 84, 176, 22],
+};
+/** How thick the painted frame is drawn around a room (world units): a touch over the back wall's inset, so no seam shows. */
+const FRAME_BORDER = { l: DEPTH_X + 3 + 3, t: DEPTH_Y + 3 + 4, r: DEPTH_X + 3 + 3, b: DEPTH_Y + 3 + 2 };
+
+/**
+ * A painted room frame as a nine-slice: the corners and edges map onto the
+ * room's border and the middle (the cut-out) is left out, so the wall art
+ * shows through. Each band is scaled on its own, since the painting's box is
+ * far deeper than the view's perspective inset.
+ */
+function paintedFrame(tex: Texture, name: string, w: number, h: number): Container {
+  const [hl, ht, hr, hb] = FRAME_HOLES[name] ?? FRAME_HOLES.frame!;
+  const tw = tex.width;
+  const th = tex.height;
+  const src = { x: [0, hl, tw - hr, tw], y: [0, ht, th - hb, th] };
+  const B = FRAME_BORDER;
+  const dst = { x: [0, B.l, w - B.r, w], y: [0, B.t, h - B.b, h] };
+  const c = new Container();
+  const origin = tex.frame;
+  for (let row = 0; row < 3; row++) {
+    for (let col = 0; col < 3; col++) {
+      if (row === 1 && col === 1) continue;
+      const sw = src.x[col + 1]! - src.x[col]!;
+      const sh = src.y[row + 1]! - src.y[row]!;
+      const dw = dst.x[col + 1]! - dst.x[col]!;
+      const dh = dst.y[row + 1]! - dst.y[row]!;
+      if (sw <= 0 || sh <= 0 || dw <= 0 || dh <= 0) continue;
+      const part = new Texture({ source: tex.source, frame: new Rectangle(origin.x + src.x[col]!, origin.y + src.y[row]!, sw, sh) });
+      const s = new Sprite(part);
+      s.position.set(dst.x[col]!, dst.y[row]!);
+      s.width = dw;
+      s.height = dh;
+      c.addChild(s);
+    }
+  }
+  return c;
 }
 
 /** `shell` draws only the box (frame, ceiling, floor, walls): painted art supplies the rest. */
