@@ -112,6 +112,8 @@ export interface AchievementDef {
   hidden?: boolean;
   /** M9: not needed for the Warden's Seal (e.g. achievements for losing people). */
   optional?: boolean;
+  /** A crate tier that replaces the usual reward for this achievement's tier. */
+  crate?: 'standard' | 'rare' | 'legendary';
   /** M9: a title the achievement grants. */
   title?: string;
 }

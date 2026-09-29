@@ -142,6 +142,8 @@ export function claimDaily(state: GameState, content: Content, day: number): Cra
   if (!Number.isInteger(day) || day <= state.daily.lastDay) return null;
   state.daily.streak = day === state.daily.lastDay + 1 ? state.daily.streak + 1 : 1;
   state.daily.lastDay = day;
+  // Days played (not necessarily in a row). Saves from before this count their best streak.
+  state.stats['daysPlayed'] = Math.max(state.stats['daysPlayed'] ?? 0, state.stats['bestDailyStreak'] ?? 0) + 1;
   const tier = (state.daily.streak % 7 === 0 ? content.balance.crates.daily.seventh : content.balance.crates.daily.normal) as CrateTier;
   earnCrate(state, tier, 'daily');
   // Every few days in a row, a bottle of Halcyon Fizz comes with it.
@@ -195,7 +197,7 @@ function processRewards(state: GameState, content: Content, events: GameEvent[])
         break;
       case 'achievementUnlocked': {
         const def = content.achievements.find((a) => a.id === ev.achievementId);
-        const tier = def ? (c.achievementReward as Record<string, string | null>)[def.tier] : null;
+        const tier = def ? (def.crate ?? (c.achievementReward as Record<string, string | null>)[def.tier]) : null;
         if (tier) earnCrate(state, tier as CrateTier, 'achievement');
         break;
       }

@@ -2333,7 +2333,7 @@ export class UI {
       const got = state.achievements[a.id] !== undefined;
       const hidden = a.hidden && !got;
       const p = achievementProgress(state, a);
-      const prize = reward[a.tier];
+      const prize = a.crate ?? reward[a.tier];
       return h(
         'div',
         { class: `list-item ach${got ? '' : ' locked'}` },

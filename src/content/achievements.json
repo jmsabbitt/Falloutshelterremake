@@ -289,6 +289,16 @@
     "target": 1
   },
   {
+    "id": "days_3",
+    "name": "Settling In",
+    "description": "Come back to your homestead on 3 different days. Halcyon sends a Legendary Supply Crate.",
+    "tier": "silver",
+    "stat": "daysPlayed",
+    "target": 3,
+    "crate": "legendary",
+    "optional": true
+  },
+  {
     "id": "daily_7",
     "name": "Regular",
     "description": "Claim the daily crate 7 days in a row.",

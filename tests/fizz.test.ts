@@ -84,3 +84,22 @@ describe('Halcyon Fizz', () => {
     expect(fizzHeld(back)).toBe(0);
   });
 });
+
+describe('Settling In', () => {
+  it('a legendary crate on the third day played, in a row or not', () => {
+    const s = calm();
+    s.crates.legendary = 0;
+    const claim = (day: number) => {
+      applyCommand(s, content, { type: 'claimDaily', day });
+      advance(s, content, 1);
+    };
+    claim(100);
+    claim(104);
+    expect(s.crates.legendary).toBe(0);
+    claim(111);
+    expect(s.achievements['days_3']).toBeDefined();
+    expect(s.crates.legendary).toBe(1);
+    claim(112);
+    expect(s.crates.legendary).toBe(1);
+  });
+});
