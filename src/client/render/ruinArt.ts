@@ -2,11 +2,14 @@
 // Cracked walls, rust bloom, hanging cable, rubble on the floor, a lamp that
 // has seen better decades. Each quest picks a theme (a relay station, a dead
 // homestead or a scrapyard shack) and each room is varied by a seed, so the
-// same map looks lived-in (or died-in) rather than tiled.
+// same map looks lived-in (or died-in) rather than tiled. Where the painted
+// art has loaded (questSprites.ts), the back walls, props and passages use it
+// and the drawn versions stay as the fallback.
 
-import type { Graphics } from 'pixi.js';
+import { Container, Graphics, Sprite, TilingSprite, type Texture } from 'pixi.js';
 import type { QuestRoom } from '../../sim';
 import { FRAME, shade } from './palette';
+import type { QuestArt, RuinProp, RuinWall } from './questSprites';
 
 export const RW = 360;
 export const RH = 210;
@@ -69,24 +72,65 @@ export interface Openings {
   up: boolean;
 }
 
-/** Draw a ruined room at (0, 0). Contents are only drawn once the room has been seen. */
-export function drawRuinRoom(g: Graphics, room: QuestRoom, theme: Theme, seed: number, open: Openings): void {
+/** The frame inset and the back wall's rectangle, room-local. */
+const INSET = 4;
+export const BACK = { x: INSET + DEPTH_X, y: INSET + DEPTH_Y, w: RW - 2 * (INSET + DEPTH_X), h: RH - 2 * (INSET + DEPTH_Y) };
+
+/**
+ * Which painted wall a room gets: the boss lair once it has been seen, else
+ * the two plain variants in a checkerboard, so neighbouring rooms (side by
+ * side or stacked) never share a painting.
+ */
+export function ruinWallKind(room: QuestRoom): RuinWall {
+  if (room.visited && room.kind === 'boss') return 'boss';
+  return (((room.col + room.floor) % 2) + 2) % 2 ? 'wall2' : 'wall1';
+}
+
+/**
+ * A ruined room at (0, 0), as a container: the drawn shell (frame, ceiling,
+ * floor, side walls), the theme's painted back wall when there is art for it
+ * (else the drawn wall and its dressing), then doorways, hatches, rubble and
+ * the room's props (painted where the art exists). Contents only show once
+ * the room has been seen.
+ */
+export function buildRuinRoom(room: QuestRoom, theme: Theme, seed: number, open: Openings, art: QuestArt | null): Container {
+  const root = new Container();
+  const back = new Graphics();
+  const front = new Graphics();
+  const wallTex = art?.wall(theme.id, ruinWallKind(room));
+  drawShell(back, room, theme, seed, !!wallTex);
+  root.addChild(back);
+  if (wallTex) {
+    const s = new Sprite(wallTex);
+    s.position.set(BACK.x, BACK.y);
+    s.width = BACK.w;
+    s.height = BACK.h;
+    root.addChild(s);
+  }
+  drawFront(front, room, theme, seed, open, !!wallTex, art);
+  root.addChild(front);
+  if (room.visited && art) for (const p of propSprites(room, seed, art)) root.addChild(p);
+  return root;
+}
+
+/** Frame, ceiling, floor and side walls; the back wall and its dressing too unless it is painted. */
+function drawShell(g: Graphics, room: QuestRoom, theme: Theme, seed: number, painted: boolean): void {
   const w = RW;
   const h = RH;
   const dx = DEPTH_X;
   const dy = DEPTH_Y;
-  const i = 4;
+  const i = INSET;
   const boss = room.visited && room.kind === 'boss';
   const wall = boss ? shade(theme.wall, -0.25) : shade(theme.wall, (rnd(seed, 1) - 0.5) * 0.12);
+  // Next to a painted wall the drawn sides and ceiling sit darker, in its shadow.
+  const side = painted ? -0.18 : 0;
   g.rect(0, 0, w, h).fill(FRAME);
-  g.poly([i, i, w - i, i, w - i - dx, i + dy, i + dx, i + dy]).fill(shade(wall, -0.5));
+  g.poly([i, i, w - i, i, w - i - dx, i + dy, i + dx, i + dy]).fill(shade(wall, -0.5 + side));
   g.poly([i, h - i, w - i, h - i, w - i - dx, h - i - dy, i + dx, h - i - dy]).fill(shade(theme.floor, 0.05));
-  g.poly([i, i, i + dx, i + dy, i + dx, h - i - dy, i, h - i]).fill(shade(wall, -0.35));
-  g.poly([w - i, i, w - i - dx, i + dy, w - i - dx, h - i - dy, w - i, h - i]).fill(shade(wall, -0.42));
-  const bx = i + dx;
-  const by = i + dy;
-  const bw = w - 2 * (i + dx);
-  const bh = h - 2 * (i + dy);
+  g.poly([i, i, i + dx, i + dy, i + dx, h - i - dy, i, h - i]).fill(shade(wall, -0.35 + side));
+  g.poly([w - i, i, w - i - dx, i + dy, w - i - dx, h - i - dy, w - i, h - i]).fill(shade(wall, -0.42 + side));
+  if (painted) return;
+  const { x: bx, y: by, w: bw, h: bh } = BACK;
   g.rect(bx, by, bw, bh).fill(wall);
   // wainscot, half of it peeled away
   g.rect(bx, by + bh * 0.62, bw, bh * 0.38).fill(shade(wall, -0.15));
@@ -162,7 +206,16 @@ export function drawRuinRoom(g: Graphics, room: QuestRoom, theme: Theme, seed: n
     }
     g.rect(bx + bw - 60, by + 30, 44, 12).fill({ color: 0xe4572e, alpha: 0.7 });
   }
+}
 
+/** Doorways, ladder hatches, floor rubble and (once seen) the drawn props the art doesn't cover. */
+function drawFront(g: Graphics, room: QuestRoom, theme: Theme, seed: number, open: Openings, painted: boolean, art: QuestArt | null): void {
+  const w = RW;
+  const h = RH;
+  const dx = DEPTH_X;
+  const dy = DEPTH_Y;
+  const i = INSET;
+  const { x: bx, y: by, w: bw, h: bh } = BACK;
   // openings: doorways in the side walls, hatches for ladders
   if (open.left) doorway(g, i + 2, h);
   if (open.right) doorway(g, w - i - 2 - (dx - 2), h);
@@ -177,7 +230,7 @@ export function drawRuinRoom(g: Graphics, room: QuestRoom, theme: Theme, seed: n
     g.poly([rx - rs, floorTop + 4, rx - rs * 0.4, floorTop - rs * 0.6, rx + rs * 0.5, floorTop - rs * 0.4, rx + rs, floorTop + 4]).fill(shade(theme.floor, 0.1 + rnd(seed, 110 + k) * 0.15));
   }
 
-  if (room.visited) drawContents(g, room, theme, seed, bx, by, bw, bh);
+  if (room.visited) drawContents(g, room, theme, seed, bx, by, bw, bh, painted, art);
 }
 
 function doorway(g: Graphics, x: number, h: number): void {
@@ -188,10 +241,12 @@ function doorway(g: Graphics, x: number, h: number): void {
 }
 
 /** Props that give away what the room held: crates, a console, the boss's lair. */
-function drawContents(g: Graphics, room: QuestRoom, theme: Theme, seed: number, bx: number, by: number, bw: number, bh: number): void {
+function drawContents(g: Graphics, room: QuestRoom, theme: Theme, seed: number, bx: number, by: number, bw: number, bh: number, painted: boolean, art: QuestArt | null): void {
   const floorY = by + bh;
+  const has = (p: RuinProp) => !!art?.prop(p);
   switch (room.kind) {
     case 'loot': {
+      if (has(room.cleared ? 'locker_open' : 'locker_shut')) break;
       // footlockers, lids off once looted
       for (let k = 0; k < 2; k++) {
         const cx = bx + bw * 0.55 + k * 46;
@@ -204,6 +259,7 @@ function drawContents(g: Graphics, room: QuestRoom, theme: Theme, seed: number, 
       break;
     }
     case 'event': {
+      if (has('console')) break;
       // a console or cabinet with a single stubborn light
       const cx = bx + bw * 0.62;
       g.rect(cx, floorY - 64, 52, 64).fill(0x3b3f3a);
@@ -213,8 +269,9 @@ function drawContents(g: Graphics, room: QuestRoom, theme: Theme, seed: number, 
       break;
     }
     case 'boss': {
-      // hazard stripes and a pile of trophies: someone lived (and ate) here
-      for (let k = 0; k < 8; k++) g.poly([bx + k * (bw / 8), by + bh * 0.62, bx + k * (bw / 8) + 14, by + bh * 0.62, bx + k * (bw / 8) + 24, by + bh * 0.62 + 6, bx + k * (bw / 8) + 10, by + bh * 0.62 + 6]).fill({ color: 0xf2a541, alpha: 0.55 });
+      // hazard stripes (the painted lair has its own) and a pile of trophies: someone lived (and ate) here
+      if (!painted) for (let k = 0; k < 8; k++) g.poly([bx + k * (bw / 8), by + bh * 0.62, bx + k * (bw / 8) + 14, by + bh * 0.62, bx + k * (bw / 8) + 24, by + bh * 0.62 + 6, bx + k * (bw / 8) + 10, by + bh * 0.62 + 6]).fill({ color: 0xf2a541, alpha: 0.55 });
+      if (has('trophies')) break;
       for (let k = 0; k < 5; k++) {
         const x = bx + bw * 0.62 + rnd(seed, 120 + k) * bw * 0.3;
         g.ellipse(x, floorY - 3, 7, 3).fill(0xe9e1cc);
@@ -232,11 +289,110 @@ function drawContents(g: Graphics, room: QuestRoom, theme: Theme, seed: number, 
   }
 }
 
+/** A painted prop standing with its base at (x, y), `w` wide. */
+function prop(t: Texture, x: number, y: number, w: number, ax = 0.5, ay = 1): Sprite {
+  const s = new Sprite(t);
+  s.anchor.set(ax, ay);
+  s.scale.set(w / t.width);
+  s.position.set(x, y);
+  return s;
+}
+
+/**
+ * The painted props for a seen room, where the art exists (drawContents
+ * skips what these cover): footlockers (lids off once looted), a console,
+ * the boss's trophy pile, the broken hatch the party came in by.
+ */
+function propSprites(room: QuestRoom, seed: number, art: QuestArt): Sprite[] {
+  const { x: bx, y: by, w: bw, h: bh } = BACK;
+  const floorY = by + bh + 3;
+  const out: Sprite[] = [];
+  switch (room.kind) {
+    case 'loot': {
+      const t = art.prop(room.cleared ? 'locker_open' : 'locker_shut');
+      // Both sheets share one scale, so an opened locker is the same box with its lid up.
+      const ref = art.prop('locker_shut') ?? t;
+      if (!t || !ref) break;
+      const w = (44 / ref.width) * t.width;
+      for (let k = 0; k < 2; k++) out.push(prop(t, bx + bw * 0.58 + k * 52, floorY, w));
+      break;
+    }
+    case 'event': {
+      const t = art.prop('console');
+      if (t) out.push(prop(t, bx + bw * 0.7, floorY, 84));
+      break;
+    }
+    case 'boss': {
+      const t = art.prop('trophies');
+      if (t) out.push(prop(t, bx + bw * (0.74 + rnd(seed, 120) * 0.08), floorY, 100));
+      break;
+    }
+    case 'start': {
+      // The hatch in the ceiling the party dropped in by; the drawn daylight falls from it.
+      const t = art.prop('hatch');
+      if (t) out.push(prop(t, bx + 36, by + 4, 72, 0.5, 0.5));
+      break;
+    }
+    default:
+      break;
+  }
+  return out;
+}
+
+/** Painted passage art laid over the drawn passages (the drawn frame stays around it). */
+export function passageArt(art: QuestArt | null): {
+  corridor(x0: number, x1: number, floorTop: number): TilingSprite | null;
+  ladder(x: number, y0: number, y1: number): TilingSprite | null;
+  stairs(ax: number, ay: number, bx: number, by: number): Sprite | null;
+} {
+  return {
+    corridor(x0, x1, floorTop) {
+      const t = art?.prop('corridor');
+      if (!t) return null;
+      const { top, bottom } = corridorSpan(floorTop);
+      const s = new TilingSprite({ texture: t, width: x1 - x0, height: bottom - top });
+      s.tileScale.set((bottom - top) / t.height);
+      s.position.set(x0, top);
+      return s;
+    },
+    ladder(x, y0, y1) {
+      const t = art?.prop('ladder');
+      if (!t) return null;
+      const w = LADDER_W;
+      const s = new TilingSprite({ texture: t, width: w, height: y1 - y0 });
+      s.tileScale.set(w / t.width);
+      s.position.set(x - w / 2, y0);
+      return s;
+    },
+    stairs(ax, ay, bx, by) {
+      const t = art?.prop('stairs');
+      if (!t) return null;
+      // The painting goes down to the right; mirror it for a flight going down to the left.
+      const [hi, lo] = ay < by ? [{ x: ax, y: ay }, { x: bx, y: by }] : [{ x: bx, y: by }, { x: ax, y: ay }];
+      const dir = lo.x >= hi.x ? 1 : -1;
+      const pad = 26;
+      const s = new Sprite(t);
+      const w = Math.abs(lo.x - hi.x) + pad * 2;
+      const hgt = lo.y - hi.y + 44;
+      s.scale.set((dir * w) / t.width, hgt / t.height);
+      s.position.set(dir > 0 ? Math.min(hi.x, lo.x) - pad : Math.max(hi.x, lo.x) + pad, hi.y - 34);
+      return s;
+    },
+  };
+}
+
+/** How wide a painted ladder shows (the drawn shaft around it is 44). */
+const LADDER_W = 30;
+
+function corridorSpan(floorTop: number): { top: number; bottom: number } {
+  return { top: floorTop + RH - DEPTH_Y - 4 - 96, bottom: floorTop + RH - DEPTH_Y + 2 };
+}
+
 /** A short horizontal passage between two rooms on the same floor. */
-export function drawCorridor(g: Graphics, x0: number, x1: number, floorTop: number, theme: Theme): void {
-  const top = floorTop + RH - DEPTH_Y - 4 - 96;
-  const bottom = floorTop + RH - DEPTH_Y + 2;
+export function drawCorridor(g: Graphics, x0: number, x1: number, floorTop: number, theme: Theme, painted = false): void {
+  const { top, bottom } = corridorSpan(floorTop);
   g.rect(x0, top - 6, x1 - x0, bottom - top + 12).fill(FRAME);
+  if (painted) return;
   g.rect(x0, top, x1 - x0, bottom - top).fill(shade(theme.wall, -0.6));
   g.rect(x0, bottom - 8, x1 - x0, 8).fill(shade(theme.floor, -0.1));
   // support beams
@@ -244,19 +400,21 @@ export function drawCorridor(g: Graphics, x0: number, x1: number, floorTop: numb
 }
 
 /** A ladder shaft down from one floor to the next. */
-export function drawLadder(g: Graphics, x: number, y0: number, y1: number, theme: Theme): void {
+export function drawLadder(g: Graphics, x: number, y0: number, y1: number, theme: Theme, painted = false): void {
   g.rect(x - 26, y0, 52, y1 - y0).fill(FRAME);
   g.rect(x - 22, y0, 44, y1 - y0).fill(shade(theme.wall, -0.62));
+  if (painted) return;
   g.rect(x - 14, y0, 3, y1 - y0).fill(0x6f7b7a);
   g.rect(x + 11, y0, 3, y1 - y0).fill(0x6f7b7a);
   for (let y = y0 + 6; y < y1; y += 14) g.rect(x - 14, y, 28, 3).fill(0x8a9493);
 }
 
 /** A stairway cut diagonally through the rock between two floors. */
-export function drawStairs(g: Graphics, ax: number, ay: number, bx: number, by: number, theme: Theme): void {
+export function drawStairs(g: Graphics, ax: number, ay: number, bx: number, by: number, theme: Theme, painted = false): void {
   const n = 12;
   g.moveTo(ax, ay).lineTo(bx, by).stroke({ width: 44, color: FRAME });
   g.moveTo(ax, ay).lineTo(bx, by).stroke({ width: 36, color: shade(theme.wall, -0.6) });
+  if (painted) return;
   for (let k = 0; k <= n; k++) {
     const x = ax + ((bx - ax) * k) / n;
     const y = ay + ((by - ay) * k) / n;

@@ -4,7 +4,7 @@
 // It never changes the game itself: taps are handed to callbacks, which send
 // commands through game.run (see ui/questScreen.ts).
 
-import { Application, Container, Graphics, Text, type FederatedPointerEvent } from 'pixi.js';
+import { Application, Container, Graphics, Sprite, Text, TilingSprite, type FederatedPointerEvent, type Texture } from 'pixi.js';
 import {
   critRingSpeed,
   currentRoom,
@@ -34,15 +34,23 @@ import {
   RH,
   RW,
   type Theme,
+  buildRuinRoom,
   drawCorridor,
   drawLadder,
-  drawRuinRoom,
   drawStairs,
+  passageArt,
   strHash,
   themeFor,
 } from './ruinArt';
+import { type QuestArt, loadQuestArt } from './questSprites';
 import { type Action, type CharacterArt, CreatureFigure, Figure, fightAnim, residentTints, weaponGrip } from './sprites';
 import { RESIDENT_H, SPRITE_H, drawOverlays, drawResident } from './vaultView';
+
+/** Height of the painted skyline strip, and of the ground crust along the surface (world units). */
+const SKYLINE_H = 230;
+/** Width of the painted doorway arrow (map_go). */
+const GO_W = 40;
+const CRUST_H = 44;
 
 /** Displayed height of party members, in world units. */
 const PARTY_H = 64;
@@ -197,13 +205,21 @@ export function roomOrigin(room: { floor: number; col: number }) {
 export class QuestView {
   readonly root = new Container();
   private sky = new Graphics();
+  /** The painted quest sky, over the drawn one once it has loaded. */
+  private skyArt: Sprite | null = null;
   readonly world = new Container();
   private earth = new Graphics();
+  /** Painted skyline, ground strip and earth, over the drawn horizon. */
+  private backdrop = new Container();
   private links = new Graphics();
+  /** Painted corridors, ladders and stairs, over the drawn passage frames. */
+  private linkArt = new Container();
   private rooms = new Container();
   private fog = new Graphics();
   private marks = new Container();
   private highlight = new Graphics();
+  /** Painted doorway arrows (map_go), one per way on, when the art exists. */
+  private goMarks = new Container();
   private actors = new Container();
   private overlay = new Graphics();
   private labels = new Container();
@@ -219,6 +235,9 @@ export class QuestView {
   insets = { top: 60, bottom: 150 };
 
   private art: CharacterArt | null = null;
+  /** Quest-screen art: loads the first time the screen opens. */
+  private questArt: QuestArt | null = null;
+  private questArtAsked = false;
   private time = 0;
   private staticKey = '';
   private theme: Theme | null = null;
@@ -253,8 +272,8 @@ export class QuestView {
     // The map art only changes when a room is revealed. As its own render group
     // it is not re-batched every frame along with the fighters and effects.
     const statics = new Container({ isRenderGroup: true });
-    statics.addChild(this.earth, this.links, this.rooms, this.fog, this.marks);
-    this.world.addChild(statics, this.highlight, this.actors, this.overlay, this.labels, this.fx, this.floatLayer);
+    statics.addChild(this.earth, this.backdrop, this.links, this.linkArt, this.rooms, this.fog, this.marks);
+    this.world.addChild(statics, this.highlight, this.goMarks, this.actors, this.overlay, this.labels, this.fx, this.floatLayer);
     this.actors.sortableChildren = true;
     this.ringText = new Text({ text: '', style: { fontFamily: 'Bungee, sans-serif', fontSize: 16, fill: 0xf4ecd8, stroke: { color: 0x14100d, width: 4 } } });
     this.ringText.anchor.set(0.5);
@@ -277,7 +296,20 @@ export class QuestView {
     for (const m of this.members.values()) m.look = '';
   }
 
+  /** Start loading the quest art (once); the map and sky redraw with it when it lands. */
+  private requestQuestArt(): void {
+    if (this.questArtAsked) return;
+    this.questArtAsked = true;
+    void loadQuestArt().then((art) => {
+      if (!art) return;
+      this.questArt = art;
+      this.staticKey = '';
+      this.skySize = '';
+    });
+  }
+
   open(questId: number): void {
+    this.requestQuestArt();
     if (this.questId !== questId) this.reset();
     this.questId = questId;
     this.root.visible = true;
@@ -523,6 +555,7 @@ export class QuestView {
       return;
     }
     this.time += dt;
+    this.requestQuestArt();
     const key = `${q.id}|${q.rooms.map((r) => `${r.id}${r.visited ? 1 : 0}${r.cleared ? 1 : 0}${r.kind}`).join(',')}`;
     if (key !== this.staticKey) this.rebuildStatics(q, key);
     this.drawSky();
@@ -610,6 +643,17 @@ export class QuestView {
     const gy = H * 0.16;
     for (let k = 6; k > 0; k--) g.circle(gx, gy, 18 + k * 16).fill({ color: 0xe8ffb0, alpha: 0.04 });
     g.circle(gx, gy, 22).fill(0xf6ffd8);
+    const tex = this.questArt?.backdrop('sky');
+    if (tex) {
+      // The painting covers the screen (cropped, never stretched), sun kept top right.
+      if (!this.skyArt) {
+        this.skyArt = new Sprite(tex);
+        this.root.addChildAt(this.skyArt, this.root.getChildIndex(this.sky) + 1);
+      }
+      const k = Math.max(W / tex.width, H / tex.height);
+      this.skyArt.scale.set(k);
+      this.skyArt.position.set(W - tex.width * k, 0);
+    }
   }
 
   private rebuildStatics(q: Quest, key: string): void {
@@ -618,9 +662,15 @@ export class QuestView {
     const theme = this.theme;
     this.rooms.removeChildren().forEach((c) => c.destroy({ children: true }));
     this.marks.removeChildren().forEach((c) => c.destroy({ children: true }));
+    this.backdrop.removeChildren().forEach((c) => c.destroy());
+    this.linkArt.removeChildren().forEach((c) => c.destroy());
+    const art = this.questArt;
+    const skyline = art?.backdrop('skyline');
+    const crust = art?.ground('crust');
+    const dirt = art?.ground('dirt');
     const earth = this.earth.clear();
-    const links = this.links.clear();
-    const fog = this.fog.clear();
+    this.links.clear();
+    this.fog.clear();
     const byId = new Map(q.rooms.map((r) => [r.id, r]));
     const minF = Math.min(...q.rooms.map((r) => r.floor));
     const maxF = Math.max(...q.rooms.map((r) => r.floor));
@@ -631,6 +681,75 @@ export class QuestView {
     const surface = minF * (RH + GY) - 70;
     // The horizon: far mesas, then the broken skyline of what the Glare left.
     const rnd = (k: number) => (strHash(`${q.defId}:${k}`) % 1000) / 1000;
+    const depth = (maxF - minF + 3) * (RH + GY) + 2000;
+    this.addBackdropArt(left, right, surface, depth, theme);
+    if (!skyline) this.drawSkyline(earth, left, right, surface, rnd);
+    // The plain ground and rock are always drawn: under painted art they fill any hairline between its tiles.
+    earth.rect(left, surface, right - left, 30).fill(0x8a6a45);
+    earth.rect(left, surface + 22, right - left, 8).fill(shade(0x8a6a45, -0.35));
+    earth.rect(left, surface + 30, right - left, depth).fill(dirt ? shade(theme.rock, 0.25) : theme.rock);
+    if (!crust) {
+      for (let j = 0; j < 60; j++) {
+        const mx = left + rnd(j * 23) * (right - left);
+        earth.ellipse(mx, surface + 2, 20 + rnd(j * 29) * 40, 8 + rnd(j * 31) * 8).fill(0x7a5a38);
+      }
+    }
+    if (!dirt) {
+      for (let k = 0; k < 500; k++) {
+        const x = left + (strHash(`x${k}`) % (right - left));
+        const y = surface + 40 + (strHash(`y${k}`) % ((maxF - minF + 2) * (RH + GY) + 400));
+        const s = 2 + (k % 5);
+        earth.rect(x, y, s * 2, s).fill(shade(theme.rock, k % 3 ? 0.12 : -0.3));
+      }
+    }
+    this.buildMap(q, theme, byId);
+  }
+
+  /**
+   * The painted horizon, where the art exists: the skyline strip standing on
+   * the surface and repeating sideways, the ground crust along the surface,
+   * and the earth tiled through the rock the rooms are cut into.
+   */
+  private addBackdropArt(left: number, right: number, surface: number, depth: number, theme: Theme): void {
+    const art = this.questArt;
+    if (!art) return;
+    const width = right - left;
+    const skyline = art.backdrop('skyline');
+    if (skyline) {
+      const h = SKYLINE_H;
+      const s = new TilingSprite({ texture: skyline, width, height: h });
+      s.tileScale.set(h / skyline.height);
+      s.position.set(left, surface - h + 4);
+      this.backdrop.addChild(s);
+    }
+    const dirt = art.ground('dirt');
+    // Darkened toward the theme's rock, so the lit rooms stand out of it.
+    if (dirt) this.tileGrid(dirt, left, surface + 20, width, depth, RH * 1.6, lerp(0xffffff, theme.rock, 0.45));
+    const crust = art.ground('crust');
+    if (crust) this.tileGrid(crust, left, surface - 6, width, CRUST_H, CRUST_H);
+  }
+
+  /**
+   * Cover a rectangle with copies of a texture, `tileH` tall, as plain sprites
+   * butted edge to edge. A TilingSprite of these leaves a light hairline at
+   * every wrap; separate sprites don't.
+   */
+  private tileGrid(t: Texture, x: number, y: number, w: number, h: number, tileH: number, tint = 0xffffff): void {
+    const tw = (tileH / t.height) * t.width;
+    for (let ty = 0; ty < h; ty += tileH) {
+      for (let tx = 0; tx < w; tx += tw) {
+        const s = new Sprite(t);
+        s.position.set(x + tx, y + ty);
+        s.width = tw;
+        s.height = tileH;
+        s.tint = tint;
+        this.backdrop.addChild(s);
+      }
+    }
+  }
+
+  /** The drawn horizon: far mesas, then the broken skyline of what the Glare left. */
+  private drawSkyline(earth: Graphics, left: number, right: number, surface: number, rnd: (k: number) => number): void {
     const far: number[] = [left, surface];
     for (let x = left; x <= right; x += 160) far.push(x, surface - 90 - rnd(x) * 120);
     far.push(right, surface);
@@ -657,20 +776,14 @@ export class QuestView {
       x += bw + 20 + rnd(k * 19) * 80;
       k++;
     }
-    earth.rect(left, surface, right - left, 30).fill(0x8a6a45);
-    for (let j = 0; j < 60; j++) {
-      const mx = left + rnd(j * 23) * (right - left);
-      earth.ellipse(mx, surface + 2, 20 + rnd(j * 29) * 40, 8 + rnd(j * 31) * 8).fill(0x7a5a38);
-    }
-    earth.rect(left, surface + 22, right - left, 8).fill(shade(0x8a6a45, -0.35));
-    earth.rect(left, surface + 30, right - left, (maxF - minF + 3) * (RH + GY) + 2000).fill(theme.rock);
-    for (let k = 0; k < 500; k++) {
-      const x = left + (strHash(`x${k}`) % (right - left));
-      const y = surface + 40 + (strHash(`y${k}`) % ((maxF - minF + 2) * (RH + GY) + 400));
-      const s = 2 + (k % 5);
-      earth.rect(x, y, s * 2, s).fill(shade(theme.rock, k % 3 ? 0.12 : -0.3));
-    }
+  }
 
+  /** Passages, rooms, fog and HALCY's marks. */
+  private buildMap(q: Quest, theme: Theme, byId: Map<string, QuestRoom>): void {
+    const links = this.links;
+    const fog = this.fog;
+    const art = this.questArt;
+    const passage = passageArt(art);
     const visited = (r: QuestRoom) => r.visited;
     const known = (r: QuestRoom) => r.visited || r.links.some((id) => byId.get(id)?.visited);
     // Passages first, so rooms sit over their ends.
@@ -687,19 +800,24 @@ export class QuestView {
         const B = roomOrigin(b);
         if (a.floor === b.floor) {
           const [l, r] = A.x < B.x ? [A, B] : [B, A];
-          drawCorridor(links, l.x + RW - 6, r.x + 6, A.y, theme);
+          const s = passage.corridor(l.x + RW - 6, r.x + 6, A.y);
+          drawCorridor(links, l.x + RW - 6, r.x + 6, A.y, theme, !!s);
+          if (s) this.linkArt.addChild(s);
         } else if (a.col === b.col) {
           const [t, u] = A.y < B.y ? [A, B] : [B, A];
-          drawLadder(links, t.x + LADDER_X, t.y + RH - 6, u.y + 6, theme);
+          const s = passage.ladder(t.x + LADDER_X, t.y + RH - 6, u.y + 6);
+          drawLadder(links, t.x + LADDER_X, t.y + RH - 6, u.y + 6, theme, !!s);
+          if (s) this.linkArt.addChild(s);
         } else {
           const [p0, p1] = stairEnds(a, b);
-          drawStairs(links, p0.x, p0.y, p1.x, p1.y, theme);
+          const s = passage.stairs(p0.x, p0.y, p1.x, p1.y);
+          drawStairs(links, p0.x, p0.y, p1.x, p1.y, theme, !!s);
+          if (s) this.linkArt.addChild(s);
         }
       }
     }
     for (const room of q.rooms) {
       const o = roomOrigin(room);
-      const g = new Graphics();
       const open = { left: false, right: false, up: false, down: false };
       for (const id of room.links) {
         const b = byId.get(id);
@@ -710,13 +828,22 @@ export class QuestView {
         } else if (b.floor > room.floor) open.down = true;
         else open.up = true;
       }
-      drawRuinRoom(g, room, theme, strHash(`${q.defId}:${room.id}`), open);
-      g.position.set(o.x, o.y);
-      this.rooms.addChild(g);
+      const box = buildRuinRoom(room, theme, strHash(`${q.defId}:${room.id}`), open, art);
+      box.position.set(o.x, o.y);
+      this.rooms.addChild(box);
       if (!room.visited) {
         const isKnown = known(room);
         fog.rect(o.x - 2, o.y - 2, RW + 4, RH + 4).fill({ color: 0x07090a, alpha: isKnown ? 0.82 : 0.95 });
-        if (isKnown) {
+        const unknown = art?.marker('unknown');
+        if (isKnown && unknown) {
+          // A stencilled question mark on a scrap of board.
+          const mark = new Sprite(unknown);
+          mark.anchor.set(0.5);
+          mark.scale.set(76 / unknown.width);
+          mark.alpha = 0.85;
+          mark.position.set(o.x + RW / 2, o.y + RH / 2);
+          this.marks.addChild(mark);
+        } else if (isKnown) {
           const mark = new Text({ text: '?', style: { fontFamily: 'Bungee, sans-serif', fontSize: 54, fill: 0x6f7b7a } });
           mark.anchor.set(0.5);
           mark.alpha = 0.8;
@@ -728,6 +855,15 @@ export class QuestView {
         // HALCY's waypoint: the objective is always marked.
         const fx = o.x + RW - 40;
         const fy = o.y + 24;
+        const pennant = art?.marker('objective');
+        if (pennant) {
+          const s = new Sprite(pennant);
+          s.anchor.set(0.2, 1);
+          s.scale.set(52 / pennant.height);
+          s.position.set(fx, fy + 44);
+          this.marks.addChild(s);
+          continue;
+        }
         const flag = new Graphics();
         flag.rect(fx, fy, 3, 40).fill(0xe9e1cc);
         flag.poly([fx + 3, fy, fx + 30, fy + 8, fx + 3, fy + 18]).fill(0xf2a541);
@@ -1060,13 +1196,16 @@ export class QuestView {
   private drawHighlight(q: Quest): void {
     const g = this.highlight.clear();
     this.doors = [];
+    const go = this.questArt?.marker('go');
+    let shown = 0;
+    const hideRest = () => this.goMarks.children.forEach((c, i) => (c.visible = i < shown));
     const here = currentRoom(q);
-    if (!here || q.status !== 'onsite') return;
+    if (!here || q.status !== 'onsite') return hideRest();
     const free = !q.moving && !inCombat(q) && !q.pendingEvent;
     const pulse = 0.5 + 0.5 * Math.sin(this.time * 4);
     const ho = roomOrigin(here);
     g.rect(ho.x - 3, ho.y - 3, RW + 6, RH + 6).stroke({ width: 3, color: 0xf2a541, alpha: 0.5 });
-    if (!free) return;
+    if (!free) return hideRest();
     for (const id of here.links) {
       const r = q.rooms.find((x) => x.id === id);
       if (!r) continue;
@@ -1086,8 +1225,25 @@ export class QuestView {
       }
       this.doors.push({ roomId: r.id, x: cx, y: cy });
       const nudge = Math.sin(this.time * 5) * 4;
-      chevron(g, cx + dirX * nudge, cy + (dirX === 0 ? dirY * nudge : 0), dirX, dirY, 0x7fe0c0, 0.6 + pulse * 0.4);
+      const px = cx + dirX * nudge;
+      const py = cy + (dirX === 0 ? dirY * nudge : 0);
+      if (go) {
+        // The painted arrow points right; turn it to the way on.
+        let s = this.goMarks.children[shown] as Sprite | undefined;
+        if (!s) {
+          s = new Sprite(go);
+          s.anchor.set(0.5);
+          s.scale.set(GO_W / go.width);
+          this.goMarks.addChild(s);
+        }
+        s.visible = true;
+        s.position.set(px, py);
+        s.rotation = dirX !== 0 ? (dirX > 0 ? 0 : Math.PI) : dirY > 0 ? Math.PI / 2 : -Math.PI / 2;
+        s.alpha = 0.75 + pulse * 0.25;
+        shown++;
+      } else chevron(g, px, py, dirX, dirY, 0x7fe0c0, 0.6 + pulse * 0.4);
     }
+    hideRest();
   }
 
   private drawOverlay(q: Quest): void {
