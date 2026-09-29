@@ -240,3 +240,4 @@ We need commercial use rights with no attribution or exclusivity strings. Record
 | Legend extinguisher and repair sheets (22) | artlist.io, Nano Banana 2 I2I 2K | AI Suite plan (credits) | 2026-09-28 | ☐ |
 | Generated for this project; no third-party assets | artlist.io, Nano Banana 2 I2I 2K | AI Suite plan (credits) | 2026-09-28 | ☐ |
 | Generated for this project; no third-party assets | artlist.io, Nano Banana 2 I2I 2K | AI Suite plan (credits) | 2026-09-28 | ☐ |
+| Generated for this project; no third-party assets | artlist.io, Nano Banana 2 I2I 2K | AI Suite plan (credits) | 2026-09-28 | ☐ |
