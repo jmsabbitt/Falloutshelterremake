@@ -25,7 +25,7 @@ import { createResident } from '../sim/residents';
 import { startIncident, startRaid } from '../sim/systems/incidents';
 import { grantItem } from '../sim/systems/items';
 import { addFragment, addSalvage, unlockRecipe } from '../sim/systems/inventory';
-import type { CrateTier, IncidentType } from '../sim';
+import type { CrateTier, IncidentType, StatKey } from '../sim';
 import { deepConsole, researchConsole } from './depthDev';
 import { prestigeConsole } from './prestigeDev';
 import { questConsole } from './questDev';
@@ -47,6 +47,13 @@ export interface AwaySummary extends CatchUpSummary {
   explorersHome: number[];
   /** Resident ids of explorers who fell during the absence. */
   explorersFallen: number[];
+  /** Stat points trained (or earned by levelling) while away: resident id, stat and new value. */
+  trained: { residentId: number; stat: StatKey; value: number }[];
+  /** Caravans back at the post, quest parties at their destination or home, and crafting finished. */
+  caravansHome: number;
+  questsArrived: number;
+  questsHome: number;
+  crafted: number;
 }
 
 /** M6: an absence as the notification centre keeps it: the summary and every event it raised. */
@@ -230,6 +237,7 @@ export class Game {
   /** Offline catch-up, noting which explorers came home or fell meanwhile. */
   private catchUpNow(): void {
     const before = new Map(this.state.expeditions.map((e) => [e.id, e.status]));
+    const from = this.state.events.length;
     const summary = catchUp(this.state, this.content, Date.now());
     if (summary.seconds <= 60) return;
     const explorersHome: number[] = [];
@@ -240,7 +248,10 @@ export class Game {
       if (e.status === 'returned') explorersHome.push(e.residentId);
       else if (e.status === 'dead') explorersFallen.push(e.residentId);
     }
-    this.lastCatchUp = { ...summary, explorersHome, explorersFallen };
+    const raised = this.state.events.slice(from);
+    const count = (type: GameEvent['type']) => raised.filter((ev) => ev.type === type).length;
+    const trained = raised.flatMap((ev) => (ev.type === 'statTrained' ? [{ residentId: ev.residentId, stat: ev.stat, value: ev.value }] : []));
+    this.lastCatchUp = { ...summary, explorersHome, explorersFallen, trained, caravansHome: count('caravanReturned'), questsArrived: count('questArrived'), questsHome: count('questReturned'), crafted: count('craftFinished') };
     this.awayPending = this.lastCatchUp;
   }
 

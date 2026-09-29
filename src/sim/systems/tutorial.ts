@@ -112,7 +112,7 @@ function stepDone(state: GameState, step: TutorialStep): boolean {
       return (state.stats['cratesOpened'] ?? 0) > 0 || state.crates.standard + state.crates.rare + state.crates.legendary === 0;
     case 'equip':
       // Nothing to equip (the crate held none, or it was sold) counts as done.
-      return (state.stats['equips'] ?? 0) > 0 || state.items.length === 0;
+      return (state.stats['equips'] ?? 0) > 0 || (state.stats['autoEquips'] ?? 0) > 0 || state.items.length === 0;
     case 'done':
       return true;
   }

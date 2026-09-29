@@ -17,7 +17,6 @@ import {
   legendStatus,
   questContent,
   questDef,
-  recallLegend,
   traitDef,
   type GameEvent,
   type LegendDef,
@@ -142,7 +141,7 @@ export class LegendsUI {
       const status = legendStatus(state, l.id);
       const known = status !== 'unknown';
       const r = legendResident(state, l.id);
-      const where = !known ? 'Not met yet' : status === 'here' && r ? (r.dead ? '☠ Fallen' : r.waiting ? 'At the door' : r.quest !== null ? '⚔ On a quest' : r.expedition !== null ? '🧭 Glarelands' : `L${r.level}`) : STATUS_TEXT[status];
+      const where = !known ? 'Not met yet' : status === 'here' && r ? (r.dead ? '☠ Fallen' : r.waiting ? 'At the door' : r.quest !== null ? '⚔ On a quest' : r.caravan != null ? '🛒 With a caravan' : r.expedition !== null ? '🧭 Glarelands' : `L${r.level}`) : STATUS_TEXT[status];
       return h(
         'button',
         {
@@ -254,9 +253,8 @@ export class LegendsUI {
             disabled: recallWhy !== null,
             title: recallWhy ?? '',
             onclick: () => {
-              const why = recallLegend(state, content, def.id);
-              this.game.flush();
-              if (why) this.host.toast(why, 'bad');
+              const res = this.game.run({ type: 'recallLegend', legendId: def.id });
+              if (!res.ok) this.host.toast(res.reason, 'bad');
               else {
                 haptic('success');
                 this.host.toast(`★ ${def.firstName} is on the way back. They'll be at the door.`, 'gold');

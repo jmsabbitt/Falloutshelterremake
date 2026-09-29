@@ -384,6 +384,8 @@ export class NoticeCentre {
         return { key: 'upgraded', group: 'homestead', icon: '⬆', one: `The ${this.roomName(ev.roomId)} is now level ${ev.level}.`, part: this.roomName(ev.roomId), many: (_p, n) => `${n} rooms upgraded.` };
       case 'roomsMerged':
         return ev.segments === 3 ? { key: 'triple', group: 'homestead', icon: '▦', one: `Rooms merged into a triple ${this.roomName(ev.roomId)}.`, tone: 'good' } : null;
+      case 'suppliesLost':
+        return { key: `lost-${ev.key}`, group: 'homestead', icon: '📦', one: `Storage full: ${fmt(ev.amount)} ${RESOURCE[ev.key]} left behind.`, part: `${ev.amount}`, many: (p) => `Storage full: ${fmt(p.reduce((a, b) => a + Number(b), 0))} ${RESOURCE[ev.key]} left behind.`, tone: 'bad' };
       case 'storageFull':
         return { key: 'storageFull', group: 'homestead', icon: '📦', one: `Storage full: sold ${content.items[ev.defId]?.name ?? 'an item'} for ${ev.sold} scrip. Build a Storeroom.`, part: `${ev.sold}`, many: (p, n) => `Storage full: sold ${n} items for ${p.reduce((a, b) => a + Number(b), 0)} scrip. Build a Storeroom.`, tone: 'bad' };
       case 'researchDone':

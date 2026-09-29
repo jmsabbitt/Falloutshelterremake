@@ -146,7 +146,7 @@ export class ResidentList {
       const away = isAway(r);
       const room = r.roomId !== null ? rooms.get(r.roomId) : undefined;
       const name = room ? roomName(content, room) : '';
-      const where = away ? (r.quest !== null ? '⚔ Quest' : r.dead ? '☠ Fallen outside' : '🧭 Glarelands') : r.dead ? '☠ Fallen' : child ? (name ? `Child · ${name}` : 'Child') : name || 'Idle';
+      const where = away ? (r.quest !== null ? '⚔ Quest' : r.caravan != null ? '🛒 Caravan' : r.dead ? '☠ Fallen outside' : '🧭 Glarelands') : r.dead ? '☠ Fallen' : child ? (name ? `Child · ${name}` : 'Child') : name || 'Idle';
       const roomKey = room && !away ? `0${name}|${String(room.floor).padStart(3, '0')}|${String(room.x).padStart(3, '0')}` : away ? '2' : r.dead ? '3' : '1';
       const def = room ? roomDef(content, room) : undefined;
       out.push({ r, where, roomKey, child, away, maxHp: effectiveMaxHp(r), jobStat: (def?.stat as StatKey | undefined) ?? undefined, training: def?.category === 'training' });

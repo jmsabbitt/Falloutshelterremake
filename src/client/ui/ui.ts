@@ -83,7 +83,7 @@ import {
   type Room,
   type StatKey,
 } from '../../sim';
-import type { Content } from '../../sim';
+import type { Content, GameState } from '../../sim';
 import type { Game } from '../game';
 import type { QuestView } from '../render/questView';
 import type { VaultView } from '../render/vaultView';
@@ -540,13 +540,13 @@ export class UI {
       const tickPct = cap > 0 ? Math.min(100, (tick / cap) * 100) : 0;
       const short = val < tick;
       // Tooltips don't exist on touch: a tap says the same thing as a toast.
-      const tip = `${METER_NAME[key]}: ${fmt(val)} / ${fmt(cap)} · shortage below ${fmt(Math.ceil(tick))}`;
+      const tip = cap > 0 ? `${METER_NAME[key]}: ${fmt(val)} / ${fmt(cap)} · shortage below ${fmt(Math.ceil(tick))}` : `${METER_NAME[key]}: no room stores it yet. Build one to start making it.`;
       return h(
         'div',
         { class: `meter${short ? ' short' : ''}`, title: tip, role: 'button', 'aria-label': tip, onclick: () => this.toast(short ? `${tip}. ${this.shortageFix(key)}` : tip, short ? 'bad' : undefined, { fold: `meter-${key}` }) },
         art instanceof HTMLElement ? h('div', { class: 'icon art' }, art) : h('div', { class: 'icon', style: `background:${color}` }, glyph),
         h('div', { class: 'bar' }, h('div', { class: 'fill', style: `width:${pct}%;background:${color}` }), h('div', { class: 'tick', style: `left:${tickPct}%` })),
-        h('div', { class: 'num' }, `${fmt(val)}/${fmt(cap)}`),
+        h('div', { class: 'num' }, cap > 0 ? `${fmt(val)}/${fmt(cap)}` : '—'),
       );
     };
     const pop = population(state);
@@ -1449,7 +1449,7 @@ export class UI {
             {
               class: 'danger close',
               onclick: () =>
-                ask({ title: `Demolish ${def.name}?`, text: 'The room is torn out for good, with no refund. Its crew goes idle.', ok: 'Demolish', danger: true }, () => {
+                ask({ title: `Demolish ${def.name}?`, text: `The room is torn out for good, with no refund. Its crew goes idle.${this.demolishLoss(room)}`, ok: 'Demolish', danger: true }, () => {
                   const res = this.game.run({ type: 'demolish', roomId: room.id });
                   if (!res.ok) this.toast(res.reason, 'bad');
                 }),
@@ -1460,6 +1460,18 @@ export class UI {
       );
     }
     return h('div', { class: 'body room-body' }, ...parts);
+  }
+
+  /** " 40 water won't fit in storage without it and will be lost.", or '' when nothing would be. */
+  private demolishLoss(room: Room): string {
+    const { state, content } = this.game;
+    const without: GameState = { ...state, rooms: state.rooms.filter((r) => r.id !== room.id) };
+    const lost = (['power', 'food', 'water', 'medpatch', 'purge'] as const)
+      .map((k) => [k, Math.floor(state.resources[k] - resourceCapacity(without, content, k))] as const)
+      .filter(([, n]) => n > 0)
+      .map(([k, n]) => `${fmt(n)} ${AWAY_RESOURCE[k]}`);
+    if (!lost.length) return '';
+    return ` ${lost.length > 1 ? `${lost.slice(0, -1).join(', ')} and ${lost[lost.length - 1]}` : lost[0]} won't fit in storage without it and will be lost.`;
   }
 
   /** Crew as a grid of slots: residents in the filled ones, dashed outlines for the free ones. */
@@ -1583,7 +1595,7 @@ export class UI {
     const room = r.roomId !== null ? state.rooms.find((x) => x.id === r.roomId) : undefined;
     const child = isChild(state, r);
     const away = isAway(r);
-    const where = away ? (r.quest !== null ? '⚔ On a quest' : r.dead ? '☠ Fallen outside' : '🧭 Glarelands') : r.dead ? '☠ Fallen' : r.waiting ? 'At the door' : child ? 'Child' : room ? roomDef(content, room).name : 'Idle';
+    const where = away ? (r.quest !== null ? '⚔ On a quest' : r.caravan != null ? '🛒 With a caravan' : r.dead ? '☠ Fallen outside' : '🧭 Glarelands') : r.dead ? '☠ Fallen' : r.waiting ? 'At the door' : child ? 'Child' : room ? roomDef(content, room).name : 'Idle';
     const eff = effectiveStats(content, r);
     const top = topStats(eff);
     const max = r.maxHp;
@@ -1706,6 +1718,7 @@ export class UI {
     if (away) {
       // Out in the Glarelands: everything is managed from the expedition card.
       if (r.quest !== null) actions.push(h('button', { class: 'primary', onclick: stop(() => this.openPanel('quests')) }, 'View quest'));
+      else if (r.caravan != null) actions.push(h('button', { class: 'primary', onclick: stop(() => this.openFactions('caravans')) }, 'View caravan'));
       else actions.push(h('button', { class: 'primary', onclick: stop(() => this.openPanel('explore')) }, 'View expedition'));
     } else if (r.dead) {
       actions.push(
@@ -3083,6 +3096,9 @@ export class UI {
         case 'crateEarned':
           this.toast(`📦 ${TIER_NAME[ev.tier]} earned (${ev.source})`, ev.tier === 'standard' ? 'good' : 'gold', { fold: `crate-${ev.tier}`, low: true });
           break;
+        case 'suppliesLost':
+          this.toast(`Storage full: ${fmt(ev.amount)} ${AWAY_RESOURCE[ev.key] ?? ev.key} didn't fit and were left behind.`, 'bad', { fold: `lost-${ev.key}` });
+          break;
         case 'storageFull': {
           const d = content.items[ev.defId];
           this.toast(`Storage full: sold ${d?.name ?? 'an item'} for ${ev.sold} scrip. Build a Storeroom!`, 'bad');
@@ -3247,6 +3263,7 @@ export class UI {
       s.arrivals ? `${s.arrivals} new arrival${s.arrivals > 1 ? 's are' : ' is'} at the door.` : '',
       s.research ? `The Labs worked out ${fmt(s.research)} research points.` : '',
       s.refined ? `The refinery turned out ${s.refined} piece${s.refined > 1 ? 's' : ''} of salvage.` : '',
+      s.crafted ? `${s.crafted} crafting job${s.crafted > 1 ? 's are' : ' is'} finished.` : '',
     ]
       .filter(Boolean)
       .join(' ');
@@ -3255,13 +3272,18 @@ export class UI {
       home ? `🏠 ${names(s.explorersHome)} came home from the Glarelands with their haul.` : '',
       fallen ? `☠ ${names(s.explorersFallen)} fell out in the Glarelands.` : '',
       out && !home && !fallen ? `🧭 ${out} explorer${out === 1 ? ' is' : 's are'} still out in the Glarelands.` : '',
+      s.caravansHome ? `🛒 ${s.caravansHome} caravan${s.caravansHome > 1 ? 's are' : ' is'} back at the Trading Post.` : '',
+      s.questsArrived ? `⚔ ${s.questsArrived} quest part${s.questsArrived > 1 ? 'ies reached their' : 'y reached its'} destination.` : '',
+      s.questsHome ? `⚔ ${s.questsHome} quest part${s.questsHome > 1 ? 'ies are' : 'y is'} home. Collect in Quests.` : '',
     ].filter(Boolean);
+    const trained = awayTrained(s.trained ?? [], (id) => this.name(id));
     const came = awayCollected(s.collected);
     const ready = s.readyRooms ? `${s.readyRooms} room${s.readyRooms === 1 ? ' is' : 's are'} ready to collect${came ? ' now that storage is full' : ''}.` : 'No rooms are waiting on you.';
     this.modal(
       'While you were away',
       h('p', {}, `${duration(s.seconds)} passed. ${ready} ${extras}`),
       came ? h('p', { class: 'away-collected' }, `📦 ${came} collected while you were away.`) : '',
+      trained ? h('p', {}, `💪 ${trained}`) : '',
       ...glare.map((t) => h('p', {}, t)),
       s.cappedAt ? h('p', { class: 'muted' }, `Offline progress is capped at ${duration(s.cappedAt)}.`) : '',
       h('p', { class: 'muted' }, 'Your homestead is safe while you are gone: no incidents, no shortage damage.'),
@@ -3278,6 +3300,20 @@ function awayCollected(collected: Partial<Record<string, number>> | undefined): 
     .filter(([, v]) => (v ?? 0) >= 1)
     .map(([k, v]) => `+${fmt(Math.round(v ?? 0))} ${AWAY_RESOURCE[k] ?? k}`);
   return bits.length > 1 ? `${bits.slice(0, -1).join(', ')} and ${bits[bits.length - 1]}` : (bits[0] ?? '');
+}
+
+/** "Ada: Brawn 10; Bo: Brawn 9 and Wits 4", each resident's stats at their new values. */
+function awayTrained(trained: { residentId: number; stat: StatKey; value: number }[], name: (id: number) => string): string {
+  const best = new Map<number, Map<StatKey, number>>();
+  for (const t of trained) {
+    const m = best.get(t.residentId) ?? new Map<StatKey, number>();
+    m.set(t.stat, Math.max(m.get(t.stat) ?? 0, t.value));
+    best.set(t.residentId, m);
+  }
+  const people = [...best].map(([id, m]) => `${name(id)}: ${[...m].map(([k, v]) => `${STAT_NAME[k]} ${v}`).join(', ')}`);
+  if (!people.length) return '';
+  const shown = people.slice(0, 6).join('; ');
+  return `Trained up. ${shown}${people.length > 6 ? `; and ${people.length - 6} more` : ''}.`;
 }
 
 /** "Wits, Knack or Fortune". */

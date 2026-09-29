@@ -769,7 +769,10 @@ export function collectExpedition(state: GameState, content: Content, expedition
   addScrip(state, content, loot.scrip);
   for (const key of ['medpatch', 'purge'] as const) {
     const cap = resourceCapacity(state, content, key);
-    state.resources[key] = Math.max(state.resources[key], Math.min(cap, state.resources[key] + e.supplies[key]));
+    const before = state.resources[key];
+    state.resources[key] = Math.max(before, Math.min(cap, before + e.supplies[key]));
+    const lost = Math.floor(e.supplies[key] - (state.resources[key] - before));
+    if (lost > 0) state.events.push({ type: 'suppliesLost', key, amount: lost });
   }
 
   const r = findResident(state, e.residentId);

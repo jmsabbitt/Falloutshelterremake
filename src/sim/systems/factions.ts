@@ -495,7 +495,10 @@ function cantReceive(state: GameState, content: Content, offer: FactionOffer): s
 
 function addResource(state: GameState, content: Content, key: ResourceKey, n: number): void {
   const cap = resourceCapacity(state, content, key);
-  state.resources[key] = Math.max(state.resources[key], Math.min(cap, state.resources[key] + n));
+  const before = state.resources[key];
+  state.resources[key] = Math.max(before, Math.min(cap, before + n));
+  const lost = Math.floor(n - (state.resources[key] - before));
+  if (lost > 0) state.events.push({ type: 'suppliesLost', key, amount: lost });
 }
 
 function earnInfluence(state: GameState, n: number): void {

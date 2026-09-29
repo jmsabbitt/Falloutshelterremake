@@ -198,8 +198,14 @@ export function mergeFloor(state: GameState, content: Content, floor: number): n
         // Keep every finished batch: banked ones plus one of the two ready flags.
         a.banked = (a.banked ?? 0) + (b.banked ?? 0) + (a.ready && b.ready ? 1 : 0);
         a.ready = a.ready || b.ready;
-        for (const res of state.residents) if (res.roomId === b.id) res.roomId = a.id;
-        for (const inc of state.incidents) if (inc.roomId === b.id) inc.roomId = a.id;
+        for (const res of state.residents) {
+          if (res.roomId === b.id) res.roomId = a.id;
+          if (res.homeRoomId === b.id) res.homeRoomId = a.id;
+        }
+        for (const inc of state.incidents) {
+          if (inc.roomId === b.id) inc.roomId = a.id;
+          inc.visited = [...new Set(inc.visited.map((v) => (v === b.id ? a.id : v)))];
+        }
         state.rooms = state.rooms.filter((r) => r.id !== b.id);
         grown.push(a.id);
         merged = true;

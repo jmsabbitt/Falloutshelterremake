@@ -574,6 +574,8 @@ export type GameEvent =
   | { type: 'crateEarned'; tier: CrateTier; source: string }
   | { type: 'crateOpened'; tier: CrateTier; cards: CrateCard[] }
   | { type: 'storageFull'; defId: string; sold: number }
+  /** Supplies brought home (by an explorer, a caravan or a reward) that didn't fit in storage. */
+  | { type: 'suppliesLost'; key: ResourceKey; amount: number }
   | { type: 'achievementUnlocked'; achievementId: string }
   // M3
   | { type: 'expeditionStarted'; expeditionId: number; residentId: number }

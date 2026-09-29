@@ -216,7 +216,11 @@ function dispatch(state: GameState, content: Content, cmd: Command): CommandResu
       if (!room) return fail('no such room');
       if (room.type === 'door') return fail('the door stays');
       if (room.job) return fail('finish or cancel the crafting job first');
-      for (const r of state.residents) if (r.roomId === room.id) r.courtship = null;
+      // The last office or trading post can't go while a party or caravan is out:
+      // their panels are the only way to bring them home.
+      const last = !state.rooms.some((r) => r.id !== room.id && r.type === room.type);
+      if (last && room.type === 'office' && state.quests.length > 0) return fail('a quest party is out: bring them home first');
+      if (last && room.type === 'trading_post' && state.caravans.length > 0) return fail('a caravan is out: bring it home first');
       if (state.incidents.some((i) => i.roomId === room.id)) return fail('deal with the incident first');
       const without: GameState = { ...state, rooms: state.rooms.filter((r) => r.id !== room.id) };
       if (connectedRoomIds(without, content).size !== without.rooms.length) {
@@ -228,7 +232,12 @@ function dispatch(state: GameState, content: Content, cmd: Command): CommandResu
       if (storageCapacity(without, content, 'items') < state.items.length) {
         return fail('storage would overflow: sell some items first');
       }
-      for (const r of state.residents) if (r.roomId === room.id) r.roomId = null;
+      for (const r of state.residents) {
+        if (r.roomId === room.id) {
+          r.roomId = null;
+          r.courtship = null;
+        }
+      }
       state.rooms = without.rooms;
       return { ok: true };
     }
