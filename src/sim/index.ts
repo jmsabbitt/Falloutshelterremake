@@ -267,3 +267,4 @@ export {
 } from './systems/endings';
 export { networkPreview, networkAllies, networkTuning, ALLY_ORDER } from './systems/network';
 export { fizzHeld, fizzScripCost, fizzSecondsLeft, type FizzTarget } from './systems/fizz';
+export { autoEquip, avgDamage, gearScore, type GearScore, type GearWhy } from './systems/gearFit';

@@ -577,6 +577,7 @@ export class ResidentList {
         h('button', { disabled: !n, onclick: () => this.unassign() }, 'Unassign'),
         h('button', { disabled: !n, onclick: () => this.healAll() }, '✚ Heal'),
         h('button', { disabled: !n, title: 'Take their weapons and outfits off, into storage', onclick: () => this.stripPicked() }, 'Unequip'),
+        h('button', { disabled: !n, title: 'Share out their gear and storage by best fit', onclick: () => this.autoEquipPicked() }, 'Auto-equip'),
       ),
     );
   }
@@ -628,6 +629,14 @@ export class ResidentList {
       if (this.game.run({ type: 'assign', residentId: r.id, roomId: null }).ok) n++;
     }
     this.host.toast(n ? `${plural(n, 'resident')} taken off the job.` : 'Nobody picked has a job to leave.', n ? 'good' : undefined);
+    this.host.refresh();
+  }
+
+  /** Share out the picked residents' gear plus storage, best fit first. */
+  private autoEquipPicked(): void {
+    const ids = this.pickedResidents().map((r) => r.id);
+    const res = this.game.run({ type: 'autoEquip', slot: 'all', residentIds: ids });
+    this.host.toast(res.ok ? `Auto-equip: ${res.detail}.` : res.reason, res.ok ? 'good' : 'bad');
     this.host.refresh();
   }
 

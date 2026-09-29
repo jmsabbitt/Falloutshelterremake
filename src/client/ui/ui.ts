@@ -1999,13 +1999,40 @@ export class UI {
           this.renderPanel(true);
         },
       );
+    const auto = (slot: 'weapon' | 'outfit' | 'all', what: string) =>
+      ask(
+        {
+          title: `Auto-equip ${what}?`,
+          text: `Everyone at home trades in their ${what === 'gear' ? 'weapons and outfits' : what}, and the best go where they help most: outfits to the job that uses their stat, weapons to rooms under attack, the door, then rooms with the fewest armed defenders. Spares stay in storage. Residents who are away keep theirs.`,
+          ok: 'Auto-equip',
+        },
+        () => {
+          const res = this.game.run({ type: 'autoEquip', slot });
+          this.toast(res.ok ? `Auto-equip: ${res.detail}.` : res.reason, res.ok ? 'good' : 'bad');
+          this.renderPanel(true);
+        },
+      );
+    const spareW = state.items.filter((i) => content.items[i.defId]?.kind === 'weapon').length;
+    const spareO = state.items.filter((i) => content.items[i.defId]?.kind === 'outfit').length;
     return h(
+      'div',
+      { class: 'storage-respec-wrap' },
+      h(
+        'div',
+        { class: 'row storage-respec' },
+        h('span', { class: 'muted small' }, 'Auto-equip best:'),
+        h('button', { class: 'close primary', disabled: !(weapons + spareW), onclick: () => auto('weapon', 'weapons') }, 'Weapons'),
+        h('button', { class: 'close primary', disabled: !(outfits + spareO), onclick: () => auto('outfit', 'outfits') }, 'Outfits'),
+        h('button', { class: 'close primary', disabled: !(weapons + outfits + spareW + spareO), onclick: () => auto('all', 'gear') }, 'Both'),
+      ),
+      h(
       'div',
       { class: 'row storage-respec' },
       h('span', { class: 'muted small' }, 'Unequip all:'),
       h('button', { class: 'close', disabled: !weapons || !free, onclick: () => run('weapon', weapons, 'weapons') }, `Weapons (${weapons})`),
       h('button', { class: 'close', disabled: !outfits || !free, onclick: () => run('outfit', outfits, 'outfits') }, `Outfits (${outfits})`),
       h('button', { class: 'close', disabled: !(weapons + outfits) || !free, onclick: () => run('all', weapons + outfits, 'gear') }, 'Both'),
+      ),
     );
   }
 

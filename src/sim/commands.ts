@@ -8,6 +8,7 @@ import { canMove, canPlace, connectedRoomIds, mergeFloor, roomDef } from './grid
 import { bump, effectiveMaxHp, effectiveStat, isAway, isChild, residentsInRoom, reviveCost } from './residents';
 import { claimDaily, openCrate, settle } from './systems/crates';
 import { equip, grantItem, sell, unequip, unequipAll } from './systems/items';
+import { autoEquip } from './systems/gearFit';
 import { collectExpedition, onResidentRevived, recallExpedition, startExpedition } from './systems/exploration';
 import { useFizz } from './systems/fizz';
 import { cancelCraft, collectCraft, reforge, scrapItem, startCraft } from './systems/crafting';
@@ -47,6 +48,8 @@ export type Command =
   | { type: 'unequip'; residentId: number; slot: 'weapon' | 'outfit' }
   /** Respec: take weapons, outfits or both off everyone at home (or the listed residents) into storage. */
   | { type: 'unequipAll'; slot: 'weapon' | 'outfit' | 'all'; residentIds?: number[] }
+  /** Hand out everyone's gear plus storage by best fit (gearFit.ts), for everyone at home or the listed residents. */
+  | { type: 'autoEquip'; slot: 'weapon' | 'outfit' | 'all'; residentIds?: number[] }
   | { type: 'sell'; itemId: number }
   | { type: 'openCrate'; tier: CrateTier }
   | { type: 'claimDaily'; day: number }
@@ -433,6 +436,13 @@ function dispatch(state: GameState, content: Content, cmd: Command): CommandResu
       const { removed, kept } = unequipAll(state, content, cmd.slot, Array.isArray(cmd.residentIds) ? cmd.residentIds : undefined);
       if (!removed) return fail(kept ? 'storage is full' : 'nobody at home has any to take off');
       return { ok: true, detail: `${removed} to storage${kept ? `; storage filled up, ${kept} still worn` : ''}` };
+    }
+
+    case 'autoEquip': {
+      if (cmd.slot !== 'weapon' && cmd.slot !== 'outfit' && cmd.slot !== 'all') return fail('bad slot');
+      const { changed, equipped } = autoEquip(state, content, cmd.slot, Array.isArray(cmd.residentIds) ? cmd.residentIds : undefined);
+      if (!equipped) return fail('no gear to hand out');
+      return { ok: true, detail: changed ? `${changed} change${changed === 1 ? '' : 's'}, ${equipped} kitted out` : 'everyone already has their best fit' };
     }
 
     case 'sell': {

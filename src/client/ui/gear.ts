@@ -2,7 +2,7 @@
 // item (from Storage). Both are modals over the panel, show what each choice changes against what
 // is worn now, and leave the player where they started once the item is on.
 
-import { effectiveStat, fleesIncidents, isAway, isChild, roomDef, STAT_KEYS, type ItemDef, type Resident, type StatKey } from '../../sim';
+import { avgDamage, effectiveStat, gearScore, isAway, isChild, STAT_KEYS, type ItemDef, type Resident, type StatKey } from '../../sim';
 import type { Game } from '../game';
 import { h } from './dom';
 import { itemIcon } from './icons';
@@ -21,11 +21,6 @@ export interface GearHost {
 
 const RARITY_RANK: Record<string, number> = { legendary: 0, rare: 1, common: 2 };
 const RARITY_MARK: Record<string, string> = { legendary: '★', rare: '◆', common: '' };
-
-/** Average damage of a weapon (fists hit for 1). */
-function avgDamage(def: ItemDef | undefined): number {
-  return def && def.kind === 'weapon' ? (def.min + def.max) / 2 : 1;
-}
 
 function signed(n: number): string {
   const r = Math.round(n * 10) / 10;
@@ -69,35 +64,34 @@ export function gearDelta(current: ItemDef | undefined, next: ItemDef): { gain: 
  */
 export function gearFit(game: Game, r: Resident, next: ItemDef, current: ItemDef | undefined): { score: number; reason: string; focus?: StatKey } {
   const { state, content } = game;
-  const room = r.roomId !== null ? state.rooms.find((x) => x.id === r.roomId) : undefined;
-  const def = room ? roomDef(content, room) : undefined;
-  const name = room ? roomName(content, room) : '';
-  if (next.kind === 'weapon') {
-    const d = avgDamage(next) - avgDamage(current);
-    if (fleesIncidents(state, r)) return { score: d * 0.1, reason: 'Expecting: takes cover instead of fighting' };
-    if (!room) return { score: d * 0.8, reason: 'Idle: fights wherever you put them' };
-    // A room with few armed defenders gains most from one more gun, so weapons spread out.
-    const armed = state.residents.filter((x) => x.id !== r.id && x.roomId === room.id && !x.dead && x.weapon && !fleesIncidents(state, x)).length;
-    const spread = 1 / (1 + armed * 0.35);
-    const cover = armed ? ` (${armed} other${armed === 1 ? '' : 's'} armed there)` : ' (nobody else armed there)';
-    if (state.incidents.some((i) => i.roomId === room.id)) return { score: d * 2 * spread, reason: `Fighting right now in the ${name}${cover}` };
-    if (def?.category === 'door') return { score: d * 1.5 * spread, reason: `On the door: first to meet raiders${cover}` };
-    return { score: d * spread, reason: `Defends the ${name}${cover}` };
-  }
-  const cur = current && current.kind === 'outfit' ? current.bonus : {};
-  const gain = (k: StatKey) => (next.bonus[k] ?? 0) - (cur[k] ?? 0);
-  const total = STAT_KEYS.reduce((n, k) => n + gain(k), 0);
-  const stat = def?.stat as StatKey | undefined;
-  if (room && def?.category === 'training') return { score: total * 0.15, reason: `Training in the ${name}: gear doesn't speed it up` };
-  if (room && stat) {
-    const job = gain(stat);
-    return {
-      score: job + (total - job) * 0.15,
-      focus: stat,
-      reason: job > 0 ? `${STAT_FULL[stat]} for the ${name}: ${signed(job)}` : job < 0 ? `Loses ${STAT_FULL[stat]} for the ${name}` : `The ${name} runs on ${STAT_FULL[stat]}: no gain`,
-    };
-  }
-  return { score: total * 0.25, reason: room ? `In the ${name}: no stat to boost` : 'Idle: helps wherever they work next' };
+  const g = gearScore(state, content, r, next, current);
+  const name = g.room ? roomName(content, g.room) : '';
+  const cover = g.armed === undefined ? '' : g.armed ? ` (${g.armed} other${g.armed === 1 ? '' : 's'} armed there)` : ' (nobody else armed there)';
+  const job = g.job ?? 0;
+  const stat = g.focus;
+  const reason =
+    g.why === 'fleeing'
+      ? 'Expecting: takes cover instead of fighting'
+      : g.why === 'fighting'
+        ? `Fighting right now in the ${name}${cover}`
+        : g.why === 'door'
+          ? `On the door: first to meet raiders${cover}`
+          : g.why === 'defends'
+            ? `Defends the ${name}${cover}`
+            : g.why === 'training'
+              ? `Training in the ${name}: gear doesn't speed it up`
+              : g.why === 'job' && stat
+                ? job > 0
+                  ? `${STAT_FULL[stat]} for the ${name}: ${signed(job)}`
+                  : job < 0
+                    ? `Loses ${STAT_FULL[stat]} for the ${name}`
+                    : `The ${name} runs on ${STAT_FULL[stat]}: no gain`
+                : g.why === 'nostat'
+                  ? `In the ${name}: no stat to boost`
+                  : next.kind === 'weapon'
+                    ? 'Idle: fights wherever you put them'
+                    : 'Idle: helps wherever they work next';
+  return { score: g.score, reason, focus: stat };
 }
 
 /** Storage grouped by item type: one entry per kind of item, with the ids of every copy. */
