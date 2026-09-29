@@ -37,7 +37,7 @@ export interface EndingsHost {
   refreshPanel: () => void;
 }
 
-const FACTION_ICON: Record<string, string> = { caravaners: '🛒', tinkers: '🔧', lamplighters: '🕯', rustmen: '⚔', homestead9: '🏢' };
+const FACTION_ICON: Record<string, string> = { caravaners: ':faction_caravaners:', tinkers: ':faction_tinkers:', lamplighters: ':faction_lamplighters:', rustmen: ':faction_rustmen:', homestead9: ':faction_homestead9:' };
 const ART_GLYPH: Record<string, string> = { door: '🚪', glare: '☀', lease: '📜', relay: '📡', home: '🏠', end: '✦' };
 const SUPPORT_TEXT: Record<string, string> = {
   caravaners: 'patches everyone up',

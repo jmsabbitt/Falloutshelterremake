@@ -19,21 +19,22 @@ export interface RulesPick {
 
 export const NO_RULES: RulesPick = { rules: [], survival: false };
 
+/** Each ruleset's painted icon (U6); art.ts falls back to the old emoji. */
 const RULE_ICON: Record<string, string> = {
-  famine: '🥫',
-  lean_times: '💸',
-  brownout: '🔌',
-  short_fuse: '🧨',
-  no_radio: '📻',
-  iron_door: '🚪',
-  endless_night: '🌙',
-  glass_sky: '☢',
-  skeleton_crew: '🦴',
+  famine: ':famine:',
+  lean_times: ':lean_times:',
+  brownout: ':brownout:',
+  short_fuse: ':short_fuse:',
+  no_radio: ':no_radio:',
+  iron_door: ':iron_door:',
+  endless_night: ':endless_night:',
+  glass_sky: ':glass_sky:',
+  skeleton_crew: ':skeleton_crew:',
 };
 export const SURVIVAL_ICON = '☠';
 
 export function ruleIcon(id: string): string {
-  return RULE_ICON[id] ?? '⚖';
+  return RULE_ICON[id] ?? ':rules:';
 }
 
 const RES: Record<string, string> = { power: 'Power', food: 'Food', water: 'Water', medpatch: 'Med-Patch', purge: 'Purge' };

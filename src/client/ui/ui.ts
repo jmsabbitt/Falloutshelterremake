@@ -1,6 +1,7 @@
 // DOM interface over the Pixi view: HUD, toolbar, side panels, toasts, hints.
 
 import { itemIcon, salvageIcon } from './icons';
+import { applyChromeArt, artImg, artUrl, iconize, loadUiArt, uiIcon } from './art';
 import { GearUI, groupItems, itemLabel, itemStats, type GearSlot } from './gear';
 import { halcyFace } from './halcy';
 import {
@@ -177,17 +178,17 @@ type MeterKey = 'power' | 'food' | 'water';
 const METER_NAME: Record<MeterKey, string> = { power: 'Power', food: 'Food', water: 'Water' };
 const TIER_NAME: Record<CrateTier, string> = { standard: 'Supply Crate', rare: 'Rare Crate', legendary: 'Legendary Crate' };
 const INCIDENT_TOAST: Record<string, string> = {
-  fire: '🔥 Fire! Keep residents in the room to put it out.',
-  skitters: '🪲 Skitters! Stay in the room and stamp them out.',
-  burrowers: '⛏ Burrowers broke through the wall and are draining power!',
-  rustmen: '⚔ Rustmen raiders are at the door! Arm your door guards.',
-  cavein: '🪨 Cave-in! Send strong residents (Brawn) to dig the room out.',
-  flood: '🌊 Flooding! Send handy residents (Knack) before it spreads sideways.',
-  deepcrawlers: '🕷 Deepcrawlers are coming out of the rock! Send armed residents.',
-  surge: '⚡ Electrical surge! Anyone in the room helps ground it before it jumps the wiring.',
-  hollowed: '☢ The Hollowed got in. They hit with Glare as much as fists: send armed residents, and a Purge after.',
-  glassbacks: '🕸 Glassbacks! They drain power and hop rooms. Chase them with armed residents.',
-  maulers: '⚠ A Mauler is coming for the door! Put your best-armed residents on it.',
+  fire: ':inc_fire: Fire! Keep residents in the room to put it out.',
+  skitters: ':inc_skitters: Skitters! Stay in the room and stamp them out.',
+  burrowers: ':inc_burrowers: Burrowers broke through the wall and are draining power!',
+  rustmen: ':inc_rustmen: Rustmen raiders are at the door! Arm your door guards.',
+  cavein: ':inc_cavein: Cave-in! Send strong residents (Brawn) to dig the room out.',
+  flood: ':inc_flood: Flooding! Send handy residents (Knack) before it spreads sideways.',
+  deepcrawlers: ':inc_deepcrawlers: Deepcrawlers are coming out of the rock! Send armed residents.',
+  surge: ':inc_surge: Electrical surge! Anyone in the room helps ground it before it jumps the wiring.',
+  hollowed: ':inc_hollowed: The Hollowed got in. They hit with Glare as much as fists: send armed residents, and a Purge after.',
+  glassbacks: ':inc_glassbacks: Glassbacks! They drain power and hop rooms. Chase them with armed residents.',
+  maulers: ':inc_maulers: A Mauler is coming for the door! Put your best-armed residents on it.',
 };
 
 export class UI {
@@ -258,6 +259,13 @@ export class UI {
     questView: QuestView,
   ) {
     this.root = document.getElementById('ui') as HTMLElement;
+    // The painted icons' paths; until the manifest is in, the usual file names stand in.
+    applyChromeArt();
+    void loadUiArt().then(() => {
+      applyChromeArt();
+      this.lastToolbarKey = '';
+      this.renderToolbar();
+    });
     this.root.append(this.hud, this.toasts, this.panelHost, this.hint, this.toolbar, this.modalHost);
     this.coach = new TutorialCoach({
       game,
@@ -524,6 +532,7 @@ export class UI {
   private renderHud(): void {
     const { state, content } = this.game;
     const meter = (key: MeterKey, color: string, glyph: string) => {
+      const art = uiIcon(key, { alt: '', fallback: glyph });
       const cap = resourceCapacity(state, content, key);
       const val = state.resources[key];
       const tick = shortageLine(state, content, key);
@@ -535,7 +544,7 @@ export class UI {
       return h(
         'div',
         { class: `meter${short ? ' short' : ''}`, title: tip, role: 'button', 'aria-label': tip, onclick: () => this.toast(short ? `${tip}. ${this.shortageFix(key)}` : tip, short ? 'bad' : undefined, { fold: `meter-${key}` }) },
-        h('div', { class: 'icon', style: `background:${color}` }, glyph),
+        art instanceof HTMLElement ? h('div', { class: 'icon art' }, art) : h('div', { class: 'icon', style: `background:${color}` }, glyph),
         h('div', { class: 'bar' }, h('div', { class: 'fill', style: `width:${pct}%;background:${color}` }), h('div', { class: 'tick', style: `left:${tickPct}%` })),
         h('div', { class: 'num' }, `${fmt(val)}/${fmt(cap)}`),
       );
@@ -562,9 +571,9 @@ export class UI {
     const info = h(
       'div',
       { class: 'hud-part hud-info' },
-      h('div', { class: 'stat-chip' }, 'Scrip ', h('b', {}, fmt(state.scrip))),
-      h('div', { class: 'stat-chip' }, 'Pop ', h('b', {}, `${pop}/${cap}`)),
-      h('div', { class: 'stat-chip' }, 'Mood ', h('b', {}, pop > 0 ? `${Math.round(vaultHappiness(state))}%` : '—')),
+      h('div', { class: 'stat-chip', title: 'Scrip' }, uiIcon('scrip', { fallback: 'Scrip ' }), ' ', h('b', {}, fmt(state.scrip))),
+      h('div', { class: 'stat-chip', title: 'Population / beds' }, uiIcon('population', { fallback: 'Pop ' }), ' ', h('b', {}, `${pop}/${cap}`)),
+      h('div', { class: 'stat-chip', title: 'Average mood' }, uiIcon(pop > 0 && vaultHappiness(state) < 40 ? 'sad' : 'mood', { fallback: 'Mood ' }), ' ', h('b', {}, pop > 0 ? `${Math.round(vaultHappiness(state))}%` : '—')),
       h('div', { class: 'stat-chip', title: 'Med-Patches / Purge' }, '✚ ', h('b', {}, `${Math.floor(state.resources.medpatch)}`), ' ☢ ', h('b', {}, `${Math.floor(state.resources.purge)}`)),
       this.traits.shiftChip(),
     );
@@ -699,7 +708,10 @@ export class UI {
     this.hint.style.display = text ? '' : 'none';
     this.hint.classList.toggle('warn', !!shortage);
     this.hint.classList.toggle('raised', bar);
-    if (this.hint.textContent !== text) this.hint.textContent = text;
+    if (this.hint.dataset.text !== text) {
+      this.hint.dataset.text = text;
+      this.hint.replaceChildren(...iconize(text));
+    }
   }
 
   // ---------------------------------------------------------------- toolbar
@@ -717,39 +729,39 @@ export class UI {
     const key = `${this.panel}|${crates}|${state.items.length}|${homeOrFallen}|${compact}|${office}|${questNeed}|${legacyNeed}|${research}|${factions}`;
     if (key === this.lastToolbarKey) return;
     this.lastToolbarKey = key;
-    // `caption`: a tiny word under an icon-only button (phones), so 🧭 ⚔ 🔬 ☰ say what they open.
-    const btn = (label: string, kind: PanelKind, extra = '', badge?: number, title?: string, caption?: string) =>
+    // Every button is a painted icon and a word: side by side on desktop, the word as a
+    // tiny caption under the icon on phones (so each keeps a 44 px target at 360 px).
+    const phone = compact;
+    const btn = (icon: string, label: string, kind: PanelKind, extra = '', badge?: number, title?: string) =>
       h(
         'button',
         {
-          class: `${this.panel === kind ? 'active' : ''} ${extra}${caption ? ' captioned' : ''}`,
-          title,
-          'aria-label': title,
+          class: `${this.panel === kind ? 'active' : ''} ${extra} tb-art${phone ? ' captioned' : ''}`,
+          title: title ?? label,
+          'aria-label': title ?? label,
           'aria-pressed': this.panel === kind ? 'true' : 'false',
           onclick: () => {
             if (this.panel === kind) this.closePanel();
             else this.openPanel(kind);
           },
         },
-        caption ? h('span', { class: 'tb-icon', 'aria-hidden': 'true' }, label) : label,
-        caption ? h('span', { class: 'tb-cap', 'aria-hidden': 'true' }, caption) : null,
+        h('span', { class: 'tb-icon', 'aria-hidden': 'true' }, uiIcon(icon, { alt: '', fallback: '' })),
+        h('span', { class: 'tb-cap', 'aria-hidden': 'true' }, label),
         badge ? h('span', { class: 'badge' }, badge) : null,
       );
-    // Phones (and phones on their side) get short labels and icons so every button keeps a
-    // 44 px target at 360 px. Crates open from the 📦 chip in the HUD; Legacy, Goals and
-    // Factions move into the ☰ menu, whose badge carries Legacy's.
-    const phone = compact;
+    // Phones get short words. Crates open from the crate chip in the HUD; Legacy, Goals and
+    // Factions move into the menu, whose badge carries Legacy's.
     this.toolbar.replaceChildren(
-      btn('Build', 'build', 'build-btn'),
-      btn(phone ? 'People' : 'Residents', 'residents'),
-      btn(phone ? 'Items' : 'Storage', 'storage', 'storage-btn'),
-      ...(phone ? [] : [btn('Crates', 'crates', '', crates, 'Supply Crates')]),
-      btn(phone ? '🧭' : 'Explore', 'explore', phone ? 'icon' : '', homeOrFallen, 'Explore the Glarelands', phone ? 'Explore' : undefined),
-      ...(office ? [btn(phone ? '⚔' : 'Quests', 'quests', phone ? 'icon' : '', questNeed, 'Quests', phone ? 'Quests' : undefined)] : []),
-      ...(research >= 0 ? [btn(phone ? '🔬' : 'Research', 'research', `research-btn${phone ? ' icon' : ''}`, research, 'Research', phone ? 'Lab' : undefined)] : []),
-      ...(factions >= 0 && !phone ? [btn('Factions', 'factions', 'factions-btn', factions, 'Factions, trade and caravans')] : []),
-      ...(phone ? [] : [btn('Legacy', 'legacy', 'legacy-btn', legacyNeed, 'Legacy'), btn('Goals', 'achievements')]),
-      btn('☰', 'menu', 'icon', phone ? legacyNeed + Math.max(0, factions) : undefined, 'Menu', phone ? 'Menu' : undefined),
+      btn('build', 'Build', 'build', 'build-btn'),
+      btn('residents', phone ? 'People' : 'Residents', 'residents'),
+      btn('storage', phone ? 'Items' : 'Storage', 'storage', 'storage-btn'),
+      ...(phone ? [] : [btn('crates', 'Crates', 'crates', '', crates, 'Supply Crates')]),
+      btn('explore', 'Explore', 'explore', '', homeOrFallen, 'Explore the Glarelands'),
+      ...(office ? [btn('quests', 'Quests', 'quests', '', questNeed, 'Quests')] : []),
+      ...(research >= 0 ? [btn('research', phone ? 'Lab' : 'Research', 'research', 'research-btn', research, 'Research')] : []),
+      ...(factions >= 0 && !phone ? [btn('factions', 'Factions', 'factions', 'factions-btn', factions, 'Factions, trade and caravans')] : []),
+      ...(phone ? [] : [btn('legacy', 'Legacy', 'legacy', 'legacy-btn', legacyNeed, 'Legacy'), btn('goals', 'Goals', 'achievements')]),
+      btn('menu', 'Menu', 'menu', 'menu-btn', phone ? legacyNeed + Math.max(0, factions) : undefined, 'Menu'),
     );
   }
 
@@ -1586,7 +1598,7 @@ export class UI {
     );
     const legend = r.legendary ? legendDef(content, r.legendary) : undefined;
     const rarityTag = legend
-      ? h('span', { class: 'legend-badge', title: 'Legendary resident' }, '★')
+      ? h('span', { class: 'legend-badge', title: 'Legendary resident' }, ':badge_legend:')
       : r.rarity !== 'common'
         ? h('span', { class: `rarity ${r.rarity}` }, r.rarity === 'legendary' ? '★' : '◆')
         : null;
@@ -2121,7 +2133,7 @@ export class UI {
       h(
         'div',
         { class: `list-item row crate-row ${tier}` },
-        h('span', {}, h('span', { class: `crate-icon ${tier}` }), h('b', {}, TIER_NAME[tier]), h('span', { class: 'muted' }, ` × ${state.crates[tier]}`)),
+        h('span', { class: 'crate-label' }, crateArt(tier, 'crate-art'), h('b', {}, TIER_NAME[tier]), h('span', { class: 'muted' }, ` × ${state.crates[tier]}`)),
         h('button', { class: 'primary', disabled: state.crates[tier] < 1, onclick: () => this.openCrate(tier) }, 'Open'),
       ),
     );
@@ -2129,7 +2141,7 @@ export class UI {
       'div',
       { class: 'body' },
       ...tiers,
-      h('div', { class: 'row', style: 'margin-top:10px' }, h('b', {}, 'Crate tokens'), h('span', {}, `${state.crateTokens}/${c.tokensPerCrate}`)),
+      h('div', { class: 'row', style: 'margin-top:10px' }, h('b', {}, '🎟 Crate tokens'), h('span', {}, `${state.crateTokens}/${c.tokensPerCrate}`)),
       h('div', { class: 'progress' }, h('div', { style: `width:${(state.crateTokens / c.tokensPerCrate) * 100}%;background:var(--accent)` })),
       h('p', { class: 'muted' }, 'Tokens drop from collecting, rushing, stopping incidents, births and new arrivals. Every 10 tokens is a free crate.'),
       h('div', { class: 'row' }, h('b', {}, 'Luck meter'), h('span', {}, `Legendary guaranteed within ${untilPity} crate${untilPity > 1 ? 's' : ''}`)),
@@ -2159,19 +2171,19 @@ export class UI {
   private cardView(card: CrateCard, i: number): HTMLElement {
     const { state, content } = this.game;
     let rarity = 'common';
-    let icon: string | HTMLElement = '';
+    let icon: string | Node = '';
     let title = '';
     let sub = '';
     /** An item that went to storage: hand it straight to someone. */
     let equip: string | null = null;
     switch (card.kind) {
       case 'scrip':
-        icon = '💰';
+        icon = uiIcon('scrip', { cls: 'lg' });
         title = `${fmt(card.amount)} scrip`;
         rarity = card.amount >= 500 ? 'rare' : 'common';
         break;
       case 'resource': {
-        icon = { power: '⚡', food: '🥫', water: '💧', medpatch: '✚', purge: '☢' }[card.resource];
+        icon = uiIcon(card.resource, { cls: 'lg' });
         const n = Math.round(card.amount);
         title = `+${fmt(n)} ${card.resource === 'medpatch' ? (n === 1 ? 'Med-Patch' : 'Med-Patches') : card.resource === 'purge' ? 'Purge' : card.resource}`;
         if (card.refund) {
@@ -2183,11 +2195,11 @@ export class UI {
         break;
       }
       case 'tokens':
-        icon = '🎟';
+        icon = uiIcon('crate_token', { cls: 'lg' });
         title = `${fmt(card.amount)} crate tokens`;
         break;
       case 'fizz':
-        icon = '🥤';
+        icon = uiIcon('fizz', { cls: 'lg' });
         title = `${card.amount} Halcyon Fizz`;
         rarity = 'rare';
         sub = card.refund ? `Carrying the most you can: sold for ${fmt(card.refund)} scrip` : 'Brings an explorer home at once';
@@ -2205,16 +2217,17 @@ export class UI {
       case 'resident': {
         const r = state.residents.find((x) => x.id === card.residentId);
         rarity = card.rarity;
-        icon = '🧑';
+        icon = arrivalPortrait();
         title = r ? `${r.firstName} ${r.lastName}` : 'A new resident';
         sub = `${card.rarity} resident · waiting at the door`;
         break;
       }
     }
+    const cardBack = artUrl('crates', 'card_back');
     return h(
       'div',
       { class: `crate-card ${rarity}`, style: `animation-delay:${i * 0.25}s` },
-      h('div', { class: 'crate-card-inner' }, h('div', { class: 'face back' }), h(
+      h('div', { class: 'crate-card-inner' }, h('div', { class: `face back${cardBack ? ' art' : ''}`, style: cardBack ? `background-image:url("${cardBack}")` : undefined }), h(
           'div',
           { class: 'face front' },
           h('div', { class: 'card-icon' }, icon),
@@ -2236,8 +2249,8 @@ export class UI {
         { class: 'modal-backdrop', onclick: (e: Event) => e.target === e.currentTarget && close() },
         h(
           'div',
-          { class: 'modal crate-modal' },
-          h('h2', {}, TIER_NAME[tier]),
+          { class: `modal crate-modal ${tier}` },
+          h('h2', { class: 'crate-modal-head' }, crateArt(tier, 'crate-art big'), TIER_NAME[tier]),
           h('div', { class: 'cards' }, ...cards.map((c, i) => this.cardView(c, i))),
           h(
             'div',
@@ -2359,8 +2372,8 @@ export class UI {
       const here = state.expeditions.filter((e) => e.regionId === rg.id && (e.status === 'exploring' || e.status === 'returning')).length;
       return h(
         'div',
-        { class: `list-item region-card${open ? '' : ' locked'}` },
-        h('div', { class: 'row', style: 'margin:0' }, h('b', {}, open ? rg.name : `🔒 ${rg.name}`), dangerPips(rg.danger)),
+        { class: `list-item region-card${open ? '' : ' locked'}${artUrl('regions', rg.id) ? ' has-banner' : ''}` },
+        regionBanner(rg.id, h('div', { class: 'row', style: 'margin:0' }, h('b', {}, open ? rg.name : `🔒 ${rg.name}`), dangerPips(rg.danger))),
         h('div', { class: 'muted' }, rg.description),
         here ? h('div', { class: 'muted small', style: 'margin-top:4px' }, `${here} explorer${here === 1 ? '' : 's'} out here`) : null,
         ...this.regionLoot(rg.id, open),
@@ -2386,7 +2399,7 @@ export class UI {
         'div',
         { class: 'row' },
         h('b', {}, `Explorers ${out}/${MAX_EXPLORERS}`),
-        h('span', { class: 'muted small', title: 'Halcyon Fizz: brings an explorer home at once' }, `🥤 ${fizzHeld(state)} Fizz`),
+        h('span', { class: 'muted small fizz-count', title: 'Halcyon Fizz: brings an explorer home at once' }, `🥤 ${fizzHeld(state)} Fizz`),
         h(
           'button',
           { class: 'primary close', disabled: !eligible.length || out >= MAX_EXPLORERS, onclick: () => this.showExploreModal(null) },
@@ -2667,7 +2680,7 @@ export class UI {
             again();
           },
         },
-        h('div', { class: 'row', style: 'margin:0' }, h('b', {}, open ? rg.name : `🔒 ${rg.name}`), dangerPips(rg.danger)),
+        regionBanner(rg.id, h('div', { class: 'row', style: 'margin:0' }, h('b', {}, open ? rg.name : `🔒 ${rg.name}`), dangerPips(rg.danger))),
         h('div', { class: 'muted small' }, rg.description),
       );
     });
@@ -2925,7 +2938,7 @@ export class UI {
         }
         case 'incidentStarted': {
           const inc = this.game.state.incidents.find((i) => i.id === ev.incidentId);
-          if (ev.incident === 'maulers' && (inc?.warning ?? 0) > 0) this.toast(`⚠ A Mauler has been spotted crossing the flats. It reaches the door in ${Math.ceil(inc?.warning ?? 0)}s: arm your door guards!`, 'bad');
+          if (ev.incident === 'maulers' && (inc?.warning ?? 0) > 0) this.toast(`:inc_maulers: A Mauler has been spotted crossing the flats. It reaches the door in ${Math.ceil(inc?.warning ?? 0)}s: arm your door guards!`, 'bad');
           else this.toast(INCIDENT_TOAST[ev.incident] ?? 'Incident!', 'bad');
           if (ev.incident === 'maulers') haptic('warning');
           break;
@@ -2936,7 +2949,7 @@ export class UI {
           break;
         }
         case 'incidentMoved':
-          this.toast(ev.incident === 'glassbacks' ? `🕸 The Glassbacks jumped into the ${roomName(ev.roomId)}!` : `${incName(ev.incident)} moved into the ${roomName(ev.roomId)}.`, 'bad', { fold: `moved-${ev.incidentId}` });
+          this.toast(ev.incident === 'glassbacks' ? `:inc_glassbacks: The Glassbacks jumped into the ${roomName(ev.roomId)}!` : `${incName(ev.incident)} moved into the ${roomName(ev.roomId)}.`, 'bad', { fold: `moved-${ev.incidentId}` });
           break;
         case 'incidentEscaped':
           this.toast(
@@ -2951,7 +2964,7 @@ export class UI {
           break;
         case 'maulerStirring':
           haptic('warning');
-          this.toast(`⚠ Something big has noticed all the noise (Mauler meter ${Math.round(ev.meter * 100)}%). Arm the door, staff a Watchtower, keep the door shut.`, 'bad');
+          this.toast(`:inc_maulers: Something big has noticed all the noise (Mauler meter ${Math.round(ev.meter * 100)}%). Arm the door, staff a Watchtower, keep the door shut.`, 'bad');
           break;
         case 'bossFirstKill': {
           const enemy = questContent(content).enemies[ev.enemyId];
@@ -3280,4 +3293,23 @@ function lootText(content: Content, loot: ExpeditionLoot): string {
   if (c.fragments) bits.push(`${c.fragments} fragment${c.fragments === 1 ? '' : 's'}`);
   if (c.recipes) bits.push(`${c.recipes} recipe${c.recipes === 1 ? '' : 's'}`);
   return bits.join(', ');
+}
+
+/** A crate's painting, or the old CSS box when it has no art. */
+function crateArt(tier: CrateTier, cls: string): HTMLElement {
+  const src = artUrl('crates', tier);
+  const box = () => h('span', { class: `crate-icon ${tier}` });
+  return src ? artImg(src, { cls, alt: TIER_NAME[tier], fallback: box }) : box();
+}
+
+/** A new resident's card: the arrival silhouette, or the old emoji. */
+function arrivalPortrait(): Node {
+  return uiIcon('arrival', { cls: 'arrival-portrait', alt: 'New resident' });
+}
+
+/** A region card's painted banner with the name row over its calm left third (X1); just the row without art. */
+function regionBanner(regionId: string, head: HTMLElement): HTMLElement {
+  const src = artUrl('regions', regionId);
+  if (!src) return head;
+  return h('div', { class: 'region-banner', style: `background-image:url("${src}")` }, head);
 }

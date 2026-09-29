@@ -1,10 +1,15 @@
 // Tiny DOM helper so the UI code stays readable without a framework.
 
+import { iconize, plainIcons } from './art';
+
 type Child = Node | string | number | null | undefined | false;
 type Attrs = Record<string, string | number | boolean | ((e: Event) => void) | undefined>;
 
 /** Listeners added by h(), so morph() can swap them onto a kept element. */
 const listeners = new WeakMap<Element, Record<string, (e: Event) => void>>();
+/** Elements whose string children stay plain text. */
+const TEXT_ONLY = new Set(['option', 'optgroup', 'select', 'textarea', 'title', 'style', 'script']);
+const NO_ICONS = /(^|\s)(pick-box|rl-check|check|no-icons)(\s|$)/;
 
 export function h<K extends keyof HTMLElementTagNameMap>(tag: K, attrs: Attrs = {}, ...children: Child[]): HTMLElementTagNameMap[K] {
   const el = document.createElement(tag);
@@ -19,14 +24,21 @@ export function h<K extends keyof HTMLElementTagNameMap>(tag: K, attrs: Attrs = 
     } else if (k === 'class') el.className = String(v);
     else if (k === 'style') el.setAttribute('style', String(v));
     else if (v === true) el.setAttribute(k, '');
+    else if (k === 'title' || k === 'aria-label') el.setAttribute(k, plainIcons(String(v)));
     else el.setAttribute(k, String(v));
   }
+  // String children get their emoji swapped for the painted icons (art.ts), except where
+  // only text can go (form options) or a glyph is a drawn mark (tick boxes).
+  const plain = TEXT_ONLY.has(tag) || NO_ICONS.test(el.className);
   for (const c of children) {
     if (c === null || c === undefined || c === false) continue;
-    el.append(c instanceof Node ? c : String(c));
+    if (c instanceof Node) el.append(c);
+    else if (typeof c === 'string' && !plain) el.append(...iconize(c));
+    else el.append(String(c));
   }
   return el;
 }
+
 
 export function fmt(n: number): string {
   if (n >= 10_000) return `${(n / 1000).toFixed(n >= 100_000 ? 0 : 1)}k`;

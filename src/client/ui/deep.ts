@@ -4,6 +4,7 @@
 // which stratum a room is on) and the dig toasts. Hooked into ui.ts with a
 // few small calls; the sim side is src/sim/systems/deep.ts.
 
+import { artUrl } from './art';
 import {
   braced,
   buildCost,
@@ -47,7 +48,7 @@ export interface DeepHost {
   closePanel(): void;
 }
 
-const KIND = { log: { icon: '📜', label: 'Halcyon log' }, relic: { icon: '🗿', label: 'Relic' } } as const;
+const KIND = { log: { icon: ':halcyon_log:', label: 'Halcyon log' }, relic: { icon: ':relic:', label: 'Relic' } } as const;
 
 export class DeepUI {
   tab: DeepTab = 'dig';
@@ -112,7 +113,7 @@ export class DeepUI {
       },
       '⛏ ',
       h('b', {}, ready ? 'Dig' : `S${state.deep.strata}`),
-      unread ? h('span', {}, ` 📜${unread}`) : null,
+      unread ? h('span', {}, ` :halcyon_log:${unread}`) : null,
     );
   }
 
@@ -136,7 +137,7 @@ export class DeepUI {
     return h(
       'div',
       { class: 'body deep-body' },
-      h('div', { class: 'tabs deep-tabs' }, tab('dig', '⛏ Excavation'), tab('journal', `📜 Journal ${state.deep.discoveries.length}/${total}`)),
+      h('div', { class: 'tabs deep-tabs' }, tab('dig', '⛏ Excavation'), tab('journal', `:halcyon_log: Journal ${state.deep.discoveries.length}/${total}`)),
       ...(this.tab === 'dig' ? this.digTab() : this.journalTab()),
     );
   }
@@ -260,7 +261,7 @@ export class DeepUI {
         h(
           'div',
           { class: `list-item stratum-card s${s}` },
-          h('div', { class: 'row', style: 'margin:0' }, h('b', {}, st?.name ?? `Stratum ${s}`), h('span', { class: 'muted small' }, `📜 ${found}/${all.length}`)),
+          h('div', { class: 'row', style: 'margin:0' }, h('b', {}, st?.name ?? `Stratum ${s}`), h('span', { class: 'muted small' }, `:halcyon_log: ${found}/${all.length}`)),
           h('div', { class: 'muted small stratum-desc' }, st?.description ?? ''),
           h(
             'div',
@@ -347,7 +348,7 @@ export class DeepUI {
           { class: `modal discovery-modal ${d.kind ?? 'log'} s${d.stratum}` },
           h('div', { class: 'disc-kind' }, `${kind.icon} ${kind.label.toUpperCase()} · ${st?.name ?? `Stratum ${d.stratum}`}`),
           h('h2', {}, d.title),
-          h('div', { class: 'disc-paper' }, d.text),
+          discPaper(d.kind ?? 'log', d.text),
           reward ? h('div', { class: 'disc-reward' }, `Found with it: ${reward}`) : null,
           h(
             'div',
@@ -473,4 +474,15 @@ export class DeepUI {
       }
     }
   }
+}
+
+/**
+ * The discovery's text on its painted sheet (X5): a Halcyon memo for a log, and for a
+ * relic the display case beside the words. Without the art, the CSS paper and glass stay.
+ */
+function discPaper(kind: 'log' | 'relic', text: string): HTMLElement {
+  const src = artUrl('sites', kind === 'log' ? 'log_paper' : 'relic_case');
+  if (!src) return h('div', { class: 'disc-paper' }, text);
+  if (kind === 'log') return h('div', { class: 'disc-paper art', style: `background-image:url("${src}")` }, text);
+  return h('div', { class: 'disc-paper art' }, h('div', { class: 'disc-case', style: `background-image:url("${src}")`, 'aria-hidden': 'true' }), h('div', { class: 'disc-words' }, text));
 }

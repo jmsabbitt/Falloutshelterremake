@@ -4,6 +4,7 @@
 // never pushes a shortage or a death off the screen. Only notices that ask for
 // it fold together; assignment and command results always get their own line.
 
+import { iconize } from './art';
 import { h } from './dom';
 
 export type ToastKind = 'good' | 'bad' | 'gold';
@@ -48,7 +49,7 @@ export class Toasts {
     const open = key ? this.groups.get(key) : undefined;
     if (key && open && open.el.isConnected) {
       open.extra++;
-      open.el.textContent = `${open.first} (+${open.extra} more)`;
+      open.el.replaceChildren(...iconize(`${open.first} (+${open.extra} more)`));
       clearTimeout(open.timer);
       open.timer = setTimeout(() => this.drop(key, open.el), life);
       this.el.prepend(open.el);

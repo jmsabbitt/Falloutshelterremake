@@ -3,6 +3,9 @@
 
 import { h } from './dom';
 
+// The painted UI icons (resources, toolbar, status marks…) live in art.ts: uiIcon(name).
+export { uiIcon } from './art';
+
 export function itemIcon(defId: string, kind: 'weapon' | 'outfit', size: 'small' | 'large' = 'small'): HTMLElement {
   return artIcon(defId, kind === 'weapon' ? '🔫' : '🧥', size);
 }

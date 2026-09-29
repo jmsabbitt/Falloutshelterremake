@@ -120,7 +120,7 @@ export class CollectionUI {
         break;
       }
       case 'creatures':
-        art = h('span', { class: 'cl-glyph' }, e.id.startsWith('incident:') ? '⚠' : e.detail === 'boss' ? '☠' : '🐾');
+        art = h('span', { class: 'cl-glyph' }, e.id.startsWith('incident:') ? `:inc_${e.id.slice('incident:'.length)}:` : e.detail === 'boss' ? '☠' : '🐾');
         break;
       case 'rooms':
         art = h('span', { class: 'cl-glyph' }, '▦');

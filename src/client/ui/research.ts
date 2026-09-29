@@ -37,7 +37,7 @@ export interface ResearchHost {
 
 type Status = ReturnType<typeof nodeStatus>;
 
-const BRANCH_ICON: Record<string, string> = { industry: '⚙', medicine: '✚', defense: '🛡', automation: '🤖', expeditions: '🧭', deep: '⛏' };
+const BRANCH_ICON: Record<string, string> = { industry: ':industry:', medicine: ':medicine:', defense: ':defense:', automation: ':automation:', expeditions: ':explore:', deep: ':deep:', topside: ':homestead:' };
 const STATUS_TEXT: Record<Status, string> = { done: '✓ Done', ready: 'Ready', open: 'Open', locked: '🔒 Locked' };
 
 const pct = (v: number) => `${Math.round(v * 100)}%`;

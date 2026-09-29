@@ -27,6 +27,7 @@ import {
 } from '../../sim';
 import type { Game } from '../game';
 import type { FactionsTab } from './factions';
+import { iconize } from './art';
 import { duration, fmt, h } from './dom';
 import type { ToastFn } from './toasts';
 
@@ -38,7 +39,7 @@ export interface TopsideHost {
   openCaravan(factionId: string | null): void;
 }
 
-const WEATHER_ICON: Record<WeatherKind, string> = { clear: '☀', dust: '🌪', taintstorm: '☢', heatwave: '🔥' };
+const WEATHER_ICON: Record<WeatherKind, string> = { clear: ':weather_clear:', dust: ':weather_dust:', taintstorm: ':weather_taintstorm:', heatwave: ':weather_heatwave:' };
 /** Short names for surface buildings in the weather chip. */
 const SHORT: Record<string, string> = { solar_array: 'Solar', wind_turbine: 'Wind', rain_catcher: 'Rain', farm_plots: 'Farms' };
 
@@ -176,8 +177,11 @@ export class TopsideUI {
       if (this.banner.style.display !== 'none') this.banner.style.display = 'none';
       return;
     }
-    const text = `⚠ Raiders sighted from the Watchtower · at the door in ${Math.ceil(raid.warning ?? 0)}s · station armed guards at the door`;
-    if (this.banner.textContent !== text) this.banner.textContent = text;
+    const text = `:inc_rustmen: Raiders sighted from the Watchtower · at the door in ${Math.ceil(raid.warning ?? 0)}s · station armed guards at the door`;
+    if (this.banner.dataset.text !== text) {
+      this.banner.dataset.text = text;
+      this.banner.replaceChildren(...iconize(text));
+    }
     if (this.banner.style.display !== '') this.banner.style.display = '';
   }
 

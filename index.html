@@ -10,11 +10,24 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="Homestead" />
     <title>Homestead</title>
-    <link rel="icon" href="./icons/icon.svg" type="image/svg+xml" />
+    <link rel="icon" href="./icons/favicon-64.png" type="image/png" sizes="64x64" />
+    <link rel="icon" href="./icons/icon-192.png" type="image/png" sizes="192x192" />
     <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png" />
     <link rel="manifest" href="./manifest.webmanifest" />
   </head>
   <body>
+    <!-- Boot screen: the painted splash (ART-LIST X2) until the game has started, then it fades out. -->
+    <div id="boot-splash" aria-label="Homestead is loading" role="img">
+      <div class="boot-caption">Homestead</div>
+    </div>
+    <style>
+      #boot-splash { position: fixed; inset: 0; z-index: 99990; background: #1b2a2f url('./sprites/app/splash.webp') center / cover no-repeat; transition: opacity 0.45s ease-out; }
+      #boot-splash::after { content: ''; position: absolute; inset: 0; background: linear-gradient(to top, rgba(12, 18, 20, 0.85), transparent 32%); }
+      #boot-splash .boot-caption { position: absolute; left: 0; right: 0; bottom: calc(40px + env(safe-area-inset-bottom, 0px)); z-index: 1; text-align: center; color: #f2c14e; font: 700 15px/1 system-ui, sans-serif; letter-spacing: 0.3em; text-transform: uppercase; text-shadow: 0 2px 4px #000; animation: boot-pulse 1.4s ease-in-out infinite alternate; }
+      #boot-splash.gone { opacity: 0; pointer-events: none; }
+      @keyframes boot-pulse { from { opacity: 0.45; } to { opacity: 1; } }
+      @media (prefers-reduced-motion: reduce) { #boot-splash .boot-caption { animation: none; } }
+    </style>
     <script>
       // Boot diagnostics: a visible panel for errors (and a start-up that never finishes),
       // so a playtester on a phone without developer tools can screenshot what went wrong.
@@ -53,6 +66,17 @@
         setTimeout(function () {
           if (!window.__homesteadBooted) show('The game has not finished starting after 20 s (stuck while loading).');
         }, 20000);
+        // The boot screen leaves once the game is up (and the painted UI has had a moment to load).
+        var splashWait = setInterval(function () {
+          if (!window.__homesteadBooted) return;
+          clearInterval(splashWait);
+          var s = document.getElementById('boot-splash');
+          if (!s) return;
+          setTimeout(function () {
+            s.classList.add('gone');
+            setTimeout(function () { s.remove(); }, 600);
+          }, 250);
+        }, 50);
       })();
     </script>
     <div id="stage"></div>

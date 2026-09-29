@@ -33,11 +33,11 @@ import './m9.css';
 type Action = (typeof CUSTOM_ACTIONS)[number];
 
 const PRESET_ICON: Record<string, string> = {
-  blank_slate: '📋',
-  boomtown: '🏙',
-  deep_day_one: '⛏',
-  ruined: '🏚',
-  all_rooms: '🗝',
+  blank_slate: ':blank_slate:',
+  boomtown: ':boomtown:',
+  deep_day_one: ':deep_day_one:',
+  ruined: ':ruined:',
+  all_rooms: ':all_rooms:',
 };
 
 const RESOURCES = [

@@ -43,11 +43,11 @@ interface Stored {
 
 export const GROUPS: Record<NoticeGroup, { label: string; icon: string }> = {
   people: { label: 'Residents', icon: '👥' },
-  incidents: { label: 'Incidents', icon: '⚠' },
+  incidents: { label: 'Incidents', icon: ':warning:' },
   glare: { label: 'Glarelands', icon: '🧭' },
   quests: { label: 'Quests', icon: '⚔' },
   crafting: { label: 'Crafting', icon: '🔧' },
-  rewards: { label: 'Rewards', icon: '🏆' },
+  rewards: { label: 'Rewards', icon: ':rewards:' },
   homestead: { label: 'Homestead', icon: '🏠' },
 };
 
@@ -287,7 +287,7 @@ export class NoticeCentre {
       // ---- incidents
       case 'incidentStarted': {
         const name = (content.balance.incidents.types as Record<string, { name?: string }>)[ev.incident]?.name ?? 'Incident';
-        return { key: `inc-${ev.incidentId}`, group: 'incidents', icon: '⚠', one: `${name} in the ${this.roomName(ev.roomId)}!`, tone: 'bad' };
+        return { key: `inc-${ev.incidentId}`, group: 'incidents', icon: `:inc_${ev.incident}:`, one: `${name} in the ${this.roomName(ev.roomId)}!`, tone: 'bad' };
       }
       case 'doorBreached':
         return { key: 'breach', group: 'incidents', icon: '🚪', one: 'Raiders broke through the door.', tone: 'bad' };
@@ -298,13 +298,13 @@ export class NoticeCentre {
         return { key: `res-${ev.incidentId}`, group: 'incidents', icon: '✔', one: text, tone: ev.incident === 'rustmen' && ev.loot <= 0 ? 'bad' : 'good' };
       }
       case 'incidentMoved':
-        return { key: `moved-${ev.incidentId}`, group: 'incidents', icon: '🕸', one: `${(content.balance.incidents.types as Record<string, { name?: string }>)[ev.incident]?.name ?? 'Something'} jumped into the ${this.roomName(ev.roomId)}.`, tone: 'bad' };
+        return { key: `moved-${ev.incidentId}`, group: 'incidents', icon: ':inc_glassbacks:', one: `${(content.balance.incidents.types as Record<string, { name?: string }>)[ev.incident]?.name ?? 'Something'} jumped into the ${this.roomName(ev.roomId)}.`, tone: 'bad' };
       case 'incidentEscaped': {
         const name = (content.balance.incidents.types as Record<string, { name?: string }>)[ev.incident]?.name ?? 'Something';
         return { key: `esc-${ev.incidentId}`, group: 'incidents', icon: '↗', one: ev.incident === 'maulers' ? 'The Mauler wandered off. It will be back.' : `${name} left the homestead on its own.` };
       }
       case 'maulerStirring':
-        return { key: 'stirring', group: 'incidents', icon: '⚠', one: `Something big is paying attention (Mauler meter ${Math.round(ev.meter * 100)}%).`, tone: 'bad' };
+        return { key: 'stirring', group: 'incidents', icon: ':inc_maulers:', one: `Something big is paying attention (Mauler meter ${Math.round(ev.meter * 100)}%).`, tone: 'bad' };
       case 'bossFirstKill': {
         const enemy = questContent(content).enemies[ev.enemyId]?.name ?? 'A boss';
         return { key: `fk-${ev.enemyId}`, group: 'quests', icon: '☠', one: `First kill: ${enemy}. ${content.items[ev.defId]?.name ?? 'A trophy'} goes in the quest loot.`, tone: 'gold' };

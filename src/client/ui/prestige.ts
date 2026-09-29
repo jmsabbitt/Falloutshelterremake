@@ -3,6 +3,7 @@
 // Homestead" flow. Hooked into ui.ts with a few small calls; the sim side is
 // src/sim/systems/prestige.ts and src/sim/legacy.ts (see docs/design/M5-spec.md).
 
+import { artUrl } from './art';
 import { halcyFace } from './halcy';
 import {
   canBuyPerk,
@@ -72,7 +73,7 @@ const RARITY_MARK: Record<Rarity, string> = { legendary: '★', rare: '◆', com
 const STAT_SHORT: Record<StatKey, string> = { brawn: 'BRN', sight: 'SGT', grit: 'GRT', charm: 'CHR', wits: 'WIT', knack: 'KNK', fortune: 'FOR' };
 const RESOURCE_NAME: Record<string, string> = { power: 'Power', food: 'Food', water: 'Water', medpatch: 'Med-Patch', purge: 'Purge' };
 
-/** Cosmetic look per site (the content has no art for sites yet). */
+/** Cosmetic look per site: a tint and an emoji, under the site's painting (X3) when it has one. */
 const SITE_LOOK: Record<string, { icon: string; tone: string }> = {
   plot7: { icon: '🏠', tone: 'plot' },
   dry_wells: { icon: '💧', tone: 'wells' },
@@ -475,7 +476,7 @@ export class LegacyUI {
           { class: 'modal ceremony charter-modal' },
           h('div', { class: 'ceremony-kicker' }, 'Halcyon Charter §12'),
           h('div', { class: 'ceremony-title' }, 'Charter milestone reached'),
-          h('div', { class: 'ribbon' }),
+          ribbon(false),
           h('p', { class: 'halcy-quote' }, halcyFace(), h('span', { class: 'giver' }, 'HALCY: '), cs.text),
           h('ul', { class: 'tick-list' }, ...cs.requirements.map((r) => h('li', {}, `✓ ${r.label}`))),
           h('p', {}, `Homestead ${state.homesteadNumber} may now sponsor a new homestead. Founding now would earn about `, h('b', { class: 'legacy-ink' }, `◆ ${est} Legacy`), '.'),
@@ -648,7 +649,7 @@ export class LegacyUI {
               h(
                 'li',
                 { class: i === d.step ? 'current' : i < d.step ? 'done' : '' },
-                h('button', { disabled: i >= d.step, onclick: () => this.goStep(i), 'aria-label': `Step ${i + 1}: ${label}` }, h('span', { class: 'n' }, i < d.step ? '✓' : `${i + 1}`), h('span', { class: 'l' }, label)),
+                h('button', { disabled: i >= d.step, onclick: () => this.goStep(i), 'aria-label': `Step ${i + 1}: ${label}` }, h('span', { class: 'n no-icons' }, i < d.step ? '✓' : `${i + 1}`), h('span', { class: 'l' }, label)),
               ),
             ),
           ),
@@ -713,13 +714,14 @@ export class LegacyUI {
           return h(
             'button',
             {
-              class: `site-card tone-${look?.tone ?? 'plot'}${sel ? ' selected' : ''}`,
+              class: `site-card tone-${look?.tone ?? 'plot'}${sel ? ' selected' : ''}${artUrl('sites', s.id) ? ' has-art' : ''}`,
               'aria-pressed': sel ? 'true' : 'false',
               onclick: () => {
                 d.siteId = s.id;
                 this.renderFlow();
               },
             },
+            sitePainting(s.id, 'site-art'),
             h('div', { class: 'site-head' }, h('span', { class: 'site-icon' }, look?.icon ?? '🏚'), h('b', {}, s.name), h('span', { class: 'site-mult' }, `×${fmtMult(s.legacyMult)}`)),
             h('div', { class: 'site-desc' }, s.description),
             h('div', { class: 'loot-line' }, ...siteModifiers(s).map((m) => h('span', { class: `loot-chip ${m.tone}` }, m.text)), h('span', { class: 'loot-chip' }, `💰 ${fmt(startScrip)} to start`)),
@@ -1036,9 +1038,10 @@ export class LegacyUI {
         h(
           'div',
           { class: `modal ceremony arrival-modal tone-${look?.tone ?? 'plot'}` },
+          sitePainting(siteId, 'arrival-site'),
           h('div', { class: 'ceremony-kicker' }, `Homestead ${state.legacy.cycle} of your line · ${site?.name ?? siteId}`),
           h('div', { class: 'ceremony-title big' }, `Homestead ${state.homesteadNumber}`),
-          h('div', { class: 'ribbon cut' }),
+          ribbon(true),
           h(
             'p',
             { class: 'halcy-quote' },
@@ -1130,4 +1133,16 @@ function fmtNum(n: number, digits: number): string {
 
 function capitalize(s: string): string {
   return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
+/** A site's surveyor painting (X3) as a banner; nothing when it has no art. */
+function sitePainting(siteId: string, cls: string): HTMLElement | null {
+  const src = artUrl('sites', siteId);
+  return src ? h('div', { class: cls, style: `background-image:url("${src}")`, role: 'img', 'aria-label': 'The site' }) : null;
+}
+
+/** The ceremony ribbon: the painted one (X4) when it exists, cut in two by CSS at an arrival. */
+function ribbon(cut: boolean): HTMLElement {
+  const src = artUrl('sites', 'ribbon');
+  return h('div', { class: `ribbon${cut ? ' cut' : ''}${src ? ' art' : ''}`, style: src ? `--ribbon-art:url("${src}")` : undefined });
 }

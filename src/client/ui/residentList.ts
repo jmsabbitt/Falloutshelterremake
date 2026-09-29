@@ -486,7 +486,7 @@ export class ResidentList {
           'span',
           { class: 'rl-name' },
           r.legendary
-            ? h('span', { class: 'legend-badge', title: 'Legendary resident' }, '★')
+            ? h('span', { class: 'legend-badge', title: 'Legendary resident' }, ':badge_legend:')
             : r.rarity !== 'common'
               ? h('span', { class: `rarity ${r.rarity}` }, r.rarity === 'legendary' ? '★ ' : '◆ ')
               : null,

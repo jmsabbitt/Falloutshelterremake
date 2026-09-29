@@ -83,19 +83,16 @@ Each upload uses the workflow run number as its build number. After Apple proces
 
 ## Icons and splash
 
-The mark is the favicon's "house over a door": `#f2a541` on `#1b2a2f`. The web icons are in `public/icons/`:
+The icon and splash are paintings (docs/art/ART-LIST.md X2): `art/raw/app/icon.png` (a homestead door in a hillside, 1024 px) and `art/raw/app/splash.png` (the same scene wider, centre third safe). The web boot screen shows `public/sprites/app/splash.webp` until the game starts. The web icons are in `public/icons/`:
 
-- `icon.svg`
+- `favicon-64.png`
 - `icon-192.png` and `icon-512.png`
 - `maskable-512.png`
 - `apple-touch-icon.png`
 
 The Android launcher icons (adaptive and legacy), the splash screens and the monochrome notification icon (`drawable-*/ic_stat_homestead.png`) are in `android/app/src/main/res/`. The iOS app icon and splash are in `ios/App/App/Assets.xcassets/`.
 
-To regenerate them, render these sources from the same SVG mark into a folder such as `assets/`, then run `npx @capacitor/assets generate --android --ios --assetPath assets`:
-
-- `icon-only.png`, `icon-foreground.png` and `icon-background.png` at 1024 px
-- `splash.png` and `splash-dark.png` at 2732 px
+To regenerate every size from the paintings, run `python3 tools/app_icons.py` (Pillow). The launch splashes are centre-cropped JPEGs (the night variants are gone: the painting is the same by day and night), and the adaptive icon's background layer is `#1b2a2f`.
 
 ## PWA and offline play
 

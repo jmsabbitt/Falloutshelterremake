@@ -65,7 +65,7 @@ interface CaravanDraft {
 }
 
 const TIER_CLASS = ['hostile', 'wary', 'neutral', 'friendly', 'allied'];
-const FACTION_ICON: Record<string, string> = { caravaners: '🛒', tinkers: '🔧', lamplighters: '🕯', rustmen: '⚔', homestead9: '🏢' };
+const FACTION_ICON: Record<string, string> = { caravaners: ':faction_caravaners:', tinkers: ':faction_tinkers:', lamplighters: ':faction_lamplighters:', rustmen: ':faction_rustmen:', homestead9: ':faction_homestead9:' };
 const CRATE_NAME: Record<CrateTier, string> = { standard: 'Supply Crate', rare: 'Rare Crate', legendary: 'Legendary Crate' };
 const RES_ICON: Record<string, string> = { food: '🥫', water: '💧', medpatch: '✚', purge: '☢' };
 const RES_NAME: Record<string, string> = { food: 'food', water: 'water', medpatch: 'Med-Patches', purge: 'Purge' };

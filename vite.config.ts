@@ -19,7 +19,7 @@ function filesUnder(dir: string): string[] {
  * The cache version is a hash of the file list and contents.
  */
 /** Sprite folders loaded at start-up (see EAGER_CREATURES in src/client/render/sprites.ts). */
-const PRECACHED_SPRITES = ['resident_f', 'resident_m', 'rooms', 'items', 'portraits', 'skitter', 'burrower', 'rustman', 'deepcrawler', 'hollowed', 'glassback'];
+const PRECACHED_SPRITES = ['resident_f', 'resident_m', 'rooms', 'items', 'portraits', 'icons', 'ui', 'app', 'skitter', 'burrower', 'rustman', 'deepcrawler', 'hollowed', 'glassback'];
 
 function serviceWorkerPlugin(): Plugin {
   let outDir = 'dist';
