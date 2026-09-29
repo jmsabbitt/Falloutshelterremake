@@ -2,7 +2,7 @@
 // item (from Storage). Both are modals over the panel, show what each choice changes against what
 // is worn now, and leave the player where they started once the item is on.
 
-import { effectiveStat, isAway, isChild, STAT_KEYS, type ItemDef, type Resident, type StatKey } from '../../sim';
+import { effectiveStat, fleesIncidents, isAway, isChild, roomDef, STAT_KEYS, type ItemDef, type Resident, type StatKey } from '../../sim';
 import type { Game } from '../game';
 import { h } from './dom';
 import { itemIcon } from './icons';
@@ -60,6 +60,46 @@ export function gearDelta(current: ItemDef | undefined, next: ItemDef): { gain: 
   return { gain, chips };
 }
 
+/**
+ * How much a piece of gear helps this resident in what they are doing now, like the
+ * green room highlight when dragging someone: an outfit counts for the stat their
+ * room works with (not in a training room, which raises their own stat), a weapon
+ * for how likely they are to fight (on the door, in a room under attack, or not at
+ * all while expecting). `reason` says why, for the picker row.
+ */
+export function gearFit(game: Game, r: Resident, next: ItemDef, current: ItemDef | undefined): { score: number; reason: string; focus?: StatKey } {
+  const { state, content } = game;
+  const room = r.roomId !== null ? state.rooms.find((x) => x.id === r.roomId) : undefined;
+  const def = room ? roomDef(content, room) : undefined;
+  const name = room ? roomName(content, room) : '';
+  if (next.kind === 'weapon') {
+    const d = avgDamage(next) - avgDamage(current);
+    if (fleesIncidents(state, r)) return { score: d * 0.1, reason: 'Expecting: takes cover instead of fighting' };
+    if (!room) return { score: d * 0.8, reason: 'Idle: fights wherever you put them' };
+    // A room with few armed defenders gains most from one more gun, so weapons spread out.
+    const armed = state.residents.filter((x) => x.id !== r.id && x.roomId === room.id && !x.dead && x.weapon && !fleesIncidents(state, x)).length;
+    const spread = 1 / (1 + armed * 0.35);
+    const cover = armed ? ` (${armed} other${armed === 1 ? '' : 's'} armed there)` : ' (nobody else armed there)';
+    if (state.incidents.some((i) => i.roomId === room.id)) return { score: d * 2 * spread, reason: `Fighting right now in the ${name}${cover}` };
+    if (def?.category === 'door') return { score: d * 1.5 * spread, reason: `On the door: first to meet raiders${cover}` };
+    return { score: d * spread, reason: `Defends the ${name}${cover}` };
+  }
+  const cur = current && current.kind === 'outfit' ? current.bonus : {};
+  const gain = (k: StatKey) => (next.bonus[k] ?? 0) - (cur[k] ?? 0);
+  const total = STAT_KEYS.reduce((n, k) => n + gain(k), 0);
+  const stat = def?.stat as StatKey | undefined;
+  if (room && def?.category === 'training') return { score: total * 0.15, reason: `Training in the ${name}: gear doesn't speed it up` };
+  if (room && stat) {
+    const job = gain(stat);
+    return {
+      score: job + (total - job) * 0.15,
+      focus: stat,
+      reason: job > 0 ? `${STAT_FULL[stat]} for the ${name}: ${signed(job)}` : job < 0 ? `Loses ${STAT_FULL[stat]} for the ${name}` : `The ${name} runs on ${STAT_FULL[stat]}: no gain`,
+    };
+  }
+  return { score: total * 0.25, reason: room ? `In the ${name}: no stat to boost` : 'Idle: helps wherever they work next' };
+}
+
 /** Storage grouped by item type: one entry per kind of item, with the ids of every copy. */
 export function groupItems(game: Game, kind: GearSlot | 'all'): { def: ItemDef; ids: number[] }[] {
   const { state, content } = game;
@@ -83,6 +123,11 @@ export function itemLabel(def: ItemDef, count = 1): HTMLElement {
     h('span', { class: 'nm' }, def.name),
     count > 1 ? h('span', { class: 'count' }, ` ×${count}`) : null,
   );
+}
+
+/** Green-highlighted rows: a real gain, close to the best on offer, and at most the first three. */
+function bestFit(score: number, top: number, index = 0): boolean {
+  return index < 3 && top > 0 && score > 0 && score >= top * 0.8;
 }
 
 export class GearUI {
@@ -126,13 +171,14 @@ export class GearUI {
     if (!r) return;
     const current = this.worn(r, slot);
     const options = groupItems(this.host.game, slot)
-      .map((g) => ({ ...g, delta: gearDelta(current, g.def) }))
-      .sort((a, b) => b.delta.gain - a.delta.gain || (RARITY_RANK[a.def.rarity] ?? 3) - (RARITY_RANK[b.def.rarity] ?? 3) || a.def.name.localeCompare(b.def.name));
-    const rows = options.map((o) =>
+      .map((g) => ({ ...g, delta: gearDelta(current, g.def), fit: gearFit(this.host.game, r, g.def, current) }))
+      .sort((a, b) => b.fit.score - a.fit.score || b.delta.gain - a.delta.gain || (RARITY_RANK[a.def.rarity] ?? 3) - (RARITY_RANK[b.def.rarity] ?? 3) || a.def.name.localeCompare(b.def.name));
+    const top = options[0]?.fit.score ?? 0;
+    const rows = options.map((o, i) =>
       h(
         'button',
         {
-          class: 'gear-option',
+          class: `gear-option${bestFit(o.fit.score, top, i) ? ' best' : o.fit.score <= 0 ? ' worse' : ''}`,
           onclick: () => {
             const id = o.ids[0];
             if (id === undefined) return;
@@ -141,7 +187,7 @@ export class GearUI {
           },
         },
         itemIcon(o.def.id, o.def.kind),
-        h('span', { class: 'gear-main' }, itemLabel(o.def, o.ids.length), h('span', { class: 'gear-sub' }, itemStats(o.def))),
+        h('span', { class: 'gear-main' }, itemLabel(o.def, o.ids.length), h('span', { class: 'gear-sub' }, itemStats(o.def)), h('span', { class: 'gear-why' }, bestFit(o.fit.score, top, i) ? `Best fit · ${o.fit.reason}` : o.fit.reason)),
         h('span', { class: 'gear-deltas' }, ...o.delta.chips),
       ),
     );
@@ -153,7 +199,7 @@ export class GearUI {
       rows.length
         ? h('div', { class: 'gear-list' }, ...rows)
         : h('p', { class: 'muted' }, `No spare ${what}s in storage. Open Supply Crates, explore the Glarelands or craft one in a workshop.`),
-      rows.length ? h('p', { class: 'muted small', style: 'margin:8px 0 0' }, `Best change first. Whatever ${r.firstName} has on now goes back to storage.`) : null,
+      rows.length ? h('p', { class: 'muted small', style: 'margin:8px 0 0' }, `Best for what ${r.firstName} is doing now comes first (green). Whatever they have on now goes back to storage.`) : null,
       h('div', { class: 'row', style: 'justify-content:flex-end;margin-top:10px' }, h('button', { onclick: this.close }, 'Cancel')),
     );
   }
@@ -165,19 +211,27 @@ export class GearUI {
     if (!def) return;
     const slot: GearSlot = def.kind;
     const rooms = new Map(state.rooms.map((room) => [room.id, room]));
-    // The stat this outfit helps most; weapons rank by level (fighters) after the damage gain.
+    // Ranked by what it does for each person in what they are doing now (gearFit),
+    // then by the stat it helps most (outfits) or level (weapons).
     const mainStat = def.kind === 'outfit' ? (Object.entries(def.bonus).sort((a, b) => (b[1] ?? 0) - (a[1] ?? 0))[0]?.[0] as StatKey | undefined) : undefined;
     const people = state.residents
       .filter((r) => !r.dead && !r.waiting && !isAway(r) && !isChild(state, r))
-      .map((r) => ({ r, delta: gearDelta(this.worn(r, slot), def), stat: mainStat ? effectiveStat(content, r, mainStat) : r.level }))
-      .sort((a, b) => b.delta.gain - a.delta.gain || b.stat - a.stat || a.r.id - b.r.id);
-    const rows = people.map(({ r, delta, stat }) => {
+      .map((r) => {
+        const worn = this.worn(r, slot);
+        const fit = gearFit(this.host.game, r, def, worn);
+        const statKey = fit.focus ?? mainStat;
+        return { r, fit, delta: gearDelta(worn, def), statKey, stat: statKey ? effectiveStat(content, r, statKey) : r.level };
+      })
+      .sort((a, b) => b.fit.score - a.fit.score || b.delta.gain - a.delta.gain || b.stat - a.stat || a.r.id - b.r.id);
+    const top = people[0]?.fit.score ?? 0;
+    const rows = people.map(({ r, delta, fit, statKey, stat }, i) => {
       const room = r.roomId !== null ? rooms.get(r.roomId) : undefined;
       const where = room ? roomName(content, room) : 'Idle';
+      const best = bestFit(fit.score, top, i);
       return h(
         'button',
         {
-          class: `gear-option${delta.gain > 0 ? '' : ' worse'}`,
+          class: `gear-option${best ? ' best' : fit.score > 0 ? '' : ' worse'}`,
           onclick: () => {
             const ids = state.items.filter((i) => i.defId === defId).map((i) => i.id);
             const id = ids[0];
@@ -194,7 +248,8 @@ export class GearUI {
           'span',
           { class: 'gear-main' },
           h('b', { class: 'gear-name' }, `${r.firstName} ${r.lastName}`),
-          h('span', { class: 'gear-sub' }, `L${r.level} · ${where}${mainStat ? ` · ${STAT_SHORT[mainStat]} ${stat}` : ''} · has ${this.worn(r, slot)?.name ?? (slot === 'weapon' ? 'fists' : 'jumpsuit')}`),
+          h('span', { class: 'gear-sub' }, `L${r.level} · ${where}${statKey ? ` · ${STAT_SHORT[statKey]} ${stat}` : ''} · has ${this.worn(r, slot)?.name ?? (slot === 'weapon' ? 'fists' : 'jumpsuit')}`),
+          h('span', { class: 'gear-why' }, best ? `Best fit · ${fit.reason}` : fit.reason),
         ),
         h('span', { class: 'gear-deltas' }, ...delta.chips),
       );
@@ -203,7 +258,13 @@ export class GearUI {
       'gear-pick-resident',
       h('h2', {}, 'Who gets it?'),
       h('div', { class: 'gear-current' }, itemIcon(def.id, def.kind), itemLabel(def), h('span', { class: 'muted small' }, ` · ${itemStats(def)}`)),
-      h('p', { class: 'muted small', style: 'margin:4px 0 8px' }, `Sorted by who gains most${mainStat ? `, then by ${STAT_FULL[mainStat]}` : ', then by level'}. What they wear now goes back to storage.`),
+      h(
+        'p',
+        { class: 'muted small', style: 'margin:4px 0 8px' },
+        def.kind === 'outfit'
+          ? 'Best fit first (green): who it helps most in the job they are doing now, by the stat their room works with. What they wear now goes back to storage.'
+          : 'Best fit first (green): who gains most damage and is likeliest to fight (on the door, or in a room under attack). What they carry now goes back to storage.',
+      ),
       rows.length ? h('div', { class: 'gear-list' }, ...rows) : h('p', { class: 'muted' }, 'Nobody here can take gear right now.'),
       h('div', { class: 'row', style: 'justify-content:flex-end;margin-top:10px' }, h('button', { onclick: this.close }, 'Cancel')),
     );
