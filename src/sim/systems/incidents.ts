@@ -40,7 +40,7 @@ import { connectedRoomIds, floorOccupancy, roomCells, roomDef } from '../grid';
 import { bonus, incidentRate } from '../bonuses';
 import { bump, combatDamage, effectiveMaxHp, effectiveStat, fleesIncidents, grantXp, livingResidents, workersInRoom } from '../residents';
 import { chance, nextFloat, nextInt, pick } from '../rng';
-import type { GameEvent, GameState, Incident, IncidentType, Resident, Room, StatKey } from '../types';
+import type { GameState, Incident, IncidentType, Resident, Room, StatKey } from '../types';
 import { grantItem } from './items';
 import { ruleFlag, rulesetMods } from './rulesets';
 import { deepIncidentChance, deepIncidentScale, isDeepFloor, stratumOf } from './deep';
@@ -104,20 +104,20 @@ export interface IncidentDef {
   itemDrop?: { id: string; chance: number };
 }
 
-/** M9 creature ids. Cast until the IncidentType union gains them (see the stream C report). */
-export const SURGE = 'surge' as IncidentType;
-export const HOLLOWED = 'hollowed' as IncidentType;
-export const GLASSBACKS = 'glassbacks' as IncidentType;
-export const MAULERS = 'maulers' as IncidentType;
+/** M9 creature ids. */
+export const SURGE: IncidentType = 'surge';
+export const HOLLOWED: IncidentType = 'hollowed';
+export const GLASSBACKS: IncidentType = 'glassbacks';
+export const MAULERS: IncidentType = 'maulers';
 
-/** M9 events not yet in GameEvent (see the stream C report). */
+/** M9 creature events. */
 export type CreatureEvent =
   | { type: 'maulerStirring'; meter: number }
   | { type: 'incidentMoved'; incidentId: number; roomId: number; incident: IncidentType }
   | { type: 'incidentEscaped'; incidentId: number; roomId: number; incident: IncidentType };
 
 function emit(state: GameState, ev: CreatureEvent): void {
-  state.events.push(ev as unknown as GameEvent);
+  state.events.push(ev);
 }
 
 export interface MaulerTuning {
@@ -253,11 +253,6 @@ export function startIncident(state: GameState, content: Content, type: Incident
   state.incidentTimer = 0;
   state.events.push({ type: 'incidentStarted', incidentId: inc.id, roomId: room.id, incident: type });
   return inc;
-}
-
-/** Kept for callers from M1; a fire in the given room. */
-export function startFire(state: GameState, content: Content, room: Room): Incident {
-  return startIncident(state, content, 'fire', room);
 }
 
 export function startRaid(state: GameState, content: Content): Incident | null {
@@ -468,7 +463,7 @@ function maybeDeepIncident(state: GameState, content: Content, rooms: Room[]): b
 }
 
 /** Power-producing rooms, where surges start. */
-function powerRooms(state: GameState, content: Content, rooms: Room[]): Room[] {
+function powerRooms(content: Content, rooms: Room[]): Room[] {
   return rooms.filter((r) => roomDef(content, r).produces?.resource === 'power');
 }
 
@@ -483,7 +478,7 @@ export function tickIncidentTimer(state: GameState, content: Content, dt: number
   const pop = population(state);
   const rooms = incidentRooms(state, content);
   const dirtRooms = rooms.filter((r) => touchesDirt(state, content, r));
-  const power = powerRooms(state, content, rooms);
+  const power = powerRooms(content, rooms);
   const options = (['fire', 'skitters', 'burrowers', 'rustmen', SURGE, HOLLOWED, GLASSBACKS] as IncidentType[]).filter((t) => {
     const def = incidentDef(content, t);
     if (!def || def.meterOnly || pop < def.natural) return false;

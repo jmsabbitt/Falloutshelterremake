@@ -80,28 +80,6 @@ export function runBack(): boolean {
   return false;
 }
 
-export interface Insets {
-  top: number;
-  right: number;
-  bottom: number;
-  left: number;
-}
-
-/**
- * The safe-area insets in CSS px. Natively on Android, Capacitor's SystemBars
- * injects --safe-area-inset-*; elsewhere env(safe-area-inset-*) is used.
- * The same values are exposed to CSS as --safe-top/right/bottom/left on :root.
- */
-export function safeAreaInsets(): Insets {
-  const probe = document.createElement('div');
-  probe.style.cssText = 'position:fixed;visibility:hidden;pointer-events:none;padding:var(--safe-top) var(--safe-right) var(--safe-bottom) var(--safe-left)';
-  document.body.append(probe);
-  const cs = getComputedStyle(probe);
-  const out = { top: parseFloat(cs.paddingTop) || 0, right: parseFloat(cs.paddingRight) || 0, bottom: parseFloat(cs.paddingBottom) || 0, left: parseFloat(cs.paddingLeft) || 0 };
-  probe.remove();
-  return out;
-}
-
 function exposeInsets(): void {
   const root = document.documentElement.style;
   for (const side of ['top', 'right', 'bottom', 'left']) root.setProperty(`--safe-${side}`, `var(--safe-area-inset-${side}, env(safe-area-inset-${side}, 0px))`);

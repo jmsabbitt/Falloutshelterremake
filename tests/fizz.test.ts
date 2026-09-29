@@ -38,7 +38,7 @@ describe('Halcyon Fizz', () => {
     applyCommand(s, content, { type: 'recall', expeditionId: id });
     expect(s.expeditions[0]!.status).toBe('returning');
     const before = fizzHeld(s);
-    const res = applyCommand(s, content, { type: 'fizzHome', expeditionId: id, pay: 'fizz' });
+    const res = applyCommand(s, content, { type: 'fizz', target: 'explorer', id: id, pay: 'fizz' });
     expect(res.ok).toBe(true);
     expect(s.expeditions[0]!.status).toBe('returned');
     expect(fizzHeld(s)).toBe(before - 1);
@@ -48,7 +48,7 @@ describe('Halcyon Fizz', () => {
   it('turns an explorer who is still out round and home in one go', () => {
     const s = calm();
     const id = out(s, 1);
-    expect(applyCommand(s, content, { type: 'fizzHome', expeditionId: id, pay: 'fizz' }).ok).toBe(true);
+    expect(applyCommand(s, content, { type: 'fizz', target: 'explorer', id: id, pay: 'fizz' }).ok).toBe(true);
     expect(s.expeditions[0]!.status).toBe('returned');
   });
 
@@ -60,9 +60,9 @@ describe('Halcyon Fizz', () => {
     const e = s.expeditions[0]!;
     const cost = fizzScripCost(s, content, 'explorer', e.id);
     expect(cost).toBe(Math.max(content.balance.fizz.minScrip, Math.ceil((e.returnRemaining / 60) * content.balance.fizz.scripPerMinute)));
-    expect(applyCommand(s, content, { type: 'fizzHome', expeditionId: id, pay: 'fizz' }).ok).toBe(false);
+    expect(applyCommand(s, content, { type: 'fizz', target: 'explorer', id: id, pay: 'fizz' }).ok).toBe(false);
     const scrip = s.scrip;
-    expect(applyCommand(s, content, { type: 'fizzHome', expeditionId: id, pay: 'scrip' }).ok).toBe(true);
+    expect(applyCommand(s, content, { type: 'fizz', target: 'explorer', id: id, pay: 'scrip' }).ok).toBe(true);
     expect(s.scrip).toBe(scrip - cost);
     expect(e.status).toBe('returned');
   });

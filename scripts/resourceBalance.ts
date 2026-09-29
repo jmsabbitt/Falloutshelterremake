@@ -1,5 +1,5 @@
 // Supplies and production balance report (playtest 1, item 11).
-//   npx tsx scripts/resourceBalance.ts [hours=48] [seeds=3,5,7] [--no-sim]
+//   npx vite-node scripts/resourceBalance.ts [hours=48] [seeds=3,5,7] [--no-sim]
 // Part 1 is analytic, straight from rooms.json and balance.json: what one
 // worker makes per hour in each production room (by level and width), how
 // that compares to what one resident eats and drinks, and what a room costs.
@@ -82,7 +82,7 @@ const dir = mkdtempSync(join(tmpdir(), 'balance-'));
 const runs: Out[] = [];
 for (const seed of seeds) {
   const file = join(dir, `seed${seed}.json`);
-  const r = spawnSync('npx', ['tsx', 'scripts/simulate.ts', String(hours), String(seed), '1'], { env: { ...process.env, BALANCE_OUT: file }, encoding: 'utf8' });
+  const r = spawnSync('npx', ['vite-node', 'scripts/simulate.ts', String(hours), String(seed), '1'], { env: { ...process.env, BALANCE_OUT: file }, encoding: 'utf8' });
   if (r.status !== 0) {
     console.error(r.stderr);
     process.exit(1);

@@ -236,7 +236,6 @@ export {
   recallLegend,
   canRecallLegend,
   upgradeLegend,
-  radioLegendProgress,
   type LegendDef,
   type LegendStatus,
 } from './systems/legends';

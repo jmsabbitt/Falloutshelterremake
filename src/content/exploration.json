@@ -4875,7 +4875,7 @@
     },
     {
       "id": "encounters_100",
-      "name": "Pest Control",
+      "name": "Seen It All",
       "description": "Win 100 fights in the Glarelands.",
       "tier": "bronze",
       "stat": "encountersWon",

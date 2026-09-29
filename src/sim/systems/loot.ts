@@ -17,9 +17,9 @@
 
 import type { Content, SalvageMaterial } from '../content';
 import { bump } from '../residents';
-import { chance, nextFloat, nextInt, pick } from '../rng';
-import type { Expedition, GameEvent, GameState, LootState, Quest, Rarity, TreasureMap } from '../types';
-import { recruitLegend } from './legends';
+import { chance, nextFloat, nextInt } from '../rng';
+import type { Expedition, GameState, LootState, Quest, Rarity, TreasureMap } from '../types';
+import { legendsContent, recruitLegend } from './legends';
 
 // ------------------------------------------------------------------ content
 
@@ -47,7 +47,6 @@ export interface LootContent {
   repeatLog: string;
   maps: { base: number; perHour: number; max: number; digChance: number; digMinMinute: number; foundLog: string[] };
   caches: CacheDef[];
-  cacheCollectLog: string;
   regionExclusives: Record<string, { chance: number; items: string[] } | string>;
 }
 
@@ -79,7 +78,6 @@ export function exclusiveRegionOf(content: Content, defId: string): string | nul
 }
 
 // ------------------------------------------------------------------ events
-// Not in GameEvent yet (see the stream C report); pushed through one cast.
 
 export type LootEvent =
   | { type: 'bossFirstKill'; questId: number; enemyId: string; defId: string }
@@ -87,7 +85,7 @@ export type LootEvent =
   | { type: 'cacheDug'; cacheId: string; regionId: string; expeditionId: number };
 
 function emit(state: GameState, ev: LootEvent): void {
-  state.events.push(ev as unknown as GameEvent);
+  state.events.push(ev);
 }
 
 function fill(text: string, vars: Record<string, string>): string {
@@ -147,8 +145,8 @@ export function onBossDefeated(state: GameState, content: Content, quest: Quest,
       quest.loot.items.push(itemId);
       questLog(quest, fill(table.firstKillLog, { boss: bossName, item: content.items[itemId]!.name }));
     }
-    // Rook, the Rustmen champion, switches sides the first time Big Tin is beaten.
-    if (enemyId === 'big_tin') recruitLegend(state, content, 'rook', 'boss');
+    // A legend who switches sides the first time their boss is beaten (Rook, after Big Tin).
+    for (const l of legendsContent(content).legends) if (l.source.kind === 'boss' && l.source.enemy === enemyId) recruitLegend(state, content, l.id, 'boss');
     return;
   }
   if (itemId && content.items[itemId] && chance(state.rng, table.repeatChance)) {

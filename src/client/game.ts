@@ -515,7 +515,7 @@ export class Game {
       deep: deepConsole(game),
       /** M6 quality-of-life helpers: bigVault(pop), away(hours). */
       qol: qolConsole(game),
-      /** M7 helpers: topside(), meet(), influence(n), weather(kind), caravan(factionId?), raid(). */
+      /** M7 helpers: topside(), build(type), meet(), influence(n), rep(factionId, n), weather(kind, minutes?), arrive(). */
       m7: m7Console(game),
       /** M9 Custom Game: presets(), start(presetId | options), cmd(action, args), speed(n), back(), resume(). */
       custom: customConsole(game),

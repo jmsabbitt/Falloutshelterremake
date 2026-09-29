@@ -20,7 +20,7 @@ import type { Content } from '../content';
 import { addScrip, resourceCapacity } from '../economy';
 import { bump, bumpMax, createResident, effectiveStat, grantXp, isAway, isChild, rollStats, workersInRoom } from '../residents';
 import { chance, nextFloat, nextInt, pick } from '../rng';
-import type { Caravan, CrateTier, GameEvent, GameState, QuestReward, Rarity, ResourceKey, Resident, StatKey, TradeOffer } from '../types';
+import type { Caravan, CrateTier, GameState, QuestReward, Rarity, ResourceKey, Resident, StatKey, TradeOffer } from '../types';
 import { leaveJob, returnToJob } from './assign';
 import { earnCrate } from './crates';
 import { addFragment, addSalvage, fragmentsNeeded, knowsRecipe, salvageCount, unlockRecipe } from './inventory';
@@ -514,8 +514,7 @@ export function hireRecruit(state: GameState, content: Content, factionId: strin
   state.residents.push(res);
   bump(state, `recruits.${factionId}`);
   bump(state, 'recruitsHired');
-  // 'recruit' is a new arrival source (see the M7 report for the GameEvent union).
-  state.events.push({ type: 'residentArrived', residentId: res.id, source: 'recruit' } as unknown as GameEvent);
+  state.events.push({ type: 'residentArrived', residentId: res.id, source: 'recruit' });
   return res;
 }
 

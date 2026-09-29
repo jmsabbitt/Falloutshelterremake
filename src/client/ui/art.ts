@@ -286,9 +286,6 @@ export interface IconOpts {
   fallback?: string;
 }
 
-/** Whether an icon key exists. */
-export const isIcon = (key: string): boolean => key in ICONS;
-
 /** One icon as an <img> sized to the text around it, or its emoji when there is no art. */
 export function uiIcon(key: string, opts: IconOpts = {}): HTMLElement | Text {
   const def = ICONS[key];

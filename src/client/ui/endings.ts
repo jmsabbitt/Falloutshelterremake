@@ -5,7 +5,6 @@
 // (systems/endings.ts); this file only shows it and sends `chooseEnding`.
 
 import {
-  ALLY_ORDER,
   endingChoiceOpen,
   endingOptions,
   endingsContent,
@@ -462,9 +461,6 @@ export class EndingsUI {
     return this.deferred;
   }
 }
-
-/** Allies in display order (re-exported for the dev console). */
-export const ENDING_ALLIES = ALLY_ORDER;
 
 /** A line for network quests (party picker): what the outposts and allies would bring right now. */
 export function networkLine(game: Game, def: QuestDef | undefined): HTMLElement | null {

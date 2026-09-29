@@ -1,5 +1,7 @@
-// M8 service worker for the PWA: precaches the app shell, the bundled fonts
-// and every sprite so Homestead plays offline after the first visit.
+// M8 service worker for the PWA: precaches the app shell, the bundled fonts and
+// the start-up sprite folders (PRECACHED_SPRITES); the rest is cached the first
+// time it loads, so Homestead plays offline after a visit. Registered by main.ts
+// only after the game's own art is in.
 // Built by vite.config.ts (serviceWorkerPlugin), which fills in the version
 // and the file list. Never registered inside the native app.
 

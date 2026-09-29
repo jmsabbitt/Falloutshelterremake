@@ -149,9 +149,9 @@ describe('fight animations', () => {
     expect(f.showing).toBe('fight_pistol');
   });
 
-  it('fall back to the generic fight sheet for weapons, and never give the unarmed that gun', () => {
+  it('stand idle when the art lacks the grip, and never borrow another grip\'s weapon', () => {
     const f = figure();
-    for (const grip of ['pistol', 'longgun', 'heavy', 'melee'] as const) expect(fightAnim(f, grip)).toBe('fight');
+    for (const grip of ['pistol', 'longgun', 'heavy', 'melee'] as const) expect(fightAnim(f, grip)).toBe('idle');
     expect(fightAnim(f, null)).toBe('idle');
     f.play(fightAnim(f, null), 0);
     expect(f.showing).toBe('idle');
@@ -163,7 +163,7 @@ describe('fight animations', () => {
     expect(fightAnim(f, null, 'flood')).toBe('work');
     expect(fightAnim(figure('fight_extinguish'), 'pistol', 'fire')).toBe('fight_extinguish');
     expect(fightAnim(figure(), 'pistol', 'cavein')).toBe('idle');
-    expect(fightAnim(f, 'pistol', 'skitters')).toBe('fight');
+    expect(fightAnim(figure('fight_pistol'), 'pistol', 'skitters')).toBe('fight_pistol');
   });
 
   it('play idle for a named animation the art lacks', () => {

@@ -35,7 +35,7 @@ export interface ResearchContent {
 }
 
 export function researchContent(content: Content): ResearchContent {
-  return content.research as unknown as ResearchContent;
+  return content.research as ResearchContent;
 }
 
 export function researchNode(content: Content, id: string): ResearchNodeDef | undefined {

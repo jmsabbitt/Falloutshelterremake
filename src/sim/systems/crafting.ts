@@ -63,7 +63,7 @@ interface CraftTuning {
 const NEXT_RARITY: Partial<Record<Rarity, Rarity>> = { common: 'rare', rare: 'legendary' };
 
 function tuning(content: Content): CraftTuning {
-  return content.crafting.tuning as unknown as CraftTuning;
+  return content.crafting.tuning as CraftTuning;
 }
 
 function allRecipes(content: Content): Recipe[] {

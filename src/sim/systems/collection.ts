@@ -90,7 +90,7 @@ export function recordCollection(state: GameState, content: Content, category: C
   if (have.includes(id)) return false;
   have.push(id);
   bump(state, `collection.${category}`);
-  state.events.push({ type: 'collectionLogged', category, id } as unknown as GameState['events'][number]);
+  state.events.push({ type: 'collectionLogged', category, id });
   return true;
 }
 

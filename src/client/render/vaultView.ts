@@ -1455,7 +1455,7 @@ export class VaultView {
       this.rebuildStatics();
       this.clampCamera();
     } else if (this.builtLayout !== this.game.layoutVersion || (this.art && this.builtRooms !== this.art.roomsVersion && this.time - this.roomsAt > 1)) {
-      // Merged-room paintings arriving after start-up: rebuild at most once a second.
+      // Room paintings arriving after start-up: rebuild at most once a second.
       this.roomsAt = this.time;
       this.builtRooms = this.art?.roomsVersion ?? 0;
       this.rebuildStatics();
@@ -2182,7 +2182,7 @@ export class VaultView {
     const detour = (s: Shaft) => Math.abs(s.x - fromX) + Math.abs(s.x - toX);
     // Breadth first over shafts, nearest start shafts first.
     const queue = shafts
-      .map((s, i) => i)
+      .map((_, i) => i)
       .filter((i) => covers(shafts[i]!, fromFloor))
       .sort((a, b) => detour(shafts[a]!) - detour(shafts[b]!));
     const prev = new Map<number, number>();
@@ -2264,7 +2264,7 @@ export class VaultView {
     sp.pause = 0.6 + this.rand(sp) * 1.5;
   }
 
-  /** Move one sprite along its path (ease in and out), its fade, its glide or its wander. */
+  /** Turn a fighter to face the nearest threat in their room. */
   private faceThreat(sp: ResidentSprite, roomId: number): void {
     const xs = this.threatX.get(roomId);
     if (!xs?.length) return;
@@ -2274,6 +2274,7 @@ export class VaultView {
     if (Math.abs(dx) > 10) sp.facing = dx > 0 ? 1 : -1;
   }
 
+  /** Move one sprite along its path (ease in and out), its fade, its glide or its wander. */
   private stepResident(sp: ResidentSprite, bounds: Bounds, dt: number, still: boolean, hold: boolean): void {
     sp.moving = false;
     sp.riding = false;
@@ -2596,7 +2597,7 @@ export class VaultView {
    * no per-walker state to keep in sync.
    */
   private updateWalkers(): void {
-    const { state, content } = this.game;
+    const { state } = this.game;
     // Fallen explorers (and bodies being carried home) are not shown walking.
     const shown = state.expeditions.filter((e) => e.status !== 'dead' && !state.residents.find((r) => r.id === e.residentId)?.dead).slice(0, MAX_WALKERS);
     const door = state.rooms.find((r) => r.type === 'door');

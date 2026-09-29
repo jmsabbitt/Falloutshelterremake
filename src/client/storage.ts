@@ -205,7 +205,11 @@ export async function initStorage(opts: { prefs?: PrefsLike } = {}): Promise<Sto
   return { mode: 'preferences', toPrefs, toLocal };
 }
 
-/** Resolves once every queued Preferences write has landed (call before the app is suspended). */
+/**
+ * Resolves once every queued Preferences write has landed (tests use it). Saves hit
+ * localStorage synchronously first, so a pause mid-write can only leave the native
+ * mirror one save behind, never lose the save.
+ */
 export function flushStorage(): Promise<void> {
   return queue;
 }

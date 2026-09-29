@@ -370,7 +370,7 @@ export class NoticeCentre {
         return { key: `ach-${ev.achievementId}`, group: 'rewards', icon: '🏆', one: a ? `${a.name}: ${a.description}` : 'Achievement earned.', tone: 'gold' };
       }
       case 'crateEarned':
-        return { key: `crate-${ev.tier}`, group: 'rewards', icon: '📦', one: `${ev.tier === 'standard' ? 'Supply' : ev.tier === 'rare' ? 'Rare' : 'Legendary'} Crate earned (${ev.source}).`, part: ev.source, many: (p, n) => `${n} ${ev.tier === 'standard' ? 'Supply' : ev.tier === 'rare' ? 'Rare' : 'Legendary'} Crates earned.`, tone: ev.tier === 'standard' ? 'good' : 'gold' };
+        return { key: `crate-${ev.tier}`, group: 'rewards', icon: '📦', one: `${ev.tier === 'standard' ? 'Supply' : ev.tier === 'rare' ? 'Rare' : 'Legendary'} Crate earned (${ev.source}).`, part: ev.source, many: (_p, n) => `${n} ${ev.tier === 'standard' ? 'Supply' : ev.tier === 'rare' ? 'Rare' : 'Legendary'} Crates earned.`, tone: ev.tier === 'standard' ? 'good' : 'gold' };
       case 'roomUnlocked':
         return { key: `unlock-${ev.roomType}`, group: 'rewards', icon: '🔓', one: `New room unlocked: ${content.rooms[ev.roomType]?.name ?? ev.roomType}.`, tone: 'gold' };
       case 'charterReached':
@@ -381,7 +381,7 @@ export class NoticeCentre {
       case 'roomBuilt':
         return { key: 'built', group: 'homestead', icon: '🏗', one: `Built a ${content.rooms[ev.roomType]?.name ?? ev.roomType}.`, part: content.rooms[ev.roomType]?.name ?? ev.roomType, many: (p, n) => `Built ${n} rooms (${nameList([...new Set(p)])}).` };
       case 'roomUpgraded':
-        return { key: 'upgraded', group: 'homestead', icon: '⬆', one: `The ${this.roomName(ev.roomId)} is now level ${ev.level}.`, part: this.roomName(ev.roomId), many: (p, n) => `${n} rooms upgraded.` };
+        return { key: 'upgraded', group: 'homestead', icon: '⬆', one: `The ${this.roomName(ev.roomId)} is now level ${ev.level}.`, part: this.roomName(ev.roomId), many: (_p, n) => `${n} rooms upgraded.` };
       case 'roomsMerged':
         return ev.segments === 3 ? { key: 'triple', group: 'homestead', icon: '▦', one: `Rooms merged into a triple ${this.roomName(ev.roomId)}.`, tone: 'good' } : null;
       case 'storageFull':

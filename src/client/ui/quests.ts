@@ -28,7 +28,7 @@ import {
 import type { QuestView } from '../render/questView';
 import type { VaultView } from '../render/vaultView';
 import { ask } from './confirm';
-import { duration, fmt, h, morph } from './dom';
+import { duration, h, morph } from './dom';
 import { fizzButton } from './fizz';
 import type { Loadout, Loadouts } from './loadouts';
 import { type QuestHost, QuestScreen } from './questScreen';

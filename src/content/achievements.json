@@ -335,7 +335,7 @@
   },
   {
     "id": "all_tens",
-    "name": "Renaissance Resident",
+    "name": "Perfect Tens",
     "description": "Get one resident to 10 in every stat.",
     "tier": "gold",
     "stat": "allTens",

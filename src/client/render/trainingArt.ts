@@ -1,6 +1,5 @@
-// Training room props (playtest 1, item 14), drawn in code until the painted
-// walls in docs/art/ART-LIST.md land (roomWall() then takes over and these are
-// skipped). One set of props per segment, so a merged room reads as a bigger gym.
+// Training room props (playtest 1, item 14), drawn in code only while a training
+// room's painted wall is loading or failed to load (roomWall() normally takes over). One set of props per segment, so a merged room reads as a bigger gym.
 
 import type { Graphics } from 'pixi.js';
 import { LAMP, type RoomLook, shade } from './palette';

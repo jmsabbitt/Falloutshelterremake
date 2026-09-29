@@ -77,14 +77,6 @@
         "3w3"
       ],
       "trimBottom": true
-    },
-    "rotor": {
-      "file": "rotor.png",
-      "whole": true,
-      "names": [
-        "rotor"
-      ],
-      "background": "magenta"
     }
   }
 }

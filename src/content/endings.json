@@ -1,7 +1,6 @@
 {
   "_comment": "Act 4's endings (typed in src/sim/systems/endings.ts). Winning a quest with finale: true opens the choice. Each ending pays its reward the first time it's reached (Legacy, lasting bonuses that add to bonus(), a HUD title). The true ending lists `requires` (factions at a tier, legends met, legend stories finished, outposts, strata dug here); the choice shows them. Epilogue slides are taken in file order: `endings` limits a slide to some endings, `when` must hold, only the first matching slide of a `group` is shown, and categories in tuning.caps are capped (legends: awakened first, then lost, then met). Text may use {homestead} {cycle} {population} {peak} {days} {outposts} {legends} {friends} {fallen} {strata} {endings}.",
   "tuning": {
-    "finaleQuest": "act4_finale",
     "reviewQuest": "act4_review",
     "caps": {
       "legend": 5

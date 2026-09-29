@@ -34,11 +34,6 @@
         11
       ]
     },
-    "fight": {
-      "file": "fight.png",
-      "fps": 10,
-      "split": "figures"
-    },
     "fallen": {
       "file": "fallen.png",
       "fps": 6,

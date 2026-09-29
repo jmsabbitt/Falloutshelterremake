@@ -22,16 +22,6 @@
         11
       ]
     },
-    "fight": {
-      "file": "fight.png",
-      "fps": 10,
-      "split": "figures",
-      "regions": {
-        "hair": {
-          "aboveFraction": 0.36
-        }
-      }
-    },
     "fallen": {
       "file": "fallen.png",
       "fps": 6,

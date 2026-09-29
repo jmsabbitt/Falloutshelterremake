@@ -47,7 +47,7 @@ describe('the wider grid', () => {
   it('puts the starter shaft at grid.starterShaftX with the door just left of it', () => {
     expect(starterShaftX(content)).toBe(S);
     expect(starterDoorX(content)).toBe(S - 6);
-    expect(S % content.balance.grid.cellsPerSegment).toBe(0); // the left side packs into whole segments
+    expect(S % 3).toBe(0); // the left side packs into whole segments
     const s = fresh();
     expect(byType(s, 'door').x).toBe(S - 6);
     expect(s.rooms.filter((r) => r.type === 'elevator').map((r) => r.x)).toEqual([S, S, S]);

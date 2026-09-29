@@ -17,8 +17,6 @@ export interface RulesPick {
   survival: boolean;
 }
 
-export const NO_RULES: RulesPick = { rules: [], survival: false };
-
 /** Each ruleset's painted icon (U6); art.ts falls back to the old emoji. */
 const RULE_ICON: Record<string, string> = {
   famine: ':famine:',

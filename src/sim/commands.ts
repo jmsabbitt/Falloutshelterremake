@@ -56,8 +56,6 @@ export type Command =
   // M3
   | { type: 'explore'; residentId: number; regionId: string; medpatch: number; purge: number }
   | { type: 'recall'; expeditionId: number }
-  /** Halcyon Fizz: bring an explorer home at once, for a bottle or for scrip. */
-  | { type: 'fizzHome'; expeditionId: number; pay: 'fizz' | 'scrip' }
   /** Halcyon Fizz for any trip: an explorer, a caravan or a quest party reaches the end of the road now. */
   | { type: 'fizz'; target: 'explorer' | 'caravan' | 'quest'; id: number; pay: 'fizz' | 'scrip' }
   | { type: 'collectExpedition'; expeditionId: number }
@@ -465,9 +463,6 @@ function dispatch(state: GameState, content: Content, cmd: Command): CommandResu
       return result(startExpedition(state, content, cmd.residentId, cmd.regionId, { medpatch: cmd.medpatch, purge: cmd.purge }));
     case 'recall':
       return result(recallExpedition(state, content, cmd.expeditionId));
-    case 'fizzHome':
-      if (cmd.pay !== 'fizz' && cmd.pay !== 'scrip') return fail('bad payment');
-      return result(useFizz(state, content, 'explorer', cmd.expeditionId, cmd.pay));
     case 'fizz':
       if (cmd.pay !== 'fizz' && cmd.pay !== 'scrip') return fail('bad payment');
       if (cmd.target !== 'explorer' && cmd.target !== 'caravan' && cmd.target !== 'quest') return fail('bad target');

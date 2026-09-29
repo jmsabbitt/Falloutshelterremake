@@ -38,9 +38,6 @@ const SIZES: Record<string, LookSize> = {
 };
 const FALLBACK: LookSize = { w: 48, h: 60 };
 
-/** Every look the art covers (the spec's list). */
-export const KNOWN_LOOKS = Object.keys(SIZES);
-
 export function lookSize(look: string): LookSize {
   return SIZES[look] ?? FALLBACK;
 }

@@ -522,7 +522,7 @@ function geothermalSegment(g: Graphics, look: RoomLook, x: number, by: number, w
   g.rect(x, by + bh * 0.22, w, 5).fill(shade(look.accent, -0.35));
 }
 
-function fungalSegment(g: Graphics, look: RoomLook, x: number, by: number, w: number, bh: number, s: number): void {
+function fungalSegment(g: Graphics, _look: RoomLook, x: number, by: number, w: number, bh: number, s: number): void {
   const floorY = by + bh;
   // misting pipe with nozzles along the ceiling
   g.rect(x, by + 6, w, 4).fill(STEEL);

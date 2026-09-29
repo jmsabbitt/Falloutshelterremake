@@ -8,7 +8,8 @@
 // Traits are data (src/content/traits.json): each carries a list of effects
 // with a kind, a value and optional filters (resources, room categories, a
 // condition such as "deep" or "crowd"). The hooks below sum the effects that
-// apply. Mastery is seconds worked per room type; tiers come from
+// apply. Mastery is job experience per room type (one per second worked, plus
+// masteryPerCollect per batch collected); tiers come from
 // `masteryTierSeconds` and add a small bonus to the worker's contribution.
 
 import type { Content, RoomCategory, RoomDef } from '../content';

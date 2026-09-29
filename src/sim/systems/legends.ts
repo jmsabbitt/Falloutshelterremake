@@ -32,7 +32,7 @@ import { roomDef } from '../grid';
 import { bonus } from '../bonuses';
 import { bump, createResident, hpPerLevel, workersInRoom } from '../residents';
 import { chance, seedRng } from '../rng';
-import { STAT_KEYS, type GameEvent, type GameState, type Resident, type Sex, type StatKey, type Stats } from '../types';
+import { STAT_KEYS, type GameState, type Resident, type Sex, type StatKey, type Stats } from '../types';
 import { arrivalsBlocked } from './arrivals';
 import { tickCollection, recordCollection } from './collection';
 import { factionTier, isMet } from './factions';
@@ -200,8 +200,7 @@ function arrive(state: GameState, content: Content, def: LegendDef, source: Lege
     bump(state, 'legendaryResidents');
     bump(state, `legendsFrom.${source}`);
   }
-  // Until GameEvent has this variant (see the M9 stream L report), push it through a cast.
-  state.events.push({ type: 'legendArrived', residentId: r.id, legendId: def.id, source } as unknown as GameEvent);
+  state.events.push({ type: 'legendArrived', residentId: r.id, legendId: def.id, source });
   return r;
 }
 
@@ -273,7 +272,7 @@ export function upgradeLegend(state: GameState, content: Content, id: string): s
   const n = legendsContent(content).tuning.upgradeStats;
   for (const k of STAT_KEYS) r.stats[k] = Math.min(10, r.stats[k] + n);
   bump(state, 'legendsAwakened');
-  state.events.push({ type: 'legendAwakened', residentId: r.id, legendId: id } as unknown as GameEvent);
+  state.events.push({ type: 'legendAwakened', residentId: r.id, legendId: id });
   return null;
 }
 
@@ -303,11 +302,6 @@ function available(state: GameState, id: string): boolean {
 export function crateLegends(state: GameState, content: Content): LegendDef[] {
   if (capFull(state, content)) return [];
   return legendsContent(content).legends.filter((l) => l.source.kind === 'crate' && available(state, l.id));
-}
-
-/** Seconds of staffed radio time counted toward the radio legend, and the roll interval. */
-export function radioLegendProgress(state: GameState, content: Content): { seconds: number; every: number } {
-  return { seconds: state.legends.radio?.seconds ?? 0, every: legendsContent(content).tuning.radio.checkEverySeconds };
 }
 
 function tickRadio(state: GameState, content: Content, def: LegendDef, dt: number): void {

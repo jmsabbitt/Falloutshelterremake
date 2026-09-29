@@ -222,7 +222,7 @@ export class CharacterArt {
     return this.bodiesLoaded;
   }
 
-  private wideLoaded = 0;
+  private roomArtLoaded = 0;
   /** Resolves when the resident bodies (their core sheets) are in. */
   charactersReady: Promise<void> = Promise.resolve();
 
@@ -241,9 +241,9 @@ export class CharacterArt {
     if (list.length) this.bodiesLoaded++;
   }
 
-  /** Goes up as merged-room paintings arrive after start-up; the vault rebuilds its rooms when it changes. */
+  /** Goes up as room paintings arrive after start-up (loaded when a room first needs them); the vault rebuilds its rooms when it changes. */
   get roomsVersion(): number {
-    return this.wideLoaded;
+    return this.roomArtLoaded;
   }
 
   /** Room paintings not loaded yet ("generator:2", "quarters:1w3"): each loads the first time a room needs it. */
@@ -270,7 +270,7 @@ export class CharacterArt {
         if (!tex) return;
         this.rooms.set(key, tex);
         this.roomFiles.delete(key);
-        this.wideLoaded++;
+        this.roomArtLoaded++;
       });
     }
     return undefined;
@@ -552,13 +552,6 @@ async function loadCharacter(
 /** What a resident is doing, which picks the animation a Figure plays. */
 export type Action = 'walk' | 'idle' | 'work' | 'fight' | 'fallen' | 'carry';
 
-/**
- * The fight animation for a resident's weapon grip (null: unarmed). Art can add
- * `fight_pistol`, `fight_longgun`, `fight_heavy`, `fight_melee` and
- * `fight_unarmed` to a sprite.json and they are picked up here with no code
- * change; until then guns use the generic `fight` sheet (which holds a
- * shotgun), and the unarmed stand idle rather than borrow that gun.
- */
 /** How a resident holds their weapon (a weapon missing from content counts as a pistol), or null when unarmed. */
 export function weaponGrip(content: Content, res: Resident): WeaponGrip | null {
   if (!res.weapon) return null;
@@ -571,13 +564,19 @@ export function weaponGrip(content: Content, res: Resident): WeaponGrip | null {
  */
 const TOOL_INCIDENTS: Record<string, string> = { fire: 'fight_extinguish', cavein: 'fight_repair', flood: 'fight_repair', surge: 'fight_repair' };
 
+/**
+ * The fight animation for an incident: a tool sheet for fires and repairs, else
+ * the sheet for the resident's weapon grip (`fight_pistol`, `fight_longgun`,
+ * `fight_heavy`, `fight_melee`, `fight_unarmed` when unarmed). Every body has all
+ * of them; art without one stands idle rather than borrow another grip's weapon.
+ */
 export function fightAnim(fig: { has(anim: string): boolean }, grip: WeaponGrip | null, incident?: string): string {
   const tool = incident ? TOOL_INCIDENTS[incident] : undefined;
   // Never a gun against a fire: the tool's sheet, else the work pose.
   if (tool) return fig.has(tool) ? tool : fig.has('work') ? 'work' : 'idle';
   if (!grip) return fig.has('fight_unarmed') ? 'fight_unarmed' : 'idle';
   const own = `fight_${grip}`;
-  return fig.has(own) ? own : 'fight';
+  return fig.has(own) ? own : 'idle';
 }
 
 /**

@@ -1500,7 +1500,7 @@ export class UI {
     });
     for (let i = crew.length; i < cap; i++) slots.push(h('div', { class: 'crew-slot empty', 'aria-label': 'Empty slot' }, h('span', { class: 'muted small' }, 'Empty slot')));
     const out: HTMLElement[] = [h('h3', { class: 'group crew-head' }, `${def.category === 'door' ? 'Guards' : 'Crew'} ${crew.length}/${cap}`), h('div', { class: 'crew-grid' }, ...slots)];
-    if (crew.length < cap) out.push(h('div', { class: 'muted small' }, 'Drag residents here, or pick one in Residents and tap this room.'));
+    if (crew.length < cap) out.push(h('div', { class: 'muted small' }, 'Drag residents here to put them to work.'));
     return out;
   }
 
@@ -2646,7 +2646,7 @@ export class UI {
   }
 
   private showExploreModal(residentId: number | null): void {
-    const { state, content } = this.game;
+    const { state } = this.game;
     // Default to the best-armed healthy resident; the injured only if nobody else can go.
     const ranked = this.explorerCandidates();
     const healthy = ranked.find((r) => r.hp >= effectiveMaxHp(r) * 0.5);

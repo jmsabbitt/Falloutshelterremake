@@ -83,7 +83,7 @@ export interface SlideDef {
 }
 
 export interface EndingsContent {
-  tuning: { finaleQuest: string; reviewQuest: string; caps: Record<string, number> };
+  tuning: { reviewQuest: string; caps: Record<string, number> };
   endings: EndingDef[];
   slides: SlideDef[];
   credits: { heading: string; lines: string[] }[];

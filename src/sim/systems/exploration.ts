@@ -466,7 +466,7 @@ function randomFindable(state: GameState, content: Content, kind: 'weapon' | 'ou
  * M9 item find: sometimes a region exclusive instead of the usual find, and
  * separately a rare chance of a treasure map (revealed when they get home).
  */
-function itemFind(state: GameState, content: Content, e: Expedition, r: Resident, region: RegionDef): void {
+function itemFind(state: GameState, content: Content, e: Expedition, r: Resident): void {
   const exclusive = rollRegionExclusive(state, content, e);
   if (exclusive) giveItem(state, content, e, r, exclusive);
   else findItem(state, content, e, r);
@@ -622,7 +622,7 @@ function doScripFind(state: GameState, content: Content, e: Expedition, r: Resid
 
 function fire(state: GameState, content: Content, e: Expedition, r: Resident, region: RegionDef, key: EventTimer): void {
   switch (key) {
-    case 'item': return itemFind(state, content, e, r, region);
+    case 'item': return itemFind(state, content, e, r);
     case 'salvage': return doSalvageEvent(state, content, e, r, region);
     case 'encounter': {
       // M9: with a map to this region, an encounter may be the dig instead.

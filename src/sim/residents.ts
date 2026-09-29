@@ -73,10 +73,6 @@ export function fleesIncidents(state: GameState, r: Resident): boolean {
   return r.pregnancy !== null || isChild(state, r);
 }
 
-export function canWork(state: GameState, r: Resident): boolean {
-  return !r.dead && !r.waiting && !isAway(r) && !isChild(state, r);
-}
-
 function ancestors(state: GameState, r: Resident, depth: number): Set<number> {
   const out = new Set<number>();
   let frontier = [r];
