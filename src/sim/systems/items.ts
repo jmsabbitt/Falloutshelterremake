@@ -3,7 +3,7 @@
 
 import type { Content, ItemDef } from '../content';
 import { addScrip, storageCapacity } from '../economy';
-import { bump, effectiveMaxHp } from '../residents';
+import { bump, effectiveMaxHp, isAway } from '../residents';
 import { pick } from '../rng';
 import type { GameState, Rarity, Resident } from '../types';
 
@@ -60,6 +60,28 @@ export function equip(state: GameState, content: Content, resident: Resident, it
   resident.hp = Math.min(resident.hp, effectiveMaxHp(resident));
   bump(state, 'equips');
   return null;
+}
+
+/**
+ * Take gear off everyone at home (or just `residentIds`) into storage, for a
+ * respec. Residents away keep theirs; once storage is full the rest stay on.
+ */
+export function unequipAll(state: GameState, content: Content, slot: 'weapon' | 'outfit' | 'all', residentIds?: number[]): { removed: number; kept: number } {
+  const only = residentIds ? new Set(residentIds) : null;
+  const slots: ('weapon' | 'outfit')[] = slot === 'all' ? ['weapon', 'outfit'] : [slot];
+  let removed = 0;
+  let kept = 0;
+  for (const r of state.residents) {
+    if (r.dead || r.waiting || isAway(r)) continue;
+    if (only && !only.has(r.id)) continue;
+    for (const s of slots) {
+      if (!r[s]) continue;
+      if (unequip(state, content, r, s)) kept++;
+      else removed++;
+    }
+  }
+  if (removed) bump(state, 'unequips', removed);
+  return { removed, kept };
 }
 
 export function unequip(state: GameState, content: Content, resident: Resident, slot: 'weapon' | 'outfit'): string | null {

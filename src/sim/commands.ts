@@ -7,7 +7,7 @@ import { addScrip, buildCost, moveCost, population, refreshUnlocks, resourceCapa
 import { canMove, canPlace, connectedRoomIds, mergeFloor, roomDef } from './grid';
 import { bump, effectiveMaxHp, effectiveStat, isAway, isChild, residentsInRoom, reviveCost } from './residents';
 import { claimDaily, openCrate, settle } from './systems/crates';
-import { equip, grantItem, sell, unequip } from './systems/items';
+import { equip, grantItem, sell, unequip, unequipAll } from './systems/items';
 import { collectExpedition, onResidentRevived, recallExpedition, startExpedition } from './systems/exploration';
 import { useFizz } from './systems/fizz';
 import { cancelCraft, collectCraft, reforge, scrapItem, startCraft } from './systems/crafting';
@@ -45,6 +45,8 @@ export type Command =
   | { type: 'purge'; residentId: number }
   | { type: 'equip'; residentId: number; itemId: number }
   | { type: 'unequip'; residentId: number; slot: 'weapon' | 'outfit' }
+  /** Respec: take weapons, outfits or both off everyone at home (or the listed residents) into storage. */
+  | { type: 'unequipAll'; slot: 'weapon' | 'outfit' | 'all'; residentIds?: number[] }
   | { type: 'sell'; itemId: number }
   | { type: 'openCrate'; tier: CrateTier }
   | { type: 'claimDaily'; day: number }
@@ -424,6 +426,13 @@ function dispatch(state: GameState, content: Content, cmd: Command): CommandResu
       if (isAway(res)) return fail('they are away from the homestead');
       const err = unequip(state, content, res, cmd.slot);
       return err ? fail(err) : { ok: true };
+    }
+
+    case 'unequipAll': {
+      if (cmd.slot !== 'weapon' && cmd.slot !== 'outfit' && cmd.slot !== 'all') return fail('bad slot');
+      const { removed, kept } = unequipAll(state, content, cmd.slot, Array.isArray(cmd.residentIds) ? cmd.residentIds : undefined);
+      if (!removed) return fail(kept ? 'storage is full' : 'nobody at home has any to take off');
+      return { ok: true, detail: `${removed} to storage${kept ? `; storage filled up, ${kept} still worn` : ''}` };
     }
 
     case 'sell': {

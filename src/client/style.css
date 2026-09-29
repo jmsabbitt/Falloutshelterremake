@@ -1679,3 +1679,7 @@ h3.group.menu-head { font-family: var(--display); font-weight: 400; font-size: 1
   border-image-repeat: stretch;
 }
 @media (max-width: 640px) { .panel:not(.sheet-bar) { border-image-width: 13px; border-image-outset: 6px; } }
+
+/* Storage: unequip everyone's weapons or outfits for a respec. */
+.storage-respec { justify-content: flex-start; flex-wrap: wrap; gap: 6px; margin: 6px 0 2px; }
+.storage-respec button { min-height: 36px; padding: 4px 10px; font-size: 13px; }

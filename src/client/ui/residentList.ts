@@ -576,6 +576,7 @@ export class ResidentList {
         h('button', { class: 'primary', disabled: !n, onclick: () => this.showRoomPicker() }, 'Assign to…'),
         h('button', { disabled: !n, onclick: () => this.unassign() }, 'Unassign'),
         h('button', { disabled: !n, onclick: () => this.healAll() }, '✚ Heal'),
+        h('button', { disabled: !n, title: 'Take their weapons and outfits off, into storage', onclick: () => this.stripPicked() }, 'Unequip'),
       ),
     );
   }
@@ -627,6 +628,14 @@ export class ResidentList {
       if (this.game.run({ type: 'assign', residentId: r.id, roomId: null }).ok) n++;
     }
     this.host.toast(n ? `${plural(n, 'resident')} taken off the job.` : 'Nobody picked has a job to leave.', n ? 'good' : undefined);
+    this.host.refresh();
+  }
+
+  /** Take gear off everyone picked (weapons and outfits) into storage. */
+  private stripPicked(): void {
+    const ids = this.pickedResidents().map((r) => r.id);
+    const res = this.game.run({ type: 'unequipAll', slot: 'all', residentIds: ids });
+    this.host.toast(res.ok ? `Gear off: ${res.detail}.` : res.reason === 'nobody at home has any to take off' ? 'Nobody picked is wearing anything to take off.' : res.reason, res.ok ? 'good' : 'bad');
     this.host.refresh();
   }
 

@@ -1970,9 +1970,43 @@ export class UI {
     return [
       head,
       filter,
+      this.respecRow(),
       h('p', { class: 'muted small storage-hint' }, 'Tap an item to sell or scrap one; Equip… picks who gets it.'),
       ...(rows.length ? rows : [empty]),
     ];
+  }
+
+  /**
+   * Respec: take every weapon, every outfit or both off everyone at home, into
+   * storage, then hand them out again with Equip… (best fit first).
+   */
+  private respecRow(): HTMLElement {
+    const { state, content } = this.game;
+    const home = state.residents.filter((r) => !r.dead && !r.waiting && !isAway(r));
+    const weapons = home.filter((r) => r.weapon).length;
+    const outfits = home.filter((r) => r.outfit).length;
+    const free = Math.max(0, itemCapacity(state, content) - state.items.length);
+    const run = (slot: 'weapon' | 'outfit' | 'all', n: number, what: string) =>
+      ask(
+        {
+          title: `Unequip all ${what}?`,
+          text: `${n} item${n === 1 ? '' : 's'} go back to storage (${free} space${free === 1 ? '' : 's'} free${n > free ? ': the rest stay on' : ''}). Residents who are away keep theirs. Then use Equip… to hand them out again, best fit first.`,
+          ok: 'Unequip',
+        },
+        () => {
+          const res = this.game.run({ type: 'unequipAll', slot });
+          this.toast(res.ok ? `Unequipped: ${res.detail}.` : res.reason, res.ok ? 'good' : 'bad');
+          this.renderPanel(true);
+        },
+      );
+    return h(
+      'div',
+      { class: 'row storage-respec' },
+      h('span', { class: 'muted small' }, 'Unequip all:'),
+      h('button', { class: 'close', disabled: !weapons || !free, onclick: () => run('weapon', weapons, 'weapons') }, `Weapons (${weapons})`),
+      h('button', { class: 'close', disabled: !outfits || !free, onclick: () => run('outfit', outfits, 'outfits') }, `Outfits (${outfits})`),
+      h('button', { class: 'close', disabled: !(weapons + outfits) || !free, onclick: () => run('all', weapons + outfits, 'gear') }, 'Both'),
+    );
   }
 
   /** M9: "Rare find" for loot-only items (and where), plus the item's flavour line. */
