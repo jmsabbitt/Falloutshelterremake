@@ -443,9 +443,9 @@ describe('mastery', () => {
     expect(b.mastery.generator).toBeCloseTo(tuning.masteryPerCollect!, 5);
   });
 
-  it('reaches Journeyman within a few hours of steady work', () => {
-    expect(JOURNEYMAN).toBeLessThanOrEqual(4 * HOUR);
-    expect(MASTER).toBeLessThanOrEqual(12 * HOUR);
+  it('reaches Journeyman in 8 hours of work and Master in 24', () => {
+    expect(JOURNEYMAN).toBe(8 * HOUR);
+    expect(MASTER).toBe(24 * HOUR);
   });
 
   it('accrues offline, and a 60 s step matches sixty 1 s steps', () => {

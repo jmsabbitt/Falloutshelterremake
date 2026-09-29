@@ -43,7 +43,7 @@ export interface ResidentListHost {
 }
 
 /** Row pitch in px: the row's height plus its gap. Keep in step with .rl-row in style.css. */
-const PITCH = 60;
+const PITCH = 80;
 /** Extra rows built above and below the visible window. */
 const OVERSCAN = 6;
 /** Space kept under the open card before the next row. */
@@ -78,7 +78,13 @@ interface RowInfo {
   child: boolean;
   away: boolean;
   maxHp: number;
+  /** The stat their room works with (or trains), for the stat strip. */
+  jobStat?: StatKey;
+  training: boolean;
 }
+
+/** One letter per stat for the row strip: B S G C W K F. */
+const STAT_LETTER: Record<StatKey, string> = { brawn: 'B', sight: 'S', grit: 'G', charm: 'C', wits: 'W', knack: 'K', fortune: 'F' };
 
 export class ResidentList {
   sort: SortKey = 'level';
@@ -142,7 +148,8 @@ export class ResidentList {
       const name = room ? roomName(content, room) : '';
       const where = away ? (r.quest !== null ? '⚔ Quest' : r.dead ? '☠ Fallen outside' : '🧭 Glarelands') : r.dead ? '☠ Fallen' : child ? (name ? `Child · ${name}` : 'Child') : name || 'Idle';
       const roomKey = room && !away ? `0${name}|${String(room.floor).padStart(3, '0')}|${String(room.x).padStart(3, '0')}` : away ? '2' : r.dead ? '3' : '1';
-      out.push({ r, where, roomKey, child, away, maxHp: effectiveMaxHp(r) });
+      const def = room ? roomDef(content, room) : undefined;
+      out.push({ r, where, roomKey, child, away, maxHp: effectiveMaxHp(r), jobStat: (def?.stat as StatKey | undefined) ?? undefined, training: def?.category === 'training' });
     }
     return out;
   }
@@ -494,10 +501,42 @@ export class ResidentList {
           tags ? h('span', { class: 'rl-tags' }, tags) : null,
         ),
         h('span', { class: 'rl-sub' }, this.host.traitTag?.(r) ?? null, sub),
+        this.statStrip(x),
       ),
       h('b', { class: 'rl-value' }, value),
       h('span', { class: 'rl-hp' }, h('span', { class: 'hp', style: `width:${hpPct}%` }), h('span', { class: 'taint', style: `width:${taintPct}%` })),
     );
+  }
+
+  /**
+   * Every stat at a glance: the one their room works with outlined green, their
+   * best in gold, and a "better at" hint when their job uses a much weaker stat.
+   */
+  private statStrip(x: RowInfo): HTMLElement {
+    const { content } = this.game;
+    const r = x.r;
+    const vals = STAT_KEYS.map((k) => [k, effectiveStat(content, r, k)] as const);
+    const max = Math.max(...vals.map(([, v]) => v));
+    const best = vals.filter(([, v]) => v === max).map(([k]) => k);
+    const cells = vals.map(([k, v]) =>
+      h(
+        'span',
+        {
+          class: `rl-stat${k === x.jobStat ? (x.training ? ' train' : ' job') : ''}${v === max ? ' best' : ''}${k === this.sort ? ' sorted' : ''}`,
+          title: `${STAT_FULL[k]} ${v}${k === x.jobStat ? (x.training ? ' (training)' : ' (their job)') : ''}`,
+        },
+        h('i', {}, STAT_LETTER[k]),
+        String(v),
+      ),
+    );
+    let hint: HTMLElement | null = null;
+    const job = x.jobStat && !x.training ? effectiveStat(content, r, x.jobStat) : null;
+    const top = best[0];
+    if (!r.dead && !x.child && top) {
+      if (job !== null && job <= max - 3 && !best.includes(x.jobStat as StatKey)) hint = h('span', { class: 'rl-better', title: `Their job uses ${STAT_FULL[x.jobStat as StatKey]} ${job}; their best is ${STAT_FULL[top]} ${max}` }, `⇄ ${STAT_FULL[top]}`);
+      else if (!x.away && r.roomId === null) hint = h('span', { class: 'rl-better idle', title: `Idle: best at ${best.map((k) => STAT_FULL[k]).join(', ')}` }, `→ ${STAT_FULL[top]}`);
+    }
+    return h('span', { class: 'rl-stats' }, ...cells, hint);
   }
 
   // ---------------------------------------------------------------- bulk
