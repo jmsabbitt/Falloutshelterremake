@@ -66,9 +66,9 @@
         setTimeout(function () {
           if (!window.__homesteadBooted) show('The game has not finished starting after 20 s (stuck while loading).');
         }, 20000);
-        // The boot screen leaves once the game is up (and the painted UI has had a moment to load).
+        // The boot screen leaves once the game is up and its art is in (main.ts caps the wait at 8 s).
         var splashWait = setInterval(function () {
-          if (!window.__homesteadBooted) return;
+          if (!window.__homesteadBooted || !window.__homesteadArtReady) return;
           clearInterval(splashWait);
           var s = document.getElementById('boot-splash');
           if (!s) return;

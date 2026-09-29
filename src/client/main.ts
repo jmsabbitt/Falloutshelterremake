@@ -19,9 +19,16 @@ import './style.css';
 /** M8: the PWA's offline cache (the native app ships its files, so it doesn't need one). */
 function registerServiceWorker(): void {
   if (!import.meta.env.PROD || isNative() || !('serviceWorker' in navigator)) return;
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js').catch((err) => console.warn('Service worker not registered:', err));
-  });
+  // The offline copy (~20 MB) downloads only after the game's own art is in, so the
+  // two don't compete for the connection on a first visit.
+  const register = () => navigator.serviceWorker.register('./sw.js').catch((err) => console.warn('Service worker not registered:', err));
+  const w = window as unknown as { __homesteadArtReady?: boolean };
+  const start = Date.now();
+  const wait = window.setInterval(() => {
+    if (!w.__homesteadArtReady && Date.now() - start < 20000) return;
+    window.clearInterval(wait);
+    window.setTimeout(register, 4000);
+  }, 250);
 }
 
 async function boot(): Promise<void> {
@@ -76,10 +83,19 @@ async function boot(): Promise<void> {
   game.onReplace(() => view.resync());
   (window as unknown as { __homesteadBooted?: boolean }).__homesteadBooted = true;
   // Sprite art streams in after first paint; until then (or without it) residents use drawn placeholders.
-  void CharacterArt.load().then((art) => {
+  // Only this homestead's room paintings load now (at their level and width); the rest
+  // load when a room is built, merged or upgraded. The boot screen waits for them and
+  // the residents' core sheets (up to 8 s), so the drawn stand-ins never flash by.
+  const wantRooms = game.state.rooms.flatMap((r) => [`${r.type}:${r.level}`, ...(r.segments > 1 ? [`${r.type}:${r.level}w${r.segments}`] : [])]);
+  const artReady = () => ((window as unknown as { __homesteadArtReady?: boolean }).__homesteadArtReady = true);
+  window.setTimeout(artReady, 8000);
+  void CharacterArt.load(undefined, wantRooms).then(async (art) => {
     view.setArt(art);
     questView.setArt(art);
-  });
+    await art?.charactersReady;
+    // One frame to draw with everything in, then the boot screen can go.
+    requestAnimationFrame(() => requestAnimationFrame(artReady));
+  }, artReady);
   const cost = { n: 0, sim: 0, view: 0, ui: 0 };
   (window as unknown as Record<string, unknown>).homesteadView = {
     /** Screen position of a room's centre; for automated UI tests. */

@@ -70,6 +70,31 @@ export interface Character {
   /** Set on a legend's bespoke body (the legends.json id); never a body type's default. */
   legend?: string;
   anims: Record<string, Anim>;
+  /** Animations in the manifest not loaded yet (fight sheets, fallen, carry): they load the first time they're played. */
+  pending?: Record<string, AnimManifest>;
+  /** Where the pending strips live. */
+  base?: string;
+}
+
+/** Loaded with a body at start-up; every other animation waits until it is first played. */
+const CORE_ANIMS = new Set(['walk', 'idle', 'work']);
+const animLoads = new WeakMap<Character, Set<string>>();
+
+/** Start loading a pending animation (once); it shows from the next frame it's asked for. */
+function requestAnim(c: Character, name: string): void {
+  const a = c.pending?.[name];
+  if (!a || !c.base) return;
+  let busy = animLoads.get(c);
+  if (!busy) animLoads.set(c, (busy = new Set()));
+  if (busy.has(name)) return;
+  busy.add(name);
+  void loadAnim(c.base, a, c.layers).then(
+    (anim) => {
+      c.anims[name] = anim;
+      if (c.pending) delete c.pending[name];
+    },
+    (err) => console.warn(`sprites: could not load ${c.id} ${name}`, err),
+  );
 }
 
 const hex = (s: string) => parseInt(s.replace('#', ''), 16);
@@ -198,6 +223,14 @@ export class CharacterArt {
   }
 
   private wideLoaded = 0;
+  /** Resolves when the resident bodies (their core sheets) are in. */
+  charactersReady: Promise<void> = Promise.resolve();
+
+  /** Incident creatures arriving after the first screen. */
+  addCreatures(list: Creature[]): void {
+    for (const c of list) this.byLook.set(c.id, c);
+    if (list.length) this.lazyLoaded++;
+  }
 
   /** Resident bodies arriving after the rooms: the first per body type becomes its default. */
   addCharacters(list: Character[]): void {
@@ -213,20 +246,34 @@ export class CharacterArt {
     return this.wideLoaded;
   }
 
-  /** Load merged-room paintings a few at a time, after everything the first screen needs. */
-  loadWide(files: [string, string][]): void {
-    const queue = [...files];
-    const next = async (): Promise<void> => {
-      const job = queue.shift();
-      if (!job) return;
-      const t = await loadImage(this.base, job[1]);
-      if (t) {
-        this.rooms.set(job[0], t);
+  /** Room paintings not loaded yet ("generator:2", "quarters:1w3"): each loads the first time a room needs it. */
+  private roomFiles = new Map<string, string>();
+  private roomLoading = new Set<string>();
+
+  setRoomFiles(files: Map<string, string>): void {
+    this.roomFiles = files;
+  }
+
+  /** Is there a painting for this key, loaded or not? */
+  private hasRoomArt(key: string): boolean {
+    return this.rooms.has(key) || this.roomFiles.has(key);
+  }
+
+  /** The painting for a key if loaded; otherwise start loading it (the vault rebuilds when it lands). */
+  private roomTexture(key: string): Texture | undefined {
+    const t = this.rooms.get(key);
+    if (t) return t;
+    const file = this.roomFiles.get(key);
+    if (file && !this.roomLoading.has(key)) {
+      this.roomLoading.add(key);
+      void loadImage(this.base, file).then((tex) => {
+        if (!tex) return;
+        this.rooms.set(key, tex);
+        this.roomFiles.delete(key);
         this.wideLoaded++;
-      }
-      return next();
-    };
-    for (let i = 0; i < 4; i++) void next();
+      });
+    }
+    return undefined;
   }
 
   /**
@@ -263,7 +310,7 @@ export class CharacterArt {
 
   /** A room piece stored with the room walls: "elevator:shaft", "elevator:car", "frame:frame", "frame:deep", "frame:deep_braced". */
   roomPiece(type: string, name: string): Texture | undefined {
-    return this.rooms.get(`${type}:${name}`);
+    return this.roomTexture(`${type}:${name}`);
   }
 
   /** Start loading creature art in the background (for a quest that is about to be shown). */
@@ -329,9 +376,17 @@ export class CharacterArt {
 
   /** A room's back-wall art at a level (falling back to a lower level's), or undefined to draw it. */
   roomWall(type: string, level: number): Texture | undefined {
+    // The painting for this level if there is one (loading it if need be), else the nearest lower level.
     for (let l = level; l >= 1; l--) {
-      const t = this.rooms.get(`${type}:${l}`);
+      if (!this.hasRoomArt(`${type}:${l}`)) continue;
+      const t = this.roomTexture(`${type}:${l}`);
       if (t) return t;
+      // Still loading: a lower level that is already in stands in.
+      for (let k = l - 1; k >= 1; k--) {
+        const lower = this.rooms.get(`${type}:${k}`);
+        if (lower) return lower;
+      }
+      return undefined;
     }
     return undefined;
   }
@@ -344,8 +399,9 @@ export class CharacterArt {
   roomWallWide(type: string, level: number, segments: number): Texture | undefined {
     if (segments < 2) return undefined;
     for (let l = level; l >= 1; l--) {
-      const t = this.rooms.get(`${type}:${l}w${segments}`);
-      if (t) return t;
+      const key = `${type}:${l}w${segments}`;
+      if (!this.hasRoomArt(key)) continue;
+      return this.roomTexture(key);
     }
     return undefined;
   }
@@ -370,7 +426,12 @@ export class CharacterArt {
   }
 
   /** Load the manifest and every strip; resolves to null when there is no art. */
-  static async load(base = 'sprites/'): Promise<CharacterArt | null> {
+  /**
+   * `wantRooms`: the room paintings the homestead shows now ("generator:2",
+   * "quarters:1w3"); they load up front with the door, elevator and frames.
+   * Every other room painting loads the first time a room needs it.
+   */
+  static async load(base = 'sprites/', wantRooms: Iterable<string> = []): Promise<CharacterArt | null> {
     let manifest: Manifest;
     try {
       const resp = await fetch(`${base}manifest.json`);
@@ -387,7 +448,7 @@ export class CharacterArt {
     const all = manifest.creatures ?? {};
     const eager = Object.entries(all).filter(([id]) => EAGER_CREATURES.has(id));
     const lazy = Object.fromEntries(Object.entries(all).filter(([id]) => !EAGER_CREATURES.has(id)));
-    const loadingCreatures = Promise.all(eager.map(([id, c]) => loadCreature(base, id, c)));
+    const loadCreatures = () => Promise.all(eager.map(([id, c]) => loadCreature(base, id, c)));
     const rooms = new Map<string, Texture>();
     const images = new Map<string, Texture>();
     const pendingImages = new Map<string, string>();
@@ -397,9 +458,11 @@ export class CharacterArt {
         if (id === 'backdrop' ? !EAGER_BACKDROPS.has(name) : LAZY_IMAGES.has(id) && !(EAGER_IMAGES[id] ?? []).includes(name)) pendingImages.set(`${id}:${name}`, file);
       }
     }
-    // Merged-room paintings ("1w2", "3w3": about half of all room art) follow once the
-    // homestead is up; until then merged rooms tile their single wall.
-    const wide: [string, string][] = [];
+    // Only the paintings on screen load now: the door, elevator and frames, and the
+    // walls of the rooms this homestead has (at their level and width).
+    const want = new Set(wantRooms);
+    const always = new Set(['door', 'elevator', 'frame']);
+    const later = new Map<string, string>();
     await Promise.all([
       ...Object.entries(portraits)
         .filter(([id]) => id.startsWith('room_') || id === 'backdrop')
@@ -407,8 +470,12 @@ export class CharacterArt {
           Object.entries(files)
             .filter(([level]) => id !== 'backdrop' || EAGER_BACKDROPS.has(level))
             .filter(([level, file]) => {
-              if (id === 'backdrop' || !/w\d$/.test(level)) return true;
-              wide.push([`${id.slice(5)}:${level}`, file]);
+              if (id === 'backdrop') return true;
+              const type = id.slice(5);
+              const key = `${type}:${level}`;
+              if (always.has(type) && level !== 'rotor') return true;
+              if (want.has(key)) return true;
+              later.set(key, file);
               return false;
             })
             .map(async ([level, file]) => {
@@ -426,19 +493,17 @@ export class CharacterArt {
           }),
       ),
     ]);
-    const creatures = (await loadingCreatures).filter((c): c is Creature => c !== null);
     // Legend bodies load the first time their legend is drawn (see forResident).
     const legends = manifest.legends ?? {};
     const hasCharacters = Object.keys(manifest.characters ?? {}).length > 0;
-    if (!(hasCharacters || creatures.length || rooms.size || Object.keys(lazy).length || Object.keys(legends).length)) return null;
-    // The rooms and backdrops show as soon as they're in; the resident sheets (well over
-    // a hundred strips) follow, and residents redress when they land (bodyVersion).
-    const art = new CharacterArt([], creatures, rooms, lazy, legends, base, { loaded: images, pending: pendingImages });
-    void loadingCharacters.then((loaded) => {
-      art.addCharacters(loaded.filter((c): c is Character => c !== null));
-      // Merged-room paintings wait for the residents, so they don't compete for the connection.
-      art.loadWide(wide);
-    });
+    if (!(hasCharacters || eager.length || rooms.size || Object.keys(lazy).length || Object.keys(legends).length)) return null;
+    // The rooms and backdrops show as soon as they're in; the resident sheets follow, and
+    // residents redress when they land (bodyVersion). Incident creatures don't hold up the
+    // first screen: until theirs are in, an incident draws its stand-in.
+    const art = new CharacterArt([], [], rooms, lazy, legends, base, { loaded: images, pending: pendingImages });
+    art.setRoomFiles(later);
+    art.charactersReady = loadingCharacters.then((loaded) => art.addCharacters(loaded.filter((c): c is Character => c !== null)));
+    void art.charactersReady.then(loadCreatures).then((list) => art.addCreatures(list.filter((c): c is Creature => c !== null)));
     return art;
   }
 }
@@ -471,8 +536,13 @@ async function loadCharacter(
 ): Promise<Character | null> {
   try {
     const anims: Record<string, Anim> = {};
-    await Promise.all(Object.entries(c.anims).map(async ([name, a]) => (anims[name] = await loadAnim(base, a, layers))));
-    return { id, sex: c.sex, refHeight: c.refHeight, layers, ...(legend ? { legend } : {}), anims };
+    const pending: Record<string, AnimManifest> = {};
+    const entries = Object.entries(c.anims);
+    // A body with none of the core sheets loads everything up front.
+    const core = entries.some(([name]) => CORE_ANIMS.has(name)) ? entries.filter(([name]) => CORE_ANIMS.has(name)) : entries;
+    for (const [name, a] of entries) if (!core.some(([n]) => n === name)) pending[name] = a;
+    await Promise.all(core.map(async ([name, a]) => (anims[name] = await loadAnim(base, a, layers))));
+    return { id, sex: c.sex, refHeight: c.refHeight, layers, ...(legend ? { legend } : {}), anims, pending, base };
   } catch (err) {
     console.warn(`sprites: could not load ${id}`, err);
     return null;
@@ -560,7 +630,8 @@ export class Figure extends Container {
 
   /** True if the character has its own art for an action or named animation (no fallback needed). */
   has(anim: Action | string): boolean {
-    return !!this.character.anims[anim];
+    // Art that exists but hasn't loaded yet still counts: play() loads it and stands in meanwhile.
+    return !!this.character.anims[anim] || !!this.character.pending?.[anim];
   }
 
   /** Tint the layers; a painted "full" layer (a legend's own body) stays as drawn. */
@@ -580,6 +651,9 @@ export class Figure extends Container {
     const { anims } = this.character;
     const chain = FALLBACK[action as Action] ?? [action, 'idle', 'walk'];
     const name = chain.find((n) => anims[n]) ?? Object.keys(anims)[0]!;
+    // The wanted sheet exists but isn't loaded: fetch it; the fallback shows until it lands.
+    const want = chain.find((n) => anims[n] || this.character.pending?.[n]);
+    if (want && !anims[want]) requestAnim(this.character, want);
     if (action !== this.action) {
       this.action = action;
       this.startedAt = time;
