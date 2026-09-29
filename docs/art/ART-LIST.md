@@ -515,3 +515,11 @@ These are wired and showing now, but need a new generation before any public rel
 | `ui_icons` `fizz`, `crates` `legendary`, the ribbon's left tail | A magenta fringe around the edges | Re-key, or regenerate with a thin dark outline so the magenta trims cleanly. |
 | `ui_icons` `skeleton_crew` | Hard to read at icon size | A single empty hard hat on a hook. |
 | `ui_icons` `inc_surge` | The figure is too small in its frame | The same bolt, filling the frame. |
+| `fx_fire` | 7 frames, not 8. Stray flame bits at the top edge of some frames. | Regenerate with 8 clean frames. |
+| `room_wind_turbine_rotor`; `room_wind_turbine` `1w3` and `3w3` | The rotor has a magenta fringe (and is unused, because every turbine painting has its rotors painted in). `1w3` cuts a turbine off at the image edge; `3w3` has a floating fragment. | Fix `1w3` and `3w3`. The rotor can be dropped. |
+| `dig_drill` | A purple smear in frame 2. | Clean up frame 2. |
+| `room_frame` `frame`, `deep_braced` | A pink sliver at the right edge of the cut-out, and a pink dot at the left edge. The borders are very thick (about ¼ of the width), so the game squashes them hard. | Re-key, and paint thinner borders (about 1/10 of the width). |
+| `backdrop` `bulkhead` | Blurred, ghosted chevron patches. | Regenerate. |
+| `backdrop` `stratum1`, `stratum2` | Bright, busy, and repeating as an obvious grid of pipes. The game dims them in code. | Dark, low-contrast rock like `dirt`, with any pipes rare and irregular. |
+| `room_elevator` `car` | About 1:1.25, taller than the 1 cell × 0.7 floor asked for. The game stretches it about 1.2×. | Repaint at 1 : 0.7. |
+| `fx_door_damage` `1` | Pale blue steel, while `2` and `3` are green-grey. All three are opaque plates, not overlays. | Paint as dents, scorch marks and cracks on a transparent (magenta) background, in one colour family. |
