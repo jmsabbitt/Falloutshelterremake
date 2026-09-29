@@ -348,6 +348,8 @@ export class VaultView {
   private incTrack = new Map<number, IncidentTrack>();
 
   private builtLayout = -1;
+  private builtRooms = 0;
+  private roomsAt = -10;
   private sprites = new Map<number, ResidentSprite>();
   /** Elevator shafts residents ride between floors, and the layout they were found for. */
   private shafts: Shaft[] = [];
@@ -1452,7 +1454,12 @@ export class VaultView {
       this.drawBackground();
       this.rebuildStatics();
       this.clampCamera();
-    } else if (this.builtLayout !== this.game.layoutVersion) this.rebuildStatics();
+    } else if (this.builtLayout !== this.game.layoutVersion || (this.art && this.builtRooms !== this.art.roomsVersion && this.time - this.roomsAt > 1)) {
+      // Merged-room paintings arriving after start-up: rebuild at most once a second.
+      this.roomsAt = this.time;
+      this.builtRooms = this.art?.roomsVersion ?? 0;
+      this.rebuildStatics();
+    }
     this.fitPlates();
     this.updatePops(dt);
     // M6: with up to 45 floors, only rooms near the camera are drawn.

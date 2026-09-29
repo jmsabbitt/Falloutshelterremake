@@ -197,6 +197,38 @@ export class CharacterArt {
     return this.bodiesLoaded;
   }
 
+  private wideLoaded = 0;
+
+  /** Resident bodies arriving after the rooms: the first per body type becomes its default. */
+  addCharacters(list: Character[]): void {
+    for (const c of list) {
+      this.characters.push(c);
+      if (!this.bySex.has(c.sex)) this.bySex.set(c.sex, c);
+    }
+    if (list.length) this.bodiesLoaded++;
+  }
+
+  /** Goes up as merged-room paintings arrive after start-up; the vault rebuilds its rooms when it changes. */
+  get roomsVersion(): number {
+    return this.wideLoaded;
+  }
+
+  /** Load merged-room paintings a few at a time, after everything the first screen needs. */
+  loadWide(files: [string, string][]): void {
+    const queue = [...files];
+    const next = async (): Promise<void> => {
+      const job = queue.shift();
+      if (!job) return;
+      const t = await loadImage(this.base, job[1]);
+      if (t) {
+        this.rooms.set(job[0], t);
+        this.wideLoaded++;
+      }
+      return next();
+    };
+    for (let i = 0; i < 4; i++) void next();
+  }
+
   /**
    * Goes up by one each time a lazily loaded backdrop (a stratum, the bulkhead,
    * the seal) arrives, so the view redraws the rock it paints.
@@ -348,14 +380,14 @@ export class CharacterArt {
       return null;
     }
     // Every strip loads in parallel; a character that fails to load is skipped.
-    const loaded = await Promise.all(Object.entries(manifest.characters ?? {}).map(([id, c]) => loadCharacter(base, id, c, LAYERS)));
-    const characters = loaded.filter((c): c is Character => c !== null);
+    // Characters, the vault's creatures and the rooms all load at once (rooms used to wait for the characters).
+    const loadingCharacters = Promise.all(Object.entries(manifest.characters ?? {}).map(([id, c]) => loadCharacter(base, id, c, LAYERS)));
     // Only the looks the vault itself shows load up front; every other creature
     // (quest enemies and bosses) loads the first time it is asked for.
     const all = manifest.creatures ?? {};
     const eager = Object.entries(all).filter(([id]) => EAGER_CREATURES.has(id));
     const lazy = Object.fromEntries(Object.entries(all).filter(([id]) => !EAGER_CREATURES.has(id)));
-    const creatures = (await Promise.all(eager.map(([id, c]) => loadCreature(base, id, c)))).filter((c): c is Creature => c !== null);
+    const loadingCreatures = Promise.all(eager.map(([id, c]) => loadCreature(base, id, c)));
     const rooms = new Map<string, Texture>();
     const images = new Map<string, Texture>();
     const pendingImages = new Map<string, string>();
@@ -365,12 +397,20 @@ export class CharacterArt {
         if (id === 'backdrop' ? !EAGER_BACKDROPS.has(name) : LAZY_IMAGES.has(id) && !(EAGER_IMAGES[id] ?? []).includes(name)) pendingImages.set(`${id}:${name}`, file);
       }
     }
+    // Merged-room paintings ("1w2", "3w3": about half of all room art) follow once the
+    // homestead is up; until then merged rooms tile their single wall.
+    const wide: [string, string][] = [];
     await Promise.all([
       ...Object.entries(portraits)
         .filter(([id]) => id.startsWith('room_') || id === 'backdrop')
         .flatMap(([id, files]) =>
           Object.entries(files)
             .filter(([level]) => id !== 'backdrop' || EAGER_BACKDROPS.has(level))
+            .filter(([level, file]) => {
+              if (id === 'backdrop' || !/w\d$/.test(level)) return true;
+              wide.push([`${id.slice(5)}:${level}`, file]);
+              return false;
+            })
             .map(async ([level, file]) => {
               // Backdrops tile, so their edges must wrap.
               const t = await loadImage(base, file, id === 'backdrop');
@@ -386,9 +426,20 @@ export class CharacterArt {
           }),
       ),
     ]);
+    const creatures = (await loadingCreatures).filter((c): c is Creature => c !== null);
     // Legend bodies load the first time their legend is drawn (see forResident).
     const legends = manifest.legends ?? {};
-    return characters.length || creatures.length || rooms.size || Object.keys(lazy).length || Object.keys(legends).length ? new CharacterArt(characters, creatures, rooms, lazy, legends, base, { loaded: images, pending: pendingImages }) : null;
+    const hasCharacters = Object.keys(manifest.characters ?? {}).length > 0;
+    if (!(hasCharacters || creatures.length || rooms.size || Object.keys(lazy).length || Object.keys(legends).length)) return null;
+    // The rooms and backdrops show as soon as they're in; the resident sheets (well over
+    // a hundred strips) follow, and residents redress when they land (bodyVersion).
+    const art = new CharacterArt([], creatures, rooms, lazy, legends, base, { loaded: images, pending: pendingImages });
+    void loadingCharacters.then((loaded) => {
+      art.addCharacters(loaded.filter((c): c is Character => c !== null));
+      // Merged-room paintings wait for the residents, so they don't compete for the connection.
+      art.loadWide(wide);
+    });
+    return art;
   }
 }
 
