@@ -2020,7 +2020,7 @@ export class UI {
       h(
         'div',
         { class: 'row storage-respec' },
-        h('span', { class: 'muted small' }, 'Auto-equip best:'),
+        h('span', { class: 'muted small' }, 'Auto-equip:'),
         h('button', { class: 'close primary', disabled: !(weapons + spareW), onclick: () => auto('weapon', 'weapons') }, 'Weapons'),
         h('button', { class: 'close primary', disabled: !(outfits + spareO), onclick: () => auto('outfit', 'outfits') }, 'Outfits'),
         h('button', { class: 'close primary', disabled: !(weapons + outfits + spareW + spareO), onclick: () => auto('all', 'gear') }, 'Both'),
@@ -2028,7 +2028,7 @@ export class UI {
       h(
       'div',
       { class: 'row storage-respec' },
-      h('span', { class: 'muted small' }, 'Unequip all:'),
+      h('span', { class: 'muted small' }, 'Unequip:'),
       h('button', { class: 'close', disabled: !weapons || !free, onclick: () => run('weapon', weapons, 'weapons') }, `Weapons (${weapons})`),
       h('button', { class: 'close', disabled: !outfits || !free, onclick: () => run('outfit', outfits, 'outfits') }, `Outfits (${outfits})`),
       h('button', { class: 'close', disabled: !(weapons + outfits) || !free, onclick: () => run('all', weapons + outfits, 'gear') }, 'Both'),
