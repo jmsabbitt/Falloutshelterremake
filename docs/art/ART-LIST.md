@@ -459,6 +459,7 @@ Updated by the art session as batches land. "Shows up on its own" means the code
 | 2026-09-28 | V7 wide training room walls: the seven training rooms at `w2` and `w3`, levels 1 to 3 (42) | `room_<type>` | Shows up on its own (`roomWall()`) |
 | 2026-09-28 | §2b tool sheets: `fight_extinguish` and `fight_repair` for male and female residents (4), M9 Halcyon Fizz bottle icon (1) | `resident_m`, `resident_f`, `ui_icons` | Needs hookup (animation keys `fight_extinguish`, `fight_repair`; icon `fizz`) |
 | 2026-09-28 | Fixes: quarters level 1 (single, w2, w3) redone with a wood plank floor and a flat rug (the rug read as hanging on the wall); toolbar/UI icons redone clean: `residents`, `goals`, `deep_day_one`, `ruined`, `room`, and `fizz` without an outer glow | `room_quarters`, `ui_icons` | Shows up on its own |
+| 2026-09-28 | Legend tool sheets: `fight_extinguish` and `fight_repair` for all 11 legends (22), same 12-frame template as the resident sheets | `legend_<id>` (all 11) | Needs hookup (animation keys `fight_extinguish`, `fight_repair` per legend) |
 
 Notes on the wide walls: `w2` is generated at 21:9 from the level's single painting, then cropped to 2:1. `w3` is generated at 4:1 from that level's `w2`, then cropped to 3:1. The image tool sometimes leaves a soft, ghosted patch at 4:1; those were repaired with an edit pass or by copying a sharp neighbour, and a few small soft spots remain at the edges of `quarters` level 1 and 2 `w3` and `canteen` level 2 `w3`.
 

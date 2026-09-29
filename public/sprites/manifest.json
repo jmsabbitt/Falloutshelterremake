@@ -4953,6 +4953,32 @@
           "files": {
             "full": "legend_ada_quill/fight_heavy_full.webp"
           }
+        },
+        "fight_extinguish": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 99,
+          "frameH": 137,
+          "anchorX": 0.4002,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_ada_quill/fight_extinguish_full.webp"
+          }
+        },
+        "fight_repair": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 106,
+          "frameH": 134,
+          "anchorX": 0.4501,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_ada_quill/fight_repair_full.webp"
+          }
         }
       }
     },
@@ -5102,6 +5128,32 @@
           "anchorY": 1.0,
           "files": {
             "full": "legend_brother_wick/fight_heavy_full.webp"
+          }
+        },
+        "fight_extinguish": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 110,
+          "frameH": 132,
+          "anchorX": 0.4886,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_brother_wick/fight_extinguish_full.webp"
+          }
+        },
+        "fight_repair": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 99,
+          "frameH": 136,
+          "anchorX": 0.4236,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_brother_wick/fight_repair_full.webp"
           }
         }
       }
@@ -5253,6 +5305,32 @@
           "files": {
             "full": "legend_captain_orla/fight_heavy_full.webp"
           }
+        },
+        "fight_extinguish": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 115,
+          "frameH": 133,
+          "anchorX": 0.4593,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_captain_orla/fight_extinguish_full.webp"
+          }
+        },
+        "fight_repair": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 100,
+          "frameH": 139,
+          "anchorX": 0.4441,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_captain_orla/fight_repair_full.webp"
+          }
         }
       }
     },
@@ -5402,6 +5480,32 @@
           "anchorY": 1.0,
           "files": {
             "full": "legend_doc_ferris/fight_heavy_full.webp"
+          }
+        },
+        "fight_extinguish": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 110,
+          "frameH": 131,
+          "anchorX": 0.4759,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_doc_ferris/fight_extinguish_full.webp"
+          }
+        },
+        "fight_repair": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 105,
+          "frameH": 147,
+          "anchorX": 0.4794,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_doc_ferris/fight_repair_full.webp"
           }
         }
       }
@@ -5553,6 +5657,32 @@
           "files": {
             "full": "legend_granny_ash/fight_heavy_full.webp"
           }
+        },
+        "fight_extinguish": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 112,
+          "frameH": 132,
+          "anchorX": 0.4685,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_granny_ash/fight_extinguish_full.webp"
+          }
+        },
+        "fight_repair": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 98,
+          "frameH": 137,
+          "anchorX": 0.4773,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_granny_ash/fight_repair_full.webp"
+          }
         }
       }
     },
@@ -5702,6 +5832,32 @@
           "anchorY": 1.0,
           "files": {
             "full": "legend_june_halloran/fight_melee_full.webp"
+          }
+        },
+        "fight_extinguish": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 86,
+          "frameH": 131,
+          "anchorX": 0.428,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_june_halloran/fight_extinguish_full.webp"
+          }
+        },
+        "fight_repair": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 110,
+          "frameH": 135,
+          "anchorX": 0.4957,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_june_halloran/fight_repair_full.webp"
           }
         }
       }
@@ -5853,6 +6009,32 @@
           "files": {
             "full": "legend_lucky_lou/fight_longgun_full.webp"
           }
+        },
+        "fight_extinguish": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 108,
+          "frameH": 133,
+          "anchorX": 0.4909,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_lucky_lou/fight_extinguish_full.webp"
+          }
+        },
+        "fight_repair": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 115,
+          "frameH": 133,
+          "anchorX": 0.4908,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_lucky_lou/fight_repair_full.webp"
+          }
         }
       }
     },
@@ -6002,6 +6184,32 @@
           "anchorY": 1.0,
           "files": {
             "full": "legend_marla_voss/fight_heavy_full.webp"
+          }
+        },
+        "fight_extinguish": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 99,
+          "frameH": 132,
+          "anchorX": 0.3902,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_marla_voss/fight_extinguish_full.webp"
+          }
+        },
+        "fight_repair": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 98,
+          "frameH": 132,
+          "anchorX": 0.4636,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_marla_voss/fight_repair_full.webp"
           }
         }
       }
@@ -6153,6 +6361,32 @@
           "files": {
             "full": "legend_pip/fight_longgun_full.webp"
           }
+        },
+        "fight_extinguish": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 94,
+          "frameH": 132,
+          "anchorX": 0.4145,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_pip/fight_extinguish_full.webp"
+          }
+        },
+        "fight_repair": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 95,
+          "frameH": 132,
+          "anchorX": 0.4184,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_pip/fight_repair_full.webp"
+          }
         }
       }
     },
@@ -6303,6 +6537,32 @@
           "files": {
             "full": "legend_rook/fight_heavy_full.webp"
           }
+        },
+        "fight_extinguish": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 109,
+          "frameH": 143,
+          "anchorX": 0.4586,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_rook/fight_extinguish_full.webp"
+          }
+        },
+        "fight_repair": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 103,
+          "frameH": 133,
+          "anchorX": 0.4905,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_rook/fight_repair_full.webp"
+          }
         }
       }
     },
@@ -6452,6 +6712,32 @@
           "anchorY": 1.0,
           "files": {
             "full": "legend_seven/fight_heavy_full.webp"
+          }
+        },
+        "fight_extinguish": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 107,
+          "frameH": 132,
+          "anchorX": 0.489,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_seven/fight_extinguish_full.webp"
+          }
+        },
+        "fight_repair": {
+          "frames": 12,
+          "fps": 10,
+          "loop": true,
+          "idleFrame": 0,
+          "frameW": 102,
+          "frameH": 141,
+          "anchorX": 0.4516,
+          "anchorY": 1.0,
+          "files": {
+            "full": "legend_seven/fight_repair_full.webp"
           }
         }
       }
