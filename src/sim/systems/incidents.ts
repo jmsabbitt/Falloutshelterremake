@@ -547,8 +547,12 @@ function resolve(state: GameState, content: Content, inc: Incident, room: Room):
   let loot = 0;
   if (def.external) {
     // What they stole comes back as it was; the rest is a find, and scales like one.
-    loot = Math.round(inc.stolen) + scripIncome(content, (def.lootBase ?? 0) + (def.lootPerAvgLevel ?? 0) * averageLevel(state));
-    addScrip(state, content, loot);
+    const stolen = Math.round(inc.stolen);
+    const find = scripIncome(content, (def.lootBase ?? 0) + (def.lootPerAvgLevel ?? 0) * averageLevel(state));
+    const before = state.scrip;
+    addScrip(state, content, stolen, { income: false });
+    addScrip(state, content, find);
+    loot = state.scrip - before;
   }
   // M9: the Hollowed leave a last dose of Glare on whoever turned them back.
   if (def.residueTaint) for (const r of defenders(state, room)) addTaint(r, def.residueTaint);
