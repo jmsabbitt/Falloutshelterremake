@@ -133,7 +133,7 @@ describe('boss first kills', () => {
     const s = calm();
     const q1 = fakeQuest(s);
     onBossDefeated(s, content, q1, 'rust_warlord');
-    expect(q1.loot.items).toEqual(['barons_greatcoat']);
+    expect(q1.loot.firstKill).toEqual(['barons_greatcoat']);
     expect(q1.log.some((l) => l.includes("Baron's Greatcoat"))).toBe(true);
     // A second party beating it before the first gets home doesn't double up.
     const q2 = fakeQuest(s);
@@ -172,19 +172,41 @@ describe('boss first kills', () => {
     expect(s.loot.bossKills).toEqual([]);
     const q2 = fakeQuest(s);
     onBossDefeated(s, content, q2, 'kiln_mother');
-    expect(q2.loot.items).toEqual(['bedrock_armor']);
+    expect(q2.loot.firstKill).toEqual(['bedrock_armor']);
   });
 
   it('the first Big Tin kill brings Rook to the door', () => {
     const s = calm();
     const q = fakeQuest(s, 'act2_4');
     onBossDefeated(s, content, q, 'big_tin');
-    expect(q.loot.items).toEqual(['tin_knuckles']);
+    expect(q.loot.firstKill).toEqual(['tin_knuckles']);
     expect(legends(s)).toEqual(['rook']);
     q.outcome = 'success';
     tickLoot(s);
     onBossDefeated(s, content, fakeQuest(s, 'act2_4'), 'big_tin');
     expect(legends(s)).toEqual(['rook']);
+  });
+
+  it('killing a boss and then abandoning pays no first-kill drop and keeps the guarantee', () => {
+    const s = calm();
+    const home = (q: Quest) => Object.assign(q, { status: 'returned', party: [], supplies: { medpatch: 0 } });
+    for (let run = 0; run < 3; run++) {
+      const q = fakeQuest(s, 'act1_3');
+      onBossDefeated(s, content, q, 'rust_tollman');
+      expect(q.loot.firstKill).toEqual(['gamblers_vest']);
+      home(q).outcome = 'abandoned';
+      expect(applyCommand(s, content, { type: 'collectQuest', questId: q.id }).ok).toBe(true);
+    }
+    expect(s.items.filter((i) => i.defId === 'gamblers_vest')).toHaveLength(0);
+    expect(s.loot.bossKills).toEqual([]);
+    // A win pays it, and commits the kill even when collected before the next tick.
+    const q = fakeQuest(s, 'act1_3');
+    onBossDefeated(s, content, q, 'rust_tollman');
+    home(q).outcome = 'success';
+    expect(applyCommand(s, content, { type: 'collectQuest', questId: q.id }).ok).toBe(true);
+    expect(s.items.filter((i) => i.defId === 'gamblers_vest')).toHaveLength(1);
+    expect(s.loot.bossKills).toEqual(['rust_tollman']);
+    expect(s.stats['bossFirstKills']).toBe(1);
   });
 
   it('carries across foundings (bossKills is lifetime)', () => {

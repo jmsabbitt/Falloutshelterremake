@@ -360,7 +360,7 @@ export interface Quest {
   pendingEvent: string | null;
   /** Short narrative lines (event outcomes, finds), newest last. */
   log: string[];
-  loot: ExpeditionLoot & { crates: Partial<Record<CrateTier, number>>; medpatch: number; purge: number; xp: number; bosses?: number; rep?: Record<string, number>; influence?: number };
+  loot: ExpeditionLoot & { crates: Partial<Record<CrateTier, number>>; medpatch: number; purge: number; xp: number; bosses?: number; /** First-kill boss drops, paid only on success. */ firstKill?: string[]; rep?: Record<string, number>; influence?: number };
   supplies: { medpatch: number };
   /** Seconds left on the party-wide damage buff (Rally). */
   rally: number;

@@ -143,7 +143,7 @@ export function onBossDefeated(state: GameState, content: Content, quest: Quest,
   if (first) {
     (L.pendingKills ??= []).push({ questId: quest.id, defId: quest.defId, enemyId });
     if (itemId && content.items[itemId]) {
-      quest.loot.items.push(itemId);
+      (quest.loot.firstKill ??= []).push(itemId);
       questLog(quest, fill(table.firstKillLog, { boss: bossName, item: content.items[itemId]!.name }));
     }
     // A legend who switches sides the first time their boss is beaten (Rook, after Big Tin).
