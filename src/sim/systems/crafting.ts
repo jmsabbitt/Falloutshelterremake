@@ -198,7 +198,7 @@ export function cancelCraft(state: GameState, content: Content, roomId: number):
     for (const [id, n] of Object.entries(recipe.salvage)) {
       state.salvage[id] = Math.min(SALVAGE_CAP, salvageCount(state, id) + n);
     }
-    addScrip(state, content, recipe.scrip);
+    addScrip(state, content, recipe.scrip, { income: false });
     bump(state, 'craftScripSpent', -recipe.scrip);
   }
   room.job = null;

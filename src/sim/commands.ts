@@ -22,7 +22,7 @@ import { abandonQuest, collectQuest, questAbility, questChoose, questCrit, quest
 import { performRush } from './systems/rush';
 import { applyCustom, type CustomCommand } from './systems/custom';
 import { isSurvival, rulesetMods } from './systems/rulesets';
-import { recallLegend } from './systems/legends';
+import { legendDef, recallLegend } from './systems/legends';
 import { chooseEnding, setEndingTitle } from './systems/endings';
 import { onTutorialBuild, skipTutorial, tickTutorial } from './systems/tutorial';
 import type { CrateTier, GameState, Resident, Room } from './types';
@@ -197,8 +197,8 @@ function dispatch(state: GameState, content: Content, cmd: Command): CommandResu
       if (room.ready) {
         const def = roomDef(content, room);
         const key = def.produces?.resource;
-        const extra = batchOutput(content, room) * (room.banked ?? 0);
-        if (key && extra > 0 && resourceCapacity(state, content, key) - state.resources[key] <= extra) {
+        const need = batchOutput(content, room) * (1 + (room.banked ?? 0));
+        if (key && resourceCapacity(state, content, key) - state.resources[key] < need) {
           return fail('storage is full: make room for its finished batches first');
         }
         collectRoom(state, content, room);
@@ -259,7 +259,7 @@ function dispatch(state: GameState, content: Content, cmd: Command): CommandResu
       room.floor = cmd.floor;
       room.x = cmd.x;
       bump(state, 'roomsMoved');
-      const into = mergeFloor(state, content, cmd.floor);
+      const into = mergeFloor(state, content, cmd.floor, (r) => collectRoom(state, content, r));
       for (const id of into) {
         const grown = findRoom(state, id);
         if (!grown) continue;
@@ -388,9 +388,12 @@ function dispatch(state: GameState, content: Content, cmd: Command): CommandResu
       if (!res || !res.dead) return fail('only the fallen can be laid to rest');
       if (res.expedition !== null) return fail('recall their body from the Glarelands first');
       if (res.quest !== null) return fail('they are still away on a quest');
+      // A legend can be sent for again later (recallLegend) and comes back with
+      // their signature gear, so that stays with them rather than being duplicated.
+      const def = res.legendary ? legendDef(content, res.legendary) : undefined;
       for (const slot of ['weapon', 'outfit'] as const) {
         const item = res[slot];
-        if (item) grantItem(state, content, item);
+        if (item && item !== def?.[slot]) grantItem(state, content, item);
       }
       state.residents = state.residents.filter((r) => r !== res);
       for (const r of state.residents) if (r.courtship?.partnerId === res.id) r.courtship = null;
@@ -560,7 +563,7 @@ function dispatch(state: GameState, content: Content, cmd: Command): CommandResu
 }
 
 function afterLayoutChange(state: GameState, content: Content, floor: number): void {
-  for (const id of mergeFloor(state, content, floor)) {
+  for (const id of mergeFloor(state, content, floor, (r) => collectRoom(state, content, r))) {
     const room = findRoom(state, id);
     if (!room) continue;
     bump(state, 'merges');

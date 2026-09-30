@@ -85,6 +85,10 @@ export function lootList(content: Content, loot: Quest['loot']): HTMLElement[] {
     const n = items.filter((x) => x === d).length;
     line(`${MARK[d.rarity]} ${d.name}${n > 1 ? ` ×${n}` : ''}`, `rarity ${d.rarity}`);
   }
+  for (const id of loot.firstKill ?? []) {
+    const d = content.items[id];
+    if (d) line(`${MARK[d.rarity]} ${d.name} (paid if the quest succeeds)`, `rarity ${d.rarity}`);
+  }
   for (const [id, n] of Object.entries(loot.fragments)) line(`📜 ${n}× ${content.items[id]?.name ?? id} fragment`, `rarity ${content.items[id]?.rarity ?? 'rare'}`);
   for (const id of loot.recipes) line(`📘 ${content.items[id]?.name ?? id} recipe`, 'rarity rare');
   for (const [tier, n] of Object.entries(loot.crates)) if (n) line(`📦 ${n} ${tier} Supply Crate${n > 1 ? 's' : ''}`, tier === 'standard' ? '' : `rarity ${tier}`);

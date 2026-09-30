@@ -35,7 +35,7 @@ import { addFragment, addSalvage, fragmentsNeeded, knowsRecipe, unlockRecipe } f
 import { leaveJob, returnToJob } from './assign';
 import { changeRep, factionDef, repOf } from './factions';
 import { grantItem, randomItemOf } from './items';
-import { onBossDefeated } from './loot';
+import { onBossDefeated, reconcileBossKills } from './loot';
 import { recruitLegend, upgradeLegend } from './legends';
 import { rulesetMods } from './rulesets';
 import { attachSupport, relayMult, shieldCut, tickSupport } from './network';
@@ -1081,8 +1081,13 @@ export function collectQuest(state: GameState, content: Content, questId: number
   const q = findQuest(state, questId);
   if (!q) return 'no such quest';
   if (q.status !== 'returned') return 'the party is not home yet';
+  // Settle this quest's boss kills while it still exists: a success commits them.
+  reconcileBossKills(state);
   const loot = q.loot;
   for (const id of loot.items) grantItem(state, content, id);
+  // The guaranteed first-kill drop is only paid if the quest succeeds, so killing
+  // a boss and then abandoning can't farm it.
+  if (q.outcome === 'success') for (const id of loot.firstKill ?? []) grantItem(state, content, id);
   for (const [id, n] of Object.entries(loot.salvage)) addSalvage(state, content, id, n);
   for (const [id, n] of Object.entries(loot.fragments)) addFragment(state, content, id, n);
   for (const id of loot.recipes) unlockRecipe(state, content, id, 'found');

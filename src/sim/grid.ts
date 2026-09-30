@@ -6,7 +6,7 @@
 // if it touches a connected structure horizontally, or an elevator sits
 // directly above/below a connected elevator.
 
-import type { Content, RoomDef } from './content';
+import { tableValue, type Content, type RoomDef } from './content';
 import { totalFloors } from './systems/deep';
 import type { GameState, Room } from './types';
 
@@ -172,11 +172,21 @@ export function canMove(state: GameState, content: Content, room: Room, floor: n
   return { ok: true };
 }
 
+/** Finished batches a room holds (the ready one plus any banked). */
+function heldBatches(room: Room): number {
+  return room.ready ? 1 + (room.banked ?? 0) : 0;
+}
+
 /**
  * Merge side-by-side rooms of the same type and level on a floor, up to the
  * type's max width. Returns the ids of rooms that grew.
+ *
+ * Batches finished before the merge were made at the old widths, so `settle`
+ * (commands.ts passes collectRoom) pays them out first. Any that didn't fit in
+ * storage are carried over by output, not by count, so a wider room never
+ * pays old batches at its new, bigger rate.
  */
-export function mergeFloor(state: GameState, content: Content, floor: number): number[] {
+export function mergeFloor(state: GameState, content: Content, floor: number, settle?: (room: Room) => void): number[] {
   const grown: number[] = [];
   let merged = true;
   while (merged) {
@@ -193,11 +203,19 @@ export function mergeFloor(state: GameState, content: Content, floor: number): n
         a.x + roomCells(content, a) === b.x &&
         a.segments + b.segments <= def.maxSegments
       ) {
+        if (settle) {
+          settle(a);
+          settle(b);
+        }
+        const output = def.produces?.output;
+        const held = output ? tableValue(output, a.level, a.segments) * heldBatches(a) + tableValue(output, b.level, b.segments) * heldBatches(b) : 0;
         a.segments += b.segments;
         a.pool += b.pool;
-        // Keep every finished batch: banked ones plus one of the two ready flags.
-        a.banked = (a.banked ?? 0) + (b.banked ?? 0) + (a.ready && b.ready ? 1 : 0);
-        a.ready = a.ready || b.ready;
+        // Whatever finished output is still waiting, as whole batches of the merged room.
+        const out = output ? tableValue(output, a.level, a.segments) : 0;
+        const batches = out > 0 ? Math.round(held / out) : a.ready || b.ready ? 1 + (a.banked ?? 0) + (b.banked ?? 0) : 0;
+        a.ready = batches > 0;
+        a.banked = Math.max(0, batches - 1);
         for (const res of state.residents) {
           if (res.roomId === b.id) res.roomId = a.id;
           if (res.homeRoomId === b.id) res.homeRoomId = a.id;

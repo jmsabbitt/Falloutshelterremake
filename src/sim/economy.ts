@@ -107,9 +107,14 @@ export function scripIncome(content: Content, amount: number): number {
   return Math.round(amount * (content.balance.scripIncome ?? 1));
 }
 
-export function addScrip(state: GameState, content: Content, amount: number): void {
+/**
+ * Change the scrip balance. `income: false` marks sales, refunds, trades and
+ * stolen scrip coming back: money that isn't new income, which Lean Times
+ * leaves alone.
+ */
+export function addScrip(state: GameState, content: Content, amount: number, opts: { income?: boolean } = {}): void {
   // Lean Times (M9) halves what comes in, not what goes out.
-  if (amount > 0) amount *= rulesetMods(state, content).scripIncome;
+  if (amount > 0 && opts.income !== false) amount *= rulesetMods(state, content).scripIncome;
   if (amount > 0) bump(state, 'scripEarned', Math.min(amount, content.balance.maxScrip - state.scrip));
   state.scrip = Math.max(0, Math.min(content.balance.maxScrip, state.scrip + amount));
 }

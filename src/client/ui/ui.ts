@@ -392,6 +392,7 @@ export class UI {
     this.renderToolbar();
     game.on((events) => this.onEvents(events));
     game.onReplace(() => this.onStateReplaced());
+    game.onSaveError(() => this.toast("Couldn't save: this browser's storage is full. Export your homestead (Menu → Saves) to keep your progress.", 'bad'));
     // M8: Android back (and Escape) closes the topmost thing first.
     onBack(() => this.back());
     // For automated tests: press "back" as the device would.
@@ -1740,7 +1741,7 @@ export class UI {
           {
             class: 'danger',
             onclick: stop(() =>
-              ask({ title: `Lay ${r.firstName} to rest?`, text: 'This is permanent. Their gear goes to storage.', ok: 'Lay to rest', danger: true }, () => {
+              ask({ title: `Lay ${r.firstName} to rest?`, text: r.legendary ? 'Their other gear goes to storage. A legend can be sent for again later (Residents → Legends) and comes back with their signature gear.' : 'This is permanent. Their gear goes to storage.', ok: 'Lay to rest', danger: true }, () => {
                 this.game.run({ type: 'layToRest', residentId: r.id });
                 this.residentId = null;
                 this.view.selectedResidentId = null;
@@ -2411,7 +2412,10 @@ export class UI {
               class: 'danger',
               onclick: () =>
                 ask({ title: 'Start a new homestead?', text: 'Your current one is replaced. A copy is kept under Backups until the next load.', ok: 'Start over', danger: true }, () => {
-                  this.game.reset();
+                  if (!this.game.reset()) {
+                    this.toast("Couldn't start over, so nothing was replaced. Storage may be full: export a copy first.", 'bad');
+                    return;
+                  }
                   this.closePanel();
                   if (!this.coach.active()) this.showWelcome();
                 }),

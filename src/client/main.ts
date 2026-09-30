@@ -1,6 +1,7 @@
 /// <reference types="vite/client" />
 import { Application } from 'pixi.js';
 import { Game } from './game';
+import { runStage } from './frameGuard';
 import { CharacterArt } from './render/sprites';
 import { QuestView } from './render/questView';
 import { CELL, FLOOR_H, SURFACE_H, VaultView } from './render/vaultView';
@@ -133,13 +134,16 @@ async function boot(): Promise<void> {
   app.ticker.add((ticker) => {
     const dt = ticker.deltaMS / 1000;
     const t0 = performance.now();
-    game.update(dt);
+    // The sim gets the real time since the last frame. Pixi clamps deltaMS to
+    // 100 ms, so slow frames would otherwise lose game time for good (and the
+    // long-gap catch-up in game.update would never fire); animation keeps the clamp.
+    runStage('sim', () => game.update(ticker.elapsedMS / 1000));
     const t1 = performance.now();
-    view.update(Math.min(dt, 0.1));
-    questView.update(Math.min(dt, 0.1));
+    runStage('view', () => view.update(Math.min(dt, 0.1)));
+    runStage('quest view', () => questView.update(Math.min(dt, 0.1)));
     const t2 = performance.now();
-    ui?.update();
-    custom.update();
+    runStage('ui', () => ui?.update());
+    runStage('custom', () => custom.update());
     const t3 = performance.now();
     cost.n++;
     cost.sim += t1 - t0;

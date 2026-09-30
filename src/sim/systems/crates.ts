@@ -70,7 +70,7 @@ function cardFrom(state: GameState, content: Content, entry: CardEntry): CrateCa
     const kept = Math.min(space, amount);
     state.resources[key] += kept;
     const refund = Math.round((amount - kept) * content.balance.crates.overflowScripPerUnit);
-    if (refund > 0) addScrip(state, content, refund);
+    if (refund > 0) addScrip(state, content, refund, { income: false });
     return { kind: 'resource', resource: key, amount, ...(refund > 0 ? { refund } : {}) };
   }
   if (entry.kind === 'fizz') {
@@ -78,7 +78,7 @@ function cardFrom(state: GameState, content: Content, entry: CardEntry): CrateCa
     // Past the carry limit, bottles are sold on like overflowing supplies.
     const over = addFizz(state, content, amount);
     const refund = over * content.balance.fizz.minScrip;
-    if (refund > 0) addScrip(state, content, refund);
+    if (refund > 0) addScrip(state, content, refund, { income: false });
     return { kind: 'fizz', amount, ...(refund > 0 ? { refund } : {}) };
   }
   const rarity = (entry.rarity ?? 'common') as Rarity;

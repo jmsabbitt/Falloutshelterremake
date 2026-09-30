@@ -31,7 +31,7 @@ export function grantItem(state: GameState, content: Content, defId: string): nu
   bump(state, 'itemsFound');
   if (state.items.length >= itemCapacity(state, content)) {
     const value = content.sellValue[def.rarity];
-    addScrip(state, content, value);
+    addScrip(state, content, value, { income: false });
     state.events.push({ type: 'storageFull', defId, sold: value });
     return value;
   }
@@ -99,7 +99,7 @@ export function sell(state: GameState, content: Content, itemId: number): number
   if (!item) return null;
   const value = sellValue(content, item.defId);
   state.items.splice(idx, 1);
-  addScrip(state, content, value);
+  addScrip(state, content, value, { income: false });
   bump(state, 'itemsSold');
   return value;
 }

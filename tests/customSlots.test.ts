@@ -7,10 +7,12 @@ import { deserialize, loadContent, newGame, serialize } from '../src/sim';
 import {
   bootMode,
   CUSTOM_SLOT,
+  deleteBackup,
   isLiveSlot,
   listBackups,
   liveSlot,
   readActiveMode,
+  readBackup,
   readSave,
   resetStorageForTests,
   writeActiveMode,
@@ -90,6 +92,16 @@ describe('slot logic', () => {
     expect(listBackups('custom')).toEqual([3, 4, 5]);
   });
 
+  it('reads and deletes each game\'s own backups', () => {
+    writeBackup(2, '{"home":2}');
+    writeBackup(2, '{"custom":2}', 'custom');
+    expect(readBackup(2)).toBe('{"home":2}');
+    expect(readBackup(2, 'custom')).toBe('{"custom":2}');
+    deleteBackup(2, 'custom');
+    expect(listBackups('custom')).toEqual([]);
+    expect(readBackup(2)).toBe('{"home":2}');
+  });
+
   it('remembers which game was playing', () => {
     expect(readActiveMode()).toBe('normal');
     writeActiveMode('custom');
@@ -100,6 +112,21 @@ describe('slot logic', () => {
 });
 
 describe('Game and the custom slot', () => {
+  it('ending a Custom Game keeps the sandbox if the homestead cannot be reopened', async () => {
+    const { Game } = await import('../src/client/game');
+    const game = new Game();
+    expect(game.startCustom('boomtown').ok).toBe(true);
+    game.save();
+    const sandbox = readSave(CUSTOM_SLOT);
+    // The homestead's save is unreadable now (from a newer build, say).
+    const future = JSON.parse(readSave(0)!) as { version: number };
+    future.version += 1;
+    writeSave(JSON.stringify(future), 0);
+    expect(game.reset()).toBe(false);
+    expect(game.mode).toBe('custom');
+    expect(readSave(CUSTOM_SLOT)).toBe(sandbox);
+  });
+
   it('never overwrites the homestead: save, start custom, play, switch back', async () => {
     const { Game } = await import('../src/client/game');
     // A homestead is saved.

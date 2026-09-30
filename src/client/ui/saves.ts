@@ -73,7 +73,8 @@ export class SaveSlots {
     const names = slotNames();
     const current = summaryOf(state, 0);
     const slots = SAVE_SLOTS.map((slot) => this.slotCard(slot, names[slot]));
-    const backups = [...listBackups()].reverse().map((cycle) => this.backupCard(cycle));
+    // A Custom Game's founding backups are kept apart from the homestead's; show the ones for the game being played.
+    const backups = [...listBackups(this.game.mode)].reverse().map((cycle) => this.backupCard(cycle));
     const undo = readUndo();
     const custom = this.game.isCustom;
     const rules = rulesOf(state);
@@ -92,7 +93,7 @@ export class SaveSlots {
         h(
           'div',
           { class: 'sv-actions' },
-          h('button', { onclick: () => (this.game.save(), this.host.toast('Saved', 'good')) }, 'Save now'),
+          h('button', { onclick: () => (this.game.save() ? this.host.toast('Saved', 'good') : this.host.toast("Couldn't save: storage is full. Export a copy to keep your progress.", 'bad')) }, 'Save now'),
           h('button', { onclick: () => downloadFile(`homestead-${state.homesteadNumber}.json`, this.game.exportSave()) }, '⤓ Export'),
           this.importButton('⤒ Import & play', (json) => this.load(json, 'the imported save', false)),
         ),
@@ -156,8 +157,9 @@ export class SaveSlots {
   }
 
   private backupCard(cycle: number): HTMLElement {
-    const json = readBackup(cycle);
-    const sum = json ? this.summarize(`backup${cycle}`, json) : null;
+    const mode = this.game.mode;
+    const json = readBackup(cycle, mode);
+    const sum = json ? this.summarize(`backup-${mode}-${cycle}`, json) : null;
     const title = sum ? `Homestead ${sum.homestead}, before founding` : `Backup ${cycle}`;
     return h(
       'div',
@@ -175,7 +177,7 @@ export class SaveSlots {
             class: 'danger',
             onclick: () =>
               ask({ title: 'Delete this backup?', text: `The backup from cycle ${cycle} is gone for good. This can't be undone.`, ok: 'Delete', danger: true }, () => {
-                deleteBackup(cycle);
+                deleteBackup(cycle, mode);
                 this.host.refresh();
               }),
           },

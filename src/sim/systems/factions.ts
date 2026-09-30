@@ -553,7 +553,7 @@ export function trade(state: GameState, content: Content, offerId: number): stri
 
   // Receive.
   const r = offer.get;
-  if (r.scrip) addScrip(state, content, r.scrip);
+  if (r.scrip) addScrip(state, content, r.scrip, { income: false });
   earnInfluence(state, r.influence ?? 0);
   if (r.research) state.research.points += r.research;
   for (const key of RESOURCE_KEYS) if (r[key]) addResource(state, content, key, r[key] as number);

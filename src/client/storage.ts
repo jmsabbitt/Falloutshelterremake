@@ -181,9 +181,13 @@ export async function initStorage(opts: { prefs?: PrefsLike } = {}): Promise<Sto
   }
   const writes: Promise<void>[] = [];
   for (const k of localKeys) {
-    if (!k.startsWith(PREFIX) || next.has(k)) continue;
+    if (!k.startsWith(PREFIX)) continue;
     const v = s?.getItem(k);
     if (v === null || v === undefined) continue;
+    // Preferences wins, except for a save whose localStorage copy is newer: the
+    // mirror write for it failed or never landed before the app was closed.
+    const mirrored = next.get(k);
+    if (mirrored !== undefined && (mirrored === v || !k.startsWith(SAVE_PREFIX) || savedAtOf(v) <= savedAtOf(mirrored))) continue;
     next.set(k, v);
     writes.push(p.set({ key: k, value: v }));
     toPrefs++;
@@ -203,6 +207,19 @@ export async function initStorage(opts: { prefs?: PrefsLike } = {}): Promise<Sto
   prefs = p;
   decoded.clear();
   return { mode: 'preferences', toPrefs, toLocal };
+}
+
+const SAVE_PREFIX = `${PREFIX}save.`;
+
+/** When a stored save was written (its file's savedAt), or -Infinity if it can't be read. */
+function savedAtOf(stored: string): number {
+  try {
+    const json = decodeSave(stored);
+    const at = json ? (JSON.parse(json) as { savedAt?: unknown }).savedAt : undefined;
+    return typeof at === 'number' ? at : -Infinity;
+  } catch {
+    return -Infinity;
+  }
 }
 
 /**
@@ -340,8 +357,8 @@ export function writeBackup(cycle: number, json: string, mode: PlayMode = 'norma
   return raw !== null && decodeSave(raw) === json;
 }
 
-export function readBackup(cycle: number): string | null {
-  return readEncoded(`${BACKUP_PREFIX}${cycle}`);
+export function readBackup(cycle: number, mode: PlayMode = 'normal'): string | null {
+  return readEncoded(`${backupPrefix(mode)}${cycle}`);
 }
 
 /** Cycles with a stored backup, oldest first (the normal game's unless asked for the custom game's). */
@@ -354,8 +371,8 @@ export function listBackups(mode: PlayMode = 'normal'): number[] {
     .sort((a, b) => a - b);
 }
 
-export function deleteBackup(cycle: number): void {
-  removeItem(`${BACKUP_PREFIX}${cycle}`);
+export function deleteBackup(cycle: number, mode: PlayMode = 'normal'): void {
+  removeItem(`${backupPrefix(mode)}${cycle}`);
 }
 
 // M6: save slots. Slot 0 is the live autosave; slots 1–3 are the player's own.
@@ -388,6 +405,23 @@ export function readUndo(): string | null {
 
 export function writeUndo(json: string): boolean {
   return writeEncoded(UNDO_KEY, json);
+}
+
+// A live save that was there at boot but couldn't be read (from a newer build,
+// or damaged) is set aside here untouched before a fresh homestead autosaves
+// over its slot, so it can still be recovered.
+const UNREADABLE_KEY = `${PREFIX}save.unreadable`;
+
+/** Copy a slot's stored value, as it is, to the unreadable-save key. True if there was nothing to copy or the copy is stored. */
+export function setAsideSave(slot: SlotId = 0): boolean {
+  const raw = getItem(KEY(slot));
+  if (raw === null) return true;
+  return setItem(UNREADABLE_KEY, raw);
+}
+
+/** The save set aside at boot as unreadable, still in its stored form, or null. */
+export function readSetAside(): string | null {
+  return getItem(UNREADABLE_KEY);
 }
 
 export function clearUndo(): void {
