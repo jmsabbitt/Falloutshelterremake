@@ -11,7 +11,7 @@
 // between events (as an exact integral, so step size doesn't matter).
 
 import type { Content, SalvageMaterial } from '../content';
-import { addScrip, resourceCapacity } from '../economy';
+import { addScrip, resourceCapacity, scripIncome } from '../economy';
 import { bump, bumpMax, effectiveMaxHp, effectiveStat, grantXp, isChild } from '../residents';
 import { bonus } from '../bonuses';
 import { chance, nextFloat, nextInt, pick } from '../rng';
@@ -505,7 +505,7 @@ function giveSalvage(state: GameState, content: Content, e: Expedition, reward: 
 }
 
 function giveScrip(state: GameState, content: Content, e: Expedition, amount: number, journal: boolean): void {
-  const n = Math.max(0, Math.round(amount));
+  const n = Math.max(0, scripIncome(content, amount));
   if (n <= 0) return;
   e.loot.scrip += n;
   if (journal) writeJournal(state, content, e, 'find', line(state, data(content).journal.scrip, { n }), false);

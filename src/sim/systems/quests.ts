@@ -9,7 +9,7 @@
 // never fights while the player is away (safe-offline rule).
 
 import type { Content } from '../content';
-import { addScrip, resourceCapacity } from '../economy';
+import { addScrip, resourceCapacity, scripIncome } from '../economy';
 import { bonus } from '../bonuses';
 import { bump, bumpMax, effectiveMaxHp, effectiveStat, grantXp, isAway, isChild } from '../residents';
 import { chance, nextFloat, nextInt, pick } from '../rng';
@@ -509,7 +509,7 @@ function addTo(bag: Record<string, number>, id: string, n: number): void {
 export function rollReward(state: GameState, content: Content, q: Quest, reward: QuestReward): string {
   const loot = q.loot;
   const parts: string[] = [];
-  const scrip = rollRange(state, reward.scrip);
+  const scrip = scripIncome(content, rollRange(state, reward.scrip));
   if (scrip > 0) {
     loot.scrip += scrip;
     parts.push(`${scrip} scrip`);

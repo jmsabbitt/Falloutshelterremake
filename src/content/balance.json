@@ -15,6 +15,7 @@
   ],
   "maxPopulation": 200,
   "maxScrip": 999999,
+  "scripIncome": 1.5,
   "baseStorage": {
     "power": 0,
     "food": 0,
@@ -69,28 +70,29 @@
     "failHappiness": -5
   },
   "bonusScrip": {
-    "basePerSegment": 2,
-    "chancePerFortune": 0.05,
-    "maxChance": 0.5,
+    "basePerSegment": 6,
+    "perLevel": 0.5,
+    "chancePerFortune": 0.07,
+    "maxChance": 0.6,
     "tiers": [
       {
         "chance": 0.01,
-        "base": 200,
+        "base": 400,
         "mult": 6
       },
       {
         "chance": 0.05,
-        "base": 100,
+        "base": 200,
         "mult": 4
       },
       {
         "chance": 0.2,
-        "base": 20,
+        "base": 40,
         "mult": 3
       },
       {
         "chance": 1,
-        "base": 5,
+        "base": 10,
         "mult": 1
       }
     ]

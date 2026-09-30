@@ -3,7 +3,7 @@
 import { maxLevel, tableValue, type Content, type RoomDef, type StorageKind } from './content';
 import { roomDef } from './grid';
 import { costMult } from './bonuses';
-import { livingResidents } from './residents';
+import { bump, livingResidents } from './residents';
 import type { GameState, ResourceKey, Room } from './types';
 import { rulesetMods } from './systems/rulesets';
 import { tutorialFreeBuild } from './systems/tutorial';
@@ -97,8 +97,19 @@ export function refreshUnlocks(state: GameState, content: Content): void {
   }
 }
 
+/**
+ * Scrip found or earned outside room collections (expeditions, quests, raids,
+ * caravans, crates, the Deep, outposts), scaled by balance.scripIncome. Rewards
+ * are scaled where they are rolled, so what the player is shown is what they get.
+ * Sales, refunds and trades are not income and are never scaled.
+ */
+export function scripIncome(content: Content, amount: number): number {
+  return Math.round(amount * (content.balance.scripIncome ?? 1));
+}
+
 export function addScrip(state: GameState, content: Content, amount: number): void {
   // Lean Times (M9) halves what comes in, not what goes out.
   if (amount > 0) amount *= rulesetMods(state, content).scripIncome;
+  if (amount > 0) bump(state, 'scripEarned', Math.min(amount, content.balance.maxScrip - state.scrip));
   state.scrip = Math.max(0, Math.min(content.balance.maxScrip, state.scrip + amount));
 }

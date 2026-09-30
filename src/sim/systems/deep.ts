@@ -12,7 +12,7 @@
 // CONTRACT (M6, stream B). Keep these signatures; see docs/design/M6-spec.md.
 
 import type { Content, SalvageMaterial } from '../content';
-import { addScrip } from '../economy';
+import { addScrip, scripIncome } from '../economy';
 import { connectedRoomIds, roomDef } from '../grid';
 import { bonus, productionMult } from '../bonuses';
 import { bump, bumpMax, workersInRoom } from '../residents';
@@ -175,7 +175,7 @@ function unfound(state: GameState, content: Content, stratum: number): Discovery
 }
 
 function grantReward(state: GameState, content: Content, reward: DiscoveryReward): void {
-  if (reward.scrip) addScrip(state, content, reward.scrip);
+  if (reward.scrip) addScrip(state, content, scripIncome(content, reward.scrip));
   if (reward.crate) earnCrate(state, reward.crate, 'discovery');
   if (reward.recipe) {
     if (!unlockRecipe(state, content, reward.recipe, 'found')) {

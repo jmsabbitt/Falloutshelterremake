@@ -16,6 +16,7 @@
 //   pool (crates, crafting, reforging, quest and faction rewards).
 
 import type { Content, SalvageMaterial } from '../content';
+import { scripIncome } from '../economy';
 import { bump } from '../residents';
 import { chance, nextFloat, nextInt } from '../rng';
 import type { Expedition, GameState, LootState, Quest, Rarity, TreasureMap } from '../types';
@@ -252,7 +253,7 @@ export function deliverCarried(state: GameState, content: Content, e: Expedition
     if (!cache) continue;
     const r = cache.reward;
     for (const id of r.items ?? []) if (content.items[id]) e.loot.items.push(id);
-    if (r.scrip) e.loot.scrip += nextInt(state.rng, r.scrip[0], r.scrip[1]);
+    if (r.scrip) e.loot.scrip += scripIncome(content, nextInt(state.rng, r.scrip[0], r.scrip[1]));
     if (r.salvage) {
       const s = r.salvage;
       const pool = content.salvageList.filter((x) => x.rarity === s.rarity && (!s.materials || s.materials.includes(x.material)));

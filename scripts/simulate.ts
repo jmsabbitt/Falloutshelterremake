@@ -566,6 +566,11 @@ for (let minute = 0; minute <= hours * 60; minute++) {
   if (process.env.BALANCE_OUT) sampleBalance();
 }
 console.log(`\nhomesteads founded at hours: ${foundedAt.map((h) => h.toFixed(1)).join(', ') || 'none'} · cycle ${s.legacy.cycle} · outposts ${s.legacy.outposts.length} · charter: ${charterStatus(s, content).requirements.map((r) => `${r.label} ${r.have}/${r.need}`).join(', ')}`);
+{
+  const st = s.stats;
+  const earned = st['scripEarned'] ?? 0;
+  console.log(`\nscrip earned ${Math.round(earned)} (${Math.round(earned / hours)}/h): collect base ${st['collectScrip'] ?? 0}, bonus rolls ${st['bonusScripTotal'] ?? 0}, Glarelands ${st['glarelandsScrip'] ?? 0}, other ${Math.round(earned - (st['collectScrip'] ?? 0) - (st['bonusScripTotal'] ?? 0) - (st['glarelandsScrip'] ?? 0))}`);
+}
 console.log('\nhours to reach population (this homestead):', Object.entries(milestones).map(([p, h]) => `${p}: ${h.toFixed(1)}h`).join('  '));
 console.log('crates earned', s.stats['cratesEarned'] ?? 0, 'opened', s.stats['cratesOpened'] ?? 0, '· legendary items', s.stats['legendaryItems'] ?? 0, '· raids repelled', s.stats['incidentsResolved.rustmen'] ?? 0, 'escaped', s.stats['raidsEscaped'] ?? 0);
 console.log('crate sources:', Object.entries(s.stats).filter(([k]) => k.startsWith('cratesFrom.')).map(([k, v]) => `${k.slice(11)} ${v}`).join(', '));

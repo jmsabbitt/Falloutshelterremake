@@ -1,6 +1,6 @@
 // Shared wording for quest rewards, bounties and loot.
 
-import { fragmentsNeeded, type Content, type GameState, type ItemDef, type Quest, type QuestReward, type StatKey } from '../../sim';
+import { fragmentsNeeded, scripIncome, type Content, type GameState, type ItemDef, type Quest, type QuestReward, type StatKey } from '../../sim';
 import { fmt, h } from './dom';
 
 export const STAT_NAMES: Record<StatKey, string> = {
@@ -15,6 +15,8 @@ export const STAT_NAMES: Record<StatKey, string> = {
 
 const MARK: Record<string, string> = { legendary: '★', rare: '◆', common: '•' };
 
+/** A quest's scrip reward as it pays out (rewards scale with balance.scripIncome). */
+const earned = (content: Content, v: number | [number, number]): [number, number] => (typeof v === 'number' ? [scripIncome(content, v), scripIncome(content, v)] : [scripIncome(content, v[0]), scripIncome(content, v[1])]);
 const range = (v: number | [number, number]) => (typeof v === 'number' ? fmt(v) : v[0] === v[1] ? fmt(v[0]) : `${fmt(v[0])}–${fmt(v[1])}`);
 
 function itemBlurb(d: ItemDef): string {
@@ -28,7 +30,7 @@ function itemBlurb(d: ItemDef): string {
 export function rewardChips(content: Content, r: QuestReward): HTMLElement[] {
   const chips: HTMLElement[] = [];
   const chip = (text: string, cls = '') => chips.push(h('span', { class: `loot-chip ${cls}` }, text));
-  if (r.scrip) chip(`💰 ${range(r.scrip)}`);
+  if (r.scrip) chip(`💰 ${range(earned(content, r.scrip))}`);
   if (r.xp) chip(`${fmt(r.xp)} XP`);
   for (const id of r.items ?? []) {
     const d = content.items[id];
@@ -68,7 +70,7 @@ export function bountyView(content: Content, state: GameState, r: QuestReward): 
       h('div', { class: 'muted small' }, `${d ? `${d.rarity} ${d.kind} · ${itemBlurb(d)} · ` : ''}you have ${have}/${need}`),
     );
   }
-  if (r.scrip) parts.push(h('div', { class: 'small' }, `+ ${range(r.scrip)} scrip`));
+  if (r.scrip) parts.push(h('div', { class: 'small' }, `+ ${range(earned(content, r.scrip))} scrip`));
   return h('div', { class: `bounty ${rarity}` }, h('div', { class: 'bounty-label' }, 'Bounty'), ...parts);
 }
 

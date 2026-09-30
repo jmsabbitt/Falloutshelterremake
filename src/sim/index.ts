@@ -21,7 +21,7 @@ export { applyCommand, roomCapacity, type Command, type CommandResult } from './
 export { advance, catchUp, drainEvents, type CatchUpSummary } from './tick';
 export { serialize, deserialize, SAVE_VERSION } from './save';
 export { canMove, canPlace, connectedRoomIds, floorOccupancy, moveBlocked, roomCells, roomDef, starterDoorX, starterShaftX } from './grid';
-export { buildCost, moveCost, upgradeCost, storageCapacity, resourceCapacity, population } from './economy';
+export { buildCost, moveCost, upgradeCost, storageCapacity, resourceCapacity, population, scripIncome } from './economy';
 export { cycleSeconds, poolSize, batchOutput, vaultHappiness, roomStatTotal, productionRate, secondsToReady } from './systems/production';
 export { rushFailChance } from './systems/rush';
 export { powerDemandPerMin, foodDemandPerMin, waterDemandPerMin, shortageThreshold, shortageLine, isRightRoom } from './systems/needs';

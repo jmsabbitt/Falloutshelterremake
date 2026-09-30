@@ -5,7 +5,7 @@
 // See docs/design/M5-spec.md.
 
 import type { Content } from '../content';
-import { addScrip, refreshUnlocks } from '../economy';
+import { addScrip, refreshUnlocks, scripIncome } from '../economy';
 import { canPlace, starterShaftX } from '../grid';
 import { bonus } from '../bonuses';
 import { legacyContent, perkDef, perkRank, siteDef, type CharterDef } from '../legacy';
@@ -182,7 +182,7 @@ function outpostFrom(state: GameState, content: Content, stayers: number): Outpo
     siteId: state.legacy.siteId,
     population: stayers,
     rates: {
-      scrip: stayers * o.scripPerResidentHour,
+      scrip: stayers * o.scripPerResidentHour * (content.balance.scripIncome ?? 1),
       salvage: stayers * o.salvagePerResidentHour,
       cratesPerHour: stayers / 10 / o.crateHoursPer10Residents,
     },

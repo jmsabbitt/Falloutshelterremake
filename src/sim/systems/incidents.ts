@@ -35,7 +35,7 @@
 //   while away). The meter keeps rising offline but stops short of full.
 
 import type { Content } from '../content';
-import { addScrip, population } from '../economy';
+import { addScrip, population, scripIncome } from '../economy';
 import { connectedRoomIds, floorOccupancy, roomCells, roomDef } from '../grid';
 import { bonus, incidentRate } from '../bonuses';
 import { bump, combatDamage, effectiveMaxHp, effectiveStat, fleesIncidents, grantXp, livingResidents, workersInRoom } from '../residents';
@@ -546,7 +546,8 @@ function resolve(state: GameState, content: Content, inc: Incident, room: Room):
   for (const r of defenders(state, room)) grantXp(state, content, r, content.balance.incidents.xpOnResolvePerResident);
   let loot = 0;
   if (def.external) {
-    loot = Math.round(inc.stolen + (def.lootBase ?? 0) + (def.lootPerAvgLevel ?? 0) * averageLevel(state));
+    // What they stole comes back as it was; the rest is a find, and scales like one.
+    loot = Math.round(inc.stolen) + scripIncome(content, (def.lootBase ?? 0) + (def.lootPerAvgLevel ?? 0) * averageLevel(state));
     addScrip(state, content, loot);
   }
   // M9: the Hollowed leave a last dose of Glare on whoever turned them back.

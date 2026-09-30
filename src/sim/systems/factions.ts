@@ -17,7 +17,7 @@
 //   (rep) and faction recruits who turn up at the door.
 
 import type { Content } from '../content';
-import { addScrip, resourceCapacity } from '../economy';
+import { addScrip, resourceCapacity, scripIncome } from '../economy';
 import { bump, bumpMax, createResident, effectiveStat, grantXp, isAway, isChild, rollStats, workersInRoom } from '../residents';
 import { chance, nextFloat, nextInt, pick } from '../rng';
 import type { Caravan, CrateTier, GameState, QuestReward, Rarity, ResourceKey, Resident, StatKey, TradeOffer } from '../types';
@@ -680,7 +680,7 @@ function estimate(state: GameState, content: Content, def: FactionDef, party: Re
   const guard = partyStat(content, party, ['brawn', 'grit']);
   const value = goodsValue(content, def.id, goods);
   const statMult = 1 + t.charmPerPoint * charm + t.fortunePerPoint * fortune;
-  const scrip = (route.baseScrip + value * route.markup) * tierValue(tuning(content).sellMult, tier) * statMult;
+  const scrip = scripIncome(content, (route.baseScrip + value * route.markup) * tierValue(tuning(content).sellMult, tier) * statMult);
   const bonusInf = Math.floor(charm * t.influencePerCharm);
   return {
     seconds: route.minutes * 60,

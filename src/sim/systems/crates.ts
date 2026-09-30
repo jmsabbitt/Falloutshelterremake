@@ -3,7 +3,7 @@
 // per hour of active play, and a pity guarantee so legendaries always arrive.
 
 import type { Content } from '../content';
-import { addScrip, resourceCapacity } from '../economy';
+import { addScrip, resourceCapacity, scripIncome } from '../economy';
 import { bonus } from '../bonuses';
 import { bump, bumpMax, createResident } from '../residents';
 import { chance, nextFloat } from '../rng';
@@ -54,8 +54,9 @@ type CardEntry = Weighted & {
 
 function cardFrom(state: GameState, content: Content, entry: CardEntry): CrateCard {
   if (entry.scrip !== undefined) {
-    addScrip(state, content, entry.scrip);
-    return { kind: 'scrip', amount: entry.scrip };
+    const amount = scripIncome(content, entry.scrip);
+    addScrip(state, content, amount);
+    return { kind: 'scrip', amount };
   }
   if (entry.tokens !== undefined) {
     addTokens(state, content, entry.tokens);
