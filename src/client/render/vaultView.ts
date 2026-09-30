@@ -375,6 +375,9 @@ export class VaultView {
   selectedResidentId: number | null = null;
   /** Rooms HALCY's tutorial coach points at (the door, the room to staff): a pulsing outline. */
   coachRoomIds: number[] = [];
+  /** Residents the coach names ("drag Edna and Mort"): they wear a name tag so a new player can find them. */
+  coachResidentIds: number[] = [];
+  private coachTags = new Map<number, { root: Container; text: string }>();
   private coachLayer = new Graphics();
   /** Screen space the DOM covers (HUD, toolbar, open panel), so the camera can pan rooms out from under it. */
   insets = { top: 0, right: 0, bottom: 0 };
@@ -512,6 +515,14 @@ export class VaultView {
   }
 
   /** For automated UI tests: what is drawn right now. */
+  /** Screen position of a resident's figure (about chest height), or null if not drawn; for automated UI tests. */
+  debugResidentScreen(id: number): { x: number; y: number } | null {
+    const sp = this.sprites.get(id);
+    if (!sp || !sp.root.visible) return null;
+    const g = sp.root.getGlobalPosition();
+    return { x: g.x, y: g.y - 20 * this.zoom };
+  }
+
   debugCounts() {
     return { sprites: this.sprites.size, residentLayer: this.residentLayer.children.length, walkers: this.walkers.size, caravanWalkers: this.caravanWalkers.size, topside: this.topsideParts.size, statics: this.statics.children.length, ghosts: this.ghostLayer.children.length, pops: this.pops.length, zoom: this.zoom, x: Math.round(this.world.x), y: Math.round(this.world.y) };
   }
@@ -1634,6 +1645,7 @@ export class VaultView {
   private drawCoach(): void {
     const g = this.coachLayer;
     g.clear();
+    this.drawCoachTags();
     if (!this.coachRoomIds.length) return;
     const pulse = reducedMotion() ? 0.85 : 0.55 + 0.45 * Math.sin(this.time * 4);
     for (const id of this.coachRoomIds) {
@@ -1642,6 +1654,39 @@ export class VaultView {
       const r = this.roomRect(room);
       const grow = reducedMotion() ? 3 : 3 + 3 * (0.5 + 0.5 * Math.sin(this.time * 4));
       g.roundRect(r.x - grow, r.y - grow, r.w + grow * 2, r.h + grow * 2, 6).stroke({ width: 4, color: 0x4fb3a9, alpha: pulse });
+    }
+  }
+
+  /** Name tags over the residents the coach names; hidden while one is being dragged. */
+  private drawCoachTags(): void {
+    const want = new Set(this.coachResidentIds);
+    for (const [id, t] of this.coachTags) {
+      if (want.has(id)) continue;
+      t.root.destroy({ children: true });
+      this.coachTags.delete(id);
+    }
+    for (const id of want) {
+      const res = this.game.state.residents.find((r) => r.id === id);
+      const sp = this.sprites.get(id);
+      let t = this.coachTags.get(id);
+      if (!res || !sp) {
+        if (t) t.root.visible = false;
+        continue;
+      }
+      if (!t || t.text !== res.firstName) {
+        t?.root.destroy({ children: true });
+        const root = new Container();
+        const label = new Text({ text: res.firstName, style: { fontFamily: 'Work Sans, sans-serif', fontWeight: '700', fontSize: 13, fill: 0xf4ecd8 }, resolution: 2 });
+        label.anchor.set(0.5);
+        const w = label.width + 14;
+        root.addChild(new Graphics().roundRect(-w / 2, -11, w, 22, 11).fill({ color: 0x14100d, alpha: 0.9 }).roundRect(-w / 2, -11, w, 22, 11).stroke({ width: 2, color: 0x4fb3a9 }), label);
+        this.crowdTags.addChild(root);
+        t = { root, text: res.firstName };
+        this.coachTags.set(id, t);
+      }
+      const onFloor = sp.root.parent === this.residentLayer && sp.root.visible;
+      t.root.visible = onFloor;
+      if (onFloor) t.root.position.set(sp.root.x, sp.root.y - SPRITE_H - 16);
     }
   }
 
@@ -3078,7 +3123,8 @@ export class VaultView {
         // Batches that collected themselves offline are summed up in the away summary instead.
         if (!room || ev.offline) continue;
         const r = this.roomRect(room);
-        this.float(`+${floatAmount(ev.amount)}`, r.x + r.w / 2, r.y + 30, RESOURCE_COLORS[ev.resource] ?? 0xffffff);
+        // A batch collected into full storage is mostly lost: say so, not just "+0.4".
+        this.float(ev.spilled ? `+${floatAmount(ev.amount)} · storage full` : `+${floatAmount(ev.amount)}`, r.x + r.w / 2, r.y + 30, ev.spilled ? 0xe4572e : (RESOURCE_COLORS[ev.resource] ?? 0xffffff));
         const scrip = Math.round(ev.bonusScrip + (ev.baseScrip ?? 0));
         if (scrip > 0) this.float(`+${scrip} scrip${ev.bonusScrip > 0 ? '!' : ''}`, r.x + r.w / 2, r.y + 54, 0xf2a541);
       } else if (ev.type === 'residentLeveled') {

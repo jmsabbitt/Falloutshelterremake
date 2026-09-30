@@ -230,7 +230,15 @@ export type CrateTier = 'standard' | 'rare' | 'legendary';
 
 export type CrateCard =
   | { kind: 'scrip'; amount: number }
-  | { kind: 'resource'; resource: ResourceKey; amount: number; /** Scrip paid for what didn't fit in storage. */ refund?: number }
+  | {
+      kind: 'resource';
+      resource: ResourceKey;
+      amount: number;
+      /** How much of it fitted in storage (set only when some didn't). */
+      kept?: number;
+      /** Scrip paid for what didn't fit in storage. */
+      refund?: number;
+    }
   | { kind: 'tokens'; amount: number }
   | { kind: 'fizz'; amount: number; /** Scrip paid for bottles past the carry limit. */ refund?: number }
   | { kind: 'item'; defId: string; rarity: Rarity; sold: number }
@@ -538,7 +546,19 @@ export interface Caravan {
 
 export type GameEvent =
   | { type: 'tutorialStep'; step: TutorialStep; skipped: boolean }
-  | { type: 'collected'; roomId: number; resource: ResourceKey; amount: number; bonusScrip: number; /** Steady scrip paid per batch. */ baseScrip?: number; /** Gathered by offline catch-up while the player was away. */ offline?: boolean }
+  | {
+      type: 'collected';
+      roomId: number;
+      resource: ResourceKey;
+      amount: number;
+      bonusScrip: number;
+      /** Steady scrip paid per batch. */
+      baseScrip?: number;
+      /** What the batch made beyond what storage could hold (set when at least 1 was lost). */
+      spilled?: number;
+      /** Gathered by offline catch-up while the player was away. */
+      offline?: boolean;
+    }
   | { type: 'rushSucceeded'; roomId: number }
   | { type: 'rushFailed'; roomId: number; incidentId: number }
   | { type: 'incidentStarted'; incidentId: number; roomId: number; incident: IncidentType }

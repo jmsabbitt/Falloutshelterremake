@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import {
   advance,
+  batchOutput,
+  resourceCapacity,
   applyCommand,
   buildCost,
   canPlace,
@@ -94,8 +96,10 @@ describe('tutorial steps', () => {
     expect(s.scrip).toBe(scrip);
     expect(step(s)).toBe('staff_power');
     expect(buildCost(s, content, 'generator')).toBeGreaterThan(0);
-    // It comes stocked and nearly through its first batch.
-    expect(s.resources.power).toBe(content.balance.start.resources.power);
+    // It comes stocked and nearly through its first batch, with space left for that batch.
+    const genBatch = batchOutput(content, roomOf(s, 'generator'));
+    expect(s.resources.power).toBe(Math.min(content.balance.start.resources.power, resourceCapacity(s, content, 'power') - genBatch));
+    expect(s.resources.power).toBeGreaterThan(0);
     expect(roomOf(s, 'generator').pool).toBeGreaterThan(0);
 
     ok(s, { type: 'assign', residentId: bestFor(s, 'generator')!.id, roomId: roomOf(s, 'generator').id });
@@ -115,7 +119,13 @@ describe('tutorial steps', () => {
     for (let i = 0; i < 120 && !s.rooms.some((r) => r.ready); i++) advance(s, content, 1);
     const ready = s.rooms.find((r) => r.ready);
     expect(ready).toBeDefined();
+    // The collect the tutorial asks for adds a whole batch: none of it spills into full storage.
+    const key = content.rooms[ready!.type]!.produces!.resource;
+    const before = s.resources[key];
+    const batch = batchOutput(content, ready!);
     ok(s, { type: 'collect', roomId: ready!.id });
+    expect(s.resources[key] - before).toBeCloseTo(batch, 5);
+    expect(s.events.some((e) => e.type === 'collected' && e.spilled !== undefined)).toBe(false);
     expect(step(s)).toBe('crate');
 
     ok(s, { type: 'openCrate', tier: 'standard' });
@@ -172,8 +182,9 @@ describe('skipping the tutorial', () => {
     expect(s.scrip).toBe(scrip);
     for (const type of ['generator', 'canteen', 'waterworks']) expect(s.rooms.filter((r) => r.type === type)).toHaveLength(1);
     expect(connectedRoomIds(s, content).size).toBe(s.rooms.length);
-    expect(s.resources.food).toBe(content.balance.start.resources.food);
-    expect(s.resources.water).toBe(content.balance.start.resources.water);
+    for (const [type, key] of [['canteen', 'food'], ['waterworks', 'water']] as const) {
+      expect(s.resources[key]).toBe(Math.min(content.balance.start.resources[key], resourceCapacity(s, content, key) - batchOutput(content, roomOf(s, type))));
+    }
     // Nothing more to skip.
     expect(applyCommand(s, content, { type: 'skipTutorial' }).ok).toBe(false);
   });

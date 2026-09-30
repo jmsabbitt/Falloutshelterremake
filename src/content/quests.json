@@ -6010,8 +6010,8 @@
     { "id": "act3_complete", "name": "Quiet Enjoyment", "description": "Complete Act 3 and keep the Seal shut.", "tier": "gold", "stat": "questline.act3", "target": 8 },
     { "id": "quest_party_30", "name": "Board Material", "description": "Bring home a quest party led by a level 30 resident.", "tier": "silver", "stat": "questPartyLevel", "target": 30 },
     { "id": "quest_party_40", "name": "Non-Executive Director", "description": "Bring home a quest party led by a level 40 resident.", "tier": "gold", "stat": "questPartyLevel", "target": 40 },
-    { "id": "bosses_100", "name": "Hostile Takeover", "description": "Defeat 100 bosses.", "tier": "gold", "stat": "bossesDefeated", "target": 100 },
-    { "id": "quest_scrip_250k", "name": "Danger Money", "description": "Bring home 250,000 scrip from quests.", "tier": "gold", "stat": "questScrip", "target": 250000 },
+    { "id": "bosses_100", "name": "Corporate Raider", "description": "Defeat 100 bosses.", "tier": "gold", "stat": "bossesDefeated", "target": 100 },
+    { "id": "quest_scrip_250k", "name": "Early Retirement", "description": "Bring home 250,000 scrip from quests.", "tier": "gold", "stat": "questScrip", "target": 250000 },
     { "id": "stillwater_eels", "name": "Mind the Gap", "description": "Win 10 fights with canal lampreys in the Stillwater.", "tier": "bronze", "stat": "slain.canal_lampreys", "target": 10 },
     {
       "id": "stillwater_leviathan",
