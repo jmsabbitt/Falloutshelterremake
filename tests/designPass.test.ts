@@ -1,7 +1,7 @@
 // Design changes from the playtest's open questions, each one a separate commit
 // so it can be kept or dropped on its own.
 import { describe, expect, it } from 'vitest';
-import { advance, applyCommand, loadContent, newGame } from '../src/sim';
+import { advance, applyCommand, crateOrderPrice, loadContent, newGame, type GameState } from '../src/sim';
 import { startIncident } from '../src/sim/systems/incidents';
 
 const content = loadContent();
@@ -48,5 +48,52 @@ describe('incidents before the first Clinic', () => {
 
   it('can kill once a Clinic stands', () => {
     expect(burning(true).some((r) => r.dead)).toBe(true);
+  });
+});
+
+describe('the Halcyon Catalogue', () => {
+  const o = content.balance.crates.order;
+  function big(): GameState {
+    const s = newGame(content, { seed: 3, now: 0 });
+    s.peakPopulation = o.unlockPop;
+    s.scrip = 100_000;
+    return s;
+  }
+
+  it('stays shut until the homestead reaches its population', () => {
+    const s = big();
+    s.peakPopulation = o.unlockPop - 1;
+    expect(applyCommand(s, content, { type: 'orderCrate' }).ok).toBe(false);
+    expect(s.scrip).toBe(100_000);
+  });
+
+  it('sells a Supply Crate for scrip, and each order raises the next price', () => {
+    const s = big();
+    const first = crateOrderPrice(s, content);
+    expect(first).toBe(o.baseScrip);
+    expect(applyCommand(s, content, { type: 'orderCrate' }).ok).toBe(true);
+    expect(s.stats['cratesFrom.order']).toBe(1);
+    expect(s.scrip).toBe(100_000 - first);
+    const second = crateOrderPrice(s, content);
+    expect(second).toBeGreaterThan(first);
+    applyCommand(s, content, { type: 'orderCrate' });
+    expect(crateOrderPrice(s, content)).toBeGreaterThan(second);
+  });
+
+  it('comes back down in price as game time passes', () => {
+    const s = big();
+    applyCommand(s, content, { type: 'orderCrate' });
+    applyCommand(s, content, { type: 'orderCrate' });
+    s.time += o.decayHours * 3600;
+    expect(crateOrderPrice(s, content)).toBe(Math.round((o.baseScrip * o.growth) / 50) * 50);
+    s.time += o.decayHours * 3600;
+    expect(crateOrderPrice(s, content)).toBe(o.baseScrip);
+  });
+
+  it('refuses when the scrip runs short', () => {
+    const s = big();
+    s.scrip = o.baseScrip - 1;
+    expect(applyCommand(s, content, { type: 'orderCrate' }).ok).toBe(false);
+    expect(s.scrip).toBe(o.baseScrip - 1);
   });
 });

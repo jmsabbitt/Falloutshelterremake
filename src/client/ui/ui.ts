@@ -12,6 +12,8 @@ import {
   moveCost,
   canCraft,
   canExplore,
+  canOrderCrate,
+  crateOrderPrice,
   explorerCandidates,
   canReforge,
   carriedCount,
@@ -2224,8 +2226,43 @@ export class UI {
       h('p', { class: 'muted' }, 'Tokens drop from collecting, rushing, stopping incidents, births and new arrivals. Every 10 tokens is a free crate.'),
       h('div', { class: 'row' }, h('b', {}, 'Luck meter'), h('span', {}, `Legendary guaranteed within ${untilPity} crate${untilPity > 1 ? 's' : ''}`)),
       h('div', { class: 'progress' }, h('div', { style: `width:${(state.pity / c.pityThreshold) * 100}%;background:var(--legendary)` })),
+      this.catalogueRow(),
       h('div', { class: 'row', style: 'margin-top:10px' }, h('b', {}, 'Daily crate'), h('span', {}, `Streak ${state.daily.streak} day${state.daily.streak === 1 ? '' : 's'}`)),
       h('p', { class: 'muted' }, 'A crate every day you visit; every 7th day in a row is a Rare Crate. You also earn crates from population milestones, every 10th level a resident reaches, and silver and gold achievements.'),
+    );
+  }
+
+  /** The Halcyon Catalogue: buy a Supply Crate with scrip once the homestead is big enough. */
+  private catalogueRow(): HTMLElement {
+    const { state, content } = this.game;
+    const o = content.balance.crates.order;
+    const open = state.peakPopulation >= o.unlockPop;
+    const price = crateOrderPrice(state, content);
+    const why = canOrderCrate(state, content);
+    return h(
+      'div',
+      { class: 'catalogue' },
+      h(
+        'div',
+        { class: 'row', style: 'margin-top:10px' },
+        h('b', {}, '🛒 Halcyon Catalogue'),
+        open
+          ? h(
+              'button',
+              {
+                disabled: why !== null,
+                title: why ?? undefined,
+                onclick: () => {
+                  const res = this.game.run({ type: 'orderCrate' });
+                  if (!res.ok) this.toast(res.reason, 'bad');
+                  this.renderPanel(true);
+                },
+              },
+              `Order a Supply Crate · ${fmt(price)} scrip`,
+            )
+          : h('span', { class: 'muted' }, `🔒 pop ${o.unlockPop}`),
+      ),
+      h('p', { class: 'muted' }, `Order Supply Crates with scrip. Each order raises the next price; it comes back down over a few hours.`),
     );
   }
 

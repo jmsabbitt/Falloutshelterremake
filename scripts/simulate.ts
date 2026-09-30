@@ -9,6 +9,8 @@ import {
   buildCost,
   canCraft,
   canExplore,
+  canOrderCrate,
+  crateOrderPrice,
   canPlace,
   combatDamage,
   effectiveStat,
@@ -285,6 +287,8 @@ function botTurn(): void {
     if (best) applyCommand(s, content, { type: 'assign', residentId: r.id, roomId: best.id });
   }
   runTraining();
+  // Spare scrip goes on Catalogue crates, keeping a cushion for building.
+  while (canOrderCrate(s, content) === null && s.scrip > crateOrderPrice(s, content) * 4) applyCommand(s, content, { type: 'orderCrate' });
 }
 
 /**

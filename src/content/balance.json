@@ -360,6 +360,8 @@
   },
   "crates": {
     "overflowScripPerUnit": 3,
+    "_order": "The Halcyon Catalogue, a mid-game scrip sink: order a Supply Crate once the homestead reaches unlockPop residents. Each order multiplies the next price by growth; the count falls by one every decayHours of game time.",
+    "order": { "unlockPop": 30, "baseScrip": 3000, "growth": 1.5, "decayHours": 1 },
     "tokensPerCrate": 10,
     "pityThreshold": 10,
     "tokenChance": {
