@@ -277,6 +277,8 @@ h3.group { margin: 12px 0 6px; font-size: 13px; letter-spacing: 0.04em; text-tra
 .stepper { display: inline-flex; align-items: center; gap: 8px; flex: none; }
 .stepper button { width: 40px; padding: 0; font-size: 18px; }
 .stepper b { min-width: 24px; text-align: center; font-size: 16px; font-variant-numeric: tabular-nums; }
+.slider-row input[type="range"] { width: min(160px, 36vw); min-height: 44px; accent-color: #f2a541; }
+.slider-row .slider-value { min-width: 44px; }
 
 /* workshops */
 .craft-job { cursor: default; border-color: #45625f; }

@@ -4859,7 +4859,7 @@
     },
     {
       "id": "explore_month",
-      "name": "Surface Dweller",
+      "name": "Glarelands Regular",
       "description": "Spend a total of 30 days exploring the Glarelands.",
       "tier": "gold",
       "stat": "explorerSeconds",

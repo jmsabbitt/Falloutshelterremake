@@ -982,7 +982,9 @@ export class LegacyUI {
   }
 
   private downloadBackup(json: string, homestead: number): void {
-    downloadFile(`homestead-${homestead}-before-founding.json`, json);
+    void downloadFile(`homestead-${homestead}-before-founding.json`, json).then((res) => {
+      if (!res.ok) this.host.toast(`Couldn't export the backup: ${res.reason}`, 'bad');
+    });
   }
 
   private startHold(): void {

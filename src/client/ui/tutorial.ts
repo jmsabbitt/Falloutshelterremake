@@ -89,8 +89,12 @@ export class TutorialCoach {
 
   onStateReplaced(): void {
     this.closing = null;
-    this.key = '';
     this.shown = null;
+    // Hide the old homestead's bubble now. (Clearing only the key left it on screen:
+    // update() skips the redraw when the new key is '' too, as it is with no tutorial.)
+    this.key = '';
+    this.el.hidden = true;
+    this.el.replaceChildren();
   }
 
   private doneLine(): Line {

@@ -49,6 +49,15 @@ export interface Settings {
   batterySaver: boolean;
   /** The notification permission question has been asked (once, after the first expedition or caravan). */
   notifyAsked: boolean;
+  /** Sound (platform/audio.ts): a mute switch and three volumes from 0 to 1. */
+  sound: SoundSettings;
+}
+
+export interface SoundSettings {
+  muted: boolean;
+  master: number;
+  effects: number;
+  ambience: number;
 }
 
 export function defaultSettings(): Settings {
@@ -60,10 +69,12 @@ export function defaultSettings(): Settings {
     reducedMotion: false,
     batterySaver: false,
     notifyAsked: false,
+    sound: { muted: false, master: 0.8, effects: 0.8, ambience: 0.5 },
   };
 }
 
 const bool = (v: unknown, d: boolean): boolean => (typeof v === 'boolean' ? v : d);
+const unit = (v: unknown, d: number): number => (typeof v === 'number' && Number.isFinite(v) ? Math.min(1, Math.max(0, v)) : d);
 const hour = (v: unknown, d: number): number => (typeof v === 'number' && Number.isInteger(v) && v >= 0 && v <= 23 ? v : d);
 
 /** Any stored value (missing, old, hand-edited or junk) to a complete Settings. Unknown fields are dropped. */
@@ -73,6 +84,7 @@ export function parseSettings(raw: unknown): Settings {
   const r = raw as Record<string, unknown>;
   const n = (r.notify && typeof r.notify === 'object' ? r.notify : {}) as Record<string, unknown>;
   const q = (r.quietHours && typeof r.quietHours === 'object' ? r.quietHours : {}) as Record<string, unknown>;
+  const snd = (r.sound && typeof r.sound === 'object' ? r.sound : {}) as Record<string, unknown>;
   return {
     notifications: bool(r.notifications, d.notifications),
     notify: {
@@ -86,6 +98,12 @@ export function parseSettings(raw: unknown): Settings {
     reducedMotion: bool(r.reducedMotion, d.reducedMotion),
     batterySaver: bool(r.batterySaver, d.batterySaver),
     notifyAsked: bool(r.notifyAsked, d.notifyAsked),
+    sound: {
+      muted: bool(snd.muted, d.sound.muted),
+      master: unit(snd.master, d.sound.master),
+      effects: unit(snd.effects, d.sound.effects),
+      ambience: unit(snd.ambience, d.sound.ambience),
+    },
   };
 }
 

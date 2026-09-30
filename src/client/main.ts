@@ -10,6 +10,7 @@ import { CustomGameUI } from './ui/custom';
 import { initPlatform, isNative } from './platform';
 import { getSettings, onSettingsChange, reloadSettings, type Settings } from './platform/settings';
 import { initStorage } from './storage';
+import { initAudio } from './platform/audio';
 // M8: fonts are bundled so the game looks right in airplane mode.
 import '@fontsource/bungee/400.css';
 import '@fontsource/work-sans/400.css';
@@ -32,6 +33,11 @@ function registerServiceWorker(): void {
   }, 250);
 }
 
+/** Dev builds, or a production build made with VITE_DEV_CONSOLE=1 (for automated UI tests). */
+function devConsole(): boolean {
+  return import.meta.env.DEV || import.meta.env['VITE_DEV_CONSOLE'] === '1';
+}
+
 async function boot(): Promise<void> {
   // M8: natively the saves are mirrored in Preferences; load them before the game reads its save.
   await initStorage();
@@ -49,7 +55,10 @@ async function boot(): Promise<void> {
   host.appendChild(app.canvas);
 
   const game = new Game();
-  game.installConsole();
+  // The developer console (window.homestead: scrip, crates, skip…) is for development
+  // and automated tests only. Players never get it: it would unlock every achievement.
+  // `VITE_DEV_CONSOLE=1 npm run build` keeps it in a production build for testing.
+  if (devConsole()) game.installConsole();
 
   // The UI and view need each other; wire callbacks through a late-bound ref.
   let ui: UI | null = null;
@@ -68,6 +77,8 @@ async function boot(): Promise<void> {
     onRingResult: (id, quality) => ui?.quests.screen.onRingResult(id, quality),
   });
   ui = new UI(game, view, questView);
+  // Synthesised sound effects and ambience; silent until the first tap or key press.
+  initAudio(game);
   // M9: the Custom Game banner, sandbox toolbar and screen draw their own layer over the UI.
   const custom = new CustomGameUI({ game, toast: (...args) => ui?.toast(...args) });
   await initPlatform(game).catch((err) => console.warn('Platform init failed:', err));
@@ -98,7 +109,7 @@ async function boot(): Promise<void> {
     requestAnimationFrame(() => requestAnimationFrame(artReady));
   }, artReady);
   const cost = { n: 0, sim: 0, view: 0, ui: 0 };
-  (window as unknown as Record<string, unknown>).homesteadView = {
+  if (devConsole()) (window as unknown as Record<string, unknown>).homesteadView = {
     /** Screen position of a room's centre; for automated UI tests. */
     roomScreen: (id: number) => {
       const room = game.state.rooms.find((r) => r.id === id);

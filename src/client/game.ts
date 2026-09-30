@@ -32,7 +32,7 @@ import { questConsole } from './questDev';
 import { qolConsole } from './qolDev';
 import { m7Console } from './m7Dev';
 import { customConsole } from './customDev';
-import { clearSave, CUSTOM_SLOT, liveSlot, readActiveMode, readSave, setAsideSave, writeActiveMode, writeBackup, writeSave, writeUndo, type PlayMode } from './storage';
+import { claimLiveSlot, clearSave, CUSTOM_SLOT, isOwnerKey, liveSlot, liveSlotOwner, readActiveMode, readSave, setAsideSave, writeActiveMode, writeBackup, writeSave, writeUndo, type PlayMode } from './storage';
 
 type Listener = (events: GameEvent[]) => void;
 type LifecycleListener = (phase: 'suspend' | 'resume') => void;
@@ -85,6 +85,14 @@ export class Game {
   /** True while autosaves are failing (the storage quota is full); the UI is told once when it starts. */
   saveFailing = false;
   private saveErrorListeners = new Set<() => void>();
+  /** This tab's id for the one-tab-per-save claim (storage.ts claimLiveSlot). */
+  private readonly tabId = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+  /**
+   * True once another tab has claimed this game's save: this tab stops simulating and
+   * saving, so it can't write its older copy over the other tab's progress.
+   */
+  inAnotherTab = false;
+  private anotherTabListeners = new Set<(on: boolean) => void>();
   /** M6: the latest absence, kept (unlike lastCatchUp) until the homestead is replaced. */
   lastAway: AwayReport | null = null;
   /** M6: true while flush() is handing out the events raised during an offline catch-up. */
@@ -117,8 +125,13 @@ export class Game {
       this.holdSlot0 = !setAsideSave(0);
       this.state = newGame(this.content, { tutorial: true });
     }
+    this.claimSlot();
     this.claimDaily();
 
+    // Another tab opening this homestead (or choosing "Play here") claims its save.
+    window.addEventListener('storage', (e) => {
+      if (isOwnerKey(e.key, liveSlot(this.mode)) && e.newValue !== this.tabId) this.checkOwner();
+    });
     // M8: the app (or tab) going away saves and schedules notifications; coming back catches up.
     // Natively the platform layer also calls suspend()/wake() from the app pause/resume events.
     document.addEventListener('visibilitychange', () => {
@@ -146,6 +159,54 @@ export class Game {
     return () => this.lifecycleListeners.delete(fn);
   }
 
+  /** Claim this game's live save slot for this tab. */
+  private claimSlot(): void {
+    claimLiveSlot(liveSlot(this.mode), this.tabId);
+    this.setInAnotherTab(false);
+  }
+
+  /** True (and the UI told) if another tab has claimed this game's save since this tab did. */
+  checkOwner(): boolean {
+    const owner = liveSlotOwner(liveSlot(this.mode));
+    if (owner !== null && owner !== this.tabId) this.setInAnotherTab(true);
+    return this.inAnotherTab;
+  }
+
+  private setInAnotherTab(on: boolean): void {
+    if (this.inAnotherTab === on) return;
+    this.inAnotherTab = on;
+    for (const fn of this.anotherTabListeners) fn(on);
+  }
+
+  /** Listen for this homestead being taken over by another tab (true) or back here (false). */
+  onAnotherTab(fn: (on: boolean) => void): () => void {
+    this.anotherTabListeners.add(fn);
+    return () => this.anotherTabListeners.delete(fn);
+  }
+
+  /**
+   * Keep playing in this tab after another tab took the save: load the newest stored
+   * copy (the other tab's progress), catch it up and claim the slot again.
+   */
+  playHere(): { ok: true } | { ok: false; reason: string } {
+    const mode = this.mode;
+    const json = readSave(liveSlot(mode));
+    let next: GameState | null = null;
+    if (json) {
+      try {
+        next = deserialize(json);
+      } catch (err) {
+        return { ok: false, reason: `the newer save could not be read (${(err as Error).message})` };
+      }
+    }
+    this.claimSlot();
+    if (next) {
+      catchUp(next, this.content, Date.now());
+      this.replaceState(next);
+    }
+    return { ok: true };
+  }
+
   /** Listen for autosaves starting to fail (called once, until a save succeeds again). */
   onSaveError(fn: () => void): () => void {
     this.saveErrorListeners.add(fn);
@@ -171,7 +232,8 @@ export class Game {
 
   /** M8: back in the foreground: catch up as after any absence, then tell listeners (notifications are cleared). */
   wake(): void {
-    this.resume();
+    // Coming back to a tab whose save was taken over: don't catch up the stale copy.
+    if (!this.checkOwner()) this.resume();
     if (!this.suspended) return;
     this.suspended = false;
     this.lastSuspend = 0;
@@ -201,6 +263,8 @@ export class Game {
     drainEvents(this.state);
     this.layoutVersion++;
     this.holdSlot0 = false;
+    // Loading, founding or switching games here is a choice to play in this tab.
+    this.claimSlot();
     this.save();
     for (const fn of this.replaceListeners) fn();
     this.flush();
@@ -231,6 +295,8 @@ export class Game {
 
   /** Called every frame with real elapsed seconds. */
   update(dtSeconds: number): void {
+    // Paused while another tab has this homestead: the "Play here" prompt takes over.
+    if (this.inAnotherTab) return;
     const now = Date.now();
     if (dtSeconds > MAX_FRAME_S) {
       this.resume();
@@ -281,6 +347,7 @@ export class Game {
   }
 
   run(cmd: Command): CommandResult {
+    if (this.checkOwner()) return { ok: false, reason: 'this homestead is open in another tab' };
     const result = applyCommand(this.state, this.content, cmd);
     if (result.ok && ['build', 'upgrade', 'demolish', 'moveRoom', 'extendShaft', 'skipTutorial', 'custom'].includes(cmd.type)) this.layoutVersion++;
     this.running = cmd.type;
@@ -310,6 +377,8 @@ export class Game {
     this.stampClock();
     const mode = this.mode;
     if (this.holdSlot0 && liveSlot(mode) === 0) return false;
+    // Never write this tab's older copy over progress another tab has saved since.
+    if (this.checkOwner()) return false;
     const ok = writeSave(serialize(this.state), liveSlot(mode));
     writeActiveMode(mode);
     this.lastSave = Date.now();
