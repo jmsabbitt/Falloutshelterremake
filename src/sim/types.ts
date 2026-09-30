@@ -748,6 +748,8 @@ export interface GameState {
   /** Crates opened since the last legendary card (drives the pity guarantee). */
   pity: number;
   daily: { lastDay: number; streak: number };
+  /** Supply Crates ordered from the Halcyon Catalogue: how many recently (the price climbs), and when the last one was (sim seconds). Missing in older saves: none. */
+  crateOrders?: { n: number; at: number };
   /** Population milestones already rewarded. */
   milestones: number[];
   /** Seconds since the last incident, and when the next random one fires. */

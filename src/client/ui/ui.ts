@@ -12,6 +12,9 @@ import {
   moveCost,
   canCraft,
   canExplore,
+  roomCells,
+  canOrderCrate,
+  crateOrderPrice,
   explorerCandidates,
   canReforge,
   carriedCount,
@@ -98,6 +101,7 @@ import { QuestUI } from './quests';
 import { DeepUI, type DeepTab } from './deep';
 import { buildInfo, ResearchUI } from './research';
 import { compactLayout, isPhone, syncHudHeight } from './layout';
+import { arrowDirection, stepRoom } from './keyboardRooms';
 import { installSheetSwipe } from './sheet';
 import { haptic, isNative, onBack, runBack } from '../platform';
 import { settingsPanel } from './settings';
@@ -294,6 +298,7 @@ export class UI {
       },
     });
     this.root.insertBefore(this.coach.el, this.modalHost);
+    this.installRoomKeys();
     this.qol = new QolUI({
       game,
       view,
@@ -409,6 +414,45 @@ export class UI {
     installSheetSwipe(this.panelHost, () => this.swipeClose());
     if (game.lastCatchUp) this.showAwaySummary();
     else if (game.state.time < 5 && !this.coach.active()) this.showWelcome();
+  }
+
+  // ---------------------------------------------------------------- keyboard
+
+  /**
+   * Arrow keys walk a highlight from room to room (the camera follows); Enter or
+   * Space opens the highlighted room like a tap. Keys typed into a field, and
+   * Enter or Space on a focused button, keep their usual meaning; so do the
+   * arrows inside an open panel or dialog. A tap or click clears the highlight.
+   */
+  private installRoomKeys(): void {
+    window.addEventListener('pointerdown', () => (this.view.keyboardRoomId = null), { capture: true, passive: true });
+    window.addEventListener('keydown', (e) => {
+      if (e.defaultPrevented || e.altKey || e.ctrlKey || e.metaKey) return;
+      if (this.modalHost.childElementCount || this.root.classList.contains('quest-open')) return;
+      const el = document.activeElement as HTMLElement | null;
+      const onPage = !el || el === document.body || el.tagName === 'CANVAS';
+      if (el && (el.isContentEditable || /^(INPUT|SELECT|TEXTAREA)$/.test(el.tagName))) return;
+      const { state, content } = this.game;
+      const spots = state.rooms.filter((r) => r.type !== 'elevator').map((r) => ({ id: r.id, floor: r.floor, x: r.x, cells: roomCells(content, r) }));
+      const dir = arrowDirection(e.key);
+      if (dir) {
+        if (el?.closest('.panel, .modal')) return;
+        const door = state.rooms.find((r) => r.type === 'door')?.id;
+        const id = stepRoom(spots, this.view.keyboardRoomId, dir, door);
+        const room = state.rooms.find((r) => r.id === id);
+        if (!room) return;
+        e.preventDefault();
+        this.view.keyboardRoomId = room.id;
+        this.view.focusFloor(room.floor, room.x + roomCells(content, room) / 2);
+        return;
+      }
+      if ((e.key === 'Enter' || e.key === ' ') && onPage && this.view.keyboardRoomId !== null) {
+        const room = state.rooms.find((r) => r.id === this.view.keyboardRoomId);
+        if (!room) return;
+        e.preventDefault();
+        this.onRoomTap(room);
+      }
+    });
   }
 
   // ---------------------------------------------------------------- view callbacks
@@ -2224,8 +2268,43 @@ export class UI {
       h('p', { class: 'muted' }, 'Tokens drop from collecting, rushing, stopping incidents, births and new arrivals. Every 10 tokens is a free crate.'),
       h('div', { class: 'row' }, h('b', {}, 'Luck meter'), h('span', {}, `Legendary guaranteed within ${untilPity} crate${untilPity > 1 ? 's' : ''}`)),
       h('div', { class: 'progress' }, h('div', { style: `width:${(state.pity / c.pityThreshold) * 100}%;background:var(--legendary)` })),
+      this.catalogueRow(),
       h('div', { class: 'row', style: 'margin-top:10px' }, h('b', {}, 'Daily crate'), h('span', {}, `Streak ${state.daily.streak} day${state.daily.streak === 1 ? '' : 's'}`)),
       h('p', { class: 'muted' }, 'A crate every day you visit; every 7th day in a row is a Rare Crate. You also earn crates from population milestones, every 10th level a resident reaches, and silver and gold achievements.'),
+    );
+  }
+
+  /** The Halcyon Catalogue: buy a Supply Crate with scrip once the homestead is big enough. */
+  private catalogueRow(): HTMLElement {
+    const { state, content } = this.game;
+    const o = content.balance.crates.order;
+    const open = state.peakPopulation >= o.unlockPop;
+    const price = crateOrderPrice(state, content);
+    const why = canOrderCrate(state, content);
+    return h(
+      'div',
+      { class: 'catalogue' },
+      h(
+        'div',
+        { class: 'row', style: 'margin-top:10px' },
+        h('b', {}, '🛒 Halcyon Catalogue'),
+        open
+          ? h(
+              'button',
+              {
+                disabled: why !== null,
+                title: why ?? undefined,
+                onclick: () => {
+                  const res = this.game.run({ type: 'orderCrate' });
+                  if (!res.ok) this.toast(res.reason, 'bad');
+                  this.renderPanel(true);
+                },
+              },
+              `Order a Supply Crate · ${fmt(price)} scrip`,
+            )
+          : h('span', { class: 'muted' }, `🔒 pop ${o.unlockPop}`),
+      ),
+      h('p', { class: 'muted' }, `Order Supply Crates with scrip. Each order raises the next price; it comes back down over a few hours.`),
     );
   }
 

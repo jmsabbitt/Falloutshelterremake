@@ -51,7 +51,12 @@ export interface Settings {
   notifyAsked: boolean;
   /** Sound (platform/audio.ts): a mute switch and three volumes from 0 to 1. */
   sound: SoundSettings;
+  /** Text and controls size: the HTML interface is zoomed by this (the homestead view is not). */
+  textScale: TextScale;
 }
+
+export const TEXT_SCALES = [1, 1.15, 1.3] as const;
+export type TextScale = (typeof TEXT_SCALES)[number];
 
 export interface SoundSettings {
   muted: boolean;
@@ -70,6 +75,7 @@ export function defaultSettings(): Settings {
     batterySaver: false,
     notifyAsked: false,
     sound: { muted: false, master: 0.8, effects: 0.8, ambience: 0.5 },
+    textScale: 1,
   };
 }
 
@@ -104,6 +110,7 @@ export function parseSettings(raw: unknown): Settings {
       effects: unit(snd.effects, d.sound.effects),
       ambience: unit(snd.ambience, d.sound.ambience),
     },
+    textScale: TEXT_SCALES.find((x) => x === r.textScale) ?? d.textScale,
   };
 }
 

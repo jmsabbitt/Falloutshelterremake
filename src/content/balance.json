@@ -151,6 +151,8 @@
       "maxSeconds": 3600
     },
     "spreadDelaySeconds": 12,
+    "_noDeathsBeforeClinic": "Until the first Clinic is built, incident damage stops at 1 HP: a new homestead's residents are wounded, not killed.",
+    "noDeathsBeforeClinic": true,
     "hpPerAvgLevel": 0.08,
     "damagePerLevel": 0.25,
     "xpOnResolvePerResident": 25,
@@ -358,6 +360,8 @@
   },
   "crates": {
     "overflowScripPerUnit": 3,
+    "_order": "The Halcyon Catalogue, a mid-game scrip sink: order a Supply Crate once the homestead reaches unlockPop residents. Each order multiplies the next price by growth; the count falls by one every decayHours of game time.",
+    "order": { "unlockPop": 30, "baseScrip": 3000, "growth": 1.5, "decayHours": 1 },
     "tokensPerCrate": 10,
     "pityThreshold": 10,
     "tokenChance": {

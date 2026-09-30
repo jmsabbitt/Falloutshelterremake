@@ -88,6 +88,8 @@ async function boot(): Promise<void> {
     app.ticker.maxFPS = s.batterySaver ? 30 : 0;
     document.documentElement.toggleAttribute('data-reduced-motion', s.reducedMotion);
     document.documentElement.toggleAttribute('data-battery-saver', s.batterySaver);
+    // Text size zooms the HTML interface (HUD, panels, dialogs); the canvas keeps its own scale.
+    document.documentElement.style.setProperty('--ui-zoom', String(s.textScale));
   };
   applySettings(getSettings());
   onSettingsChange(applySettings);

@@ -7,7 +7,7 @@ import { SAVE_VERSION } from '../../sim';
 import type { Game } from '../game';
 import { haptic, isNative, platformName } from '../platform';
 import { clearNotifications, enableNotifications, notifyPermission, type NotifyPermission } from '../platform/notifications';
-import { getSettings, NOTIFY_GROUPS, updateSettings, type Settings } from '../platform/settings';
+import { getSettings, NOTIFY_GROUPS, TEXT_SCALES, updateSettings, type Settings, type TextScale } from '../platform/settings';
 import { liveSlot, saveStats, storageErrors } from '../storage';
 import { h } from './dom';
 
@@ -69,6 +69,22 @@ function slider(label: string, id: string, value: number, set: (v: number) => vo
   return h('label', { class: 'row stepper-row slider-row', for: id }, h('span', {}, label), h('span', { class: 'stepper' }, input, out));
 }
 
+const TEXT_SIZE_NAME: Record<TextScale, string> = { 1: 'Normal', 1.15: 'Large', 1.3: 'Larger' };
+
+/** Text size: three buttons, the current one pressed. */
+function textSizeRow(value: TextScale, set: (v: TextScale) => void): HTMLElement {
+  return h(
+    'div',
+    { class: 'row stepper-row text-size-row' },
+    h('span', {}, 'Text size'),
+    h(
+      'span',
+      { class: 'text-size-pick', role: 'group', 'aria-label': 'Text size' },
+      ...TEXT_SCALES.map((v) => h('button', { class: v === value ? 'primary' : '', 'aria-pressed': v === value ? 'true' : 'false', onclick: () => set(v) }, TEXT_SIZE_NAME[v])),
+    ),
+  );
+}
+
 const PERMISSION_NOTE: Record<NotifyPermission, string | null> = {
   granted: null,
   prompt: 'Off until you allow it. Tap and HALCY will ask the phone.',
@@ -122,6 +138,7 @@ export function settingsPanel(game: Game): HTMLElement {
       slider('Ambience', 'snd-ambience', s.sound.ambience, (v) => set({ sound: { ...getSettings().sound, ambience: v } }), s.sound.muted),
 
       h('h3', { class: 'group' }, 'Comfort'),
+      textSizeRow(s.textScale, (v) => set({ textScale: v })),
       toggleRow('Haptics', 'A small buzz on builds, drops and crits.', s.haptics, () => {
         set({ haptics: !s.haptics });
         haptic('select');

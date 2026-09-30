@@ -6,7 +6,7 @@ import { bonus } from './bonuses';
 import { addScrip, buildCost, moveCost, population, refreshUnlocks, resourceCapacity, storageCapacity, upgradeCost } from './economy';
 import { canMove, canPlace, connectedRoomIds, mergeFloor, roomDef } from './grid';
 import { bump, effectiveMaxHp, effectiveStat, isAway, isChild, residentsInRoom, reviveCost } from './residents';
-import { claimDaily, openCrate, settle } from './systems/crates';
+import { claimDaily, openCrate, orderCrate, settle } from './systems/crates';
 import { equip, grantItem, sell, unequip, unequipAll } from './systems/items';
 import { autoEquip } from './systems/gearFit';
 import { collectExpedition, onResidentRevived, recallExpedition, startExpedition } from './systems/exploration';
@@ -53,6 +53,7 @@ export type Command =
   | { type: 'sell'; itemId: number }
   | { type: 'openCrate'; tier: CrateTier }
   | { type: 'claimDaily'; day: number }
+  | { type: 'orderCrate' }
   // M3
   | { type: 'explore'; residentId: number; regionId: string; medpatch: number; purge: number }
   | { type: 'recall'; expeditionId: number }
@@ -465,6 +466,9 @@ function dispatch(state: GameState, content: Content, cmd: Command): CommandResu
       openCrate(state, content, cmd.tier);
       return { ok: true };
     }
+
+    case 'orderCrate':
+      return result(orderCrate(state, content));
 
     case 'claimDaily': {
       const tier = claimDaily(state, content, cmd.day);

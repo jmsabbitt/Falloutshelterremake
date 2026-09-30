@@ -138,6 +138,40 @@ export function openCrate(state: GameState, content: Content, tier: CrateTier): 
   return cards;
 }
 
+/** Recent Catalogue orders, after the count has cooled off with time. */
+function recentOrders(state: GameState, content: Content): number {
+  const o = state.crateOrders;
+  if (!o) return 0;
+  const decay = content.balance.crates.order.decayHours * 3600;
+  return Math.max(0, o.n - Math.floor(Math.max(0, state.time - o.at) / decay));
+}
+
+/** What the next Supply Crate from the Halcyon Catalogue costs (rounded to 50 scrip). */
+export function crateOrderPrice(state: GameState, content: Content): number {
+  const o = content.balance.crates.order;
+  return Math.round((o.baseScrip * Math.pow(o.growth, recentOrders(state, content))) / 50) * 50;
+}
+
+/** Why a crate can't be ordered now, or null. */
+export function canOrderCrate(state: GameState, content: Content): string | null {
+  const o = content.balance.crates.order;
+  if (state.peakPopulation < o.unlockPop) return `the Catalogue opens at ${o.unlockPop} residents`;
+  if (state.scrip < crateOrderPrice(state, content)) return 'not enough scrip';
+  return null;
+}
+
+/** Order a Supply Crate from the Halcyon Catalogue: a scrip sink whose price climbs with each order and cools off over time. */
+export function orderCrate(state: GameState, content: Content): string | null {
+  const why = canOrderCrate(state, content);
+  if (why) return why;
+  const price = crateOrderPrice(state, content);
+  state.scrip -= price;
+  state.crateOrders = { n: recentOrders(state, content) + 1, at: state.time };
+  bump(state, 'crateOrderScrip', price);
+  earnCrate(state, 'standard', 'order');
+  return null;
+}
+
 /** Daily login crate. `day` is a local calendar day number supplied by the client. */
 export function claimDaily(state: GameState, content: Content, day: number): CrateTier | null {
   if (!Number.isInteger(day) || day <= state.daily.lastDay) return null;

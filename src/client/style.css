@@ -1684,3 +1684,11 @@ h3.group.menu-head { font-family: var(--display); font-weight: 400; font-size: 1
 .storage-respec { justify-content: flex-start; flex-wrap: wrap; gap: 6px; margin: 0 0 4px; }
 .storage-respec > .muted { min-width: 72px; }
 .storage-respec button { min-height: 36px; padding: 4px 10px; font-size: 13px; }
+
+/* Text size (Menu → Comfort): what you read grows (panel and dialog contents, HALCY, toasts);
+   the HUD and toolbar keep their size so they always fit on a phone. */
+.panel > .body, .modal > *, .coach > *, .toast { zoom: var(--ui-zoom, 1); }
+
+/* Settings: text size picker. */
+.text-size-pick { display: inline-flex; gap: 4px; }
+.text-size-pick button { padding: 4px 10px; }
