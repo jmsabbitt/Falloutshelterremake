@@ -51,6 +51,13 @@ export class SaveSlots {
 
   constructor(private host: SavesHost) {}
 
+  /** Export a save file; says so when it didn't work (the phone app shares it instead of downloading). */
+  private exportFile(name: string, json: string): void {
+    void downloadFile(name, json).then((res) => {
+      if (!res.ok) this.host.toast(`Couldn't export the save: ${res.reason}`, 'bad');
+    });
+  }
+
   private get game() {
     return this.host.game;
   }
@@ -94,7 +101,7 @@ export class SaveSlots {
           'div',
           { class: 'sv-actions' },
           h('button', { onclick: () => (this.game.save() ? this.host.toast('Saved', 'good') : this.host.toast("Couldn't save: storage is full. Export a copy to keep your progress.", 'bad')) }, 'Save now'),
-          h('button', { onclick: () => downloadFile(`homestead-${state.homesteadNumber}.json`, this.game.exportSave()) }, '⤓ Export'),
+          h('button', { onclick: () => this.exportFile(`homestead-${state.homesteadNumber}.json`, this.game.exportSave()) }, '⤓ Export'),
           this.importButton('⤒ Import & play', (json) => this.load(json, 'the imported save', false)),
         ),
       ),
@@ -135,7 +142,7 @@ export class SaveSlots {
         h('button', { class: 'primary', disabled: !sum, onclick: () => this.load(json, `"${title}"`, true) }, 'Load'),
         h('button', { onclick: () => this.saveTo(slot, title) }, 'Save here'),
         h('button', { onclick: () => this.rename(slot, title) }, 'Rename'),
-        h('button', { onclick: () => downloadFile(`${fileName(title)}.json`, json), 'aria-label': `Export ${title}` }, '⤓ Export'),
+        h('button', { onclick: () => this.exportFile(`${fileName(title)}.json`, json), 'aria-label': `Export ${title}` }, '⤓ Export'),
         this.importButton('⤒ Import', (text) => this.importTo(slot, text), `Replace "${title}" with a save file?`),
         h(
           'button',
@@ -170,7 +177,7 @@ export class SaveSlots {
         'div',
         { class: 'sv-actions' },
         h('button', { disabled: !json || !sum, onclick: () => json && this.load(json, `the backup of ${title.toLowerCase()}`, true) }, 'Load'),
-        h('button', { disabled: !json, onclick: () => json && downloadFile(`homestead-backup-${cycle}.json`, json) }, '⤓ Export'),
+        h('button', { disabled: !json, onclick: () => json && this.exportFile(`homestead-backup-${cycle}.json`, json) }, '⤓ Export'),
         h(
           'button',
           {
@@ -198,7 +205,7 @@ export class SaveSlots {
         'div',
         { class: 'sv-actions' },
         h('button', { disabled: !sum, onclick: () => this.load(json, 'the homestead from before the last load', true) }, 'Load'),
-        h('button', { onclick: () => downloadFile('homestead-before-load.json', json) }, '⤓ Export'),
+        h('button', { onclick: () => this.exportFile('homestead-before-load.json', json) }, '⤓ Export'),
         h(
           'button',
           {

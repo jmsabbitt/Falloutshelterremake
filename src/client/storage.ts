@@ -354,7 +354,29 @@ export function saveStats(slot: SlotId = 0): { json: number; stored: number; com
   return { json: json?.length ?? 0, stored: raw.length, compressed: raw.startsWith(LZ_PREFIX) };
 }
 
-export function downloadFile(name: string, text: string): void {
+/**
+ * Hand a save file to the player. In a browser it downloads. Inside the phone app a
+ * download link does nothing (neither WebView handles one), so the file is written to
+ * the app's cache and offered through the system share sheet (Files, Drive, mail…).
+ */
+export async function downloadFile(name: string, text: string): Promise<{ ok: true } | { ok: false; reason: string }> {
+  if (isNativeShell()) {
+    try {
+      const [{ Filesystem, Directory, Encoding }, { Share }] = await Promise.all([import('@capacitor/filesystem'), import('@capacitor/share')]);
+      const { uri } = await Filesystem.writeFile({ path: name, data: text, directory: Directory.Cache, encoding: Encoding.UTF8 });
+      try {
+        await Share.share({ title: name, files: [uri] });
+      } catch (err) {
+        // Closing the share sheet without picking anything isn't a failure.
+        if (/cancel/i.test(String((err as Error)?.message ?? err))) return { ok: true };
+        throw err;
+      }
+      return { ok: true };
+    } catch (err) {
+      console.warn('Export failed:', err);
+      return { ok: false, reason: (err as Error)?.message ?? String(err) };
+    }
+  }
   const blob = new Blob([text], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
@@ -362,6 +384,7 @@ export function downloadFile(name: string, text: string): void {
   a.download = name;
   a.click();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
+  return { ok: true };
 }
 
 // M5: a copy of the old save is kept before each founding, since founding
