@@ -118,6 +118,8 @@ async function boot(): Promise<void> {
       return view.world.toGlobal({ x: r.x + r.w / 2, y: r.y + r.h / 2 });
     },
     worldToScreen: (x: number, y: number) => view.world.toGlobal({ x, y }),
+    /** Screen position of a resident's figure, to drag them in automated UI tests. */
+    residentScreen: (id: number) => view.debugResidentScreen(id),
     /** What the vault view has drawn (sprites, rooms, camera), to check a re-sync. */
     counts: () => view.debugCounts(),
     /** Build or move slots on show (and how wide each merges to), and a slot's screen centre. */

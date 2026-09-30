@@ -29,8 +29,8 @@ export class ThreatUI {
       },
       active ? h('span', { class: 'threat-alert', 'aria-label': 'Incident under way' }, '⚠') : null,
       h('span', { class: 'threat-gauge' }, ...STEPS.map((_, i) => h('i', { class: i <= level ? 'on' : '' }))),
-      h('b', { class: 'threat-label' }, t.label),
-      active ? h('span', { class: 'threat-label threat-now' }, ` · incident!`) : null,
+      // During an incident the chip says so instead of "Calm · incident!"; the rating is in the title and the gauge.
+      active ? h('b', { class: 'threat-label threat-now' }, active === 1 ? 'Incident!' : `${active} incidents!`) : h('b', { class: 'threat-label' }, t.label),
       meter
         ? h(
             'span',

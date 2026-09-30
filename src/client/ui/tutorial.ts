@@ -13,6 +13,7 @@ import {
   tutorialRoom,
   tutorialStep,
   type GameEvent,
+  type Resident,
   type TutorialStep,
 } from '../../sim';
 import type { Game } from '../game';
@@ -113,13 +114,18 @@ export class TutorialCoach {
   }
 
   /** Founders who are best at a room's stat and free to take the job. */
-  private fits(type: string): string {
+  /** The idle founders who suit a room: the ones the staffing step names (and the view tags). */
+  private fitters(type: string): Resident[] {
     const { state, content } = this.host.game;
     const stat = content.rooms[type]?.stat;
+    if (!stat) return [];
+    return state.residents.filter((r) => !r.waiting && !r.dead && !isAway(r) && !isChild(state, r) && r.roomId === null && topStats(effectiveStats(content, r)).includes(stat));
+  }
+
+  private fits(type: string): string {
+    const stat = this.host.game.content.rooms[type]?.stat;
     if (!stat) return 'a resident';
-    const names = state.residents
-      .filter((r) => !r.waiting && !r.dead && !isAway(r) && !isChild(state, r) && r.roomId === null && topStats(effectiveStats(content, r)).includes(stat))
-      .map((r) => r.firstName);
+    const names = this.fitters(type).map((r) => r.firstName);
     const who = names.length ? nameList(names, 2) : 'a resident';
     return `${who} (${STAT_FULL[stat]})`;
   }
@@ -244,5 +250,7 @@ export class TutorialCoach {
     else if (step?.startsWith('staff_')) rooms = state.rooms.filter((r) => r.type === type).map((r) => r.id);
     else if (step === 'collect') rooms = state.rooms.filter((r) => r.ready).map((r) => r.id);
     this.host.view.coachRoomIds = rooms;
+    // The founders the line names ("drag Edna and Mort") wear name tags until they are placed.
+    this.host.view.coachResidentIds = step?.startsWith('staff_') && type ? this.fitters(type).slice(0, 2).map((r) => r.id) : [];
   }
 }

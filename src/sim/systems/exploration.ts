@@ -684,6 +684,22 @@ export function canExplore(state: GameState, content: Content, r: Resident): str
   return null;
 }
 
+/**
+ * Who can explore now, in the order the Send dialog offers them: healthy before hurt,
+ * best-armed first, then someone idle before someone at work, then the most HP and level.
+ */
+export function explorerCandidates(state: GameState, content: Content): Resident[] {
+  const dmg = (r: Resident) => {
+    const w = r.weapon ? content.weapons[r.weapon] : undefined;
+    return w ? (w.min + w.max) / 2 : 0;
+  };
+  const healthy = (r: Resident) => (r.hp >= effectiveMaxHp(r) * 0.5 ? 1 : 0);
+  const idle = (r: Resident) => (r.roomId === null ? 1 : 0);
+  return state.residents
+    .filter((r) => !r.waiting && canExplore(state, content, r) === null)
+    .sort((a, b) => healthy(b) - healthy(a) || dmg(b) - dmg(a) || idle(b) - idle(a) || b.hp - a.hp || b.level - a.level || a.id - b.id);
+}
+
 /** Send a resident out. Supplies come out of homestead stock. Returns an error or null. */
 export function startExpedition(
   state: GameState,

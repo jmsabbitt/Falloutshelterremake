@@ -71,7 +71,7 @@ function cardFrom(state: GameState, content: Content, entry: CardEntry): CrateCa
     state.resources[key] += kept;
     const refund = Math.round((amount - kept) * content.balance.crates.overflowScripPerUnit);
     if (refund > 0) addScrip(state, content, refund, { income: false });
-    return { kind: 'resource', resource: key, amount, ...(refund > 0 ? { refund } : {}) };
+    return { kind: 'resource', resource: key, amount, ...(refund > 0 ? { kept, refund } : {}) };
   }
   if (entry.kind === 'fizz') {
     const amount = entry.amount ?? 1;

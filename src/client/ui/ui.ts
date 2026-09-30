@@ -12,6 +12,7 @@ import {
   moveCost,
   canCraft,
   canExplore,
+  explorerCandidates,
   canReforge,
   carriedCount,
   combatDamage,
@@ -2261,13 +2262,15 @@ export class UI {
         break;
       case 'resource': {
         icon = uiIcon(card.resource, { cls: 'lg' });
-        const n = Math.round(card.amount);
-        title = `+${fmt(n)} ${card.resource === 'medpatch' ? (n === 1 ? 'Med-Patch' : 'Med-Patches') : card.resource === 'purge' ? 'Purge' : card.resource}`;
-        if (card.refund) {
-          // What didn't fit in storage was sold on.
-          const per = content.balance.crates.overflowScripPerUnit || 1;
-          const sold = Math.max(1, Math.round(card.refund / per));
-          sub = `${fmt(sold)} didn't fit: sold for ${fmt(card.refund)} scrip`;
+        // What didn't fit in storage was sold on: the headline counts only what was kept.
+        const kept = card.refund ? Math.floor(card.kept ?? 0) : Math.round(card.amount);
+        const name = (n: number) => (card.resource === 'medpatch' ? (n === 1 ? 'Med-Patch' : 'Med-Patches') : card.resource === 'purge' ? 'Purge' : card.resource);
+        if (card.refund && kept < 1) {
+          title = `${fmt(Math.round(card.amount))} ${name(Math.round(card.amount))}`;
+          sub = `Storage full: sold for ${fmt(card.refund)} scrip`;
+        } else {
+          title = `+${fmt(kept)} ${name(kept)}`;
+          if (card.refund) sub = `${fmt(Math.round(card.amount) - kept)} more didn't fit: sold for ${fmt(card.refund)} scrip`;
         }
         break;
       }
@@ -2682,17 +2685,40 @@ export class UI {
     this.renderExploreModal(residentId === null);
   }
 
-  /** Who can explore now, best-armed and healthiest first. */
+  /** Who can explore now, in the order the Send dialog offers them. */
   private explorerCandidates(): Resident[] {
+    return explorerCandidates(this.game.state, this.game.content);
+  }
+
+  /** An unarmed explorer while a weapon sits in storage: offer the best one before they go. */
+  private spareWeaponHint(res: Resident, rerender: () => void): HTMLElement | null {
     const { state, content } = this.game;
-    const dmg = (r: Resident) => {
-      const w = r.weapon ? content.weapons[r.weapon] : undefined;
-      return w ? (w.min + w.max) / 2 : 0;
-    };
-    const healthy = (r: Resident) => (r.hp >= effectiveMaxHp(r) * 0.5 ? 1 : 0);
-    return state.residents
-      .filter((r) => !r.waiting && canExplore(state, content, r) === null)
-      .sort((a, b) => healthy(b) - healthy(a) || dmg(b) - dmg(a) || b.hp - a.hp || b.level - a.level || a.id - b.id);
+    if (res.weapon) return null;
+    let best: { id: number; name: string; avg: number } | null = null;
+    for (const item of state.items) {
+      const w = content.weapons[item.defId];
+      if (!w) continue;
+      const avg = (w.min + w.max) / 2;
+      if (!best || avg > best.avg) best = { id: item.id, name: w.name, avg };
+    }
+    if (!best) return null;
+    const pick = best;
+    return h(
+      'div',
+      { class: 'row small', style: 'margin-top:6px;gap:8px' },
+      h('span', { class: 'short' }, `⚠ Unarmed, and a ${pick.name} is in storage.`),
+      h(
+        'button',
+        {
+          onclick: () => {
+            const out = this.game.run({ type: 'equip', residentId: res.id, itemId: pick.id });
+            if (!out.ok) this.toast(out.reason, 'bad');
+            rerender();
+          },
+        },
+        `Arm with ${pick.name}`,
+      ),
+    );
   }
 
   private supplyMax(kind: 'medpatch' | 'purge'): number {
@@ -2726,7 +2752,8 @@ export class UI {
         ...eligible.map((r) => {
           const w = r.weapon ? content.weapons[r.weapon] : undefined;
           const hurt = r.hp < effectiveMaxHp(r) * 0.5 ? ' · hurt' : '';
-          return h('option', { value: r.id, selected: r.id === d.residentId }, `${r.firstName} ${r.lastName} · L${r.level} · HP ${Math.ceil(r.hp)} · ${w ? `${w.min}–${w.max} dmg` : 'unarmed'}${hurt}`);
+          const idle = r.roomId === null ? ' · idle' : '';
+          return h('option', { value: r.id, selected: r.id === d.residentId }, `${r.firstName} ${r.lastName} · L${r.level} · HP ${Math.ceil(r.hp)} · ${w ? `${w.min}–${w.max} dmg` : 'unarmed'}${hurt}${idle}`);
         }),
       );
       picker = h('label', { class: 'field' }, h('span', { class: 'muted' }, 'Explorer'), select);
@@ -2745,6 +2772,7 @@ export class UI {
         h('div', { class: 'muted small', style: 'margin-top:4px' }, `${weapon ? `${weapon.name} (${weapon.min}–${weapon.max} dmg)` : 'Fists (1 dmg)'} · ${outfit ? outfit.name : 'Halcyon jumpsuit'}`),
         h('div', { class: 'muted small' }, 'Every stat matters out there: Grit shrugs off the Glare, Fortune finds scrip, and a good weapon wins fights.'),
         res.hp < effectiveMaxHp(res) * 0.5 ? h('div', { class: 'small short', style: 'margin-top:4px' }, '⚠ Low on health. Patch them up before they go.') : null,
+        this.spareWeaponHint(res, again),
       );
     }
 
@@ -3284,7 +3312,11 @@ export class UI {
     ].filter(Boolean);
     const trained = awayTrained(s.trained ?? [], (id) => this.name(id));
     const came = awayCollected(s.collected);
-    const ready = s.readyRooms ? `${s.readyRooms} room${s.readyRooms === 1 ? ' is' : 's are'} ready to collect${came ? ' now that storage is full' : ''}.` : 'No rooms are waiting on you.';
+    const ready = s.readyRooms
+      ? came
+        ? `Storage filled up, so ${s.readyRooms} room${s.readyRooms === 1 ? ' is' : 's are'} holding a batch for you.`
+        : `${s.readyRooms} room${s.readyRooms === 1 ? ' is' : 's are'} ready to collect.`
+      : 'No rooms are waiting on you.';
     this.modal(
       'While you were away',
       h('p', {}, `${duration(s.seconds)} passed. ${ready} ${extras}`),

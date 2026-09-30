@@ -32,6 +32,7 @@ export { radioInterval, radioChance } from './systems/arrivals';
 export { courtshipSeconds } from './systems/family';
 export {
   canExplore,
+  explorerCandidates,
   carriedCount,
   secondsUntilHome,
   MAX_SUPPLIES,

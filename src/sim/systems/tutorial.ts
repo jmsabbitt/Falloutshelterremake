@@ -8,7 +8,9 @@
 
 import type { Content } from '../content';
 import { canPlace, roomDef, starterShaftX } from '../grid';
+import { resourceCapacity } from '../economy';
 import { bump } from '../residents';
+import { batchOutput } from './production';
 import type { GameState, Room, TutorialStep } from '../types';
 
 export const TUTORIAL_STEPS: readonly TutorialStep[] = [
@@ -75,7 +77,9 @@ const isCore = (type: string): boolean => (Object.values(TUTORIAL_ROOMS) as stri
 /**
  * A room was just built in a tutorial homestead. The first of each core type
  * comes stocked (the resource starts at the usual starting amount, which the
- * empty start had nowhere to store) and nearly through its first batch.
+ * empty start had nowhere to store) and nearly through its first batch. The
+ * stock leaves space for that batch, so the collect the tutorial asks for adds
+ * a whole batch instead of spilling it into full storage.
  */
 export function onTutorialBuild(state: GameState, content: Content, room: Room): void {
   if (!tutorialActive(state) || !isCore(room.type)) return;
@@ -83,8 +87,8 @@ export function onTutorialBuild(state: GameState, content: Content, room: Room):
   const def = roomDef(content, room);
   const key = def.produces?.resource;
   if (!key) return;
-  const start = content.balance.start.resources[key] ?? 0;
-  state.resources[key] = Math.max(state.resources[key], start);
+  const start = Math.max(state.resources[key], content.balance.start.resources[key] ?? 0);
+  state.resources[key] = Math.max(0, Math.min(start, resourceCapacity(state, content, key) - batchOutput(content, room)));
   room.pool = Math.max(room.pool, def.produces ? def.produces.poolBase * room.segments * PREFILL : 0);
 }
 

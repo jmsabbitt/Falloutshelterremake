@@ -189,6 +189,8 @@ export function collectRoom(state: GameState, content: Content, room: Room, opts
   bump(state, 'collections');
   bump(state, `produced.${key}`, amount);
   if (opts.offline) bump(state, `offlineCollected.${key}`, amount);
-  state.events.push({ type: 'collected', roomId: room.id, resource: key, amount, bonusScrip, baseScrip: base, ...(opts.offline ? { offline: true } : {}) });
+  // What the batches made beyond what storage could take (shown as "storage full").
+  const spilled = Math.max(0, out * batches - amount);
+  state.events.push({ type: 'collected', roomId: room.id, resource: key, amount, bonusScrip, baseScrip: base, ...(spilled >= 1 ? { spilled } : {}), ...(opts.offline ? { offline: true } : {}) });
   return amount;
 }
