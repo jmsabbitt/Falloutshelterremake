@@ -1,5 +1,6 @@
 // DOM interface over the Pixi view: HUD, toolbar, side panels, toasts, hints.
 
+import { watchAnotherTab } from './anotherTab';
 import { itemIcon, salvageIcon } from './icons';
 import { applyChromeArt, artImg, artUrl, iconize, loadUiArt, uiIcon } from './art';
 import { GearUI, groupItems, itemLabel, itemStats, type GearSlot } from './gear';
@@ -392,6 +393,7 @@ export class UI {
     this.renderToolbar();
     game.on((events) => this.onEvents(events));
     game.onReplace(() => this.onStateReplaced());
+    watchAnotherTab(game, (msg, kind) => this.toast(msg, kind));
     game.onSaveError(() => this.toast("Couldn't save: this browser's storage is full. Export your homestead (Menu → Saves) to keep your progress.", 'bad'));
     // M8: Android back (and Escape) closes the topmost thing first.
     onBack(() => this.back());

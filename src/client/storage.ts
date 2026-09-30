@@ -283,6 +283,30 @@ export function clearSave(slot: SlotId = 0): void {
   removeItem(KEY(slot));
 }
 
+// ---------------------------------------------------------------- one tab per live save
+
+/**
+ * Which open tab owns a live slot. Every tab loads the save once and then autosaves
+ * its own copy, so two tabs would take turns overwriting each other. The tab that
+ * last loaded (or chose to keep playing) a slot claims it here; any other tab stops
+ * saving to it once it sees the claim has moved on.
+ */
+const OWNER_KEY = (slot: SlotId) => `${PREFIX}owner.${slot}`;
+
+export function claimLiveSlot(slot: SlotId, tabId: string): void {
+  setItem(OWNER_KEY(slot), tabId);
+}
+
+/** The tab id that last claimed a live slot, or null if none has. */
+export function liveSlotOwner(slot: SlotId): string | null {
+  return getItem(OWNER_KEY(slot));
+}
+
+/** True for a localStorage key that records a live slot's owner (for the storage event). */
+export function isOwnerKey(key: string | null, slot: SlotId): boolean {
+  return key === OWNER_KEY(slot);
+}
+
 // ---------------------------------------------------------------- M9: normal and custom live saves
 
 /** The two games that autosave: the real homestead and the Custom Game sandbox. */
