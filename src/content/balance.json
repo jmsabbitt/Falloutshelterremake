@@ -151,6 +151,8 @@
       "maxSeconds": 3600
     },
     "spreadDelaySeconds": 12,
+    "_noDeathsBeforeClinic": "Until the first Clinic is built, incident damage stops at 1 HP: a new homestead's residents are wounded, not killed.",
+    "noDeathsBeforeClinic": true,
     "hpPerAvgLevel": 0.08,
     "damagePerLevel": 0.25,
     "xpOnResolvePerResident": 25,

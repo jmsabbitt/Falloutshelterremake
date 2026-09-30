@@ -645,11 +645,13 @@ export function tickIncidents(state: GameState, content: Content, dt: number): v
       // Defense research (drills, armour plating) takes the edge off.
       const perResident = (inc.dps * dt * Math.max(0.2, 1 - bonus(state, content, 'incidentDefense')) * (tower?.damageMult ?? 1)) / crew.length;
       const taintShare = def.taintShare ?? 0;
+      // Until the homestead has a Clinic to patch people up, incidents wound but never kill.
+      const floor = content.balance.incidents.noDeathsBeforeClinic && !state.rooms.some((x) => x.type === 'clinic') ? 1 : 0;
       for (const r of crew) {
         const dealt = perResident * traitDamageTakenMult(content, r);
         // The Hollowed: part of it is Glare-sickness rather than wounds.
         if (taintShare > 0) addTaint(r, dealt * taintShare);
-        r.hp -= dealt * (1 - taintShare);
+        r.hp = Math.max(Math.min(r.hp, floor), r.hp - dealt * (1 - taintShare));
         if (r.hp <= 0) {
           r.hp = 0;
           r.dead = true;
