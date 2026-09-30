@@ -181,9 +181,13 @@ export async function initStorage(opts: { prefs?: PrefsLike } = {}): Promise<Sto
   }
   const writes: Promise<void>[] = [];
   for (const k of localKeys) {
-    if (!k.startsWith(PREFIX) || next.has(k)) continue;
+    if (!k.startsWith(PREFIX)) continue;
     const v = s?.getItem(k);
     if (v === null || v === undefined) continue;
+    // Preferences wins, except for a save whose localStorage copy is newer: the
+    // mirror write for it failed or never landed before the app was closed.
+    const mirrored = next.get(k);
+    if (mirrored !== undefined && (mirrored === v || !k.startsWith(SAVE_PREFIX) || savedAtOf(v) <= savedAtOf(mirrored))) continue;
     next.set(k, v);
     writes.push(p.set({ key: k, value: v }));
     toPrefs++;
@@ -203,6 +207,19 @@ export async function initStorage(opts: { prefs?: PrefsLike } = {}): Promise<Sto
   prefs = p;
   decoded.clear();
   return { mode: 'preferences', toPrefs, toLocal };
+}
+
+const SAVE_PREFIX = `${PREFIX}save.`;
+
+/** When a stored save was written (its file's savedAt), or -Infinity if it can't be read. */
+function savedAtOf(stored: string): number {
+  try {
+    const json = decodeSave(stored);
+    const at = json ? (JSON.parse(json) as { savedAt?: unknown }).savedAt : undefined;
+    return typeof at === 'number' ? at : -Infinity;
+  } catch {
+    return -Infinity;
+  }
 }
 
 /**

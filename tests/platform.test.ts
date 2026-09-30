@@ -283,6 +283,25 @@ describe('native Preferences mirror', () => {
     expect(local.getItem('homestead.save.0')).toBe('{"from":"prefs"}');
   });
 
+  it('keeps the newer save when the Preferences mirror fell behind', async () => {
+    const save = (day: number) => JSON.stringify({ format: 'homestead-save', version: 11, savedAt: day * 86_400_000, state: { day } });
+    const prefs = new FakePrefs();
+    prefs.map.set('homestead.save.0', save(1)); // the mirror write for day 30 never landed
+    prefs.map.set('homestead.save.1', save(40)); // a newer save only Preferences has (the WebView quota was full)
+    prefs.map.set('homestead.settings', '{"from":"prefs"}');
+    local.setItem('homestead.save.0', save(30));
+    local.setItem('homestead.save.1', save(20));
+    local.setItem('homestead.settings', '{"from":"local"}');
+    await initStorage({ prefs });
+    await flushStorage();
+    expect(readSave(0)).toBe(save(30));
+    expect(prefs.map.get('homestead.save.0')).toBe(save(30));
+    expect(readSave(1)).toBe(save(40));
+    expect(local.getItem('homestead.save.1')).toBe(save(40));
+    // Anything that isn't a save still comes from Preferences.
+    expect(local.getItem('homestead.settings')).toBe('{"from":"prefs"}');
+  });
+
   it('writes through to both stores, and removes from both', async () => {
     const prefs = new FakePrefs();
     await initStorage({ prefs });
