@@ -92,7 +92,7 @@ All four are in `.github/workflows/`, and each can also be run by hand from the 
 
 ## Icons and splash
 
-The icon and splash are paintings (docs/art/ART-LIST.md X2): `art/raw/app/icon.png` (a homestead door in a hillside, 1024 px) and `art/raw/app/splash.png` (the same scene wider, centre third safe). The web boot screen shows `public/sprites/app/splash.webp` until the game starts. The web icons are in `public/icons/`:
+The icon and splash are paintings (docs/art/ART-LIST.md X2): `art/raw/app/icon.png` (a blast hatch with a sunburst in a hillside at dusk, 1024 px) and `art/raw/app/splash.png` (the same scene wider, centre third safe). The web boot screen shows `public/sprites/app/splash.webp` until the game starts. The web icons are in `public/icons/`:
 
 - `favicon-64.png`
 - `icon-192.png` and `icon-512.png`
