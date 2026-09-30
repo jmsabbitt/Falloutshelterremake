@@ -80,7 +80,7 @@ For anything strange with a save, export it (☰ → "⤓ Export" under "This ho
 
 ## Handy for desktop testing
 
-The browser console (F12) has helpers on `window.homestead`:
+In a development build (`npm run dev`, or `VITE_DEV_CONSOLE=1 npm run build`), the browser console (F12) has helpers on `window.homestead`. Release builds, including the GitHub Pages site, leave them out:
 
 | Helper | What it does |
 |---|---|

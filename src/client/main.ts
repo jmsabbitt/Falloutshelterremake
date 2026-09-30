@@ -32,6 +32,11 @@ function registerServiceWorker(): void {
   }, 250);
 }
 
+/** Dev builds, or a production build made with VITE_DEV_CONSOLE=1 (for automated UI tests). */
+function devConsole(): boolean {
+  return import.meta.env.DEV || import.meta.env['VITE_DEV_CONSOLE'] === '1';
+}
+
 async function boot(): Promise<void> {
   // M8: natively the saves are mirrored in Preferences; load them before the game reads its save.
   await initStorage();
@@ -49,7 +54,10 @@ async function boot(): Promise<void> {
   host.appendChild(app.canvas);
 
   const game = new Game();
-  game.installConsole();
+  // The developer console (window.homestead: scrip, crates, skip…) is for development
+  // and automated tests only. Players never get it: it would unlock every achievement.
+  // `VITE_DEV_CONSOLE=1 npm run build` keeps it in a production build for testing.
+  if (devConsole()) game.installConsole();
 
   // The UI and view need each other; wire callbacks through a late-bound ref.
   let ui: UI | null = null;
@@ -98,7 +106,7 @@ async function boot(): Promise<void> {
     requestAnimationFrame(() => requestAnimationFrame(artReady));
   }, artReady);
   const cost = { n: 0, sim: 0, view: 0, ui: 0 };
-  (window as unknown as Record<string, unknown>).homesteadView = {
+  if (devConsole()) (window as unknown as Record<string, unknown>).homesteadView = {
     /** Screen position of a room's centre; for automated UI tests. */
     roomScreen: (id: number) => {
       const room = game.state.rooms.find((r) => r.id === id);

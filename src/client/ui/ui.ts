@@ -2430,7 +2430,7 @@ export class UI {
         'p',
         { class: 'muted small menu-version' },
         `Homestead ${typeof __APP_VERSION__ === 'string' ? `v${__APP_VERSION__}` : 'dev build'}`,
-        isPhone() || isNative() ? null : h('span', { class: 'dev-hint' }, ' · Developer console: window.homestead'),
+        isPhone() || isNative() || !(window as unknown as { homestead?: unknown }).homestead ? null : h('span', { class: 'dev-hint' }, ' · Developer console: window.homestead'),
       ),
     );
   }
