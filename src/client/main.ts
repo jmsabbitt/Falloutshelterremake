@@ -10,6 +10,7 @@ import { CustomGameUI } from './ui/custom';
 import { initPlatform, isNative } from './platform';
 import { getSettings, onSettingsChange, reloadSettings, type Settings } from './platform/settings';
 import { initStorage } from './storage';
+import { initAudio } from './platform/audio';
 // M8: fonts are bundled so the game looks right in airplane mode.
 import '@fontsource/bungee/400.css';
 import '@fontsource/work-sans/400.css';
@@ -76,6 +77,8 @@ async function boot(): Promise<void> {
     onRingResult: (id, quality) => ui?.quests.screen.onRingResult(id, quality),
   });
   ui = new UI(game, view, questView);
+  // Synthesised sound effects and ambience; silent until the first tap or key press.
+  initAudio(game);
   // M9: the Custom Game banner, sandbox toolbar and screen draw their own layer over the UI.
   const custom = new CustomGameUI({ game, toast: (...args) => ui?.toast(...args) });
   await initPlatform(game).catch((err) => console.warn('Platform init failed:', err));

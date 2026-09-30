@@ -51,6 +51,24 @@ function stepper(label: string, value: number, set: (n: number) => void, disable
   );
 }
 
+/** A 0–100 % volume slider. It stores on release, so dragging doesn't re-render the panel under the thumb. */
+function slider(label: string, id: string, value: number, set: (v: number) => void, disabled: boolean): HTMLElement {
+  const out = h('b', { class: 'slider-value' }, `${Math.round(value * 100)}%`);
+  const input = h('input', {
+    type: 'range',
+    id,
+    min: '0',
+    max: '100',
+    step: '5',
+    value: String(Math.round(value * 100)),
+    disabled,
+    'aria-label': label,
+    oninput: (e: Event) => (out.textContent = `${(e.target as HTMLInputElement).value}%`),
+    onchange: (e: Event) => set(Number((e.target as HTMLInputElement).value) / 100),
+  });
+  return h('label', { class: 'row stepper-row slider-row', for: id }, h('span', {}, label), h('span', { class: 'stepper' }, input, out));
+}
+
 const PERMISSION_NOTE: Record<NotifyPermission, string | null> = {
   granted: null,
   prompt: 'Off until you allow it. Tap and HALCY will ask the phone.',
@@ -96,6 +114,12 @@ export function settingsPanel(game: Game): HTMLElement {
       toggleRow('Quiet hours', q.enabled ? `Nothing between ${hh(q.start)} and ${hh(q.end)}. Anything due is held until ${hh(q.end)}.` : 'Pings at any hour.', q.enabled, () => set({ quietHours: { ...q, enabled: !q.enabled } }), !notifyOn),
       stepper('From', q.start, (n) => set({ quietHours: { ...q, start: n } }), !notifyOn || !q.enabled),
       stepper('Until', q.end, (n) => set({ quietHours: { ...q, end: n } }), !notifyOn || !q.enabled),
+
+      h('h3', { class: 'group' }, 'Sound'),
+      toggleRow('Sound', 'Effects and the hum of the homestead. Made by the game itself, no recordings.', !s.sound.muted, () => set({ sound: { ...s.sound, muted: !s.sound.muted } })),
+      slider('Master volume', 'snd-master', s.sound.master, (v) => set({ sound: { ...getSettings().sound, master: v } }), s.sound.muted),
+      slider('Effects', 'snd-effects', s.sound.effects, (v) => set({ sound: { ...getSettings().sound, effects: v } }), s.sound.muted),
+      slider('Ambience', 'snd-ambience', s.sound.ambience, (v) => set({ sound: { ...getSettings().sound, ambience: v } }), s.sound.muted),
 
       h('h3', { class: 'group' }, 'Comfort'),
       toggleRow('Haptics', 'A small buzz on builds, drops and crits.', s.haptics, () => {
