@@ -357,6 +357,27 @@ describe('founding, outposts and Survival', () => {
     advance(t, content, 1);
     expect(legendStatus(t, 'granny_ash')).toBe('here');
   });
+
+  it('a legend laid to rest can be sent for again, without duplicating their signature gear', () => {
+    const s = game();
+    s.scrip = 20_000;
+    recruitLegend(s, content, 'ada_quill', 'faction');
+    admit(s, 'ada_quill');
+    const def = legendDef(content, 'ada_quill')!;
+    const signature = [def.weapon, def.outfit].filter(Boolean);
+    const owned = () => [...s.items.map((i) => i.defId), ...s.residents.flatMap((r) => [r.weapon, r.outfit])].filter((id) => signature.includes(id ?? ''));
+    for (let i = 0; i < 3; i++) {
+      const ada = withLegend(s, 'ada_quill')[0]!;
+      ada.waiting = false;
+      ada.dead = true;
+      ada.hp = 0;
+      expect(applyCommand(s, content, { type: 'layToRest', residentId: ada.id }).ok).toBe(true);
+      expect(legendStatus(s, 'ada_quill')).toBe('outpost');
+      expect(applyCommand(s, content, { type: 'recallLegend', legendId: 'ada_quill' }).ok).toBe(true);
+      expect(withLegend(s, 'ada_quill')).toHaveLength(1);
+    }
+    expect(owned()).toHaveLength(signature.length);
+  });
 });
 
 describe('signature traits', () => {

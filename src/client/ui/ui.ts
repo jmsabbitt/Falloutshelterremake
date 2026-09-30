@@ -1740,7 +1740,7 @@ export class UI {
           {
             class: 'danger',
             onclick: stop(() =>
-              ask({ title: `Lay ${r.firstName} to rest?`, text: 'This is permanent. Their gear goes to storage.', ok: 'Lay to rest', danger: true }, () => {
+              ask({ title: `Lay ${r.firstName} to rest?`, text: r.legendary ? 'Their other gear goes to storage. A legend can be sent for again later (Residents → Legends) and comes back with their signature gear.' : 'This is permanent. Their gear goes to storage.', ok: 'Lay to rest', danger: true }, () => {
                 this.game.run({ type: 'layToRest', residentId: r.id });
                 this.residentId = null;
                 this.view.selectedResidentId = null;

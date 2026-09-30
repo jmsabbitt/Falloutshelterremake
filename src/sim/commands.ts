@@ -22,7 +22,7 @@ import { abandonQuest, collectQuest, questAbility, questChoose, questCrit, quest
 import { performRush } from './systems/rush';
 import { applyCustom, type CustomCommand } from './systems/custom';
 import { isSurvival, rulesetMods } from './systems/rulesets';
-import { recallLegend } from './systems/legends';
+import { legendDef, recallLegend } from './systems/legends';
 import { chooseEnding, setEndingTitle } from './systems/endings';
 import { onTutorialBuild, skipTutorial, tickTutorial } from './systems/tutorial';
 import type { CrateTier, GameState, Resident, Room } from './types';
@@ -388,9 +388,12 @@ function dispatch(state: GameState, content: Content, cmd: Command): CommandResu
       if (!res || !res.dead) return fail('only the fallen can be laid to rest');
       if (res.expedition !== null) return fail('recall their body from the Glarelands first');
       if (res.quest !== null) return fail('they are still away on a quest');
+      // A legend can be sent for again later (recallLegend) and comes back with
+      // their signature gear, so that stays with them rather than being duplicated.
+      const def = res.legendary ? legendDef(content, res.legendary) : undefined;
       for (const slot of ['weapon', 'outfit'] as const) {
         const item = res[slot];
-        if (item) grantItem(state, content, item);
+        if (item && item !== def?.[slot]) grantItem(state, content, item);
       }
       state.residents = state.residents.filter((r) => r !== res);
       for (const r of state.residents) if (r.courtship?.partnerId === res.id) r.courtship = null;
