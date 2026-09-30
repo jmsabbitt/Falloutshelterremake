@@ -269,7 +269,7 @@ export class NoticeCentre {
       case 'residentRevived':
         return people('revived', '✚', `${this.name(ev.residentId)} was revived.`, this.name(ev.residentId), (p, n) => `${n} residents revived: ${nameList(p)}.`, 'good');
       case 'autoAssigned':
-        return { key: 'autoAssigned', group: 'people', icon: '⚙', one: `Auto-assign put ${plural(ev.count, 'resident')} to work.`, part: `${ev.count}`, many: (p) => `Auto-assign put ${p.reduce((a, b) => a + Number(b), 0)} residents to work.` };
+        return { key: 'autoAssigned', group: 'people', icon: '⚙', one: `Auto-assign found places for ${plural(ev.count, 'resident')}.`, part: `${ev.count}`, many: (p) => `Auto-assign found places for ${p.reduce((a, b) => a + Number(b), 0)} residents.` };
       case 'statTrained': {
         const stat = STAT_WORD[ev.stat];
         const who = this.name(ev.residentId);

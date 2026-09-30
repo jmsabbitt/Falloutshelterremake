@@ -1,11 +1,13 @@
 // "Auto-assign best fit" (GDD §6.6): put idle adults into the free job slots
-// that suit them best. Used by the autoAssign command and, once researched,
-// by the Personnel Office automation.
+// that suit them best, then pair couples into Quarters while there are beds
+// for a baby, then send whoever is left to train. Used by the autoAssign
+// command and, once researched, by the Personnel Office automation.
 
 import type { Content } from '../content';
 import { roomDef } from '../grid';
 import { roomCapacity } from '../commands';
-import { effectiveStat, isAway, isChild, residentsInRoom } from '../residents';
+import { population, storageCapacity } from '../economy';
+import { closelyRelated, effectiveStat, isAway, isChild, maxStat, residentsInRoom } from '../residents';
 import type { GameState, Resident, Room } from '../types';
 
 /** Remember a resident's job as they leave the homestead for a trip. */
@@ -30,9 +32,8 @@ export function idleAdults(state: GameState): Resident[] {
 }
 
 /**
- * Jobs auto-assign may fill, with their free slots: production, radio and
- * research. Quarters (courtship), storerooms, workshops and the door are
- * left to the player.
+ * Jobs auto-assign fills first, with their free slots: production, radio
+ * and research. Storerooms, workshops and the door are left to the player.
  */
 function jobSlots(state: GameState, content: Content): Map<Room, number> {
   const slots = new Map<Room, number>();
@@ -45,33 +46,86 @@ function jobSlots(state: GameState, content: Content): Map<Room, number> {
   return slots;
 }
 
+/** Free slots in rooms of one category (any stat), in room order. */
+function freeSlots(state: GameState, content: Content, category: string): Map<Room, number> {
+  const slots = new Map<Room, number>();
+  for (const room of state.rooms) {
+    if (roomDef(content, room).category !== category) continue;
+    const free = roomCapacity(content, room) - residentsInRoom(state, room.id).length;
+    if (free > 0) slots.set(room, free);
+  }
+  return slots;
+}
+
 /**
- * Greedily pair the idle resident and free slot with the highest matching
- * stat, until either runs out. Returns how many were assigned.
+ * Greedily pair the idle resident and free slot with the highest score, until
+ * either runs out. Returns who went where.
  */
-export function autoAssign(state: GameState, content: Content): number {
-  const idle = idleAdults(state);
-  const slots = jobSlots(state, content);
+function fill(idle: Resident[], slots: Map<Room, number>, score: (r: Resident, room: Room) => number | null): number {
   let count = 0;
   while (idle.length && slots.size) {
     let best: { r: Resident; room: Room; score: number } | null = null;
     for (const r of idle) {
       for (const room of slots.keys()) {
-        const stat = roomDef(content, room).stat;
-        if (!stat) continue;
-        const score = effectiveStat(content, r, stat);
-        if (!best || score > best.score || (score === best.score && room.id < best.room.id)) best = { r, room, score };
+        const sc = score(r, room);
+        if (sc === null) continue;
+        if (!best || sc > best.score || (sc === best.score && room.id < best.room.id)) best = { r, room, score: sc };
       }
     }
     if (!best) break;
-    best.r.roomId = best.room.id;
-    const left = (slots.get(best.room) as number) - 1;
-    if (left > 0) slots.set(best.room, left);
-    else slots.delete(best.room);
-    best.r.courtship = null;
-    idle.splice(idle.indexOf(best.r), 1);
+    place(best.r, best.room, slots, idle);
     count++;
   }
+  return count;
+}
+
+function place(r: Resident, room: Room, slots: Map<Room, number>, idle: Resident[]): void {
+  r.roomId = room.id;
+  r.courtship = null;
+  const left = (slots.get(room) as number) - 1;
+  if (left > 0) slots.set(room, left);
+  else slots.delete(room);
+  idle.splice(idle.indexOf(r), 1);
+}
+
+/**
+ * Couples for Quarters: an idle woman who isn't expecting and an idle man
+ * who isn't close family, into Quarters with two free beds, while the
+ * homestead has a bed for each baby on the way.
+ */
+function fillQuarters(state: GameState, content: Content, idle: Resident[]): number {
+  const slots = freeSlots(state, content, 'living');
+  const expecting = state.residents.filter((r) => !r.dead && (r.pregnancy || r.courtship)).length;
+  let beds = storageCapacity(state, content, 'population') - population(state) - expecting;
+  let count = 0;
+  for (const woman of idle.filter((r) => r.sex === 'f' && r.pregnancy === null)) {
+    if (beds <= 0) break;
+    const man = idle.find((m) => m.sex === 'm' && !closelyRelated(state, woman, m));
+    const room = [...slots].find(([, free]) => free >= 2)?.[0];
+    if (!man || !room) continue;
+    place(woman, room, slots, idle);
+    place(man, room, slots, idle);
+    beds--;
+    count += 2;
+  }
+  return count;
+}
+
+export function autoAssign(state: GameState, content: Content): number {
+  const idle = idleAdults(state);
+  // Jobs first: the stat the room works with.
+  let count = fill(idle, jobSlots(state, content), (r, room) => {
+    const stat = roomDef(content, room).stat;
+    return stat ? effectiveStat(content, r, stat) : null;
+  });
+  count += fillQuarters(state, content, idle);
+  // Training last: each resident works on the stat nearest the top they can
+  // still raise, so they grow into the jobs they're best at.
+  const cap = maxStat(content);
+  count += fill(idle, freeSlots(state, content, 'training'), (r, room) => {
+    const stat = roomDef(content, room).stat;
+    return stat && r.stats[stat] < cap ? r.stats[stat] : null;
+  });
   if (count) state.events.push({ type: 'autoAssigned', count });
   return count;
 }

@@ -229,7 +229,7 @@ export class ResidentList {
           {
             class: 'primary',
             disabled: idle === 0,
-            title: 'Put idle adults into the free jobs that suit their stats best',
+            title: 'Put idle adults into the free jobs that suit their stats best, then couples into Quarters, then the rest into training',
             onclick: () => this.autoAssign(),
           },
           `⚙ Auto-assign${idle ? ` (${idle})` : ''}`,
@@ -585,8 +585,8 @@ export class ResidentList {
   private autoAssign(): void {
     const res = this.game.run({ type: 'autoAssign' });
     const left = idleAdults(this.game.state).length;
-    const rest = left ? ` ${left} still idle: no free slots left in rooms that use a stat. Build or upgrade rooms.` : ' Nobody is idle now.';
-    this.host.toast(res.ok ? `⚙ Auto-assign: ${res.detail ?? 'done'}, each to the free job that suits them best.${rest}` : `Auto-assign: ${res.reason}.`, res.ok ? 'good' : 'bad');
+    const rest = left ? ` ${left} still idle: no free slots left in jobs, Quarters or training rooms. Build or upgrade rooms.` : ' Nobody is idle now.';
+    this.host.toast(res.ok ? `⚙ Auto-assign: ${res.detail ?? 'done'}: jobs first, then couples into Quarters, then training.${rest}` : `Auto-assign: ${res.reason}.`, res.ok ? 'good' : 'bad');
     this.host.refresh();
   }
 

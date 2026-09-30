@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { applyCommand, canPlace, catchUp, loadContent, newGame, STAT_KEYS, upcomingReminders, type GameState, type Resident, type Room } from '../src/sim';
-import { grantXp, xpToNext } from '../src/sim/residents';
+import { applyCommand, canPlace, catchUp, loadContent, newGame, population, storageCapacity, STAT_KEYS, upcomingReminders, type GameState, type Resident, type Room } from '../src/sim';
+import { createResident, grantXp, maxStat, xpToNext } from '../src/sim/residents';
+import { roomCapacity } from '../src/sim/commands';
 import { autoAssign } from '../src/sim/systems/assign';
 import { tickMastery } from '../src/sim/systems/traits';
 import { tickTraining, trainingRequirement, trainingSpeed, trainingStatus, trainingTuning } from '../src/sim/systems/training';
@@ -178,7 +179,7 @@ describe('training rooms', () => {
     expect(r.training?.stat).toBe('wits');
   });
 
-  it('are not jobs: no mastery, and auto-assign leaves them alone', () => {
+  it('are not jobs: no mastery, and auto-assign keeps whoever trains there', () => {
     const s = game();
     const room = build(s, 'weight_room');
     const r = adults(s)[0] as Resident;
@@ -188,6 +189,67 @@ describe('training rooms', () => {
     for (const x of s.residents) if (x.roomId !== room.id) x.roomId = null;
     autoAssign(s, content);
     expect(s.residents.filter((x) => x.roomId === room.id)).toHaveLength(1);
+  });
+});
+
+describe('auto-assign', () => {
+  it('fills jobs first, then couples into quarters while there are beds, then training', () => {
+    const s = game();
+    const gym = build(s, 'weight_room');
+    for (const r of s.residents) r.roomId = null;
+    // Plenty of idle adults: more than the job slots.
+    for (let i = 0; i < 12; i++) {
+      const r = createResident(s, content, { sex: i % 2 ? 'm' : 'f' });
+      r.waiting = false;
+      s.residents.push(r);
+    }
+    const jobs = s.rooms.filter((x) => ['generator', 'canteen', 'waterworks'].includes(x.type));
+    autoAssign(s, content);
+    for (const room of jobs) expect(s.residents.filter((r) => r.roomId === room.id).length).toBe(roomCapacity(content, room));
+    const trainees = s.residents.filter((r) => r.roomId === gym.id);
+    expect(trainees.length).toBeGreaterThan(0);
+    for (const t of trainees) expect(t.stats.brawn).toBeLessThan(maxStat(content));
+    const quarters = s.rooms.filter((x) => x.type === 'quarters');
+    for (const q of quarters) {
+      const here = s.residents.filter((r) => r.roomId === q.id);
+      expect(here.filter((r) => r.sex === 'f').length).toBe(here.filter((r) => r.sex === 'm').length);
+      for (const w of here.filter((r) => r.sex === 'f')) expect(w.pregnancy).toBeNull();
+    }
+  });
+
+  it('pairs an unrelated couple into quarters when there are beds', () => {
+    const s = game();
+    // Enough men to fill every job (and no women among them to pair with).
+    for (let i = 0; i < 6; i++) {
+      const r = createResident(s, content, { sex: 'm' });
+      r.waiting = false;
+      s.residents.push(r);
+    }
+    while (storageCapacity(s, content, 'population') < population(s) + 4) build(s, 'quarters');
+    for (const r of s.residents) r.roomId = null;
+    const f = adults(s).find((r) => r.sex === 'f')!;
+    const m = adults(s).find((r) => r.sex === 'm')!;
+    // Everyone else is placed first, so the jobs are full when these two come in.
+    f.waiting = m.waiting = true;
+    autoAssign(s, content);
+    f.waiting = m.waiting = false;
+    autoAssign(s, content);
+    expect(f.roomId).not.toBeNull();
+    expect(f.roomId).toBe(m.roomId);
+    expect(s.rooms.find((x) => x.id === f.roomId)!.type).toBe('quarters');
+  });
+
+  it('sends nobody to quarters when there is no bed for a baby', () => {
+    const s = game();
+    for (const r of s.residents) r.roomId = null;
+    while (population(s) < storageCapacity(s, content, 'population')) {
+      const r = createResident(s, content, {});
+      r.waiting = false;
+      s.residents.push(r);
+    }
+    autoAssign(s, content);
+    const quarters = s.rooms.filter((x) => x.type === 'quarters').map((q) => q.id);
+    expect(s.residents.some((r) => r.roomId !== null && quarters.includes(r.roomId))).toBe(false);
   });
 });
 

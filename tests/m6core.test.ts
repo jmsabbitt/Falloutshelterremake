@@ -69,11 +69,16 @@ describe('M6 core', () => {
     expect(s.resources.power).toBeGreaterThan(0);
   });
 
-  it('auto-assign leaves quarters and storerooms alone', () => {
+  it('auto-assign sends only couples to quarters, and nobody to storerooms', () => {
     const s = game();
     applyCommand(s, content, { type: 'autoAssign' });
-    const quarters = s.rooms.find((x) => x.type === 'quarters')!;
-    expect(s.residents.some((r) => r.roomId === quarters.id)).toBe(false);
+    const quarters = s.rooms.filter((x) => x.type === 'quarters').map((q) => q.id);
+    for (const id of quarters) {
+      const here = s.residents.filter((r) => r.roomId === id);
+      expect(here.filter((r) => r.sex === 'f').length).toBe(here.filter((r) => r.sex === 'm').length);
+    }
+    const stores = s.rooms.filter((x) => x.type === 'storeroom').map((q) => q.id);
+    expect(s.residents.some((r) => r.roomId !== null && stores.includes(r.roomId))).toBe(false);
   });
 
   it('threat rating rises with level and falls with defense research', () => {
