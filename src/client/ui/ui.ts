@@ -2413,7 +2413,7 @@ export class UI {
               onclick: () =>
                 ask({ title: 'Start a new homestead?', text: 'Your current one is replaced. A copy is kept under Backups until the next load.', ok: 'Start over', danger: true }, () => {
                   if (!this.game.reset()) {
-                    this.toast("Couldn't keep a backup copy (storage is full), so nothing was replaced. Export your homestead first.", 'bad');
+                    this.toast("Couldn't start over, so nothing was replaced. Storage may be full: export a copy first.", 'bad');
                     return;
                   }
                   this.closePanel();

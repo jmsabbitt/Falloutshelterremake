@@ -357,8 +357,8 @@ export function writeBackup(cycle: number, json: string, mode: PlayMode = 'norma
   return raw !== null && decodeSave(raw) === json;
 }
 
-export function readBackup(cycle: number): string | null {
-  return readEncoded(`${BACKUP_PREFIX}${cycle}`);
+export function readBackup(cycle: number, mode: PlayMode = 'normal'): string | null {
+  return readEncoded(`${backupPrefix(mode)}${cycle}`);
 }
 
 /** Cycles with a stored backup, oldest first (the normal game's unless asked for the custom game's). */
@@ -371,8 +371,8 @@ export function listBackups(mode: PlayMode = 'normal'): number[] {
     .sort((a, b) => a - b);
 }
 
-export function deleteBackup(cycle: number): void {
-  removeItem(`${BACKUP_PREFIX}${cycle}`);
+export function deleteBackup(cycle: number, mode: PlayMode = 'normal'): void {
+  removeItem(`${backupPrefix(mode)}${cycle}`);
 }
 
 // M6: save slots. Slot 0 is the live autosave; slots 1–3 are the player's own.

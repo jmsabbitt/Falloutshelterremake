@@ -388,9 +388,11 @@ export class Game {
   }
 
   /** Throw the stored Custom Game away (switching to the homestead first if it is live). */
-  deleteCustom(): void {
-    if (this.isCustom) this.switchTo('normal');
+  deleteCustom(): boolean {
+    // Only clear the sandbox once the homestead is back; otherwise both would be gone.
+    if (this.isCustom && !this.switchTo('normal').ok) return false;
     clearSave(CUSTOM_SLOT);
+    return true;
   }
 
   exportSave(): string {
@@ -439,10 +441,7 @@ export class Game {
   reset(): boolean {
     // No undo copy, no reset: storage is full and the homestead would be gone for good.
     if (!this.keepUndo()) return false;
-    if (this.isCustom) {
-      this.deleteCustom();
-      return true;
-    }
+    if (this.isCustom) return this.deleteCustom();
     clearSave();
     this.replaceState(newGame(this.content, { tutorial: true }));
     this.claimDaily();
