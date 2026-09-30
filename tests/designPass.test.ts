@@ -3,6 +3,7 @@
 import { describe, expect, it } from 'vitest';
 import { advance, applyCommand, crateOrderPrice, loadContent, newGame, type GameState } from '../src/sim';
 import { startIncident } from '../src/sim/systems/incidents';
+import { parseSettings, TEXT_SCALES } from '../src/client/platform/settings';
 
 const content = loadContent();
 
@@ -95,5 +96,13 @@ describe('the Halcyon Catalogue', () => {
     s.scrip = o.baseScrip - 1;
     expect(applyCommand(s, content, { type: 'orderCrate' }).ok).toBe(false);
     expect(s.scrip).toBe(o.baseScrip - 1);
+  });
+});
+
+describe('text size setting', () => {
+  it('defaults to normal and keeps only the offered sizes', () => {
+    expect(parseSettings(undefined).textScale).toBe(1);
+    for (const v of TEXT_SCALES) expect(parseSettings({ textScale: v }).textScale).toBe(v);
+    for (const junk of [2, 0, '1.3', null, 1.2]) expect(parseSettings({ textScale: junk }).textScale).toBe(1);
   });
 });
