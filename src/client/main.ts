@@ -134,7 +134,10 @@ async function boot(): Promise<void> {
   app.ticker.add((ticker) => {
     const dt = ticker.deltaMS / 1000;
     const t0 = performance.now();
-    runStage('sim', () => game.update(dt));
+    // The sim gets the real time since the last frame. Pixi clamps deltaMS to
+    // 100 ms, so slow frames would otherwise lose game time for good (and the
+    // long-gap catch-up in game.update would never fire); animation keeps the clamp.
+    runStage('sim', () => game.update(ticker.elapsedMS / 1000));
     const t1 = performance.now();
     runStage('view', () => view.update(Math.min(dt, 0.1)));
     runStage('quest view', () => questView.update(Math.min(dt, 0.1)));
