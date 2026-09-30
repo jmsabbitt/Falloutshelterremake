@@ -239,6 +239,24 @@ describe('auto-assign', () => {
     expect(s.rooms.find((x) => x.id === f.roomId)!.type).toBe('quarters');
   });
 
+  it('fills workshops after production jobs, by the stats their recipes use', () => {
+    const s = game();
+    const shop = build(s, 'weaponshop');
+    const outfits = build(s, 'outfitshop');
+    for (let i = 0; i < 10; i++) {
+      const r = createResident(s, content, { sex: 'm' });
+      r.waiting = false;
+      s.residents.push(r);
+    }
+    for (const r of s.residents) r.roomId = null;
+    autoAssign(s, content);
+    expect(s.residents.filter((r) => r.roomId === shop.id).length).toBeGreaterThan(0);
+    expect(s.residents.filter((r) => r.roomId === outfits.id).length).toBeGreaterThan(0);
+    for (const room of s.rooms.filter((x) => ['generator', 'canteen', 'waterworks'].includes(x.type))) {
+      expect(s.residents.filter((r) => r.roomId === room.id).length).toBe(roomCapacity(content, room));
+    }
+  });
+
   it('sends nobody to quarters when there is no bed for a baby', () => {
     const s = game();
     for (const r of s.residents) r.roomId = null;

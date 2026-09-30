@@ -1,5 +1,5 @@
 // "Auto-assign best fit" (GDD §6.6): put idle adults into the free job slots
-// that suit them best, then pair couples into Quarters while there are beds
+// that suit them best (workshops included), then pair couples into Quarters while there are beds
 // for a baby, then send whoever is left to train. Used by the autoAssign
 // command and, once researched, by the Personnel Office automation.
 
@@ -8,7 +8,8 @@ import { roomDef } from '../grid';
 import { roomCapacity } from '../commands';
 import { population, storageCapacity } from '../economy';
 import { closelyRelated, effectiveStat, isAway, isChild, maxStat, residentsInRoom } from '../residents';
-import type { GameState, Resident, Room } from '../types';
+import type { GameState, Resident, Room, StatKey } from '../types';
+import { workshopRecipes } from './crafting';
 
 /** Remember a resident's job as they leave the homestead for a trip. */
 export function leaveJob(r: Resident): void {
@@ -33,7 +34,7 @@ export function idleAdults(state: GameState): Resident[] {
 
 /**
  * Jobs auto-assign fills first, with their free slots: production, radio
- * and research. Storerooms, workshops and the door are left to the player.
+ * and research. Storerooms and the door are left to the player.
  */
 function jobSlots(state: GameState, content: Content): Map<Room, number> {
   const slots = new Map<Room, number>();
@@ -44,6 +45,13 @@ function jobSlots(state: GameState, content: Content): Map<Room, number> {
     if (free > 0) slots.set(room, free);
   }
   return slots;
+}
+
+/** The stats a workshop's crew would work with right now. */
+function workshopStats(content: Content, room: Room): StatKey[] {
+  const onBench = room.job && room.job.remaining > 0 ? content.items[room.job.defId]?.craftStat : undefined;
+  if (onBench) return [onBench as StatKey];
+  return [...new Set(workshopRecipes(content, room).map((x) => content.items[x.defId]?.craftStat as StatKey | undefined).filter((k): k is StatKey => !!k))];
 }
 
 /** Free slots in rooms of one category (any stat), in room order. */
@@ -117,6 +125,12 @@ export function autoAssign(state: GameState, content: Content): number {
   let count = fill(idle, jobSlots(state, content), (r, room) => {
     const stat = roomDef(content, room).stat;
     return stat ? effectiveStat(content, r, stat) : null;
+  });
+  // Then the workshops: the stat the job on the bench needs, or with the
+  // bench empty, the best of the stats its recipes use.
+  count += fill(idle, freeSlots(state, content, 'workshop'), (r, room) => {
+    const stats = workshopStats(content, room);
+    return stats.length ? Math.max(...stats.map((k) => effectiveStat(content, r, k))) : null;
   });
   count += fillQuarters(state, content, idle);
   // Training last: each resident works on the stat nearest the top they can
