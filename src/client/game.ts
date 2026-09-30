@@ -32,7 +32,7 @@ import { questConsole } from './questDev';
 import { qolConsole } from './qolDev';
 import { m7Console } from './m7Dev';
 import { customConsole } from './customDev';
-import { clearSave, CUSTOM_SLOT, liveSlot, readActiveMode, readSave, writeActiveMode, writeBackup, writeSave, writeUndo, type PlayMode } from './storage';
+import { clearSave, CUSTOM_SLOT, liveSlot, readActiveMode, readSave, setAsideSave, writeActiveMode, writeBackup, writeSave, writeUndo, type PlayMode } from './storage';
 
 type Listener = (events: GameEvent[]) => void;
 type LifecycleListener = (phase: 'suspend' | 'resume') => void;
@@ -80,6 +80,8 @@ export class Game {
   /** Told when game.state is swapped for a different homestead (found, import, reset). */
   private replaceListeners = new Set<() => void>();
   private lastSave = 0;
+  /** True while slot 0 holds an unreadable save that couldn't be set aside: autosave leaves it alone until the player replaces the game. */
+  private holdSlot0 = false;
   /** M6: the latest absence, kept (unlike lastCatchUp) until the homestead is replaced. */
   lastAway: AwayReport | null = null;
   /** M6: true while flush() is handing out the events raised during an offline catch-up. */
@@ -107,6 +109,9 @@ export class Game {
       this.state = loaded;
       this.catchUpNow();
     } else {
+      // A save that is there but can't be read is set aside before the fresh
+      // homestead autosaves over it. If even that fails, slot 0 is left alone.
+      this.holdSlot0 = !setAsideSave(0);
       this.state = newGame(this.content, { tutorial: true });
     }
     this.claimDaily();
@@ -186,6 +191,7 @@ export class Game {
     this.awayPending = null;
     drainEvents(this.state);
     this.layoutVersion++;
+    this.holdSlot0 = false;
     this.save();
     for (const fn of this.replaceListeners) fn();
     this.flush();
@@ -294,6 +300,7 @@ export class Game {
   save(): void {
     this.stampClock();
     const mode = this.mode;
+    if (this.holdSlot0 && liveSlot(mode) === 0) return;
     writeSave(serialize(this.state), liveSlot(mode));
     writeActiveMode(mode);
     this.lastSave = Date.now();

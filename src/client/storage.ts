@@ -390,6 +390,23 @@ export function writeUndo(json: string): boolean {
   return writeEncoded(UNDO_KEY, json);
 }
 
+// A live save that was there at boot but couldn't be read (from a newer build,
+// or damaged) is set aside here untouched before a fresh homestead autosaves
+// over its slot, so it can still be recovered.
+const UNREADABLE_KEY = `${PREFIX}save.unreadable`;
+
+/** Copy a slot's stored value, as it is, to the unreadable-save key. True if there was nothing to copy or the copy is stored. */
+export function setAsideSave(slot: SlotId = 0): boolean {
+  const raw = getItem(KEY(slot));
+  if (raw === null) return true;
+  return setItem(UNREADABLE_KEY, raw);
+}
+
+/** The save set aside at boot as unreadable, still in its stored form, or null. */
+export function readSetAside(): string | null {
+  return getItem(UNREADABLE_KEY);
+}
+
 export function clearUndo(): void {
   removeItem(UNDO_KEY);
 }
