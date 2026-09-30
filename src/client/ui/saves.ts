@@ -92,7 +92,7 @@ export class SaveSlots {
         h(
           'div',
           { class: 'sv-actions' },
-          h('button', { onclick: () => (this.game.save(), this.host.toast('Saved', 'good')) }, 'Save now'),
+          h('button', { onclick: () => (this.game.save() ? this.host.toast('Saved', 'good') : this.host.toast("Couldn't save: storage is full. Export a copy to keep your progress.", 'bad')) }, 'Save now'),
           h('button', { onclick: () => downloadFile(`homestead-${state.homesteadNumber}.json`, this.game.exportSave()) }, '⤓ Export'),
           this.importButton('⤒ Import & play', (json) => this.load(json, 'the imported save', false)),
         ),

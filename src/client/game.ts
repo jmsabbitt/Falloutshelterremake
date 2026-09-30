@@ -82,6 +82,9 @@ export class Game {
   private lastSave = 0;
   /** True while slot 0 holds an unreadable save that couldn't be set aside: autosave leaves it alone until the player replaces the game. */
   private holdSlot0 = false;
+  /** True while autosaves are failing (the storage quota is full); the UI is told once when it starts. */
+  saveFailing = false;
+  private saveErrorListeners = new Set<() => void>();
   /** M6: the latest absence, kept (unlike lastCatchUp) until the homestead is replaced. */
   lastAway: AwayReport | null = null;
   /** M6: true while flush() is handing out the events raised during an offline catch-up. */
@@ -141,6 +144,12 @@ export class Game {
   onLifecycle(fn: LifecycleListener): () => void {
     this.lifecycleListeners.add(fn);
     return () => this.lifecycleListeners.delete(fn);
+  }
+
+  /** Listen for autosaves starting to fail (called once, until a save succeeds again). */
+  onSaveError(fn: () => void): () => void {
+    this.saveErrorListeners.add(fn);
+    return () => this.saveErrorListeners.delete(fn);
   }
 
   /** M8: listen for every command the player runs, with its result (e.g. to ask for notification permission). */
@@ -297,13 +306,19 @@ export class Game {
    * Autosave into the live slot of this game's mode: slot 0 for the homestead,
    * the custom slot for a Custom Game. A custom state never lands in slot 0.
    */
-  save(): void {
+  save(): boolean {
     this.stampClock();
     const mode = this.mode;
-    if (this.holdSlot0 && liveSlot(mode) === 0) return;
-    writeSave(serialize(this.state), liveSlot(mode));
+    if (this.holdSlot0 && liveSlot(mode) === 0) return false;
+    const ok = writeSave(serialize(this.state), liveSlot(mode));
     writeActiveMode(mode);
     this.lastSave = Date.now();
+    if (!ok && !this.saveFailing) {
+      this.saveFailing = true;
+      for (const fn of this.saveErrorListeners) fn();
+    }
+    if (ok) this.saveFailing = false;
+    return ok;
   }
 
   // ---------------------------------------------------------------- M9: Custom Game
@@ -393,14 +408,13 @@ export class Game {
    * slot of the incoming game's mode, which may not be the one playing now
    * (loading a custom save while on the homestead replaces the Custom Game).
    */
-  private keepUndo(nextMode: PlayMode = this.mode): void {
+  private keepUndo(nextMode: PlayMode = this.mode): boolean {
     this.stampClock();
     if (nextMode === this.mode) {
-      writeUndo(serialize(this.state));
-      return;
+      return writeUndo(serialize(this.state));
     }
     const stored = readSave(liveSlot(nextMode));
-    if (stored) writeUndo(stored);
+    return stored ? writeUndo(stored) : true;
   }
 
   /**
@@ -422,17 +436,18 @@ export class Game {
    * Start over. M9: in a Custom Game this ends the sandbox and goes back to the
    * homestead, which is never touched.
    */
-  reset(): void {
+  reset(): boolean {
+    // No undo copy, no reset: storage is full and the homestead would be gone for good.
+    if (!this.keepUndo()) return false;
     if (this.isCustom) {
-      this.keepUndo();
       this.deleteCustom();
-      return;
+      return true;
     }
-    this.keepUndo();
     clearSave();
     this.replaceState(newGame(this.content, { tutorial: true }));
     this.claimDaily();
     this.save();
+    return true;
   }
 
   /** Hand queued sim events to listeners (the dev console calls this after direct edits). */
