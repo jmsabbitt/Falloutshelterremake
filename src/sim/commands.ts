@@ -197,8 +197,8 @@ function dispatch(state: GameState, content: Content, cmd: Command): CommandResu
       if (room.ready) {
         const def = roomDef(content, room);
         const key = def.produces?.resource;
-        const extra = batchOutput(content, room) * (room.banked ?? 0);
-        if (key && extra > 0 && resourceCapacity(state, content, key) - state.resources[key] <= extra) {
+        const need = batchOutput(content, room) * (1 + (room.banked ?? 0));
+        if (key && resourceCapacity(state, content, key) - state.resources[key] < need) {
           return fail('storage is full: make room for its finished batches first');
         }
         collectRoom(state, content, room);
@@ -259,7 +259,7 @@ function dispatch(state: GameState, content: Content, cmd: Command): CommandResu
       room.floor = cmd.floor;
       room.x = cmd.x;
       bump(state, 'roomsMoved');
-      const into = mergeFloor(state, content, cmd.floor);
+      const into = mergeFloor(state, content, cmd.floor, (r) => collectRoom(state, content, r));
       for (const id of into) {
         const grown = findRoom(state, id);
         if (!grown) continue;
@@ -563,7 +563,7 @@ function dispatch(state: GameState, content: Content, cmd: Command): CommandResu
 }
 
 function afterLayoutChange(state: GameState, content: Content, floor: number): void {
-  for (const id of mergeFloor(state, content, floor)) {
+  for (const id of mergeFloor(state, content, floor, (r) => collectRoom(state, content, r))) {
     const room = findRoom(state, id);
     if (!room) continue;
     bump(state, 'merges');
