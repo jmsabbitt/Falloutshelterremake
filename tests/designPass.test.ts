@@ -1,5 +1,6 @@
 // Design changes from the playtest's open questions, each one a separate commit
 // so it can be kept or dropped on its own.
+import { arrowDirection, stepRoom, type RoomSpot } from '../src/client/ui/keyboardRooms';
 import { describe, expect, it } from 'vitest';
 import { advance, applyCommand, crateOrderPrice, loadContent, newGame, type GameState } from '../src/sim';
 import { startIncident } from '../src/sim/systems/incidents';
@@ -104,5 +105,44 @@ describe('text size setting', () => {
     expect(parseSettings(undefined).textScale).toBe(1);
     for (const v of TEXT_SCALES) expect(parseSettings({ textScale: v }).textScale).toBe(v);
     for (const junk of [2, 0, '1.3', null, 1.2]) expect(parseSettings({ textScale: junk }).textScale).toBe(1);
+  });
+});
+
+describe('keyboard access to rooms', () => {
+  // Floor 0: A [0-3) B [3-6) C [8-10); floor 1: D [4-7); floor 3: E [0-2)
+  const rooms: RoomSpot[] = [
+    { id: 1, floor: 0, x: 0, cells: 3 },
+    { id: 2, floor: 0, x: 3, cells: 3 },
+    { id: 3, floor: 0, x: 8, cells: 2 },
+    { id: 4, floor: 1, x: 4, cells: 3 },
+    { id: 5, floor: 3, x: 0, cells: 2 },
+  ];
+
+  it('maps only the arrow keys', () => {
+    expect(arrowDirection('ArrowLeft')).toBe('left');
+    expect(arrowDirection('ArrowDown')).toBe('down');
+    expect(arrowDirection('Enter')).toBeNull();
+  });
+
+  it('starts at the given room, or the first one', () => {
+    expect(stepRoom(rooms, null, 'right', 3)).toBe(3);
+    expect(stepRoom(rooms, null, 'right')).toBe(1);
+    expect(stepRoom(rooms, 99, 'left', 2)).toBe(2);
+    expect(stepRoom([], null, 'left')).toBeNull();
+  });
+
+  it('walks along a floor to the nearest room and stops at the ends', () => {
+    expect(stepRoom(rooms, 1, 'right')).toBe(2);
+    expect(stepRoom(rooms, 2, 'right')).toBe(3);
+    expect(stepRoom(rooms, 3, 'right')).toBe(3);
+    expect(stepRoom(rooms, 1, 'left')).toBe(1);
+  });
+
+  it('moves between floors to the closest room, skipping empty floors', () => {
+    expect(stepRoom(rooms, 3, 'down')).toBe(4);
+    expect(stepRoom(rooms, 4, 'up')).toBe(2);
+    expect(stepRoom(rooms, 4, 'down')).toBe(5);
+    expect(stepRoom(rooms, 5, 'down')).toBe(5);
+    expect(stepRoom(rooms, 1, 'up')).toBe(1);
   });
 });

@@ -377,6 +377,8 @@ export class VaultView {
   coachRoomIds: number[] = [];
   /** Residents the coach names ("drag Edna and Mort"): they wear a name tag so a new player can find them. */
   coachResidentIds: number[] = [];
+  /** The room the arrow keys have highlighted (ui.ts installRoomKeys), or null. */
+  keyboardRoomId: number | null = null;
   private coachTags = new Map<number, { root: Container; text: string }>();
   private coachLayer = new Graphics();
   /** Screen space the DOM covers (HUD, toolbar, open panel), so the camera can pan rooms out from under it. */
@@ -1646,6 +1648,12 @@ export class VaultView {
     const g = this.coachLayer;
     g.clear();
     this.drawCoachTags();
+    const kb = this.keyboardRoomId === null ? undefined : this.game.state.rooms.find((r) => r.id === this.keyboardRoomId);
+    if (kb) {
+      // Keyboard focus: a steady amber frame, distinct from the coach's breathing teal.
+      const r = this.roomRect(kb);
+      g.roundRect(r.x - 4, r.y - 4, r.w + 8, r.h + 8, 6).stroke({ width: 4, color: 0xf2a541, alpha: 0.95 });
+    }
     if (!this.coachRoomIds.length) return;
     const pulse = reducedMotion() ? 0.85 : 0.55 + 0.45 * Math.sin(this.time * 4);
     for (const id of this.coachRoomIds) {
