@@ -554,7 +554,7 @@ function dispatch(state: GameState, content: Content, cmd: Command): CommandResu
     case 'autoAssign': {
       if (!idleAdults(state).length) return fail('nobody is idle');
       const n = autoAssign(state, content);
-      return n > 0 ? { ok: true, detail: `${n} assigned` } : fail('no free slots in jobs, workshops, Quarters or training rooms');
+      return n > 0 ? { ok: true, detail: `${n} assigned` } : fail('every room is full');
     }
   }
 }

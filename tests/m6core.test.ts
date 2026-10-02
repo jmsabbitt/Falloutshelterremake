@@ -69,16 +69,14 @@ describe('M6 core', () => {
     expect(s.resources.power).toBeGreaterThan(0);
   });
 
-  it('auto-assign sends only couples to quarters, and nobody to storerooms', () => {
+  it('auto-assign fills jobs before quarters', () => {
     const s = game();
     applyCommand(s, content, { type: 'autoAssign' });
     const quarters = s.rooms.filter((x) => x.type === 'quarters').map((q) => q.id);
-    for (const id of quarters) {
-      const here = s.residents.filter((r) => r.roomId === id);
-      expect(here.filter((r) => r.sex === 'f').length).toBe(here.filter((r) => r.sex === 'm').length);
+    const jobs = s.rooms.filter((x) => x.type === 'generator' || x.type === 'canteen' || x.type === 'waterworks');
+    if (s.residents.some((r) => r.roomId !== null && quarters.includes(r.roomId))) {
+      for (const room of jobs) expect(s.residents.filter((r) => r.roomId === room.id).length).toBe(room.segments * 2);
     }
-    const stores = s.rooms.filter((x) => x.type === 'storeroom').map((q) => q.id);
-    expect(s.residents.some((r) => r.roomId !== null && stores.includes(r.roomId))).toBe(false);
   });
 
   it('threat rating rises with level and falls with defense research', () => {

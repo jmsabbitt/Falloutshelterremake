@@ -209,12 +209,6 @@ describe('auto-assign', () => {
     const trainees = s.residents.filter((r) => r.roomId === gym.id);
     expect(trainees.length).toBeGreaterThan(0);
     for (const t of trainees) expect(t.stats.brawn).toBeLessThan(maxStat(content));
-    const quarters = s.rooms.filter((x) => x.type === 'quarters');
-    for (const q of quarters) {
-      const here = s.residents.filter((r) => r.roomId === q.id);
-      expect(here.filter((r) => r.sex === 'f').length).toBe(here.filter((r) => r.sex === 'm').length);
-      for (const w of here.filter((r) => r.sex === 'f')) expect(w.pregnancy).toBeNull();
-    }
   });
 
   it('pairs an unrelated couple into quarters when there are beds', () => {
@@ -255,6 +249,57 @@ describe('auto-assign', () => {
     for (const room of s.rooms.filter((x) => ['generator', 'canteen', 'waterworks'].includes(x.type))) {
       expect(s.residents.filter((r) => r.roomId === room.id).length).toBe(roomCapacity(content, room));
     }
+  });
+
+  it('fills every room that takes a crew, at every level', () => {
+    const s = game();
+    s.peakPopulation = 200;
+    s.research.done.push(...Object.values(content.rooms).flatMap((d) => (d.requiresResearch ? [d.requiresResearch] : [])));
+    const built: Room[] = [];
+    for (const def of Object.values(content.rooms)) {
+      if (!def.buildable || def.capacityPerSegment === 0 || def.category === 'door') continue;
+      try {
+        built.push(build(s, def.id));
+      } catch {
+        // No slot on the grid for this one (deep or topside): fine, the rest still count.
+      }
+    }
+    expect(new Set(built.map((r) => r.type)).size).toBeGreaterThanOrEqual(18);
+    // The ones the grid here has no place for (topside and deep) are all jobs.
+    for (const def of Object.values(content.rooms)) {
+      if (def.capacityPerSegment > 0) expect(['production', 'radio', 'research', 'workshop', 'door', 'living', 'training', 'storage'], def.id).toContain(def.category);
+      if (def.capacityPerSegment > 0 && def.category === 'production') expect(def.stat, def.id).toBeTruthy();
+    }
+    // Upgraded rooms take people too.
+    for (const room of built) room.level = 1 + (room.id % 3);
+    for (let i = 0; i < 200; i++) {
+      const r = createResident(s, content, { sex: 'm' });
+      r.waiting = false;
+      s.residents.push(r);
+    }
+    for (const r of s.residents) r.roomId = null;
+    autoAssign(s, content);
+    const door = s.rooms.find((x) => x.type === 'door')!;
+    for (const room of [...built, door]) {
+      expect(s.residents.filter((r) => r.roomId === room.id).length, `${room.type} L${room.level}`).toBe(roomCapacity(content, room));
+    }
+  });
+
+  it('puts single residents in quarters once everything else is full, without starting a family it has no bed for', () => {
+    const s = game();
+    for (const r of s.residents) r.roomId = null;
+    // More people than beds, and more than the jobs and the door can take.
+    while (population(s) < storageCapacity(s, content, 'population') + 6) {
+      const r = createResident(s, content, {});
+      r.waiting = false;
+      s.residents.push(r);
+    }
+    const quarters = s.rooms.find((x) => x.type === 'quarters')!;
+    quarters.level = 2; // a Residence
+    autoAssign(s, content);
+    const here = s.residents.filter((r) => r.roomId === quarters.id);
+    expect(here.length).toBeGreaterThan(0);
+    expect(new Set(here.map((r) => r.sex)).size).toBe(1);
   });
 
   it('sends nobody to quarters when there is no bed for a baby', () => {

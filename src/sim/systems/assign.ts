@@ -1,7 +1,15 @@
-// "Auto-assign best fit" (GDD §6.6): put idle adults into the free job slots
-// that suit them best (workshops included), then pair couples into Quarters while there are beds
-// for a baby, then send whoever is left to train. Used by the autoAssign
-// command and, once researched, by the Personnel Office automation.
+// "Auto-assign best fit" (GDD §6.6): every room that takes a crew is in the
+// order somewhere, at every level:
+//   1. jobs (production, radio, research) by the stat each room works with;
+//   2. workshops, by the stat of the job on the bench (or their recipes');
+//   3. the door, best armed first;
+//   4. couples into Quarters, while there's a bed for each baby on the way;
+//   5. training rooms, each resident to their best stat not yet maxed;
+//   6. storerooms, by the stat they use;
+//   7. anyone still idle into Quarters, by Charm (without starting a family
+//      the homestead has no bed for).
+// Used by the autoAssign command and, once researched, by the Personnel
+// Office automation.
 
 import type { Content } from '../content';
 import { roomDef } from '../grid';
@@ -10,6 +18,7 @@ import { population, storageCapacity } from '../economy';
 import { closelyRelated, effectiveStat, isAway, isChild, maxStat, residentsInRoom } from '../residents';
 import type { GameState, Resident, Room, StatKey } from '../types';
 import { workshopRecipes } from './crafting';
+import { avgDamage } from './gearFit';
 
 /** Remember a resident's job as they leave the homestead for a trip. */
 export function leaveJob(r: Resident): void {
@@ -96,6 +105,12 @@ function place(r: Resident, room: Room, slots: Map<Room, number>, idle: Resident
   idle.splice(idle.indexOf(r), 1);
 }
 
+/** Beds free once every baby on the way (or courtship under way) has one. */
+function freeBeds(state: GameState, content: Content): number {
+  const expecting = state.residents.filter((r) => !r.dead && (r.pregnancy || r.courtship)).length;
+  return storageCapacity(state, content, 'population') - population(state) - expecting;
+}
+
 /**
  * Couples for Quarters: an idle woman who isn't expecting and an idle man
  * who isn't close family, into Quarters with two free beds, while the
@@ -103,8 +118,7 @@ function place(r: Resident, room: Room, slots: Map<Room, number>, idle: Resident
  */
 function fillQuarters(state: GameState, content: Content, idle: Resident[]): number {
   const slots = freeSlots(state, content, 'living');
-  const expecting = state.residents.filter((r) => !r.dead && (r.pregnancy || r.courtship)).length;
-  let beds = storageCapacity(state, content, 'population') - population(state) - expecting;
+  let beds = freeBeds(state, content);
   let count = 0;
   for (const woman of idle.filter((r) => r.sex === 'f' && r.pregnancy === null)) {
     if (beds <= 0) break;
@@ -132,13 +146,26 @@ export function autoAssign(state: GameState, content: Content): number {
     const stats = workshopStats(content, room);
     return stats.length ? Math.max(...stats.map((k) => effectiveStat(content, r, k))) : null;
   });
+  // The door: whoever hits hardest stands guard.
+  count += fill(idle, freeSlots(state, content, 'door'), (r) => avgDamage(r.weapon ? content.items[r.weapon] : undefined) * 100 + r.level);
   count += fillQuarters(state, content, idle);
-  // Training last: each resident works on the stat nearest the top they can
-  // still raise, so they grow into the jobs they're best at.
+  // Training: each resident works on the stat nearest the top they can still
+  // raise, so they grow into the jobs they're best at.
   const cap = maxStat(content);
   count += fill(idle, freeSlots(state, content, 'training'), (r, room) => {
     const stat = roomDef(content, room).stat;
     return stat && r.stats[stat] < cap ? r.stats[stat] : null;
+  });
+  // Storerooms, by the stat they use.
+  count += fill(idle, freeSlots(state, content, 'storage'), (r, room) => {
+    const stat = roomDef(content, room).stat;
+    return stat ? effectiveStat(content, r, stat) : 0;
+  });
+  // Anyone left goes home to Quarters. With no bed for a baby, nobody joins
+  // a room where they'd start a courtship.
+  count += fill(idle, freeSlots(state, content, 'living'), (r, room) => {
+    if (freeBeds(state, content) <= 0 && residentsInRoom(state, room.id).some((x) => x.sex !== r.sex && !isChild(state, x) && !closelyRelated(state, r, x))) return null;
+    return effectiveStat(content, r, 'charm');
   });
   if (count) state.events.push({ type: 'autoAssigned', count });
   return count;
