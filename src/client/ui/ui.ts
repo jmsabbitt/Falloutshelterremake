@@ -3283,6 +3283,7 @@ export class UI {
       'While you were away',
       h('p', {}, `${duration(s.seconds)} passed. ${ready} ${extras}`),
       came ? h('p', { class: 'away-collected' }, `📦 ${came} collected while you were away.`) : '',
+      s.sold ? h('p', { class: 'away-collected' }, `💰 ${fmt(s.sold)} scrip from batches sold on once storage was full.`) : '',
       trained ? h('p', {}, `💪 ${trained}`) : '',
       ...glare.map((t) => h('p', {}, t)),
       s.cappedAt ? h('p', { class: 'muted' }, `Offline progress is capped at ${duration(s.cappedAt)}.`) : '',

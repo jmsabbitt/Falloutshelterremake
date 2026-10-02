@@ -173,31 +173,10 @@ describe('reminders: storage', () => {
     return s;
   }
 
-  it('one grouped reminder for when every working room is sitting on a batch', () => {
+  it('no storage reminder: rooms with a crew keep working (and selling) while away', () => {
     const s = staffed();
-    s.resources.power = resourceCapacity(s, content, 'power');
-    const list = upcomingReminders(s, content);
-    const storage = list.filter((r) => r.kind === 'storage');
-    expect(storage).toHaveLength(1);
-    const rem = storage[0] as Reminder;
-    expect(rem.body).toMatch(/full of/);
-    const producers = () => s.rooms.filter((r) => ['generator', 'canteen', 'waterworks'].includes(r.type));
-    const before = structuredClone(s);
-    away(before, rem.inSeconds - 61);
-    expect(before.rooms.filter((r) => ['generator', 'canteen', 'waterworks'].includes(r.type)).every((r) => r.ready)).toBe(false);
-    away(s, rem.inSeconds + 5);
-    expect(producers().every((r) => r.ready)).toBe(true);
-  });
-
-  it('still lines up when the power runs low in the first minutes', () => {
-    const s = staffed(9);
-    s.resources.power = 3; // below the shortage line: some rooms go dark
-    const rem = find(upcomingReminders(s, content), 'storage');
-    if (!rem) return; // nothing can finish in the dark: nothing to predict
-    const copy = structuredClone(s);
-    away(copy, rem.inSeconds + 5);
-    const working = copy.rooms.filter((r) => ['generator', 'canteen', 'waterworks'].includes(r.type) && r.ready);
-    expect(working.length).toBeGreaterThan(0);
+    for (const k of ['power', 'food', 'water'] as const) s.resources[k] = resourceCapacity(s, content, k);
+    expect(find(upcomingReminders(s, content), 'storage')).toBeUndefined();
   });
 
   it('no reminder when nobody works', () => {

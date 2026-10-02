@@ -108,6 +108,8 @@ export interface CatchUpSummary {
   batches: number;
   /** Playtest 1: what offline auto-collection put into storage, per resource. */
   collected: Partial<Record<ResourceKey, number>>;
+  /** Scrip from finished batches sold on because storage was full. */
+  sold: number;
 }
 
 const COLLECTED: readonly ResourceKey[] = ['power', 'food', 'water', 'medpatch', 'purge'];
@@ -124,6 +126,7 @@ export function catchUp(state: GameState, content: Content, nowMs: number): Catc
   const arrivals0 = (state.stats['arrivals.radio'] ?? 0) + (state.stats['arrivals.wanderer'] ?? 0);
   const research0 = state.stats['researchPoints'] ?? 0;
   const refined0 = state.stats['refinedSalvage'] ?? 0;
+  const sold0 = state.stats['offlineSoldScrip'] ?? 0;
   const collected0 = COLLECTED.map((k) => state.stats[`offlineCollected.${k}`] ?? 0);
 
   let elapsed = 0;
@@ -148,6 +151,7 @@ export function catchUp(state: GameState, content: Content, nowMs: number): Catc
     arrivals: (state.stats['arrivals.radio'] ?? 0) + (state.stats['arrivals.wanderer'] ?? 0) - arrivals0,
     research: Math.floor((state.stats['researchPoints'] ?? 0) - research0),
     refined: (state.stats['refinedSalvage'] ?? 0) - refined0,
+    sold: Math.round((state.stats['offlineSoldScrip'] ?? 0) - sold0),
     batches: state.rooms.reduce((n, r) => n + (r.ready ? 1 + (r.banked ?? 0) : 0), 0),
     collected: Object.fromEntries(
       COLLECTED.map((k, i) => [k, Math.round((state.stats[`offlineCollected.${k}`] ?? 0) - (collected0[i] ?? 0))] as const).filter(([, v]) => v > 0),

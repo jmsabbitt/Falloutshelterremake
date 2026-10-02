@@ -478,8 +478,8 @@
       "perBuilt": 600
     },
     "upgrade": [
-      8000,
-      60000
+      4000,
+      20000
     ],
     "upgradePop": [
       45,
@@ -507,8 +507,8 @@
       "perBuilt": 900
     },
     "upgrade": [
-      12000,
-      90000
+      6000,
+      30000
     ],
     "upgradePop": [
       55,
@@ -567,7 +567,7 @@
     },
     "upgrade": [
       3000,
-      9000
+      6000
     ],
     "cells": 3,
     "maxSegments": 3,
@@ -592,7 +592,7 @@
     },
     "upgrade": [
       1500,
-      4500
+      3000
     ],
     "cells": 3,
     "maxSegments": 3,
@@ -617,7 +617,7 @@
     },
     "upgrade": [
       1500,
-      4500
+      3000
     ],
     "cells": 3,
     "maxSegments": 3,
@@ -642,7 +642,7 @@
     },
     "upgrade": [
       1500,
-      4500
+      3000
     ],
     "cells": 3,
     "maxSegments": 3,
@@ -667,7 +667,7 @@
     },
     "upgrade": [
       1500,
-      4500
+      3000
     ],
     "cells": 3,
     "maxSegments": 3,
@@ -692,7 +692,7 @@
     },
     "upgrade": [
       2250,
-      6750
+      4500
     ],
     "cells": 3,
     "maxSegments": 3,
@@ -717,7 +717,7 @@
     },
     "upgrade": [
       2250,
-      6750
+      4500
     ],
     "cells": 3,
     "maxSegments": 3,
@@ -742,7 +742,7 @@
     },
     "upgrade": [
       2250,
-      6750
+      4500
     ],
     "cells": 3,
     "maxSegments": 3,
@@ -767,7 +767,7 @@
     },
     "upgrade": [
       2250,
-      6750
+      4500
     ],
     "cells": 3,
     "maxSegments": 3,

@@ -91,6 +91,9 @@ export function tickProduction(state: GameState, content: Content, dt: number, o
     if (!res) return;
     if (!caps.has(res)) caps.set(res, resourceCapacity(state, content, res));
     if (state.resources[res] < (caps.get(res) as number)) collectRoom(state, content, room, { efficiency: eff, offline: true });
+    // Storage is full: the batch is sold on for its per-batch scrip (no lucky
+    // rolls), so the room keeps earning while the player is away.
+    else sellOverflow(state, content, room, eff);
   };
   // Bonuses are the same for every room of a resource this step; look them up once.
   const mults = new Map<string, number>();
@@ -119,6 +122,29 @@ export function tickProduction(state: GameState, content: Content, dt: number, o
       }
     }
   }
+}
+
+/** A room's per-batch scrip: more for wider rooms and higher levels. */
+export function batchScrip(content: Content, room: Room): number {
+  const bs = content.balance.bonusScrip;
+  return bs.basePerSegment * (1 + bs.perLevel * (room.level - 1)) * room.segments;
+}
+
+/**
+ * Offline, a finished batch with no room in storage: paid out as its
+ * per-batch scrip at `eff`, and the room starts on the next one. Quiet (no
+ * event per batch); the away summary reports the total.
+ */
+function sellOverflow(state: GameState, content: Content, room: Room, eff: number): void {
+  if (!room.ready || workersInRoom(state, room.id).length === 0) return;
+  const batches = 1 + (room.banked ?? 0);
+  room.ready = false;
+  room.banked = 0;
+  const scrip = Math.round(batchScrip(content, room) * batches * eff * (content.balance.offline.overflowScrip ?? 1));
+  if (scrip <= 0) return;
+  addScrip(state, content, scrip);
+  bump(state, 'collectScrip', scrip);
+  bump(state, 'offlineSoldScrip', scrip);
 }
 
 /** Bonus scrip roll on collection (research 01 §4.2). Returns scrip awarded. */
@@ -166,8 +192,7 @@ export function collectRoom(state: GameState, content: Content, room: Room, opts
   room.banked = Math.max(0, left - 1);
 
   // A little scrip for every batch, so income isn't only lucky rolls; bonus rolls come on top.
-  const bs = content.balance.bonusScrip;
-  const base = workersInRoom(state, room.id).length ? Math.round(bs.basePerSegment * (1 + bs.perLevel * (room.level - 1)) * room.segments * batches * eff) : 0;
+  const base = workersInRoom(state, room.id).length ? Math.round(batchScrip(content, room) * batches * eff) : 0;
   if (base) {
     addScrip(state, content, base);
     bump(state, 'collectScrip', base);

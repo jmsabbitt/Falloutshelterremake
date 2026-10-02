@@ -5,6 +5,7 @@ import { describe, expect, it } from 'vitest';
 import {
   advance,
   applyCommand,
+  batchScrip,
   catchUp,
   cycleSeconds,
   loadContent,
@@ -84,25 +85,32 @@ describe('offline auto-collection', () => {
     }
     // Each room had room for several batches: far more than one each came in.
     expect((s.stats['collections'] ?? 0) - collections).toBeGreaterThan(6);
-    // Once storage is full the rest wait for the player.
-    for (const t of ['generator', 'canteen', 'waterworks']) expect(room(s, t).ready, t).toBe(true);
-    expect(summary.readyRooms).toBeGreaterThanOrEqual(3);
+    // Once storage is full, later batches are sold on for their scrip.
+    expect(summary.sold).toBeGreaterThan(0);
   });
 
-  it('full storage leaves the batches ready, and nothing is thrown away', () => {
+  it('with storage full, rooms keep working and sell each batch for its per-batch scrip', () => {
     const s = staffed(5);
-    // Holding Tanks: one extra batch banked per room.
+    // Holding Tanks: banked batches are sold too.
     s.research.done.push('batch_bank_1');
     for (const k of SUPPLIES) s.resources[k] = resourceCapacity(s, content, k);
+    const scrip = s.scrip;
     const summary = catchUp(s, content, T0 + 6 * HOUR);
-    for (const t of ['generator', 'canteen', 'waterworks']) {
-      const r = room(s, t);
-      expect(r.ready, t).toBe(true);
-      expect(r.banked, t).toBe(1);
-    }
-    expect(summary.batches).toBeGreaterThanOrEqual(6);
+    const eff = content.balance.offline.autoCollectEfficiency;
+    // Every room sold well over one batch in six hours.
+    const one = ['generator', 'canteen', 'waterworks'].reduce((n, t) => n + batchScrip(content, room(s, t)) * eff, 0);
+    expect(summary.sold).toBeGreaterThan(one * 3);
+    expect(s.scrip - scrip).toBeGreaterThanOrEqual(summary.sold);
     // Only the first minutes consume, and auto-collection tops that back up.
     for (const k of SUPPLIES) expect(s.resources[k]).toBeGreaterThanOrEqual(resourceCapacity(s, content, k) - 1);
+  });
+
+  it('a room with nobody in it sells nothing', () => {
+    const s = staffed(5);
+    for (const r of s.residents) r.roomId = null;
+    for (const r of s.rooms) r.ready = true;
+    for (const k of SUPPLIES) s.resources[k] = resourceCapacity(s, content, k);
+    expect(catchUp(s, content, T0 + 2 * HOUR).sold).toBe(0);
   });
 
   it('is deterministic, and one long absence lands close to several short ones', () => {
@@ -136,7 +144,8 @@ describe('offline auto-collection', () => {
     expect(s.resources.power).toBeGreaterThanOrEqual(resourceCapacity(s, content, 'power') - 1);
     expect(summary.collected.power ?? 0).toBeGreaterThan(0);
     expect(gen.pool).toBeLessThan(poolSize(content, gen));
-    expect(gen.ready).toBe(true);
+    // Past full storage, each of those quick batches was sold on.
+    expect(summary.sold).toBeGreaterThan(batchScrip(content, gen) * content.balance.offline.autoCollectEfficiency * 100);
   });
 
   it('pays scrip and XP at the offline rate, and marks the batches as gathered while away', () => {

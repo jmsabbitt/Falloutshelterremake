@@ -117,7 +117,8 @@
     "maxCatchUpHours": 72,
     "consumptionMinutes": 5,
     "stepSeconds": 5,
-    "autoCollectEfficiency": 0.5
+    "autoCollectEfficiency": 0.5,
+    "overflowScrip": 1
   },
   "start": {
     "scrip": 1000,

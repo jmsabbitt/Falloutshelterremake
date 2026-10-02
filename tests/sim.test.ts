@@ -242,7 +242,7 @@ describe('time', () => {
     expect(s.stats['collections']).toBeGreaterThan(100);
   }, 30_000);
 
-  it('offline catch-up is safe: no damage, rooms stop once storage is full, consumption stops', () => {
+  it('offline catch-up is safe: no damage, consumption stops, and full storage sells batches on', () => {
     const s = fresh(5);
     staff(s, room(s, 'generator').id, 2);
     const hpBefore = s.residents.map((r) => r.hp);
@@ -250,11 +250,11 @@ describe('time', () => {
     s.resources.water = 0;
     const summary = catchUp(s, content, T0 + 10 * 3600 * 1000);
     expect(summary.seconds).toBe(36_000);
-    expect(room(s, 'generator').ready).toBe(true);
+    expect(summary.sold).toBeGreaterThan(0);
     s.residents.forEach((r, i) => expect(r.hp).toBeGreaterThanOrEqual((hpBefore[i] ?? 0) - 1e-9));
     const power = s.resources.power;
     catchUp(s, content, T0 + 20 * 3600 * 1000);
-    // Only the first few minutes of an absence consume; the generator is waiting on a tap.
+    // Only the first few minutes of an absence consume.
     expect(s.resources.power).toBeGreaterThanOrEqual(power - 10);
   });
 

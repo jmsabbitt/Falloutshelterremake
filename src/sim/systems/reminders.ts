@@ -25,8 +25,8 @@
 // the game is reopened later than that, the sim will not have got there.
 
 import type { Content } from '../content';
-import { bonus, productionMult } from '../bonuses';
-import { population, resourceCapacity, storageCapacity } from '../economy';
+import { bonus } from '../bonuses';
+import { population, storageCapacity } from '../economy';
 import { roomDef } from '../grid';
 import { effectiveStat, isChild } from '../residents';
 import type { GameState, Room } from '../types';
@@ -36,10 +36,10 @@ import { regionDef } from './exploration';
 import { factionDef, tradingPostStaffed } from './factions';
 import { settleIncidentsOffline } from './incidents';
 import { tickNeeds, updatePower } from './needs';
-import { batchOutput, happinessBonus, poolSize, roomStatTotal, tickProduction } from './production';
+import { tickProduction } from './production';
 import { researchContent, researchRate, tickResearch, type ResearchNodeDef } from './research';
 import { traitExplorerTaintMult, tickMastery } from './traits';
-import { tickWeather, weatherMult } from './weather';
+import { tickWeather } from './weather';
 import { isTrainingRoom, trainees, trainingStatus } from './training';
 
 export type ReminderKind =
@@ -106,11 +106,6 @@ function clip(text: string, max: number): string {
 function fit(...options: string[]): string {
   for (const o of options) if (o.length <= BODY_MAX) return o;
   return clip(options[options.length - 1] ?? '', BODY_MAX);
-}
-
-function listNames(items: string[]): string {
-  if (items.length <= 1) return items[0] ?? '';
-  return `${items.slice(0, -1).join(', ')} and ${items[items.length - 1]}`;
 }
 
 // ------------------------------------------------------------------ helpers
@@ -406,30 +401,6 @@ function scratch(state: GameState): GameState {
   };
 }
 
-function batchBank(state: GameState, content: Content): number {
-  return Math.floor(bonus(state, content, 'batchBank'));
-}
-
-function isFull(room: Room, bank: number): boolean {
-  return room.ready && (room.banked ?? 0) >= bank;
-}
-
-/** Production points per second the room makes right now (0 if unpowered, burning or empty). */
-function roomRate(state: GameState, content: Content, room: Room): number {
-  const def = roomDef(content, room);
-  if (!def.produces || !room.powered || state.incidents.some((i) => i.roomId === room.id)) return 0;
-  return roomStatTotal(state, content, room) * (1 + happinessBonus(state, content)) * productionMult(state, content, def.produces.resource) * weatherMult(state, content, room);
-}
-
-/** Seconds until the room holds every batch it can at its current rate (Infinity if it never will). */
-function secondsToFull(state: GameState, content: Content, room: Room, bank: number): number {
-  if (isFull(room, bank)) return 0;
-  const rate = roomRate(state, content, room);
-  if (rate <= 0) return Infinity;
-  const batches = (room.ready ? 0 : 1) + Math.max(0, bank - (room.ready ? (room.banked ?? 0) : 0));
-  return Math.max(0, batches * poolSize(content, room) - room.pool) / rate;
-}
-
 function cheapestOpenNode(state: GameState, content: Content): ResearchNodeDef | null {
   let best: ResearchNodeDef | null = null;
   for (const n of researchContent(content).nodes) {
@@ -440,19 +411,15 @@ function cheapestOpenNode(state: GameState, content: Content): ResearchNodeDef |
 }
 
 function replay(state: GameState, content: Content, limit: number, out: Draft[]): void {
-  const producers = state.rooms.filter((r) => roomDef(content, r).produces);
   const crafting = state.rooms.filter((r) => r.job && r.job.remaining > 0);
   const node = cheapestOpenNode(state, content);
   const wantResearch = node !== null && state.research.points < node.cost;
-  if (!producers.length && !crafting.length && !wantResearch) return;
+  if (!crafting.length && !wantResearch) return;
 
   const s = scratch(state);
-  const bank = batchBank(s, content);
   const rooms = new Map(s.rooms.map((r) => [r.id, r]));
-  const fullAt = new Map<number, number>();
   const craftAt = new Map<number, number>();
   let researchAt: number | null = null;
-  for (const r of producers) if (isFull(rooms.get(r.id) as Room, bank)) fullAt.set(r.id, 0);
 
   // catchUp's schedule: fine steps while consumption runs, then 60 s steps.
   const off = content.balance.offline;
@@ -461,10 +428,6 @@ function replay(state: GameState, content: Content, limit: number, out: Draft[])
   let elapsed = 0;
   const done = (): boolean => {
     if (consumed < window || s.incidents.length) return false;
-    for (const r of producers) {
-      if (fullAt.has(r.id)) continue;
-      if (roomRate(s, content, rooms.get(r.id) as Room) > 0) return false;
-    }
     for (const r of crafting) {
       if (craftAt.has(r.id)) continue;
       if (Number.isFinite(craftTimeLeft(s, content, rooms.get(r.id) as Room))) return false;
@@ -487,35 +450,10 @@ function replay(state: GameState, content: Content, limit: number, out: Draft[])
     s.events.length = 0;
     if (consuming) consumed += dt;
     elapsed += dt;
-    for (const r of producers) if (!fullAt.has(r.id) && isFull(rooms.get(r.id) as Room, bank)) fullAt.set(r.id, elapsed);
     for (const r of crafting) if (!craftAt.has(r.id) && (rooms.get(r.id)?.job?.remaining ?? 0) <= 0) craftAt.set(r.id, elapsed);
     if (wantResearch && researchAt === null && node && s.research.points >= node.cost) researchAt = elapsed;
   }
 
-  // Past the replay: carry on at the rates it ended with. Offline, finished
-  // batches collect themselves, so a room only starts holding batches once
-  // storage for its resource is full (at the combined rate of its rooms).
-  const fillAt = new Map<string, number>();
-  for (const r of producers) {
-    const room = rooms.get(r.id) as Room;
-    const res = roomDef(content, room).produces?.resource;
-    if (!res || fullAt.has(r.id) || fillAt.has(res)) continue;
-    const space = resourceCapacity(s, content, res) - s.resources[res];
-    let perSec = 0;
-    for (const o of producers) {
-      const other = rooms.get(o.id) as Room;
-      if (fullAt.has(o.id) || roomDef(content, other).produces?.resource !== res) continue;
-      perSec += (roomRate(s, content, other) * batchOutput(content, other)) / Math.max(1, poolSize(content, other));
-    }
-    fillAt.set(res, space <= 0 ? 0 : perSec > 0 ? space / perSec : Infinity);
-  }
-  for (const r of producers) {
-    if (fullAt.has(r.id)) continue;
-    const room = rooms.get(r.id) as Room;
-    const fill = fillAt.get(roomDef(content, room).produces?.resource ?? '') ?? 0;
-    const left = fill + secondsToFull(s, content, room, bank);
-    if (Number.isFinite(left)) fullAt.set(r.id, elapsed + left);
-  }
   for (const r of crafting) {
     if (craftAt.has(r.id)) continue;
     const left = craftTimeLeft(s, content, rooms.get(r.id) as Room);
@@ -526,28 +464,8 @@ function replay(state: GameState, content: Content, limit: number, out: Draft[])
     if (rate > 0) researchAt = elapsed + ((node.cost - s.research.points) / rate) * 3600;
   }
 
-  // Storage: one reminder, for when the last working room stops.
-  const stopping = producers.filter((r) => fullAt.has(r.id));
-  const last = Math.max(0, ...stopping.map((r) => fullAt.get(r.id) as number));
-  if (stopping.length && last > 0) {
-    const resources: string[] = [];
-    for (const r of stopping) {
-      const res = roomDef(content, r).produces?.resource;
-      const label = res ? RESOURCE_LABEL[res] ?? res : null;
-      if (label && !resources.includes(label)) resources.push(label);
-    }
-    out.push({
-      key: 'storage',
-      kind: 'storage',
-      inSeconds: last,
-      title: 'Production halted',
-      body: fit(
-        `Your homestead is full of ${listNames(resources)}. Production has stopped until you collect.`,
-        `Your homestead is full of ${listNames(resources)}. Production waits on you.`,
-        'Every production room is sitting on a finished batch. Production waits on you.',
-      ),
-    });
-  }
+  // No storage reminder: away from the game, rooms with a crew never stop.
+  // A batch with no room in storage is sold for its scrip (production.ts).
 
   for (const r of crafting) {
     const at = craftAt.get(r.id);
@@ -574,14 +492,6 @@ function replay(state: GameState, content: Content, limit: number, out: Draft[])
     });
   }
 }
-
-const RESOURCE_LABEL: Record<string, string> = {
-  power: 'Power',
-  food: 'Food',
-  water: 'Water',
-  medpatch: 'Med-Patches',
-  purge: 'Purge',
-};
 
 // ------------------------------------------------------------------ entry point
 
